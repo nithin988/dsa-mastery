@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DSA Mastery</title><style>
+:root{--bg:#fff;--fg:#1c1f24;--mut:#5b6470;--line:#d9dee5;--card:#f6f8fa;--acc:#0b63d1;--hot:#c2410c;--cool:#0e7490;
+--ok:#15803d;--warn:#b45309;--cellbg:#fff;--in:#dbeafe;--okbg:#dcfce7;--dim:#eef0f3;--code:#f2f4f7}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#101418;--fg:#e6e9ee;--mut:#98a2b0;--line:#2b333d;--card:#171c22;--acc:#6cb0ff;--hot:#fb923c;--cool:#22d3ee;--ok:#4ade80;--warn:#fbbf24;--cellbg:#171c22;--in:#16324f;--okbg:#14391f;--dim:#1b2128;--code:#1c222a}}
+:root[data-theme=dark]{--bg:#101418;--fg:#e6e9ee;--mut:#98a2b0;--line:#2b333d;--card:#171c22;--acc:#6cb0ff;--hot:#fb923c;--cool:#22d3ee;--ok:#4ade80;--warn:#fbbf24;--cellbg:#171c22;--in:#16324f;--okbg:#14391f;--dim:#1b2128;--code:#1c222a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+main{max-width:920px;margin:0 auto;padding:16px 16px 80px}
+.bar{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 16px}
+.bar .t{font-weight:700;margin-right:auto}
+.bar button,.bar a.btn,.st-ctl button{font:inherit;font-size:13px;padding:5px 11px;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--fg);cursor:pointer;text-decoration:none}
+.bar button:hover,.bar a.btn:hover,.st-ctl button:hover{border-color:var(--acc)}
+.bar button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.prog{font-size:13px;color:var(--mut)}
+h1{font-size:28px;margin:18px 0 6px}
+h2{font-size:21px;margin:34px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--line);scroll-margin-top:60px}
+h3{font-size:17px;margin:0 0 6px;scroll-margin-top:60px}
+.lead{font-size:16px;color:var(--mut)}
+.muted{color:var(--mut);font-size:13px;font-weight:400}
+a{color:var(--acc)}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:12.5px Consolas,Menlo,monospace}
+pre{background:var(--code);border:1px solid var(--line);border-radius:8px;padding:11px 13px;overflow-x:auto;margin:8px 0}
+pre code{background:none;padding:0}
+.callout{border-left:4px solid var(--acc);background:var(--card);padding:8px 14px;border-radius:0 8px 8px 0;margin:12px 0}
+.callout.intu{border-color:var(--cool)}.callout p{margin:4px 0 2px}
+.pat{margin:26px 0;padding:16px 16px 6px;border:1px solid var(--line);border-radius:12px}
+.tier{font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;border:1px solid currentColor;margin-left:6px;white-space:nowrap}
+.tier.hot{color:var(--hot)}.tier.sec{color:var(--cool)}
+.tw{overflow-x:auto;margin:8px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--card)}
+.ladder td:first-child{width:28px;text-align:center}
+.cx{white-space:nowrap}
+.dE{color:var(--ok);font-weight:600}.dM{color:var(--warn);font-weight:600}.dH{color:var(--hot);font-weight:600}
+tr.done td{background:var(--okbg)}
+details{border:1px solid var(--line);border-radius:8px;padding:7px 12px;margin:7px 0;background:var(--card)}
+summary{cursor:pointer;font-weight:600}
+.code-java,.code-py{display:none}
+body[data-lang=java] .code-java,body[data-lang=py] .code-py{display:block}
+.stepper{border:1px solid var(--line);border-radius:10px;padding:12px;margin:8px 0 12px;background:var(--card)}
+.st-view{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;padding-top:6px}
+.cellw{display:flex;flex-direction:column;align-items:center;min-width:44px}
+.ptr{height:20px;font:700 11px Consolas,monospace;color:var(--acc);white-space:nowrap}
+.cell{min-width:44px;height:44px;display:flex;align-items:center;justify-content:center;border:2px solid var(--line);border-radius:8px;background:var(--cellbg);font:600 15px Consolas,monospace;padding:0 6px;transition:background .15s}
+.cell.in{background:var(--in);border-color:var(--acc)}
+.cell.ok{background:var(--okbg);border-color:var(--ok)}
+.cell.dim{background:var(--dim);color:var(--mut);border-style:dashed}
+.idx{font:11px Consolas,monospace;color:var(--mut)}
+.st-note{min-height:44px;margin:10px 2px 8px;font-size:14px}
+.st-ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.st-count{margin-left:auto;font-size:12px;color:var(--mut)}
+@media (max-width:600px){.bar .t{display:none}.bar{padding:6px 10px;gap:6px}body{font-size:14.5px}.pat{padding:12px 10px 4px}.cell{min-width:36px;height:38px;font-size:13px}.cellw{min-width:36px}}
+@media print{.bar,.st-ctl{display:none}.pat{break-inside:avoid-page}.code-java,.code-py{display:block!important}details{break-inside:avoid}details>p{display:block}}
+
+.hero{padding:34px 0 8px}.hero h1{font-size:32px;margin:0 0 8px;border:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin:18px 0}
+.card{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--card);display:flex;flex-direction:column;opacity:.65}
+.card.live{opacity:1;border-color:var(--acc)}
+.card h3{margin:2px 0 4px}.card p{margin:0 0 8px;color:var(--mut);font-size:13.5px;flex:1}
+.num{font:700 12px Consolas,monospace;color:var(--acc)}.meta{font-size:12px;color:var(--mut);margin-bottom:8px}
+.act{display:flex;gap:6px}.btn{font-size:13px;padding:5px 11px;border:1px solid var(--line);border-radius:7px;text-decoration:none;color:var(--fg);background:var(--bg)}
+.btn.pri{background:var(--acc);color:#fff;border-color:var(--acc)}.soon{font-size:12px;color:var(--mut)}
+</style></head>
+<body><main>
+<div class="hero"><h1>DSA Mastery</h1>
+<p class="lead">Pattern-based revision sheets to build real problem-solving skill for product-company interviews. Each topic has the intuition, a step-through animation, code in Java and Python, complexity, common traps and a ladder of LeetCode problems. Every page works offline: use <strong>Download</strong> to keep a copy.</p></div>
+<div class="grid"><div class="card"><div class="num">01</div><h3>Complexity and Problem-Solving Method</h3><p>Big-O, constraints to complexity, how to read a problem</p><div class="meta">Coming soon</div><div class="act"><span class="soon">Planned</span></div></div><div class="card live"><div class="num">02</div><h3>Arrays, Hashing and Searching</h3><p>Two pointers, sliding window, prefix sum, Kadane, hashing, binary search, quick select</p><div class="meta">11 patterns · 77 problems</div><div class="act"><a class="btn pri" href="topics/02_arrays.html">Open</a><a class="btn" href="topics/02_arrays.html" download="02_arrays.html">⬇ Download</a></div></div><div class="card"><div class="num">03</div><h3>Strings</h3><p>Palindromes, frequency windows, KMP / Z / Rabin-Karp</p><div class="meta">Coming soon</div><div class="act"><span class="soon">Planned</span></div></div><div class="card"><div class="num">04</div><h3>Linked Lists</h3><p>Fast/slow pointers, reversal, merge, cycle detection, LRU</p><div class="meta">Coming soon</div><div class="act"><span class="soon">Planned</span></div></div><div class="card"><div class="num">05</div><h3>Stacks, Queues and Deques</h3><p>Monotonic stack/queue, parsing, min-stack</p><div class="meta">Coming soon</div><div class="act"><span class="soon">Planned</span></div></div><div class="card"><div class="num">06</div><h3>Sorting and Intervals</h3><p>Custom sorts, merge intervals, sweep line</p><div class="meta">Coming soon</div><div class="act"><span class="soon">Planned</span></div></div><div class="card"><div class="num">07</div><h3>Recursion and Backtracking</h3><p>Subsets, permutations, N-Queens, pruning</p><div class="meta">Coming soon</div><div class="act"><span class="soon">Planned</span></div></div><div class="card"><div class="num">08</div><h3>Bit Manipulation and Math</h3><p>XOR tricks, masks, gcd, sieve, fast power</p><div class="meta">Coming soon</div><div class="act"><span class="soon">Planned</span></div></div><div class="card"><div class="num">09</div><h3>Binary Trees and BST</h3><p>DFS/BFS, paths, LCA, BST, tree DP</p><div class="meta">Coming soon</div><div class="act"><span class="soon">Planned</span></div></div><div class="card"><div class="num">10</div><h3>Heaps and Priority Queues</h3><p>Top-K, two heaps, k-way merge</p><div class="meta">Coming soon</div><div class="act"><span class="soon">Planned</span></div></div><div class="card"><div class="num">11</div><h3>Tries</h3><p>Prefix search, word dictionary, XOR trie</p><div class="meta">Coming soon</div><div class="act"><span class="soon">Planned</span></div></div><div class="card"><div class="num">12</div><h3>Graph Traversal</h3><p>BFS, DFS, grids, components, multi-source BFS</p><div class="meta">Coming soon</div><div class="act"><span class="soon">Planned</span></div></div><div class="card"><div class="num">13</div><h3>Advanced Graphs</h3><p>Topological sort, union-find, Dijkstra, MST</p><div class="meta">Coming soon</div><div class="act"><span class="soon">Planned</span></div></div><div class="card"><div class="num">14</div><h3>Greedy</h3><p>Exchange argument, intervals, scheduling</p><div class="meta">Coming soon</div><div class="act"><span class="soon">Planned</span></div></div><div class="card"><div class="num">15</div><h3>Dynamic Programming I</h3><p>1D/2D DP, coin change, LIS, state definition</p><div class="meta">Coming soon</div><div class="act"><span class="soon">Planned</span></div></div><div class="card"><div class="num">16</div><h3>Dynamic Programming II</h3><p>Knapsack, LCS/edit distance, bitmask, tree DP</p><div class="meta">Coming soon</div><div class="act"><span class="soon">Planned</span></div></div><div class="card"><div class="num">17</div><h3>Advanced Data Structures</h3><p>Segment tree, Fenwick tree, sparse table</p><div class="meta">Coming soon</div><div class="act"><span class="soon">Planned</span></div></div><div class="card"><div class="num">18</div><h3>Design Problems</h3><p>LRU/LFU, iterators, time-based stores</p><div class="meta">Coming soon</div><div class="act"><span class="soon">Planned</span></div></div><div class="card"><div class="num">19</div><h3>Interview Playbook</h3><p>Pattern selector, communication, 12-week plan</p><div class="meta">Coming soon</div><div class="act"><span class="soon">Planned</span></div></div></div>
+<p class="muted">Topics are added one at a time. See <a href="https://github.com/nithin988/dsa-mastery/blob/main/ROADMAP.md">ROADMAP.md</a> for the plan.</p>
+</main></body></html>

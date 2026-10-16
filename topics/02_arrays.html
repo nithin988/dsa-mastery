@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arrays, Hashing and Searching — Pattern Guide</title><style>
+:root{--bg:#fff;--fg:#1c1f24;--mut:#5b6470;--line:#d9dee5;--card:#f6f8fa;--acc:#0b63d1;--hot:#c2410c;--cool:#0e7490;
+--ok:#15803d;--warn:#b45309;--cellbg:#fff;--in:#dbeafe;--okbg:#dcfce7;--dim:#eef0f3;--code:#f2f4f7}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#101418;--fg:#e6e9ee;--mut:#98a2b0;--line:#2b333d;--card:#171c22;--acc:#6cb0ff;--hot:#fb923c;--cool:#22d3ee;--ok:#4ade80;--warn:#fbbf24;--cellbg:#171c22;--in:#16324f;--okbg:#14391f;--dim:#1b2128;--code:#1c222a}}
+:root[data-theme=dark]{--bg:#101418;--fg:#e6e9ee;--mut:#98a2b0;--line:#2b333d;--card:#171c22;--acc:#6cb0ff;--hot:#fb923c;--cool:#22d3ee;--ok:#4ade80;--warn:#fbbf24;--cellbg:#171c22;--in:#16324f;--okbg:#14391f;--dim:#1b2128;--code:#1c222a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.6 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+main{max-width:920px;margin:0 auto;padding:16px 16px 80px}
+.bar{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 16px}
+.bar .t{font-weight:700;margin-right:auto}
+.bar button,.bar a.btn,.st-ctl button{font:inherit;font-size:13px;padding:5px 11px;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--fg);cursor:pointer;text-decoration:none}
+.bar button:hover,.bar a.btn:hover,.st-ctl button:hover{border-color:var(--acc)}
+.bar button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.prog{font-size:13px;color:var(--mut)}
+h1{font-size:28px;margin:18px 0 6px}
+h2{font-size:21px;margin:34px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--line);scroll-margin-top:60px}
+h3{font-size:17px;margin:0 0 6px;scroll-margin-top:60px}
+.lead{font-size:16px;color:var(--mut)}
+.muted{color:var(--mut);font-size:13px;font-weight:400}
+a{color:var(--acc)}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:12.5px Consolas,Menlo,monospace}
+pre{background:var(--code);border:1px solid var(--line);border-radius:8px;padding:11px 13px;overflow-x:auto;margin:8px 0}
+pre code{background:none;padding:0}
+.callout{border-left:4px solid var(--acc);background:var(--card);padding:8px 14px;border-radius:0 8px 8px 0;margin:12px 0}
+.callout.intu{border-color:var(--cool)}.callout p{margin:4px 0 2px}
+.pat{margin:26px 0;padding:16px 16px 6px;border:1px solid var(--line);border-radius:12px}
+.tier{font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;border:1px solid currentColor;margin-left:6px;white-space:nowrap}
+.tier.hot{color:var(--hot)}.tier.sec{color:var(--cool)}
+.tw{overflow-x:auto;margin:8px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--card)}
+.ladder td:first-child{width:28px;text-align:center}
+.cx{white-space:nowrap}
+.dE{color:var(--ok);font-weight:600}.dM{color:var(--warn);font-weight:600}.dH{color:var(--hot);font-weight:600}
+tr.done td{background:var(--okbg)}
+details{border:1px solid var(--line);border-radius:8px;padding:7px 12px;margin:7px 0;background:var(--card)}
+summary{cursor:pointer;font-weight:600}
+.code-java,.code-py{display:none}
+body[data-lang=java] .code-java,body[data-lang=py] .code-py{display:block}
+.stepper{border:1px solid var(--line);border-radius:10px;padding:12px;margin:8px 0 12px;background:var(--card)}
+.st-view{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;padding-top:6px}
+.cellw{display:flex;flex-direction:column;align-items:center;min-width:44px}
+.ptr{height:20px;font:700 11px Consolas,monospace;color:var(--acc);white-space:nowrap}
+.cell{min-width:44px;height:44px;display:flex;align-items:center;justify-content:center;border:2px solid var(--line);border-radius:8px;background:var(--cellbg);font:600 15px Consolas,monospace;padding:0 6px;transition:background .15s}
+.cell.in{background:var(--in);border-color:var(--acc)}
+.cell.ok{background:var(--okbg);border-color:var(--ok)}
+.cell.dim{background:var(--dim);color:var(--mut);border-style:dashed}
+.idx{font:11px Consolas,monospace;color:var(--mut)}
+.st-note{min-height:44px;margin:10px 2px 8px;font-size:14px}
+.st-ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.st-count{margin-left:auto;font-size:12px;color:var(--mut)}
+@media (max-width:600px){.bar .t{display:none}.bar{padding:6px 10px;gap:6px}body{font-size:14.5px}.pat{padding:12px 10px 4px}.cell{min-width:36px;height:38px;font-size:13px}.cellw{min-width:36px}}
+@media print{.bar,.st-ctl{display:none}.pat{break-inside:avoid-page}.code-java,.code-py{display:block!important}details{break-inside:avoid}details>p{display:block}}
+</style></head>
+<body data-lang="java" data-file="02_arrays.html" data-topic="arrays" data-total="77">
+<div class="bar"><span class="t">Arrays, Hashing and Searching — Pattern Guide</span>
+<span class="prog" id="prog">0 / 77 solved</span>
+<button id="b-java" class="on">Java</button><button id="b-py">Python</button>
+<button id="b-theme" title="Toggle light / dark">◐</button>
+<button id="b-dl" title="Save this page as a standalone HTML file">⬇ Download</button></div>
+<main>
+<h1>Arrays, Hashing and Searching — Pattern Guide</h1>
+<p class="lead">One consolidated guide to the array family: two pointers, sliding window, prefix sums, Kadane, hashing, partitioning, binary search and selection. Every pattern has the intuition, an animation you can step through, code in Java and Python, complexity, traps and a ladder of LeetCode problems.</p>
+<div class="callout"><strong>How to use this page.</strong> For each pattern read <em>Detect</em> and <em>Intuition</em> first, step through the animation, then write the skeleton from memory before opening the code. Finish by solving the problem ladder in order and ticking each problem; your ticks are saved in this browser.</div>
+<h2 id="contents">Contents</h2><ol><li><a href="#mindset">The mindset</a></li><li><a href="#priority">Pattern priority</a></li><li><a href="#cues">Problem-cue selector</a></li><li><a href="#p1">1. Two Pointers</a></li><li><a href="#p2">2. Sliding Window (Fixed)</a></li><li><a href="#p3">3. Sliding Window (Variable)</a></li><li><a href="#p4">4. Prefix Sum</a></li><li><a href="#p5">5. Kadane&#x27;s Algorithm</a></li><li><a href="#p6">6. Hashing: Two Sum, Counting, Grouping</a></li><li><a href="#p7">7. Dutch National Flag (3-way partition)</a></li><li><a href="#p8">8. Binary Search (basic and on the answer)</a></li><li><a href="#p9">9. Binary Search on a Rotated Array</a></li><li><a href="#p10">10. Quick Select and Merge Sort</a></li><li><a href="#p11">11. Other must-know array tricks</a></li><li><a href="#recall">One-line recall</a></li><li><a href="#choose">Choosing between patterns</a></li><li><a href="#selftest">Self-test</a></li><li><a href="#plan">Study plan</a></li></ol>
+<h2 id="mindset">The mindset</h2><p>Most array problems are about <strong>avoiding the O(n²) brute force</strong> by exploiting structure: sortedness, a running aggregate, a hash of what you have seen, or a window you grow and shrink. The workhorses are <strong>two pointers</strong>, <strong>sliding window</strong>, <strong>prefix sum</strong> and <strong>hashing</strong>. Binary search adds O(log n) lookups when the data (or the answer space) is monotonic.</p><p>Ask three questions on every array problem:</p><ul><li><strong>Is it (or can it be) sorted?</strong> → two pointers or binary search become available.</li><li><strong>Do I need information about a contiguous range?</strong> → sliding window or prefix sum.</li><li><strong>Do I need "have I seen this / how many times"?</strong> → hashing.</li><li><strong>Can I check a guessed answer quickly?</strong> → binary search on the answer.</li></ul>
+<h2 id="priority">Pattern priority</h2><p class="muted">Ranked by how often these show up in interviews (judgement from the common interview lists and company question banks, not hard data).</p><h3>🔥 Frequently asked — master these first</h3><div class="tw"><table class=""><thead><tr><th>#</th><th>Pattern</th><th>Why it matters</th><th>Signature problem</th></tr></thead><tbody><tr><td>1</td><td><strong>Two Pointers</strong> (P1)</td><td>Pairs, palindromes and in-place edits all collapse to it</td><td>LC 167 / 15</td></tr><tr><td>3</td><td><strong>Sliding Window (Variable)</strong> (P3)</td><td>"Longest / shortest substring with…" is everywhere</td><td>LC 3 / 76</td></tr><tr><td>4</td><td><strong>Prefix Sum</strong> (P4)</td><td>Subarray-sum problems lean on it constantly</td><td>LC 560</td></tr><tr><td>6</td><td><strong>Hashing: Two Sum, Counting, Grouping</strong> (P6)</td><td>The single most-asked array idea</td><td>LC 1 / 49</td></tr><tr><td>8</td><td><strong>Binary Search (basic and on the answer)</strong> (P8)</td><td>Classic, and "search on answer" is an interview favourite</td><td>LC 704 / 875</td></tr></tbody></table></div><h3>🧊 Secondary — know them</h3><div class="tw"><table class=""><thead><tr><th>#</th><th>Pattern</th><th>Why it matters</th><th>Signature problem</th></tr></thead><tbody><tr><td>2</td><td><strong>Sliding Window (Fixed)</strong> (P2)</td><td>Simple, shows up as the warm-up for variable windows</td><td>LC 643</td></tr><tr><td>5</td><td><strong>Kadane's Algorithm</strong> (P5)</td><td>One idea, asked as a classic and as many twists</td><td>LC 53</td></tr><tr><td>7</td><td><strong>Dutch National Flag (3-way partition)</strong> (P7)</td><td>One canonical problem, but the partition idea reappears in quicksort</td><td>LC 75</td></tr><tr><td>9</td><td><strong>Binary Search on a Rotated Array</strong> (P9)</td><td>Specific but recurs as a follow-up</td><td>LC 33</td></tr><tr><td>10</td><td><strong>Quick Select and Merge Sort</strong> (P10)</td><td>Appears as "kth element" and "count inversions" questions</td><td>LC 215</td></tr><tr><td>11</td><td><strong>Other must-know array tricks</strong> (P11)</td><td>Short specialised ideas that keep appearing</td><td>LC 169 / 41</td></tr></tbody></table></div>
+<h2 id="cues">Problem-cue selector</h2><div class="tw"><table class=""><thead><tr><th>If the problem says / looks like…</th><th>Pattern</th></tr></thead><tbody><tr><td>sorted array, "pair or triplet with target sum"</td><td><strong>P1</strong> Two Pointers</td></tr><tr><td>"in place", remove duplicates / move zeroes</td><td><strong>P1</strong> Two Pointers (slow/fast)</td></tr><tr><td>"subarray/substring of size exactly k"</td><td><strong>P2</strong> Sliding Window (fixed)</td></tr><tr><td>"longest/shortest substring with property", "at most K distinct"</td><td><strong>P3</strong> Sliding Window (variable)</td></tr><tr><td>"many range-sum queries", "number of subarrays with sum k", negatives present</td><td><strong>P4</strong> Prefix Sum (+ map)</td></tr><tr><td>"maximum subarray sum/product" (contiguous)</td><td><strong>P5</strong> Kadane</td></tr><tr><td>"have I seen this", "count occurrences", "group by"</td><td><strong>P6</strong> Hashing</td></tr><tr><td>"sort 0s, 1s, 2s in place", 3-way partition</td><td><strong>P7</strong> Dutch National Flag</td></tr><tr><td>sorted data, O(log n), "first/last occurrence"</td><td><strong>P8</strong> Binary Search</td></tr><tr><td>"minimise the max" / "maximise the min", feasibility check</td><td><strong>P8</strong> Binary Search on the answer</td></tr><tr><td>"sorted array rotated at an unknown pivot"</td><td><strong>P9</strong> Rotated-array search</td></tr><tr><td>"kth largest/smallest", "count inversions"</td><td><strong>P10</strong> Quick Select / Merge Sort</td></tr><tr><td>"majority element", "missing number 1..n", "rotate in place"</td><td><strong>P11</strong> Specialised tricks</td></tr></tbody></table></div>
+<h2>The patterns</h2>
+<section class="pat" id="p1">
+<h3>Pattern 1 — Two Pointers <span class="tier hot">🔥 Frequently asked</span></h3>
+<p><strong>When to use</strong> — A sorted array or a string where two indices moving toward (or along with) each other replace a nested loop.</p>
+<p><strong>Detect</strong> — sorted input · "pair/triplet with target sum" · "remove duplicates in place" · palindrome check · "reverse in place" · "partition so that…".</p>
+<div class="callout intu"><strong>Intuition</strong><p>Picture two people walking toward each other along a sorted number line. If their combined value is too small, only the left person stepping right can help; if too large, only the right person stepping left can help. Every step permanently rules out one element, so you never look back.</p></div>
+<p><strong>Brute force → optimised</strong> — Check every pair with two loops: O(n²). Sorting gives each pointer a direction to move, so one pass of n steps is enough: O(n).</p>
+<p><strong>Core idea</strong> — Two indices, usually <code>l</code> and <code>r</code>, move based on a comparison. The sorted order guarantees that discarding one end can never throw away the answer.</p>
+<p><strong>How it works</strong></p><ol><li><code>l = 0</code>, <code>r = n-1</code>.</li><li>Compare <code>a[l] + a[r]</code> with the target.</li><li>Too small → <code>l++</code>. Too big → <code>r--</code>. Equal → record and finish.</li></ol>
+<p><strong>Watch it run</strong> <span class="muted">(step through it yourself)</span></p><div class="stepper" data-sim="two"></div>
+<p><strong>Trace</strong> — Two Sum II on <code>[1,3,4,6,8,11]</code>, target 10</p><pre><code>l=0(1)  r=5(11) sum 12 &gt; 10  r--
+l=0(1)  r=4(8)  sum  9 &lt; 10  l++
+l=1(3)  r=4(8)  sum 11 &gt; 10  r--
+l=1(3)  r=3(6)  sum  9 &lt; 10  l++
+l=2(4)  r=3(6)  sum 10 == 10 -&gt; found</code></pre>
+<p><strong>Skeleton</strong> — opposite ends (sorted pair sum)</p><pre class="code-java"><code>int l = 0, r = n - 1;
+while (l &lt; r) {
+    int sum = a[l] + a[r];
+    if (sum == target) return new int[]{l + 1, r + 1};
+    if (sum &lt; target) l++; else r--;
+}
+return new int[]{-1, -1};</code></pre><pre class="code-py"><code>l, r = 0, len(a) - 1
+while l &lt; r:
+    s = a[l] + a[r]
+    if s == target:
+        return [l + 1, r + 1]
+    if s &lt; target:
+        l += 1
+    else:
+        r -= 1
+return [-1, -1]</code></pre>
+<p><strong>Skeleton</strong> — same direction (slow writes, fast reads) for in-place edits</p><pre class="code-java"><code>int slow = 0;
+for (int fast = 0; fast &lt; n; fast++) {
+    if (a[fast] != 0) a[slow++] = a[fast];   // keep non-zeros
+}
+while (slow &lt; n) a[slow++] = 0;</code></pre><pre class="code-py"><code>slow = 0
+for fast in range(len(a)):
+    if a[fast] != 0:
+        a[slow] = a[fast]
+        slow += 1
+for i in range(slow, len(a)):
+    a[i] = 0</code></pre>
+<p><strong>Complexity</strong> — O(n) time after any sort, O(1) extra space.</p>
+<p><strong>Traps</strong></p><ul><li>3Sum: sort first, fix one element, skip duplicates for the fixed element <strong>and</strong> after finding a triple.</li><li>Opposite-end version needs sorted data; same-direction version does not.</li><li>Container With Most Water has no sort: you move the <strong>shorter</strong> wall because only that can raise the area.</li></ul>
+<p><strong>Variants and follow-ups</strong></p><ul><li>Closest sum instead of exact (3Sum Closest): track the best difference.</li><li>k-Sum: recurse down to two pointers, O(n^(k-1)).</li><li>Palindrome with deletions: when mismatch, try skipping either side.</li></ul>
+<p><strong>When NOT to use</strong> — When order cannot change and the data is not sortable for the task, or when every pair genuinely matters.</p>
+<p><strong>Problem ladder</strong> <span class="muted">(easy → hard; tick what you have solved)</span></p>
+<div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="arrays-125" aria-label="Solved LC 125"></td><td><a href="https://leetcode.com/problems/valid-palindrome/" target="_blank" rel="noopener">LC 125</a></td><td>Valid Palindrome</td><td class="dE">Easy</td><td>Ends move inward, skip non-alphanumerics, compare lowercase</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-283" aria-label="Solved LC 283"></td><td><a href="https://leetcode.com/problems/move-zeroes/" target="_blank" rel="noopener">LC 283</a></td><td>Move Zeroes</td><td class="dE">Easy</td><td>Slow = next write slot for a non-zero; fast scans</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-26" aria-label="Solved LC 26"></td><td><a href="https://leetcode.com/problems/remove-duplicates-from-sorted-array/" target="_blank" rel="noopener">LC 26</a></td><td>Remove Duplicates from Sorted Array</td><td class="dE">Easy</td><td>Slow marks the last unique; copy when fast sees a new value</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-167" aria-label="Solved LC 167"></td><td><a href="https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/" target="_blank" rel="noopener">LC 167</a></td><td>Two Sum II - Input Array Is Sorted</td><td class="dM">Medium</td><td>Too small → l++, too big → r--</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-11" aria-label="Solved LC 11"></td><td><a href="https://leetcode.com/problems/container-with-most-water/" target="_blank" rel="noopener">LC 11</a></td><td>Container With Most Water</td><td class="dM">Medium</td><td>Move the shorter wall; the taller one alone cannot improve area</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-15" aria-label="Solved LC 15"></td><td><a href="https://leetcode.com/problems/3sum/" target="_blank" rel="noopener">LC 15</a></td><td>3Sum</td><td class="dM">Medium</td><td>Sort, fix i, two pointers on the rest, skip duplicates</td><td class="cx">O(n²) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-16" aria-label="Solved LC 16"></td><td><a href="https://leetcode.com/problems/3sum-closest/" target="_blank" rel="noopener">LC 16</a></td><td>3Sum Closest</td><td class="dM">Medium</td><td>Same as 3Sum, keep the sum closest to target</td><td class="cx">O(n²) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-42" aria-label="Solved LC 42"></td><td><a href="https://leetcode.com/problems/trapping-rain-water/" target="_blank" rel="noopener">LC 42</a></td><td>Trapping Rain Water</td><td class="dH">Hard</td><td>Water at i = min(leftMax, rightMax) − h; advance the side with the smaller max</td><td class="cx">O(n) / O(1)</td></tr></tbody></table></div>
+</section>
+<section class="pat" id="p2">
+<h3>Pattern 2 — Sliding Window (Fixed) <span class="tier sec">🧊 Secondary</span></h3>
+<p><strong>When to use</strong> — Compute something over every contiguous window of a fixed size <code>k</code>.</p>
+<p><strong>Detect</strong> — "subarray/substring of size k" · max/min/average over windows of length k · "anagram of a pattern" (window = pattern length).</p>
+<div class="callout intu"><strong>Intuition</strong><p>A train of k carriages passing a platform: as the front carriage enters, the rear one leaves. You do not recount all k carriages; you add one and remove one.</p></div>
+<p><strong>Brute force → optimised</strong> — Re-sum every window: O(n·k). Updating the sum incrementally costs O(1) per step: O(n).</p>
+<p><strong>Core idea</strong> — Keep the window's aggregate; on each step add the entering element and subtract the leaving one.</p>
+<p><strong>How it works</strong></p><ol><li>Build the first window of size <code>k</code>.</li><li>For each next index <code>i</code>: add <code>a[i]</code>, subtract <code>a[i-k]</code>.</li><li>Update the answer after each slide.</li></ol>
+<p><strong>Watch it run</strong> <span class="muted">(step through it yourself)</span></p><div class="stepper" data-sim="fixed"></div>
+<p><strong>Trace</strong> — max sum, k = 3, <code>[2,1,5,1,3,2]</code></p><pre><code>window [2,1,5] = 8   best 8
+ +1 -2        -&gt; 7
+ +3 -1        -&gt; 9   best 9
+ +2 -5        -&gt; 6
+=&gt; 9</code></pre>
+<p><strong>Skeleton</strong> — max sum of a window of size k</p><pre class="code-java"><code>int sum = 0;
+for (int i = 0; i &lt; k; i++) sum += a[i];
+int best = sum;
+for (int i = k; i &lt; n; i++) {
+    sum += a[i] - a[i - k];
+    best = Math.max(best, sum);
+}</code></pre><pre class="code-py"><code>s = sum(a[:k])
+best = s
+for i in range(k, len(a)):
+    s += a[i] - a[i - k]
+    best = max(best, s)</code></pre>
+<p><strong>Complexity</strong> — O(n) time, O(1) space (O(k) if you keep a count map or deque).</p>
+<p><strong>Traps</strong></p><ul><li>Off-by-one on <code>i - k</code>.</li><li>Initialise the answer from the first full window, not 0 (breaks with negatives).</li><li>For anagram windows compare two 26-slot count arrays, or keep a "matched characters" counter to make each step O(1).</li></ul>
+<p><strong>Variants and follow-ups</strong></p><ul><li>Window maximum: a monotonic deque of indices keeps the max at the front (LC 239).</li><li>Counting distinct values in each window: maintain a count map.</li></ul>
+<p><strong>When NOT to use</strong> — When the window size depends on a condition: that is the variable window (pattern 3).</p>
+<p><strong>Problem ladder</strong> <span class="muted">(easy → hard; tick what you have solved)</span></p>
+<div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="arrays-643" aria-label="Solved LC 643"></td><td><a href="https://leetcode.com/problems/maximum-average-subarray-i/" target="_blank" rel="noopener">LC 643</a></td><td>Maximum Average Subarray I</td><td class="dE">Easy</td><td>Slide the sum, divide the best by k</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-1456" aria-label="Solved LC 1456"></td><td><a href="https://leetcode.com/problems/maximum-number-of-vowels-in-a-substring-of-given-length/" target="_blank" rel="noopener">LC 1456</a></td><td>Maximum Number of Vowels in a Substring of Given Length</td><td class="dM">Medium</td><td>Count vowels in the window; add entering, drop leaving</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-567" aria-label="Solved LC 567"></td><td><a href="https://leetcode.com/problems/permutation-in-string/" target="_blank" rel="noopener">LC 567</a></td><td>Permutation in String</td><td class="dM">Medium</td><td>Window of len(s1); compare 26-count arrays</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-438" aria-label="Solved LC 438"></td><td><a href="https://leetcode.com/problems/find-all-anagrams-in-a-string/" target="_blank" rel="noopener">LC 438</a></td><td>Find All Anagrams in a String</td><td class="dM">Medium</td><td>Same as 567 but record every matching start index</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-1052" aria-label="Solved LC 1052"></td><td><a href="https://leetcode.com/problems/grumpy-bookstore-owner/" target="_blank" rel="noopener">LC 1052</a></td><td>Grumpy Bookstore Owner</td><td class="dM">Medium</td><td>Always-happy base + best extra gain from one window of size minutes</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-239" aria-label="Solved LC 239"></td><td><a href="https://leetcode.com/problems/sliding-window-maximum/" target="_blank" rel="noopener">LC 239</a></td><td>Sliding Window Maximum</td><td class="dH">Hard</td><td>Deque of indices with decreasing values; the front is the window max</td><td class="cx">O(n) / O(k)</td></tr></tbody></table></div>
+</section>
+<section class="pat" id="p3">
+<h3>Pattern 3 — Sliding Window (Variable) <span class="tier hot">🔥 Frequently asked</span></h3>
+<p><strong>When to use</strong> — Find the longest or shortest contiguous range that satisfies a condition.</p>
+<p><strong>Detect</strong> — "longest/shortest substring with…" · "at most K distinct" · "subarray sum ≤ S" · "smallest window containing…".</p>
+<div class="callout intu"><strong>Intuition</strong><p>An inchworm: the head (right) stretches forward to take in more; whenever the body becomes illegal, the tail (left) pulls in until it is legal again. Neither end ever moves backwards, so each element is added once and removed once.</p></div>
+<p><strong>Brute force → optimised</strong> — Check every (start, end) pair and validate each: O(n²) or O(n³). Because the window only ever moves forward, the total work is 2n pointer moves: O(n).</p>
+<p><strong>Core idea</strong> — Expand <code>r</code> to include elements. While the window violates the condition, advance <code>l</code> and undo its contribution. Record the best valid window.</p>
+<p><strong>How it works</strong></p><ol><li>Move <code>r</code> outward, updating window state (count map, running sum).</li><li>While invalid, advance <code>l</code>, undoing its contribution.</li><li>When valid, record the answer (length or position).</li></ol>
+<p><strong>Watch it run</strong> <span class="muted">(step through it yourself)</span></p><div class="stepper" data-sim="variable"></div>
+<p><strong>Trace</strong> — longest substring without repeats, <code>"abcabcbb"</code></p><pre><code>r=0 a  window &quot;a&quot;    len 1
+r=1 b  window &quot;ab&quot;   len 2
+r=2 c  window &quot;abc&quot;  len 3   best 3
+r=3 a  duplicate -&gt; drop &#x27;a&#x27; (l=1) -&gt; &quot;bca&quot;   len 3
+r=4 b  duplicate -&gt; drop &#x27;b&#x27; (l=2) -&gt; &quot;cab&quot;   len 3
+...
+=&gt; 3</code></pre>
+<p><strong>Skeleton</strong> — longest valid window (template)</p><pre class="code-java"><code>int l = 0, best = 0;
+Map&lt;Character, Integer&gt; count = new HashMap&lt;&gt;();
+for (int r = 0; r &lt; s.length(); r++) {
+    count.merge(s.charAt(r), 1, Integer::sum);
+    while (count.get(s.charAt(r)) &gt; 1) {          // window invalid
+        count.merge(s.charAt(l), -1, Integer::sum);
+        l++;
+    }
+    best = Math.max(best, r - l + 1);
+}</code></pre><pre class="code-py"><code>l = best = 0
+count = {}
+for r, ch in enumerate(s):
+    count[ch] = count.get(ch, 0) + 1
+    while count[ch] &gt; 1:                  # window invalid
+        count[s[l]] -= 1
+        l += 1
+    best = max(best, r - l + 1)</code></pre>
+<p><strong>Skeleton</strong> — shortest valid window (record while valid, shrink as far as possible)</p><pre class="code-java"><code>int l = 0, sum = 0, best = Integer.MAX_VALUE;
+for (int r = 0; r &lt; n; r++) {
+    sum += a[r];
+    while (sum &gt;= target) {                       // valid: try to shrink
+        best = Math.min(best, r - l + 1);
+        sum -= a[l++];
+    }
+}
+return best == Integer.MAX_VALUE ? 0 : best;</code></pre><pre class="code-py"><code>l = total = 0
+best = float(&#x27;inf&#x27;)
+for r, x in enumerate(a):
+    total += x
+    while total &gt;= target:                # valid: try to shrink
+        best = min(best, r - l + 1)
+        total -= a[l]
+        l += 1
+return 0 if best == float(&#x27;inf&#x27;) else best</code></pre>
+<p><strong>Complexity</strong> — O(n) time (each element enters and leaves once), O(k) space for the window state.</p>
+<p><strong>Traps</strong></p><ul><li>Forgetting to undo <code>l</code>'s contribution when shrinking.</li><li><strong>Longest</strong> → update the answer after the shrink loop; <strong>shortest</strong> → update inside the loop while valid.</li><li>"Exactly K" = "at most K" − "at most K−1".</li><li>Negative numbers break shrinking (adding can reduce the sum). Use prefix sum + hash map instead.</li></ul>
+<p><strong>Variants and follow-ups</strong></p><ul><li>At most K distinct / replacements: window is valid while <code>size − maxFreq ≤ k</code>.</li><li>Count subarrays: add <code>r − l + 1</code> for each valid right end (LC 713).</li><li>Min window containing all of a pattern: keep a <code>need</code> count and a <code>formed</code> counter.</li></ul>
+<p><strong>When NOT to use</strong> — When the subarray need not be contiguous, or when negatives make the validity non-monotonic.</p>
+<p><strong>Problem ladder</strong> <span class="muted">(easy → hard; tick what you have solved)</span></p>
+<div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="arrays-3" aria-label="Solved LC 3"></td><td><a href="https://leetcode.com/problems/longest-substring-without-repeating-characters/" target="_blank" rel="noopener">LC 3</a></td><td>Longest Substring Without Repeating Characters</td><td class="dM">Medium</td><td>Count map; shrink while a character repeats</td><td class="cx">O(n) / O(min(n,σ))</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-1004" aria-label="Solved LC 1004"></td><td><a href="https://leetcode.com/problems/max-consecutive-ones-iii/" target="_blank" rel="noopener">LC 1004</a></td><td>Max Consecutive Ones III</td><td class="dM">Medium</td><td>At most k zeros in the window; shrink when exceeded</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-904" aria-label="Solved LC 904"></td><td><a href="https://leetcode.com/problems/fruit-into-baskets/" target="_blank" rel="noopener">LC 904</a></td><td>Fruit Into Baskets</td><td class="dM">Medium</td><td>At most 2 distinct types; count map</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-209" aria-label="Solved LC 209"></td><td><a href="https://leetcode.com/problems/minimum-size-subarray-sum/" target="_blank" rel="noopener">LC 209</a></td><td>Minimum Size Subarray Sum</td><td class="dM">Medium</td><td>Shrink while sum ≥ target, record the min length</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-713" aria-label="Solved LC 713"></td><td><a href="https://leetcode.com/problems/subarray-product-less-than-k/" target="_blank" rel="noopener">LC 713</a></td><td>Subarray Product Less Than K</td><td class="dM">Medium</td><td>Keep product &lt; k; add r−l+1 subarrays ending at r</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-424" aria-label="Solved LC 424"></td><td><a href="https://leetcode.com/problems/longest-repeating-character-replacement/" target="_blank" rel="noopener">LC 424</a></td><td>Longest Repeating Character Replacement</td><td class="dM">Medium</td><td>Valid while window − maxFreq ≤ k; window never needs to shrink below its best</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-76" aria-label="Solved LC 76"></td><td><a href="https://leetcode.com/problems/minimum-window-substring/" target="_blank" rel="noopener">LC 76</a></td><td>Minimum Window Substring</td><td class="dH">Hard</td><td>Expand until all needed chars are covered, then shrink to the minimum</td><td class="cx">O(n+m) / O(m)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-992" aria-label="Solved LC 992"></td><td><a href="https://leetcode.com/problems/subarrays-with-k-different-integers/" target="_blank" rel="noopener">LC 992</a></td><td>Subarrays with K Different Integers</td><td class="dH">Hard</td><td>atMost(K) − atMost(K−1)</td><td class="cx">O(n) / O(K)</td></tr></tbody></table></div>
+</section>
+<section class="pat" id="p4">
+<h3>Pattern 4 — Prefix Sum <span class="tier hot">🔥 Frequently asked</span></h3>
+<p><strong>When to use</strong> — Many range-sum queries, or counting subarrays whose sum hits a target.</p>
+<p><strong>Detect</strong> — "sum between i and j" · repeated range queries · "number of subarrays with sum = k / divisible by k" · arrays with negatives.</p>
+<div class="callout intu"><strong>Intuition</strong><p>Think of kilometre markers on a road. The distance between two markers is just the difference of their readings. If the reading at your current position minus an earlier reading equals k, the stretch between them is exactly k long. So ask the map: "have I seen the reading <code>current − k</code> before?"</p></div>
+<p><strong>Brute force → optimised</strong> — Sum every subarray: O(n²) (or O(n³)). With prefix sums each range is one subtraction; with a hash map of earlier prefixes each index is one lookup: O(n).</p>
+<p><strong>Core idea</strong> — <code>pre[i]</code> = sum of the first <code>i</code> elements, so <code>sum(i..j) = pre[j+1] − pre[i]</code>. Combine with a map <code>prefix → count</code> to count subarrays in one pass.</p>
+<p><strong>How it works</strong></p><ol><li>Keep a running <code>sum</code> and a map <code>prefix → how many times seen</code>, seeded with <code>{0:1}</code>.</li><li>At each index the number of valid subarrays ending here is <code>map[sum − k]</code>.</li><li>Then add the current <code>sum</code> to the map.</li></ol>
+<p><strong>Watch it run</strong> <span class="muted">(step through it yourself)</span></p><div class="stepper" data-sim="prefix"></div>
+<p><strong>Trace</strong> — count subarrays with sum = 2 in <code>[1,1,1]</code></p><pre><code>seed {0:1}
+sum 1 -&gt; need -1 (0)   add {1:1}
+sum 2 -&gt; need  0 (1!)  count=1  add {2:1}
+sum 3 -&gt; need  1 (1!)  count=2  add {3:1}
+=&gt; 2</code></pre>
+<p><strong>Skeleton</strong> — count subarrays summing to k</p><pre class="code-java"><code>Map&lt;Integer, Integer&gt; seen = new HashMap&lt;&gt;();
+seen.put(0, 1);                       // empty prefix
+int sum = 0, count = 0;
+for (int x : a) {
+    sum += x;
+    count += seen.getOrDefault(sum - k, 0);
+    seen.merge(sum, 1, Integer::sum);
+}</code></pre><pre class="code-py"><code>seen = {0: 1}                         # empty prefix
+total = count = 0
+for x in a:
+    total += x
+    count += seen.get(total - k, 0)
+    seen[total] = seen.get(total, 0) + 1</code></pre>
+<p><strong>Skeleton</strong> — static range-sum queries</p><pre class="code-java"><code>int[] pre = new int[n + 1];
+for (int i = 0; i &lt; n; i++) pre[i + 1] = pre[i] + a[i];
+// sum of a[i..j] inclusive
+int rangeSum = pre[j + 1] - pre[i];</code></pre><pre class="code-py"><code>pre = [0] * (len(a) + 1)
+for i, x in enumerate(a):
+    pre[i + 1] = pre[i] + x
+range_sum = pre[j + 1] - pre[i]        # a[i..j] inclusive</code></pre>
+<p><strong>Complexity</strong> — O(n) time, O(n) space.</p>
+<p><strong>Traps</strong></p><ul><li>Seed the map with <code>{0:1}</code> or you miss subarrays that start at index 0.</li><li>Divisible-by-k: normalise the remainder with <code>((s % k) + k) % k</code> in Java.</li><li>Prefix XOR is the same trick with XOR. For 2D use a 2D prefix with inclusion–exclusion.</li><li>If the array is updated between queries a static prefix goes stale: use a Fenwick or segment tree.</li></ul>
+<p><strong>Variants and follow-ups</strong></p><ul><li>Longest subarray with sum k: store the <strong>first</strong> index of each prefix instead of a count.</li><li>Equal 0s and 1s: map 0 → −1, then longest subarray with sum 0.</li><li>Product except self: prefix and suffix products.</li></ul>
+<p><strong>When NOT to use</strong> — When values change between queries (use BIT / segment tree), or when you only need a single sum (just loop).</p>
+<p><strong>Problem ladder</strong> <span class="muted">(easy → hard; tick what you have solved)</span></p>
+<div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="arrays-303" aria-label="Solved LC 303"></td><td><a href="https://leetcode.com/problems/range-sum-query-immutable/" target="_blank" rel="noopener">LC 303</a></td><td>Range Sum Query - Immutable</td><td class="dE">Easy</td><td>Build pre[] once; each query is pre[j+1] − pre[i]</td><td class="cx">O(n) build, O(1) query / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-724" aria-label="Solved LC 724"></td><td><a href="https://leetcode.com/problems/find-pivot-index/" target="_blank" rel="noopener">LC 724</a></td><td>Find Pivot Index</td><td class="dE">Easy</td><td>left == total − left − a[i]</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-238" aria-label="Solved LC 238"></td><td><a href="https://leetcode.com/problems/product-of-array-except-self/" target="_blank" rel="noopener">LC 238</a></td><td>Product of Array Except Self</td><td class="dM">Medium</td><td>Prefix-product pass then suffix-product pass</td><td class="cx">O(n) / O(1) extra</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-560" aria-label="Solved LC 560"></td><td><a href="https://leetcode.com/problems/subarray-sum-equals-k/" target="_blank" rel="noopener">LC 560</a></td><td>Subarray Sum Equals K</td><td class="dM">Medium</td><td>Map of prefix counts; add count[sum − k]</td><td class="cx">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-525" aria-label="Solved LC 525"></td><td><a href="https://leetcode.com/problems/contiguous-array/" target="_blank" rel="noopener">LC 525</a></td><td>Contiguous Array</td><td class="dM">Medium</td><td>0 → −1; equal prefix sums mean a balanced stretch; store first index</td><td class="cx">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-974" aria-label="Solved LC 974"></td><td><a href="https://leetcode.com/problems/subarray-sums-divisible-by-k/" target="_blank" rel="noopener">LC 974</a></td><td>Subarray Sums Divisible by K</td><td class="dM">Medium</td><td>Count equal prefix remainders; fix negative modulo</td><td class="cx">O(n) / O(k)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-304" aria-label="Solved LC 304"></td><td><a href="https://leetcode.com/problems/range-sum-query-2d-immutable/" target="_blank" rel="noopener">LC 304</a></td><td>Range Sum Query 2D - Immutable</td><td class="dM">Medium</td><td>2D prefix with inclusion–exclusion</td><td class="cx">O(mn) build, O(1) query / O(mn)</td></tr></tbody></table></div>
+</section>
+<section class="pat" id="p5">
+<h3>Pattern 5 — Kadane&#x27;s Algorithm <span class="tier sec">🧊 Secondary</span></h3>
+<p><strong>When to use</strong> — Maximum-sum (or product) contiguous subarray.</p>
+<p><strong>Detect</strong> — "maximum subarray sum/product" · contiguous segment · a running optimum that can "restart".</p>
+<div class="callout intu"><strong>Intuition</strong><p>You are walking and collecting money (positive) or paying tolls (negative). If your wallet balance since the start of the current run has gone negative, that history can only hurt, so drop it and start a fresh run from here.</p></div>
+<p><strong>Brute force → optimised</strong> — Try every subarray: O(n²). Observing that the best subarray ending at <code>i</code> is either <code>a[i]</code> alone or extends the best ending at <code>i−1</code> gives O(n).</p>
+<p><strong>Core idea</strong> — <code>cur = max(a[i], cur + a[i])</code> is the best subarray <strong>ending at</strong> <code>i</code>; <code>best</code> is the maximum of <code>cur</code> seen so far.</p>
+<p><strong>How it works</strong></p><ol><li><code>cur = best = a[0]</code>.</li><li>For each next element: <code>cur = max(a[i], cur + a[i])</code>.</li><li><code>best = max(best, cur)</code>.</li></ol>
+<p><strong>Watch it run</strong> <span class="muted">(step through it yourself)</span></p><div class="stepper" data-sim="kadane"></div>
+<p><strong>Trace</strong> — <code>[-2,1,-3,4,-1,2,1,-5,4]</code></p><pre><code>cur:  -2  1 -2  4  3  5  6  1  5
+best: -2  1  1  4  4  5  6  6  6
+=&gt; 6   (subarray [4,-1,2,1])</code></pre>
+<p><strong>Skeleton</strong> — maximum subarray sum</p><pre class="code-java"><code>int cur = a[0], best = a[0];
+for (int i = 1; i &lt; n; i++) {
+    cur = Math.max(a[i], cur + a[i]);
+    best = Math.max(best, cur);
+}</code></pre><pre class="code-py"><code>cur = best = a[0]
+for x in a[1:]:
+    cur = max(x, cur + x)
+    best = max(best, cur)</code></pre>
+<p><strong>Skeleton</strong> — maximum product subarray (negatives flip sign: track both)</p><pre class="code-java"><code>int mx = a[0], mn = a[0], best = a[0];
+for (int i = 1; i &lt; n; i++) {
+    int x = a[i];
+    int hi = Math.max(x, Math.max(mx * x, mn * x));
+    int lo = Math.min(x, Math.min(mx * x, mn * x));
+    mx = hi; mn = lo;
+    best = Math.max(best, mx);
+}</code></pre><pre class="code-py"><code>mx = mn = best = a[0]
+for x in a[1:]:
+    hi = max(x, mx * x, mn * x)
+    lo = min(x, mx * x, mn * x)
+    mx, mn = hi, lo
+    best = max(best, mx)</code></pre>
+<p><strong>Complexity</strong> — O(n) time, O(1) space.</p>
+<p><strong>Traps</strong></p><ul><li>Initialise from <code>a[0]</code>, not 0, or all-negative arrays return 0.</li><li>Max product needs both the running max and min.</li><li>Circular array: answer = <code>max(kadane, total − minSubarray)</code>, except when every element is negative.</li></ul>
+<p><strong>Variants and follow-ups</strong></p><ul><li>Return the subarray itself: remember <code>start</code> whenever you restart.</li><li>One deletion allowed (LC 1186): two DP states.</li></ul>
+<p><strong>When NOT to use</strong> — When the subarray need not be contiguous, or you need a <strong>count</strong> of subarrays rather than the best one.</p>
+<p><strong>Problem ladder</strong> <span class="muted">(easy → hard; tick what you have solved)</span></p>
+<div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="arrays-121" aria-label="Solved LC 121"></td><td><a href="https://leetcode.com/problems/best-time-to-buy-and-sell-stock/" target="_blank" rel="noopener">LC 121</a></td><td>Best Time to Buy and Sell Stock</td><td class="dE">Easy</td><td>Track the minimum price so far; best = max(price − min)</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-53" aria-label="Solved LC 53"></td><td><a href="https://leetcode.com/problems/maximum-subarray/" target="_blank" rel="noopener">LC 53</a></td><td>Maximum Subarray</td><td class="dM">Medium</td><td>cur = max(a[i], cur + a[i])</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-152" aria-label="Solved LC 152"></td><td><a href="https://leetcode.com/problems/maximum-product-subarray/" target="_blank" rel="noopener">LC 152</a></td><td>Maximum Product Subarray</td><td class="dM">Medium</td><td>Track running max and min product</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-918" aria-label="Solved LC 918"></td><td><a href="https://leetcode.com/problems/maximum-sum-circular-subarray/" target="_blank" rel="noopener">LC 918</a></td><td>Maximum Sum Circular Subarray</td><td class="dM">Medium</td><td>max(Kadane max, total − Kadane min); handle all-negative</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-1749" aria-label="Solved LC 1749"></td><td><a href="https://leetcode.com/problems/maximum-absolute-sum-of-any-subarray/" target="_blank" rel="noopener">LC 1749</a></td><td>Maximum Absolute Sum of Any Subarray</td><td class="dM">Medium</td><td>max(max-Kadane, |min-Kadane|)</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-1186" aria-label="Solved LC 1186"></td><td><a href="https://leetcode.com/problems/maximum-subarray-sum-with-one-deletion/" target="_blank" rel="noopener">LC 1186</a></td><td>Maximum Subarray Sum with One Deletion</td><td class="dM">Medium</td><td>Two states: no deletion yet / one used</td><td class="cx">O(n) / O(1)</td></tr></tbody></table></div>
+</section>
+<section class="pat" id="p6">
+<h3>Pattern 6 — Hashing: Two Sum, Counting, Grouping <span class="tier hot">🔥 Frequently asked</span></h3>
+<p><strong>When to use</strong> — Answer "have I seen X?", "how many times?" or "group items by a key" in O(1) per element.</p>
+<p><strong>Detect</strong> — "find a pair with this complement" · "first unique" · "group anagrams" · "top K frequent" · counting occurrences · "longest consecutive run".</p>
+<div class="callout intu"><strong>Intuition</strong><p>A hash map is a coat-check desk: hand over an item, get an instant answer to "is it here?". Instead of searching the whole array for the partner of x, you ask the desk whether <code>target − x</code> was checked in earlier.</p></div>
+<p><strong>Brute force → optimised</strong> — For each element scan the rest for its partner: O(n²). A map that remembers what you have seen makes each lookup O(1): O(n) time for O(n) space.</p>
+<p><strong>Core idea</strong> — Store what you have seen (value → index, value → count, key → group). For Two Sum look up <code>target − x</code>. For grouping, derive a canonical key (sorted string or a 26-count signature).</p>
+<p><strong>How it works</strong></p><ol><li>For each <code>x</code>, check whether <code>target − x</code> is already in the map.</li><li>If yes, you have the pair; otherwise store <code>x → index</code>.</li><li>Store <strong>after</strong> checking so one element is never used twice.</li></ol>
+<p><strong>Watch it run</strong> <span class="muted">(step through it yourself)</span></p><div class="stepper" data-sim="hash"></div>
+<p><strong>Trace</strong> — Two Sum <code>[3,2,4]</code>, target 6</p><pre><code>3: need 3? no   store {3:0}
+2: need 4? no   store {2:1}
+4: need 2? yes (index 1) -&gt; [1,2]</code></pre>
+<p><strong>Skeleton</strong> — Two Sum</p><pre class="code-java"><code>Map&lt;Integer, Integer&gt; seen = new HashMap&lt;&gt;();
+for (int i = 0; i &lt; n; i++) {
+    Integer j = seen.get(target - a[i]);
+    if (j != null) return new int[]{j, i};
+    seen.put(a[i], i);
+}</code></pre><pre class="code-py"><code>seen = {}
+for i, x in enumerate(a):
+    if target - x in seen:
+        return [seen[target - x], i]
+    seen[x] = i</code></pre>
+<p><strong>Skeleton</strong> — Group Anagrams (canonical key)</p><pre class="code-java"><code>Map&lt;String, List&lt;String&gt;&gt; groups = new HashMap&lt;&gt;();
+for (String w : words) {
+    char[] c = w.toCharArray();
+    Arrays.sort(c);
+    groups.computeIfAbsent(new String(c), k -&gt; new ArrayList&lt;&gt;()).add(w);
+}
+return new ArrayList&lt;&gt;(groups.values());</code></pre><pre class="code-py"><code>from collections import defaultdict
+groups = defaultdict(list)
+for w in words:
+    groups[&#x27;&#x27;.join(sorted(w))].append(w)
+return list(groups.values())</code></pre>
+<p><strong>Skeleton</strong> — Longest Consecutive Sequence (start only at run beginnings)</p><pre class="code-java"><code>Set&lt;Integer&gt; set = new HashSet&lt;&gt;();
+for (int x : a) set.add(x);
+int best = 0;
+for (int x : set) {
+    if (set.contains(x - 1)) continue;        // not the start of a run
+    int len = 1;
+    while (set.contains(x + len)) len++;
+    best = Math.max(best, len);
+}</code></pre><pre class="code-py"><code>s = set(a)
+best = 0
+for x in s:
+    if x - 1 in s:
+        continue                          # not the start of a run
+    length = 1
+    while x + length in s:
+        length += 1
+    best = max(best, length)</code></pre>
+<p><strong>Complexity</strong> — O(n) time, O(n) space.</p>
+<p><strong>Traps</strong></p><ul><li>Store after checking (otherwise <code>target = 2x</code> reuses the same element).</li><li>Pick a stable canonical key when grouping. Sorting costs O(k log k) per word; a count signature is O(k).</li><li>Top-K frequent: bucket by frequency for O(n), or a min-heap of size k for O(n log k).</li><li>Hash map worst case is O(n) per operation; say "expected O(1)" in interviews.</li></ul>
+<p><strong>Variants and follow-ups</strong></p><ul><li>Return all pairs: store lists of indices, or sort + two pointers to dedupe.</li><li>Subarray problems: pair a map with a prefix sum (pattern 4).</li><li>Design O(1) insert/delete/random: array + map of value → index (swap with last).</li></ul>
+<p><strong>When NOT to use</strong> — When O(1) extra space is required and the array is sorted (two pointers), or when order of results matters more than speed.</p>
+<p><strong>Problem ladder</strong> <span class="muted">(easy → hard; tick what you have solved)</span></p>
+<div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="arrays-217" aria-label="Solved LC 217"></td><td><a href="https://leetcode.com/problems/contains-duplicate/" target="_blank" rel="noopener">LC 217</a></td><td>Contains Duplicate</td><td class="dE">Easy</td><td>Set; a repeat means true</td><td class="cx">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-242" aria-label="Solved LC 242"></td><td><a href="https://leetcode.com/problems/valid-anagram/" target="_blank" rel="noopener">LC 242</a></td><td>Valid Anagram</td><td class="dE">Easy</td><td>Compare frequency counts</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-1" aria-label="Solved LC 1"></td><td><a href="https://leetcode.com/problems/two-sum/" target="_blank" rel="noopener">LC 1</a></td><td>Two Sum</td><td class="dE">Easy</td><td>Map value → index; look up target − x</td><td class="cx">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-49" aria-label="Solved LC 49"></td><td><a href="https://leetcode.com/problems/group-anagrams/" target="_blank" rel="noopener">LC 49</a></td><td>Group Anagrams</td><td class="dM">Medium</td><td>Key = sorted string or 26-count tuple</td><td class="cx">O(N·K log K) / O(N·K)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-347" aria-label="Solved LC 347"></td><td><a href="https://leetcode.com/problems/top-k-frequent-elements/" target="_blank" rel="noopener">LC 347</a></td><td>Top K Frequent Elements</td><td class="dM">Medium</td><td>Count, then bucket by frequency</td><td class="cx">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-36" aria-label="Solved LC 36"></td><td><a href="https://leetcode.com/problems/valid-sudoku/" target="_blank" rel="noopener">LC 36</a></td><td>Valid Sudoku</td><td class="dM">Medium</td><td>A set per row, column and 3×3 box</td><td class="cx">O(81) / O(81)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-128" aria-label="Solved LC 128"></td><td><a href="https://leetcode.com/problems/longest-consecutive-sequence/" target="_blank" rel="noopener">LC 128</a></td><td>Longest Consecutive Sequence</td><td class="dM">Medium</td><td>Start counting only at numbers with no x−1 present</td><td class="cx">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-454" aria-label="Solved LC 454"></td><td><a href="https://leetcode.com/problems/4sum-ii/" target="_blank" rel="noopener">LC 454</a></td><td>4Sum II</td><td class="dM">Medium</td><td>Map of a+b sums; look up −(c+d)</td><td class="cx">O(n²) / O(n²)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-380" aria-label="Solved LC 380"></td><td><a href="https://leetcode.com/problems/insert-delete-getrandom-o1/" target="_blank" rel="noopener">LC 380</a></td><td>Insert Delete GetRandom O(1)</td><td class="dM">Medium</td><td>Array + map value → index; delete by swapping with the last</td><td class="cx">O(1) avg per op / O(n)</td></tr></tbody></table></div>
+</section>
+<section class="pat" id="p7">
+<h3>Pattern 7 — Dutch National Flag (3-way partition) <span class="tier sec">🧊 Secondary</span></h3>
+<p><strong>When to use</strong> — Three-way partition of an array in one pass, in place.</p>
+<p><strong>Detect</strong> — "sort 0s, 1s and 2s" · partition around a pivot into <code>&lt;</code>, <code>=</code>, <code>&gt;</code> · "move all X to the front".</p>
+<div class="callout intu"><strong>Intuition</strong><p>Sorting three colours of laundry into three piles using only the floor in front of you: zeros are thrown to the left pile, twos to the right pile, ones are left where they land in the middle. The middle pointer only advances when it is certain what it is standing on.</p></div>
+<p><strong>Brute force → optimised</strong> — Counting sort needs two passes (count, then rewrite). Three pointers sort in a single pass with O(1) space.</p>
+<p><strong>Core idea</strong> — <code>lo</code> = end of the 0-zone, <code>hi</code> = start of the 2-zone, <code>mid</code> scans the unknown middle. Everything before <code>lo</code> is 0, everything after <code>hi</code> is 2.</p>
+<p><strong>How it works</strong></p><ol><li><code>mid</code> walks right.</li><li><code>a[mid] == 0</code>: swap with <code>lo</code>, advance both.</li><li><code>a[mid] == 2</code>: swap with <code>hi</code>, <code>hi--</code>, <strong>do not</strong> advance <code>mid</code>.</li><li><code>a[mid] == 1</code>: advance <code>mid</code>.</li></ol>
+<p><strong>Watch it run</strong> <span class="muted">(step through it yourself)</span></p><div class="stepper" data-sim="dutch"></div>
+<p><strong>Trace</strong> — <code>[2,0,2,1,1,0]</code></p><pre><code>[2,0,2,1,1,0] mid=0 is 2 -&gt; swap hi        [0,0,2,1,1,2]
+[0,0,2,1,1,2] mid=0 is 0 -&gt; lo++,mid++
+[0,0,2,1,1,2] mid=1 is 0 -&gt; lo++,mid++
+[0,0,2,1,1,2] mid=2 is 2 -&gt; swap hi        [0,0,1,1,2,2]
+mid=2 is 1, mid=3 is 1 -&gt; mid passes hi -&gt; sorted</code></pre>
+<p><strong>Skeleton</strong> — sort colors</p><pre class="code-java"><code>int lo = 0, mid = 0, hi = n - 1;
+while (mid &lt;= hi) {
+    if (a[mid] == 0) { swap(a, lo++, mid++); }
+    else if (a[mid] == 2) { swap(a, mid, hi--); }
+    else mid++;
+}</code></pre><pre class="code-py"><code>lo, mid, hi = 0, 0, len(a) - 1
+while mid &lt;= hi:
+    if a[mid] == 0:
+        a[lo], a[mid] = a[mid], a[lo]
+        lo += 1
+        mid += 1
+    elif a[mid] == 2:
+        a[mid], a[hi] = a[hi], a[mid]
+        hi -= 1
+    else:
+        mid += 1</code></pre>
+<p><strong>Complexity</strong> — O(n) time, O(1) space.</p>
+<p><strong>Traps</strong></p><ul><li>Do <strong>not</strong> advance <code>mid</code> after swapping with <code>hi</code>: the value swapped in is unexamined.</li><li>Loop condition is <code>mid &lt;= hi</code>, not <code>mid &lt; hi</code>.</li></ul>
+<p><strong>Variants and follow-ups</strong></p><ul><li>Two categories (move zeroes, sort by parity): a single slow/fast pointer.</li><li>Partition around a pivot value: <code>&lt;</code> left, <code>=</code> middle, <code>&gt;</code> right (quick sort with many duplicates).</li></ul>
+<p><strong>When NOT to use</strong> — More than three categories (use counting sort) or when a stable order must be preserved.</p>
+<p><strong>Problem ladder</strong> <span class="muted">(easy → hard; tick what you have solved)</span></p>
+<div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="arrays-905" aria-label="Solved LC 905"></td><td><a href="https://leetcode.com/problems/sort-array-by-parity/" target="_blank" rel="noopener">LC 905</a></td><td>Sort Array By Parity</td><td class="dE">Easy</td><td>Two-way partition: evens to the front</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-922" aria-label="Solved LC 922"></td><td><a href="https://leetcode.com/problems/sort-array-by-parity-ii/" target="_blank" rel="noopener">LC 922</a></td><td>Sort Array By Parity II</td><td class="dE">Easy</td><td>Two pointers on even and odd positions, swap mismatches</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-75" aria-label="Solved LC 75"></td><td><a href="https://leetcode.com/problems/sort-colors/" target="_blank" rel="noopener">LC 75</a></td><td>Sort Colors</td><td class="dM">Medium</td><td>Dutch flag with lo / mid / hi</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-2161" aria-label="Solved LC 2161"></td><td><a href="https://leetcode.com/problems/partition-array-according-to-given-pivot/" target="_blank" rel="noopener">LC 2161</a></td><td>Partition Array According to Given Pivot</td><td class="dM">Medium</td><td>Three buckets preserving relative order (not in place)</td><td class="cx">O(n) / O(n)</td></tr></tbody></table></div>
+</section>
+<section class="pat" id="p8">
+<h3>Pattern 8 — Binary Search (basic and on the answer) <span class="tier hot">🔥 Frequently asked</span></h3>
+<p><strong>When to use</strong> — Sorted data, or a numeric answer space where feasibility is monotonic (once true, always true).</p>
+<p><strong>Detect</strong> — sorted array + O(log n) · "first / last occurrence" · "minimise the maximum" or "maximise the minimum" · "smallest value such that a check passes".</p>
+<div class="callout intu"><strong>Intuition</strong><p>Guess-the-number game: each guess eliminates half the possibilities. The deep idea is not about arrays; it is about any yes/no question whose answer flips exactly once along a line: <code>F F F F T T T T</code>. Binary search finds the flip point.</p></div>
+<p><strong>Brute force → optimised</strong> — Scan linearly for the first true: O(n). Halving the range each time: O(log n). For "search on answer" it is O(n) per check × O(log range) checks.</p>
+<p><strong>Core idea</strong> — Keep an invariant such as "the answer is inside <code>[lo, hi]</code>". Look at <code>mid</code>: if the condition holds, the answer is at <code>mid</code> or to its left (<code>hi = mid</code>); otherwise it is to the right (<code>lo = mid + 1</code>).</p>
+<p><strong>How it works</strong></p><ol><li>Choose <code>lo</code>, <code>hi</code> so the answer is guaranteed inside.</li><li><code>mid = lo + (hi − lo) / 2</code>.</li><li>Condition true → <code>hi = mid</code>; false → <code>lo = mid + 1</code>.</li><li>Stop when <code>lo == hi</code>; that is the boundary.</li></ol>
+<p><strong>Watch it run</strong> <span class="muted">(step through it yourself)</span></p><div class="stepper" data-sim="binary"></div>
+<p><strong>Trace</strong> — first index with <code>a[i] ≥ 7</code> in <code>[1,3,5,7,7,7,9,11]</code></p><pre><code>lo=0 hi=7 mid=3 a=7 &gt;= 7 -&gt; hi=3
+lo=0 hi=3 mid=1 a=3 &lt;  7 -&gt; lo=2
+lo=2 hi=3 mid=2 a=5 &lt;  7 -&gt; lo=3
+lo=hi=3 -&gt; first 7 is at index 3</code></pre>
+<p><strong>Skeleton</strong> — lower bound (first index with a[i] &gt;= target)</p><pre class="code-java"><code>int lo = 0, hi = n - 1;
+while (lo &lt; hi) {
+    int mid = lo + (hi - lo) / 2;
+    if (a[mid] &gt;= target) hi = mid;   // mid may be the answer
+    else lo = mid + 1;
+}
+return a[lo] == target ? lo : -1;</code></pre><pre class="code-py"><code>lo, hi = 0, len(a) - 1
+while lo &lt; hi:
+    mid = lo + (hi - lo) // 2
+    if a[mid] &gt;= target:
+        hi = mid                      # mid may be the answer
+    else:
+        lo = mid + 1
+return lo if a[lo] == target else -1</code></pre>
+<p><strong>Skeleton</strong> — search on the answer (Koko Eating Bananas: smallest feasible speed)</p><pre class="code-java"><code>int lo = 1, hi = max(piles);
+while (lo &lt; hi) {
+    int mid = lo + (hi - lo) / 2;
+    if (hours(piles, mid) &lt;= h) hi = mid;     // feasible: try smaller
+    else lo = mid + 1;
+}
+return lo;
+// hours(): sum of ceil(pile / speed)</code></pre><pre class="code-py"><code>lo, hi = 1, max(piles)
+while lo &lt; hi:
+    mid = lo + (hi - lo) // 2
+    if sum(-(-p // mid) for p in piles) &lt;= h:   # feasible: try smaller
+        hi = mid
+    else:
+        lo = mid + 1
+return lo</code></pre>
+<p><strong>Complexity</strong> — O(log n) basic; O(n log range) for search on answer; O(1) space.</p>
+<p><strong>Traps</strong></p><ul><li>Use <code>lo + (hi − lo) / 2</code> to avoid integer overflow.</li><li>Pick one invariant and stick to it: <code>lo &lt; hi</code> with <code>hi = mid</code> (boundary search) vs <code>lo &lt;= hi</code> with <code>hi = mid − 1</code> (exact search).</li><li><code>lo = mid</code> without <code>+1</code> can loop forever.</li><li>For "maximise the minimum" flip the condition and use <code>mid = lo + (hi − lo + 1) / 2</code>.</li></ul>
+<p><strong>Variants and follow-ups</strong></p><ul><li>Last occurrence: lower bound of <code>target + 1</code>, minus one.</li><li>Peak element: compare <code>a[mid]</code> with <code>a[mid+1]</code> and climb.</li><li>Binary search on a 2D matrix: treat it as a flattened sorted array.</li><li>Median of two sorted arrays: binary search the partition of the shorter array.</li></ul>
+<p><strong>When NOT to use</strong> — Unsorted data with no monotonic feasibility relation.</p>
+<p><strong>Problem ladder</strong> <span class="muted">(easy → hard; tick what you have solved)</span></p>
+<div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="arrays-704" aria-label="Solved LC 704"></td><td><a href="https://leetcode.com/problems/binary-search/" target="_blank" rel="noopener">LC 704</a></td><td>Binary Search</td><td class="dE">Easy</td><td>Classic exact search</td><td class="cx">O(log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-35" aria-label="Solved LC 35"></td><td><a href="https://leetcode.com/problems/search-insert-position/" target="_blank" rel="noopener">LC 35</a></td><td>Search Insert Position</td><td class="dE">Easy</td><td>Lower bound: first index ≥ target</td><td class="cx">O(log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-69" aria-label="Solved LC 69"></td><td><a href="https://leetcode.com/problems/sqrtx/" target="_blank" rel="noopener">LC 69</a></td><td>Sqrt(x)</td><td class="dE">Easy</td><td>Largest m with m·m ≤ x (use long)</td><td class="cx">O(log x) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-34" aria-label="Solved LC 34"></td><td><a href="https://leetcode.com/problems/find-first-and-last-position-of-element-in-sorted-array/" target="_blank" rel="noopener">LC 34</a></td><td>Find First and Last Position of Element in Sorted Array</td><td class="dM">Medium</td><td>Lower bound of target and of target + 1</td><td class="cx">O(log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-74" aria-label="Solved LC 74"></td><td><a href="https://leetcode.com/problems/search-a-2d-matrix/" target="_blank" rel="noopener">LC 74</a></td><td>Search a 2D Matrix</td><td class="dM">Medium</td><td>Flatten: mid → (mid / cols, mid % cols)</td><td class="cx">O(log mn) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-162" aria-label="Solved LC 162"></td><td><a href="https://leetcode.com/problems/find-peak-element/" target="_blank" rel="noopener">LC 162</a></td><td>Find Peak Element</td><td class="dM">Medium</td><td>Compare mid with mid + 1 and move uphill</td><td class="cx">O(log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-875" aria-label="Solved LC 875"></td><td><a href="https://leetcode.com/problems/koko-eating-bananas/" target="_blank" rel="noopener">LC 875</a></td><td>Koko Eating Bananas</td><td class="dM">Medium</td><td>Search speed; feasible if total hours ≤ h</td><td class="cx">O(n log max) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-1011" aria-label="Solved LC 1011"></td><td><a href="https://leetcode.com/problems/capacity-to-ship-packages-within-d-days/" target="_blank" rel="noopener">LC 1011</a></td><td>Capacity To Ship Packages Within D Days</td><td class="dM">Medium</td><td>Search capacity in [max, sum]; greedy day count</td><td class="cx">O(n log sum) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-410" aria-label="Solved LC 410"></td><td><a href="https://leetcode.com/problems/split-array-largest-sum/" target="_blank" rel="noopener">LC 410</a></td><td>Split Array Largest Sum</td><td class="dH">Hard</td><td>Search the largest-part sum; greedy count of parts ≤ m</td><td class="cx">O(n log sum) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-4" aria-label="Solved LC 4"></td><td><a href="https://leetcode.com/problems/median-of-two-sorted-arrays/" target="_blank" rel="noopener">LC 4</a></td><td>Median of Two Sorted Arrays</td><td class="dH">Hard</td><td>Binary search the partition of the shorter array</td><td class="cx">O(log min(m,n)) / O(1)</td></tr></tbody></table></div>
+</section>
+<section class="pat" id="p9">
+<h3>Pattern 9 — Binary Search on a Rotated Array <span class="tier sec">🧊 Secondary</span></h3>
+<p><strong>When to use</strong> — A sorted array rotated at an unknown pivot.</p>
+<p><strong>Detect</strong> — "sorted array rotated" · "find the minimum in a rotated array" · plain binary search alone fails.</p>
+<div class="callout intu"><strong>Intuition</strong><p>Cut a sorted deck at a random point and swap the halves. Wherever you look at the middle card, at least one side of it is still a perfectly sorted run. Work out which side that is, check whether your target could live in that run, and discard the other half.</p></div>
+<p><strong>Brute force → optimised</strong> — Linear scan is O(n). Using the "one half is sorted" fact each step still discards half: O(log n).</p>
+<p><strong>Core idea</strong> — Compare <code>a[lo]</code> with <code>a[mid]</code> to find the sorted half. If the target lies inside that half's range, search it; otherwise search the other half.</p>
+<p><strong>How it works</strong></p><ol><li>Compute <code>mid</code>. If <code>a[mid] == target</code>, done.</li><li>If <code>a[lo] &lt;= a[mid]</code> the left half is sorted, else the right half is.</li><li>If target is within the sorted half's range, go there; otherwise go to the other half.</li></ol>
+<p><strong>Watch it run</strong> <span class="muted">(step through it yourself)</span></p><div class="stepper" data-sim="rotated"></div>
+<p><strong>Trace</strong> — find 0 in <code>[4,5,6,7,0,1,2]</code></p><pre><code>lo=0 hi=6 mid=3 (7): left [4..7] sorted, 0 not inside -&gt; lo=4
+lo=4 hi=6 mid=5 (1): left [0..1] sorted, 0 inside        -&gt; hi=4
+lo=4 hi=4 mid=4 (0): found at index 4</code></pre>
+<p><strong>Skeleton</strong> — search a target</p><pre class="code-java"><code>int lo = 0, hi = n - 1;
+while (lo &lt;= hi) {
+    int mid = lo + (hi - lo) / 2;
+    if (a[mid] == target) return mid;
+    if (a[lo] &lt;= a[mid]) {                    // left half sorted
+        if (a[lo] &lt;= target &amp;&amp; target &lt; a[mid]) hi = mid - 1; else lo = mid + 1;
+    } else {                                  // right half sorted
+        if (a[mid] &lt; target &amp;&amp; target &lt;= a[hi]) lo = mid + 1; else hi = mid - 1;
+    }
+}
+return -1;</code></pre><pre class="code-py"><code>lo, hi = 0, len(a) - 1
+while lo &lt;= hi:
+    mid = lo + (hi - lo) // 2
+    if a[mid] == target:
+        return mid
+    if a[lo] &lt;= a[mid]:                       # left half sorted
+        if a[lo] &lt;= target &lt; a[mid]:
+            hi = mid - 1
+        else:
+            lo = mid + 1
+    else:                                     # right half sorted
+        if a[mid] &lt; target &lt;= a[hi]:
+            lo = mid + 1
+        else:
+            hi = mid - 1
+return -1</code></pre>
+<p><strong>Skeleton</strong> — find the minimum</p><pre class="code-java"><code>int lo = 0, hi = n - 1;
+while (lo &lt; hi) {
+    int mid = lo + (hi - lo) / 2;
+    if (a[mid] &gt; a[hi]) lo = mid + 1;         // minimum is to the right
+    else hi = mid;                            // mid may be the minimum
+}
+return a[lo];</code></pre><pre class="code-py"><code>lo, hi = 0, len(a) - 1
+while lo &lt; hi:
+    mid = lo + (hi - lo) // 2
+    if a[mid] &gt; a[hi]:
+        lo = mid + 1                          # minimum is to the right
+    else:
+        hi = mid                              # mid may be the minimum
+return a[lo]</code></pre>
+<p><strong>Complexity</strong> — O(log n) time, O(1) space (O(n) worst case with duplicates).</p>
+<p><strong>Traps</strong></p><ul><li>With duplicates, <code>a[lo] == a[mid] == a[hi]</code> hides which half is sorted: shrink both ends (LC 81) or do <code>hi--</code> (LC 154), degrading to O(n).</li><li>Use <code>&lt;=</code> in <code>a[lo] &lt;= a[mid]</code> (when <code>lo == mid</code>) and be careful with strict vs non-strict range checks.</li></ul>
+<p><strong>Variants and follow-ups</strong></p><ul><li>Find the rotation count: index of the minimum.</li><li>Search in a rotated array with duplicates.</li></ul>
+<p><strong>When NOT to use</strong> — The array is not a rotation of a sorted array.</p>
+<p><strong>Problem ladder</strong> <span class="muted">(easy → hard; tick what you have solved)</span></p>
+<div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="arrays-153" aria-label="Solved LC 153"></td><td><a href="https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/" target="_blank" rel="noopener">LC 153</a></td><td>Find Minimum in Rotated Sorted Array</td><td class="dM">Medium</td><td>Compare mid with hi: bigger → minimum is on the right</td><td class="cx">O(log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-33" aria-label="Solved LC 33"></td><td><a href="https://leetcode.com/problems/search-in-rotated-sorted-array/" target="_blank" rel="noopener">LC 33</a></td><td>Search in Rotated Sorted Array</td><td class="dM">Medium</td><td>Identify the sorted half, test whether target is inside</td><td class="cx">O(log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-81" aria-label="Solved LC 81"></td><td><a href="https://leetcode.com/problems/search-in-rotated-sorted-array-ii/" target="_blank" rel="noopener">LC 81</a></td><td>Search in Rotated Sorted Array II</td><td class="dM">Medium</td><td>If a[lo] == a[mid] == a[hi], shrink both ends</td><td class="cx">O(log n) avg, O(n) worst / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-154" aria-label="Solved LC 154"></td><td><a href="https://leetcode.com/problems/find-minimum-in-rotated-sorted-array-ii/" target="_blank" rel="noopener">LC 154</a></td><td>Find Minimum in Rotated Sorted Array II</td><td class="dH">Hard</td><td>If a[mid] == a[hi], hi--</td><td class="cx">O(log n) avg, O(n) worst / O(1)</td></tr></tbody></table></div>
+</section>
+<section class="pat" id="p10">
+<h3>Pattern 10 — Quick Select and Merge Sort <span class="tier sec">🧊 Secondary</span></h3>
+<p><strong>When to use</strong> — Kth smallest/largest without a full sort, counting inversions, or a guaranteed O(n log n) stable sort.</p>
+<p><strong>Detect</strong> — "kth largest/smallest" · "count smaller elements after self" · "count reverse pairs" · "sort with an O(n log n) guarantee".</p>
+<div class="callout intu"><strong>Intuition</strong><p>Quick select: to find the 3rd tallest person, split the crowd around one person. If exactly two people are taller, you are done; otherwise only one side can contain your answer, so ignore the other. Merge sort: while merging two sorted halves you see, for free, how many elements jumped past each other: that is the inversion count.</p></div>
+<p><strong>Brute force → optimised</strong> — Sorting everything is O(n log n). Quick select discards one side each time: expected n + n/2 + n/4 + … = O(n).</p>
+<p><strong>Core idea</strong> — Quick select partitions around a pivot and recurses into the single side containing the target index. Merge sort divides, sorts halves, and merges; counting happens during the merge.</p>
+<p><strong>How it works</strong></p><ol><li>Partition so the pivot lands at its final sorted index <code>p</code>.</li><li><code>p == target</code> → done. <code>p &lt; target</code> → search the right side. <code>p &gt; target</code> → search the left.</li><li>kth largest = index <code>n − k</code> in ascending order.</li></ol>
+<p><strong>Watch it run</strong> <span class="muted">(step through it yourself)</span></p><div class="stepper" data-sim="quick"></div>
+<p><strong>Trace</strong> — 2nd largest in <code>[3,2,1,5,6,4]</code> (target index 4)</p><pre><code>pivot 4: [3,2,1,4,6,5]  p=3 &lt; 4 -&gt; search right [6,5]
+pivot 5: [5,6]          p=4 == 4 -&gt; answer 5</code></pre>
+<p><strong>Skeleton</strong> — quick select (Lomuto partition)</p><pre class="code-java"><code>int target = n - k, lo = 0, hi = n - 1;
+while (lo &lt;= hi) {
+    int p = partition(a, lo, hi);
+    if (p == target) return a[p];
+    if (p &lt; target) lo = p + 1; else hi = p - 1;
+}
+return -1;
+
+int partition(int[] a, int lo, int hi) {
+    int pivot = a[hi], i = lo;
+    for (int j = lo; j &lt; hi; j++)
+        if (a[j] &lt; pivot) { int t = a[i]; a[i] = a[j]; a[j] = t; i++; }
+    int t = a[i]; a[i] = a[hi]; a[hi] = t;
+    return i;
+}</code></pre><pre class="code-py"><code>import random
+def kth_largest(a, k):
+    target, lo, hi = len(a) - k, 0, len(a) - 1
+    while lo &lt;= hi:
+        r = random.randint(lo, hi)            # random pivot avoids worst case
+        a[r], a[hi] = a[hi], a[r]
+        pivot, i = a[hi], lo
+        for j in range(lo, hi):
+            if a[j] &lt; pivot:
+                a[i], a[j] = a[j], a[i]
+                i += 1
+        a[i], a[hi] = a[hi], a[i]
+        if i == target:
+            return a[i]
+        if i &lt; target:
+            lo = i + 1
+        else:
+            hi = i - 1</code></pre>
+<p><strong>Skeleton</strong> — merge sort with inversion count</p><pre class="code-java"><code>long mergeCount(int[] a, int[] tmp, int lo, int hi) {
+    if (hi - lo &lt; 1) return 0;
+    int mid = (lo + hi) &gt;&gt;&gt; 1;
+    long inv = mergeCount(a, tmp, lo, mid) + mergeCount(a, tmp, mid + 1, hi);
+    int i = lo, j = mid + 1, k = lo;
+    while (i &lt;= mid &amp;&amp; j &lt;= hi) {
+        if (a[i] &lt;= a[j]) tmp[k++] = a[i++];
+        else { tmp[k++] = a[j++]; inv += mid - i + 1; }   // all of a[i..mid] &gt; a[j]
+    }
+    while (i &lt;= mid) tmp[k++] = a[i++];
+    while (j &lt;= hi) tmp[k++] = a[j++];
+    System.arraycopy(tmp, lo, a, lo, hi - lo + 1);
+    return inv;
+}</code></pre><pre class="code-py"><code>def merge_count(a):
+    if len(a) &lt;= 1:
+        return a, 0
+    mid = len(a) // 2
+    left, x = merge_count(a[:mid])
+    right, y = merge_count(a[mid:])
+    out, inv, i, j = [], x + y, 0, 0
+    while i &lt; len(left) and j &lt; len(right):
+        if left[i] &lt;= right[j]:
+            out.append(left[i]); i += 1
+        else:
+            out.append(right[j]); j += 1
+            inv += len(left) - i                  # all remaining left &gt; right[j]
+    out += left[i:] + right[j:]
+    return out, inv</code></pre>
+<p><strong>Complexity</strong> — Quick select average O(n), worst O(n²) (fix with a random pivot), O(1) space. Merge sort O(n log n) time, O(n) space, stable.</p>
+<p><strong>Traps</strong></p><ul><li>Quick select on already-sorted input with a fixed pivot degrades to O(n²): randomise the pivot.</li><li>Merge sort is not in place (needs an auxiliary array).</li><li>Count inversions <strong>during</strong> the merge; use <code>long</code> for the count.</li><li>For streaming top-K or when k is small, a heap of size k (O(n log k)) is simpler.</li></ul>
+<p><strong>Variants and follow-ups</strong></p><ul><li>Top-K without ordering: quick select, then take the left or right side.</li><li>Count of smaller numbers after self / reverse pairs: merge sort on indices with a modified count step, or a Fenwick tree.</li></ul>
+<p><strong>When NOT to use</strong> — When a heap is simpler (streaming input), or when you need a stable sort (use merge sort, not quick select).</p>
+<p><strong>Problem ladder</strong> <span class="muted">(easy → hard; tick what you have solved)</span></p>
+<div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="arrays-215" aria-label="Solved LC 215"></td><td><a href="https://leetcode.com/problems/kth-largest-element-in-an-array/" target="_blank" rel="noopener">LC 215</a></td><td>Kth Largest Element in an Array</td><td class="dM">Medium</td><td>Quick select for index n − k (or a size-k min-heap)</td><td class="cx">O(n) avg / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-973" aria-label="Solved LC 973"></td><td><a href="https://leetcode.com/problems/k-closest-points-to-origin/" target="_blank" rel="noopener">LC 973</a></td><td>K Closest Points to Origin</td><td class="dM">Medium</td><td>Quick select on squared distance (or a size-k max-heap)</td><td class="cx">O(n) avg / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-912" aria-label="Solved LC 912"></td><td><a href="https://leetcode.com/problems/sort-an-array/" target="_blank" rel="noopener">LC 912</a></td><td>Sort an Array</td><td class="dM">Medium</td><td>Merge sort (guaranteed O(n log n)); avoid quick sort worst case</td><td class="cx">O(n log n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-493" aria-label="Solved LC 493"></td><td><a href="https://leetcode.com/problems/reverse-pairs/" target="_blank" rel="noopener">LC 493</a></td><td>Reverse Pairs</td><td class="dH">Hard</td><td>Count a[i] &gt; 2·a[j] across the halves before merging</td><td class="cx">O(n log n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-315" aria-label="Solved LC 315"></td><td><a href="https://leetcode.com/problems/count-of-smaller-numbers-after-self/" target="_blank" rel="noopener">LC 315</a></td><td>Count of Smaller Numbers After Self</td><td class="dH">Hard</td><td>Merge sort on indices, or a Fenwick tree over ranks</td><td class="cx">O(n log n) / O(n)</td></tr></tbody></table></div>
+</section>
+<section class="pat" id="p11">
+<h3>Pattern 11 — Other must-know array tricks <span class="tier sec">🧊 Secondary</span></h3>
+<p><strong>When to use</strong> — The problem needs an in-place O(1)-space trick that none of the patterns above cover.</p>
+<p><strong>Detect</strong> — "majority element" · "missing / duplicate number in 1..n" · "rotate in place" · "add a value to a range many times" · matrix spiral/rotate/zero.</p>
+<div class="callout intu"><strong>Intuition</strong><p>These are small, single-purpose tools. Learn the one-sentence idea of each and you can rebuild the code on demand.</p></div>
+<p><strong>Core idea</strong> — Boyer–Moore voting cancels pairs of different elements so the majority survives. Cyclic sort puts value <code>x</code> at index <code>x−1</code>. A difference array records range updates as <code>+v</code> at the start and <code>−v</code> just past the end, then a prefix sum reveals the result. Rotation by <code>k</code> is three reversals.</p>
+<p><strong>How it works</strong></p><ol><li><strong>Voting:</strong> keep <code>candidate</code> and <code>count</code>; same → <code>count++</code>, different → <code>count--</code>, at 0 pick a new candidate.</li><li><strong>Cyclic sort:</strong> while <code>a[i]</code> is in <code>1..n</code> and not at its home, swap it home; the first index where <code>a[i] != i+1</code> is the missing number.</li><li><strong>Difference array:</strong> <code>diff[l] += v</code>, <code>diff[r+1] -= v</code>, prefix-sum at the end.</li><li><strong>Rotate by k:</strong> reverse all, reverse the first <code>k</code>, reverse the rest.</li><li><strong>Matrix:</strong> rotate = transpose then reverse each row; zeroes = use the first row and column as markers.</li></ol>
+<p><strong>Trace</strong> — Boyer–Moore on <code>[2,2,1,1,2]</code></p><pre><code>2: cand 2 count 1
+2: cand 2 count 2
+1: cand 2 count 1
+1: cand 2 count 0
+2: cand 2 count 1  -&gt; majority 2</code></pre>
+<p><strong>Skeleton</strong> — Boyer–Moore majority vote</p><pre class="code-java"><code>int cand = 0, count = 0;
+for (int x : a) {
+    if (count == 0) cand = x;
+    count += (x == cand) ? 1 : -1;
+}
+return cand;   // verify with a second pass if a majority is not guaranteed</code></pre><pre class="code-py"><code>cand, count = None, 0
+for x in a:
+    if count == 0:
+        cand = x
+    count += 1 if x == cand else -1
+return cand    # verify with a second pass if a majority is not guaranteed</code></pre>
+<p><strong>Skeleton</strong> — cyclic sort (first missing positive)</p><pre class="code-java"><code>for (int i = 0; i &lt; n; i++) {
+    while (a[i] &gt; 0 &amp;&amp; a[i] &lt;= n &amp;&amp; a[a[i] - 1] != a[i]) {
+        int j = a[i] - 1, t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+}
+for (int i = 0; i &lt; n; i++) if (a[i] != i + 1) return i + 1;
+return n + 1;</code></pre><pre class="code-py"><code>n = len(a)
+for i in range(n):
+    while 0 &lt; a[i] &lt;= n and a[a[i] - 1] != a[i]:
+        j = a[i] - 1
+        a[i], a[j] = a[j], a[i]
+for i in range(n):
+    if a[i] != i + 1:
+        return i + 1
+return n + 1</code></pre>
+<p><strong>Complexity</strong> — Each trick is O(n) time and O(1) extra space (difference array uses O(n)).</p>
+<p><strong>Traps</strong></p><ul><li>Voting only guarantees the right answer when a majority exists; otherwise verify.</li><li>Cyclic sort loop must be a <code>while</code>, and guard duplicates with <code>a[a[i]-1] != a[i]</code> to avoid infinite swaps.</li><li>Rotate: use <code>k % n</code> first.</li></ul>
+<p><strong>Variants and follow-ups</strong></p><ul><li>Majority element II (more than n/3): two candidates.</li><li>Find the duplicate: cyclic sort, or Floyd's cycle detection on the index graph.</li></ul>
+<p><strong>When NOT to use</strong> — When a general pattern (hashing, two pointers) already solves it cleanly and space is not a concern.</p>
+<p><strong>Problem ladder</strong> <span class="muted">(easy → hard; tick what you have solved)</span></p>
+<div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="arrays-169" aria-label="Solved LC 169"></td><td><a href="https://leetcode.com/problems/majority-element/" target="_blank" rel="noopener">LC 169</a></td><td>Majority Element</td><td class="dE">Easy</td><td>Boyer–Moore voting</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-189" aria-label="Solved LC 189"></td><td><a href="https://leetcode.com/problems/rotate-array/" target="_blank" rel="noopener">LC 189</a></td><td>Rotate Array</td><td class="dM">Medium</td><td>Reverse all, reverse first k, reverse the rest</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-48" aria-label="Solved LC 48"></td><td><a href="https://leetcode.com/problems/rotate-image/" target="_blank" rel="noopener">LC 48</a></td><td>Rotate Image</td><td class="dM">Medium</td><td>Transpose, then reverse each row</td><td class="cx">O(n²) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-54" aria-label="Solved LC 54"></td><td><a href="https://leetcode.com/problems/spiral-matrix/" target="_blank" rel="noopener">LC 54</a></td><td>Spiral Matrix</td><td class="dM">Medium</td><td>Four shrinking boundaries</td><td class="cx">O(mn) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-73" aria-label="Solved LC 73"></td><td><a href="https://leetcode.com/problems/set-matrix-zeroes/" target="_blank" rel="noopener">LC 73</a></td><td>Set Matrix Zeroes</td><td class="dM">Medium</td><td>First row and column as markers</td><td class="cx">O(mn) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-31" aria-label="Solved LC 31"></td><td><a href="https://leetcode.com/problems/next-permutation/" target="_blank" rel="noopener">LC 31</a></td><td>Next Permutation</td><td class="dM">Medium</td><td>Find pivot from the right, swap with next larger, reverse the suffix</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-229" aria-label="Solved LC 229"></td><td><a href="https://leetcode.com/problems/majority-element-ii/" target="_blank" rel="noopener">LC 229</a></td><td>Majority Element II</td><td class="dM">Medium</td><td>Two voting candidates, then verify</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-1109" aria-label="Solved LC 1109"></td><td><a href="https://leetcode.com/problems/corporate-flight-bookings/" target="_blank" rel="noopener">LC 1109</a></td><td>Corporate Flight Bookings</td><td class="dM">Medium</td><td>Difference array, then prefix sum</td><td class="cx">O(n + m) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-287" aria-label="Solved LC 287"></td><td><a href="https://leetcode.com/problems/find-the-duplicate-number/" target="_blank" rel="noopener">LC 287</a></td><td>Find the Duplicate Number</td><td class="dM">Medium</td><td>Floyd's cycle detection on index → value</td><td class="cx">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="arrays-41" aria-label="Solved LC 41"></td><td><a href="https://leetcode.com/problems/first-missing-positive/" target="_blank" rel="noopener">LC 41</a></td><td>First Missing Positive</td><td class="dH">Hard</td><td>Cyclic sort: put x at index x − 1</td><td class="cx">O(n) / O(1)</td></tr></tbody></table></div>
+</section>
+<h2 id="recall">One-line recall</h2><div class="tw"><table class=""><thead><tr><th>#</th><th>Pattern</th><th>Tier</th><th>Core idea in one line</th></tr></thead><tbody><tr><td>1</td><td>Two Pointers</td><td>🔥</td><td>move two indices to avoid O(n²)</td></tr><tr><td>2</td><td>Sliding Window (Fixed)</td><td>🧊</td><td>add the entering element, drop the leaving one</td></tr><tr><td>3</td><td>Sliding Window (Variable)</td><td>🔥</td><td>grow right, shrink left while invalid</td></tr><tr><td>4</td><td>Prefix Sum</td><td>🔥</td><td>precompute running totals; pair with a hash map</td></tr><tr><td>5</td><td>Kadane's Algorithm</td><td>🧊</td><td>extend the run or restart it</td></tr><tr><td>6</td><td>Hashing: Two Sum, Counting, Grouping</td><td>🔥</td><td>trade space for O(1) lookups</td></tr><tr><td>7</td><td>Dutch National Flag (3-way partition)</td><td>🧊</td><td>three pointers, one pass</td></tr><tr><td>8</td><td>Binary Search (basic and on the answer)</td><td>🔥</td><td>halve a monotonic space</td></tr><tr><td>9</td><td>Binary Search on a Rotated Array</td><td>🧊</td><td>one half is always sorted</td></tr><tr><td>10</td><td>Quick Select and Merge Sort</td><td>🧊</td><td>partition for kth, merge for counting</td></tr><tr><td>11</td><td>Other must-know array tricks</td><td>🧊</td><td>small specialised tools: voting, cyclic sort, difference array, matrix moves</td></tr></tbody></table></div>
+<h2 id="choose">Choosing between patterns</h2><div class="tw"><table class=""><thead><tr><th>Need</th><th>Use</th></tr></thead><tbody><tr><td>Pair or triplet in sorted data</td><td>Two Pointers</td></tr><tr><td>Property over a contiguous range, fixed size</td><td>Sliding Window (fixed)</td></tr><tr><td>Longest/shortest range with a condition (non-negative)</td><td>Sliding Window (variable)</td></tr><tr><td>Subarray sums with negatives, or many range queries</td><td>Prefix Sum (+ hashing)</td></tr><tr><td>"Have I seen", grouping, frequency</td><td>Hashing</td></tr><tr><td>O(log n) lookup or "minimise the max"</td><td>Binary Search</td></tr><tr><td>Kth element, fast</td><td>Quick Select (or a heap)</td></tr></tbody></table></div><p><strong>Rule of thumb:</strong> if negatives are present and you are counting subarray sums, prefer <strong>prefix sum + hash map</strong> over a sliding window (shrinking is not monotonic with negatives). If the array is sorted, or you can sort it, reach for <strong>two pointers / binary search</strong> before hashing.</p>
+<h2 id="selftest">Self-test</h2><p class="muted">Answer in your head first, then click to reveal.</p><details><summary>Why does Two Sum II with two pointers never miss the answer?</summary><p>Each move discards an element that cannot belong to any valid pair with the remaining elements, because the array is sorted. If <code>a[l] + a[r]</code> is too small, <code>a[l]</code> is too small even for the largest remaining partner.</p></details><details><summary>Why must a prefix-sum counter start with <code>{0: 1}</code>?</summary><p>It represents the empty prefix. Without it, subarrays that start at index 0 (where <code>sum == k</code> already) are never counted.</p></details><details><summary>Why does the variable sliding window run in O(n) even though it has a nested loop?</summary><p><code>l</code> and <code>r</code> only ever move forward, so together they make at most 2n moves. Each element is added once and removed once.</p></details><details><summary>Sliding window fails for "subarray sum equals k" with negative numbers. Why?</summary><p>With negatives, extending the window can decrease the sum and shrinking can increase it, so "shrink while too big" is no longer valid. Use prefix sums with a hash map.</p></details><details><summary>In Dutch flag, why do we not advance <code>mid</code> after swapping with <code>hi</code>?</summary><p>The element swapped in from <code>hi</code> has not been examined yet; it might be 0, 1 or 2 and must be processed. Elements swapped from <code>lo</code> were already seen.</p></details><details><summary>Binary search: when do you use <code>hi = mid</code> versus <code>hi = mid − 1</code>?</summary><p><code>hi = mid</code> when <code>mid</code> itself may be the answer (boundary search with <code>lo &lt; hi</code>). <code>hi = mid − 1</code> when <code>mid</code> has been ruled out (exact search with <code>lo &lt;= hi</code>).</p></details><details><summary>How do you turn "exactly K" into something a sliding window can do?</summary><p>Count "at most K" minus "at most K − 1".</p></details><details><summary>When is quick select a bad idea?</summary><p>When input arrives as a stream, when a stable order is needed, or when a deterministic worst case matters (use a heap or median-of-medians).</p></details>
+<h2 id="plan">Study plan</h2><ol><li><strong>Days 1–2:</strong> two pointers and fixed window. Do the first three problems of each ladder without hints.</li><li><strong>Days 3–4:</strong> variable window and prefix sum. These are the highest-return patterns.</li><li><strong>Days 5–6:</strong> hashing and Kadane; redo anything you needed a hint for.</li><li><strong>Day 7:</strong> binary search (basic), then binary search on the answer.</li><li><strong>Day 8:</strong> rotated search, Dutch flag, quick select, and the specialised tricks.</li><li><strong>Day 9 and after:</strong> redo every problem you ticked after a hint. Cover the code, write the skeleton from memory, then explain the intuition aloud.</li></ol>
+<p class="muted" style="margin-top:40px">Part of <a href="index.html">DSA Mastery</a>. Open source revision sheets for interview preparation.</p>
+</main>
+<script>
+(function(){
+var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+var body=document.body,topic=body.dataset.topic;
+/* language + theme */
+function setLang(l){body.dataset.lang=l;$('#b-java').classList.toggle('on',l==='java');$('#b-py').classList.toggle('on',l==='py');ls('dsa-lang',l)}
+setLang(ls('dsa-lang')||'java');
+$('#b-java').onclick=function(){setLang('java')};$('#b-py').onclick=function(){setLang('py')};
+var th=ls('dsa-theme');if(th)document.documentElement.dataset.theme=th;
+$('#b-theme').onclick=function(){var d=document.documentElement,dark=d.dataset.theme?d.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;d.dataset.theme=dark?'light':'dark';ls('dsa-theme',d.dataset.theme)};
+/* progress */
+function load(){try{return JSON.parse(ls('dsa-progress')||'{}')}catch(e){return {}}}
+var prog=load();
+function refresh(){var n=0,boxes=$$('.pk');boxes.forEach(function(b){var on=!!prog[b.dataset.k];b.checked=on;b.closest('tr').classList.toggle('done',on);if(on)n++});$('#prog').textContent=n+' / '+boxes.length+' solved'}
+$$('.pk').forEach(function(b){b.onchange=function(){if(b.checked)prog[b.dataset.k]=1;else delete prog[b.dataset.k];ls('dsa-progress',JSON.stringify(prog));refresh()}});
+refresh();
+/* download */
+$('#b-dl').onclick=function(){
+ var clone=document.documentElement.cloneNode(true);
+ $$('.stepper',clone).forEach(function(e){e.innerHTML=''});
+ $$('.pk',clone).forEach(function(e){e.removeAttribute('checked')});
+ $$('tr.done',clone).forEach(function(e){e.classList.remove('done')});
+ var h='<!DOCTYPE html>\n'+clone.outerHTML,blob=new Blob([h],{type:'text/html'}),a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);a.download=body.dataset.file||'topic.html';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)};
+/* simulators: each returns [{a,ptr,hi,ok,dim,note}] */
+function rng(x,y){var r=[];for(var i=x;i<=y;i++)r.push(i);return r}
+function mapStr(m){var k=Object.keys(m);return '{'+k.map(function(x){return x+':'+m[x]}).join(', ')+'}'}
+var SIM={
+two:function(){var a=[1,3,4,6,8,11],t=10,S=[],l=0,r=a.length-1;
+ while(l<r){var s=a[l]+a[r];
+  if(s===t){S.push({a:a,ptr:{l:l,r:r},ok:[l,r],note:a[l]+' + '+a[r]+' = '+s+' equals the target '+t+'. Found the pair at indices '+l+' and '+r+'.'});break}
+  if(s<t){S.push({a:a,ptr:{l:l,r:r},note:a[l]+' + '+a[r]+' = '+s+' is smaller than '+t+'. The sum must grow, so move l right (a[l] can never pair with anything smaller than a[r]).'});l++}
+  else{S.push({a:a,ptr:{l:l,r:r},note:a[l]+' + '+a[r]+' = '+s+' is bigger than '+t+'. The sum must shrink, so move r left (a[r] is too large for every remaining partner).'});r--}}
+ S.unshift({a:a,ptr:{l:0,r:a.length-1},note:'Sorted array, target '+t+'. Put one pointer at each end.'});return S},
+fixed:function(){var a=[2,1,5,1,3,2],k=3,S=[],sum=0;for(var i=0;i<k;i++)sum+=a[i];var best=sum;
+ S.push({a:a,ptr:{},hi:rng(0,k-1),note:'First window of size '+k+': sum = '+sum+'. Best so far = '+best+'.'});
+ for(i=k;i<a.length;i++){sum+=a[i]-a[i-k];best=Math.max(best,sum);S.push({a:a,ptr:{i:i},hi:rng(i-k+1,i),note:'Slide: add '+a[i]+', drop '+a[i-k]+' → sum = '+sum+'. Best so far = '+best+'. (One add and one subtract, not a re-sum.)'})}
+ S.push({a:a,ptr:{},ok:[2,3,4],note:'Maximum window sum of size '+k+' is '+best+'.'});return S},
+variable:function(){var s='abcabcbb'.split(''),S=[],l=0,c={},best=0,bl=0;
+ for(var r=0;r<s.length;r++){var ch=s[r];c[ch]=(c[ch]||0)+1;
+  S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),note:"Expand: add '"+ch+"' at r="+r+'.'+(c[ch]>1?" '"+ch+"' now appears twice, so the window is invalid.":' Window "'+s.slice(l,r+1).join('')+'" is valid.')});
+  while(c[ch]>1){c[s[l]]--;l++;S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),note:'Shrink: drop the left character, l becomes '+l+'. Window "'+s.slice(l,r+1).join('')+'".'})}
+  if(r-l+1>best){best=r-l+1;bl=l}}
+ S.push({a:s,ptr:{},ok:rng(bl,bl+best-1),note:'Longest substring without repeats has length '+best+'. Each index entered and left the window once, so O(n).'});return S},
+prefix:function(){var a=[3,4,7,2,-3,1,4,2],k=7,S=[],m={0:1},sum=0,cnt=0;
+ S.push({a:a,ptr:{},note:'Count subarrays with sum = '+k+'. Seed the map with {0:1} (the empty prefix).'});
+ for(var i=0;i<a.length;i++){sum+=a[i];var need=sum-k,add=m[need]||0;cnt+=add;m[sum]=(m[sum]||0)+1;
+  S.push({a:a,ptr:{i:i},ok:add?[i]:[],note:'Prefix sum = '+sum+'. Need an earlier prefix of '+sum+' − '+k+' = '+need+': seen '+add+' time(s), so '+add+' subarray(s) end here. Total = '+cnt+'. Map = '+mapStr(m)})}
+ return S},
+kadane:function(){var a=[-2,1,-3,4,-1,2,1,-5,4],S=[],cur=a[0],st=0,best=a[0],bs=0,be=0;
+ S.push({a:a,ptr:{i:0},hi:[0],ok:[0],note:'Start: cur = '+cur+', best = '+best+'.'});
+ for(var i=1;i<a.length;i++){var restart=a[i]>cur+a[i];
+  if(restart){cur=a[i];st=i}else{cur+=a[i]}
+  if(cur>best){best=cur;bs=st;be=i}
+  S.push({a:a,ptr:{i:i},hi:rng(st,i),ok:rng(bs,be),note:(restart?'The running sum was negative, so restart at index '+i+': cur = '+cur+'.':'Extend the run: cur = '+cur+'.')+' best = '+best+' (green).'})}
+ return S},
+hash:function(){var a=[5,1,9,3,7],t=12,S=[],m={};S.push({a:a,ptr:{},note:'Find two numbers that sum to '+t+'. Keep a map value → index of what we have already seen.'});
+ for(var i=0;i<a.length;i++){var need=t-a[i];
+  if(need in m){S.push({a:a,ptr:{i:i},ok:[m[need],i],note:'Need '+need+' for '+a[i]+': it is in the map at index '+m[need]+'. Answer = ['+m[need]+', '+i+'].'});break}
+  m[a[i]]=i;S.push({a:a,ptr:{i:i},note:'At '+a[i]+': need '+need+', not seen yet. Store '+a[i]+' → '+i+'. Map = '+mapStr(m)})}
+ return S},
+dutch:function(){var a=[2,0,2,1,1,0],S=[],lo=0,mid=0,hi=a.length-1;
+ function p(n,ok){S.push({a:a.slice(),ptr:{lo:lo,mid:mid,hi:hi},ok:ok||[],note:n})}
+ p('lo marks the end of the 0s, hi the start of the 2s, mid scans the unknown middle.');
+ while(mid<=hi){var v=a[mid];
+  if(v===0){a[mid]=a[lo];a[lo]=0;lo++;mid++;p('a[mid] was 0: swap into the 0-zone, advance lo and mid.')}
+  else if(v===2){a[mid]=a[hi];a[hi]=2;hi--;p('a[mid] was 2: swap with a[hi], shrink hi. Do NOT advance mid; the swapped-in value is unexamined.')}
+  else{mid++;p('a[mid] is 1: it already belongs in the middle zone, advance mid.')}}
+ S.push({a:a.slice(),ptr:{},ok:rng(0,a.length-1),note:'mid passed hi: sorted in one pass, O(n), O(1) space.'});return S},
+binary:function(){var a=[1,3,5,7,7,7,9,11],t=7,S=[],lo=0,hi=a.length-1;
+ S.push({a:a,ptr:{lo:lo,hi:hi},note:'Find the FIRST index with a[i] ≥ '+t+' (lower bound). Invariant: the answer is always inside [lo, hi].'});
+ while(lo<hi){var mid=lo+((hi-lo)>>1);
+  if(a[mid]>=t){S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(lo,hi),note:'mid = '+mid+', a[mid] = '+a[mid]+' ≥ '+t+'. mid could be the answer, so keep it: hi = mid.'});hi=mid}
+  else{S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(lo,hi),note:'mid = '+mid+', a[mid] = '+a[mid]+' < '+t+'. Everything up to mid is too small: lo = mid + 1.'});lo=mid+1}}
+ S.push({a:a,ptr:{lo:lo},ok:[lo],note:'lo = hi = '+lo+'. First occurrence of '+t+' is at index '+lo+'. Each step halved the range: O(log n).'});return S},
+rotated:function(){var a=[4,5,6,7,0,1,2],t=0,S=[],lo=0,hi=a.length-1;
+ S.push({a:a,ptr:{lo:lo,hi:hi},note:'Sorted array rotated at an unknown point. Search for '+t+'. One half around mid is always sorted.'});
+ while(lo<=hi){var mid=lo+((hi-lo)>>1);
+  if(a[mid]===t){S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},ok:[mid],note:'a[mid] = '+t+'. Found at index '+mid+'.'});break}
+  if(a[lo]<=a[mid]){var go=a[lo]<=t&&t<a[mid];S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(lo,mid),note:'Left half ['+lo+'..'+mid+'] is sorted ('+a[lo]+' ≤ '+a[mid]+'). '+t+(go?' lies inside it: hi = mid − 1.':' is not inside it: search the right, lo = mid + 1.')});if(go)hi=mid-1;else lo=mid+1}
+  else{var go2=a[mid]<t&&t<=a[hi];S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(mid,hi),note:'Right half ['+mid+'..'+hi+'] is sorted. '+t+(go2?' lies inside it: lo = mid + 1.':' is not inside it: search the left, hi = mid − 1.')});if(go2)lo=mid+1;else hi=mid-1}}
+ return S},
+quick:function(){var a=[3,2,1,5,6,4],S=[],target=a.length-2,lo=0,hi=a.length-1;
+ function dim(){var d=[];for(var x=0;x<a.length;x++)if(x<lo||x>hi)d.push(x);return d}
+ S.push({a:a.slice(),ptr:{},note:'2nd largest = element at sorted index n − k = '+target+'. Partition around a pivot; recurse into ONE side only.'});
+ while(lo<=hi){var pv=a[hi],i=lo;
+  S.push({a:a.slice(),ptr:{lo:lo,pivot:hi},dim:dim(),hi:[hi],note:'Partition ['+lo+'..'+hi+'] with pivot '+pv+' (last element). i marks where the next smaller element goes.'});
+  for(var j=lo;j<hi;j++){if(a[j]<pv){var tm=a[i];a[i]=a[j];a[j]=tm;i++;S.push({a:a.slice(),ptr:{i:i,j:j,pivot:hi},dim:dim(),note:a[i-1]+' < '+pv+': swap into the "smaller" zone, i = '+i+'.'})}
+   else S.push({a:a.slice(),ptr:{i:i,j:j,pivot:hi},dim:dim(),note:a[j]+' ≥ '+pv+': leave it, move j on.'})}
+  var t2=a[i];a[i]=a[hi];a[hi]=t2;
+  if(i===target){S.push({a:a.slice(),ptr:{p:i},ok:[i],dim:dim(),note:'Pivot lands at index '+i+' = target index. Answer: '+a[i]+'.'});break}
+  S.push({a:a.slice(),ptr:{p:i},ok:[i],dim:dim(),note:'Pivot '+pv+' is now at its final sorted index '+i+(i<target?' < target '+target+': only the right side can contain it.':' > target '+target+': only the left side can contain it.')});
+  if(i<target)lo=i+1;else hi=i-1}
+ return S}};
+function stepper(el){var steps=SIM[el.dataset.sim](),i=0,timer=null;
+ el.innerHTML='<div class="st-view"></div><div class="st-note"></div><div class="st-ctl"><button data-a="prev">◀ Prev</button><button data-a="play">▶ Play</button><button data-a="next">Next ▶</button><button data-a="reset">↺ Reset</button><span class="st-count"></span></div>';
+ var view=$('.st-view',el),note=$('.st-note',el),cnt=$('.st-count',el),play=$('[data-a=play]',el);
+ function draw(){var s=steps[i],lab={};Object.keys(s.ptr||{}).forEach(function(k){var ix=s.ptr[k];(lab[ix]=lab[ix]||[]).push(k)});
+  var h='';s.a.forEach(function(v,ix){var c='cell'+((s.hi||[]).indexOf(ix)>=0?' in':'')+((s.ok||[]).indexOf(ix)>=0?' ok':'')+((s.dim||[]).indexOf(ix)>=0?' dim':'');
+   h+='<div class="cellw"><div class="ptr">'+(lab[ix]?lab[ix].join(','):'')+'</div><div class="'+c+'">'+v+'</div><div class="idx">'+ix+'</div></div>'});
+  view.innerHTML=h;note.textContent=s.note;cnt.textContent='Step '+(i+1)+' / '+steps.length}
+ function stop(){if(timer){clearInterval(timer);timer=null;play.textContent='▶ Play'}}
+ el.onclick=function(e){var a=e.target.dataset&&e.target.dataset.a;if(!a)return;
+  if(a==='next'){stop();if(i<steps.length-1)i++}else if(a==='prev'){stop();if(i>0)i--}else if(a==='reset'){stop();i=0}
+  else if(a==='play'){if(timer){stop();return}if(i>=steps.length-1)i=0;play.textContent='❚❚ Pause';draw();timer=setInterval(function(){if(i<steps.length-1){i++;draw()}else stop()},1400);return}
+  draw()};
+ draw()}
+$$('.stepper').forEach(stepper);
+})();
+</script>
+</body></html>

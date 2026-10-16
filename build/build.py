@@ -1,0 +1,97 @@
+"""Build every topic page and the landing page.
+
+Usage (from the repo root):  python build/build.py
+"""
+import html
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(__file__))
+from lib import render_topic, CSS  # noqa: E402
+import arrays  # noqa: E402
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# (file, title, blurb, topic module or None)
+CATALOG = [
+    ("01_complexity_foundations", "Complexity and Problem-Solving Method", "Big-O, constraints to complexity, how to read a problem", None),
+    ("02_arrays", "Arrays, Hashing and Searching", "Two pointers, sliding window, prefix sum, Kadane, hashing, binary search, quick select", arrays.TOPIC),
+    ("03_strings", "Strings", "Palindromes, frequency windows, KMP / Z / Rabin-Karp", None),
+    ("04_linked_list", "Linked Lists", "Fast/slow pointers, reversal, merge, cycle detection, LRU", None),
+    ("05_stack_queue", "Stacks, Queues and Deques", "Monotonic stack/queue, parsing, min-stack", None),
+    ("06_sorting_intervals", "Sorting and Intervals", "Custom sorts, merge intervals, sweep line", None),
+    ("07_recursion_backtracking", "Recursion and Backtracking", "Subsets, permutations, N-Queens, pruning", None),
+    ("08_bit_math", "Bit Manipulation and Math", "XOR tricks, masks, gcd, sieve, fast power", None),
+    ("09_trees", "Binary Trees and BST", "DFS/BFS, paths, LCA, BST, tree DP", None),
+    ("10_heap_priority_queue", "Heaps and Priority Queues", "Top-K, two heaps, k-way merge", None),
+    ("11_trie", "Tries", "Prefix search, word dictionary, XOR trie", None),
+    ("12_graphs_traversal", "Graph Traversal", "BFS, DFS, grids, components, multi-source BFS", None),
+    ("13_graphs_advanced", "Advanced Graphs", "Topological sort, union-find, Dijkstra, MST", None),
+    ("14_greedy", "Greedy", "Exchange argument, intervals, scheduling", None),
+    ("15_dp_1d_2d", "Dynamic Programming I", "1D/2D DP, coin change, LIS, state definition", None),
+    ("16_dp_advanced", "Dynamic Programming II", "Knapsack, LCS/edit distance, bitmask, tree DP", None),
+    ("17_advanced_ds", "Advanced Data Structures", "Segment tree, Fenwick tree, sparse table", None),
+    ("18_design_problems", "Design Problems", "LRU/LFU, iterators, time-based stores", None),
+    ("19_interview_playbook", "Interview Playbook", "Pattern selector, communication, 12-week plan", None),
+]
+
+
+def write(path, text):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        f.write(text)
+
+
+def index_html():
+    cards = []
+    for f, title, blurb, topic in CATALOG:
+        num = f.split("_")[0]
+        if topic:
+            n = sum(len(p["problems"]) for p in topic["patterns"])
+            meta = f"{len(topic['patterns'])} patterns · {n} problems"
+            actions = (
+                f'<a class="btn pri" href="topics/{f}.html">Open</a>'
+                f'<a class="btn" href="topics/{f}.html" download="{f}.html">⬇ Download</a>'
+            )
+            cls = "card live"
+        else:
+            meta = "Coming soon"
+            actions = '<span class="soon">Planned</span>'
+            cls = "card"
+        cards.append(
+            f'<div class="{cls}"><div class="num">{num}</div><h3>{html.escape(title)}</h3>'
+            f'<p>{html.escape(blurb)}</p><div class="meta">{meta}</div><div class="act">{actions}</div></div>'
+        )
+    extra = """
+.hero{padding:34px 0 8px}.hero h1{font-size:32px;margin:0 0 8px;border:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin:18px 0}
+.card{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--card);display:flex;flex-direction:column;opacity:.65}
+.card.live{opacity:1;border-color:var(--acc)}
+.card h3{margin:2px 0 4px}.card p{margin:0 0 8px;color:var(--mut);font-size:13.5px;flex:1}
+.num{font:700 12px Consolas,monospace;color:var(--acc)}.meta{font-size:12px;color:var(--mut);margin-bottom:8px}
+.act{display:flex;gap:6px}.btn{font-size:13px;padding:5px 11px;border:1px solid var(--line);border-radius:7px;text-decoration:none;color:var(--fg);background:var(--bg)}
+.btn.pri{background:var(--acc);color:#fff;border-color:var(--acc)}.soon{font-size:12px;color:var(--mut)}
+"""
+    return f"""<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DSA Mastery</title><style>{CSS}{extra}</style></head>
+<body><main>
+<div class="hero"><h1>DSA Mastery</h1>
+<p class="lead">Pattern-based revision sheets to build real problem-solving skill for product-company interviews. Each topic has the intuition, a step-through animation, code in Java and Python, complexity, common traps and a ladder of LeetCode problems. Every page works offline: use <strong>Download</strong> to keep a copy.</p></div>
+<div class="grid">{''.join(cards)}</div>
+<p class="muted">Topics are added one at a time. See <a href="https://github.com/nithin988/dsa-mastery/blob/main/ROADMAP.md">ROADMAP.md</a> for the plan.</p>
+</main></body></html>
+"""
+
+
+def main():
+    for f, _t, _b, topic in CATALOG:
+        if topic:
+            write(os.path.join(ROOT, "topics", f + ".html"), render_topic(topic))
+            print("built", f)
+    write(os.path.join(ROOT, "index.html"), index_html())
+    print("built index.html")
+
+
+if __name__ == "__main__":
+    main()

@@ -9,7 +9,7 @@ Each topic is one self-contained HTML file (`topics/NN_name.html`) with a built-
 | # | File | Topic | Patterns covered | Status |
 |---|------|-------|------------------|--------|
 | 01 | `01_complexity_foundations` | Complexity and problem-solving method | Big-O, amortised cost, constraints-to-complexity table, how to read a problem, dry-running | planned |
-| 02 | `02_arrays` | Arrays, hashing, searching | Two pointers, sliding window (fixed/variable), prefix sum, Kadane, hashing, Dutch flag, binary search (basic, on answer, rotated), quick select | to upgrade (sample) |
+| 02 | `02_arrays` | Arrays, hashing, searching | Two pointers, sliding window (fixed/variable), prefix sum, Kadane, hashing, Dutch flag, binary search (basic, on answer, rotated), quick select/merge sort, specialised tricks | **done** (11 patterns, 77 problems) |
 | 03 | `03_strings` | Strings | Palindromes, anagram/frequency windows, KMP / Z / Rabin-Karp, parsing, string DP hooks | planned |
 | 04 | `04_linked_list` | Linked lists | Fast/slow pointers, reversal, merge, dummy node, cycle (Floyd), LRU design | planned |
 | 05 | `05_stack_queue` | Stacks, queues, deques | Monotonic stack/queue, expression parsing, min-stack, BFS queue, sliding-window maximum | planned |
@@ -39,7 +39,7 @@ Suggested build order: 02 (upgrade, sets the template) -> 03 -> 04 -> 05 -> 09 -
 - CP-Algorithms and CLRS (correctness and complexity)
 - Company-tagged LeetCode lists (frequency)
 
-Every problem entry states the source list it belongs to, so frequency claims stay honest.
+Frequency tiers are our judgement from these lists, and the pages say so; they are not hard data.
 
 ## Page template (what every topic file contains)
 
