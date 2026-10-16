@@ -11,6 +11,7 @@ from lib import render_topic, CSS  # noqa: E402
 import arrays  # noqa: E402
 import foundations  # noqa: E402
 import strings  # noqa: E402
+import linked_list  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -19,7 +20,7 @@ CATALOG = [
     ("01_complexity_foundations", "Complexity and Problem-Solving Method", "Big-O, constraints to complexity, brute force to optimal, interview method", foundations.TOPIC),
     ("02_arrays", "Arrays, Hashing and Searching", "Two pointers, sliding window, prefix sum, Kadane, hashing, binary search, quick select", arrays.TOPIC),
     ("03_strings", "Strings", "Counting, palindromes, windows, KMP, stack parsing, in-place edits", strings.TOPIC),
-    ("04_linked_list", "Linked Lists", "Fast/slow pointers, reversal, merge, cycle detection, LRU", None),
+    ("04_linked_list", "Linked Lists", "Dummy node, reversal, fast/slow, merge, runner gap, LRU design", linked_list.TOPIC),
     ("05_stack_queue", "Stacks, Queues and Deques", "Monotonic stack/queue, parsing, min-stack", None),
     ("06_sorting_intervals", "Sorting and Intervals", "Custom sorts, merge intervals, sweep line", None),
     ("07_recursion_backtracking", "Recursion and Backtracking", "Subsets, permutations, N-Queens, pruning", None),

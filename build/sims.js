@@ -141,4 +141,74 @@ unique:function(){var s='loveleetcode'.split(''),S=[],c={};
  for(var i=0;i<s.length;i++){c[s[i]]=(c[s[i]]||0)+1;S.push({a:s,ptr:{i:i},hi:[i],aux:A(),note:"Pass 1: count '"+s[i]+"'."})}
  for(i=0;i<s.length;i++){if(c[s[i]]===1){S.push({a:s,ptr:{i:i},ok:[i],aux:A(),note:"Pass 2: '"+s[i]+"' has count 1: answer is index "+i+'.'});return S}
   S.push({a:s,ptr:{i:i},dim:[i],aux:A(),note:"Pass 2: '"+s[i]+"' appears "+c[s[i]]+' times, skip it.'})}
- return S}};
+ return S},
+delete:function(){var vals=['D',1,6,3,6,'null'],nxt=[1,2,3,4,5,-1],removed=[],S=[],prev=0,val=6;
+ function E(){var e=[];for(var k=0;k<5;k++)e.push(removed.indexOf(k)>=0?'':(nxt[k]===k+1?'→':'⇢'));return e}
+ function P(p,c,n,ok){S.push({a:vals,ptr:c===undefined?{prev:p}:{prev:p,cur:c},edges:E(),dim:removed.slice(),ok:ok||[],note:n})}
+ P(0,undefined,'Remove every node with value 6. D is a dummy node placed before the head, so deleting the first real node needs no special case.');
+ while(nxt[prev]!==5){var cur=nxt[prev];
+  if(vals[cur]===val){removed.push(cur);nxt[prev]=nxt[cur];P(prev,cur,'cur.val = '+val+': unlink it with prev.next = prev.next.next. prev stays where it is, because the new next node has not been checked yet.')}
+  else{P(prev,cur,'cur.val = '+vals[cur]+' is kept: advance prev to cur.');prev=cur}}
+ P(prev,undefined,'prev.next is null: done. Result D → 1 → 3 → null. Return dummy.next.',[0,1,3,5]);return S},
+reverse:function(){var vals=[1,2,3,4,'null'],nxt=[1,2,3,4,-1],S=[],prev=4,cur=0;
+ function E(){var e=[];for(var k=0;k<4;k++)e.push(nxt[k]===k+1?'→':(nxt[k+1]===k?'←':''));return e}
+ function A(){var it=[];for(var k=0;k<4;k++)it.push(vals[k]+' → '+(nxt[k]===4||nxt[k]===-1?'null':vals[nxt[k]]));return {label:'next pointers',items:it}}
+ S.push({a:vals,ptr:{prev:4,cur:0},edges:E(),aux:A(),link:true,note:'Reverse 1→2→3→4. prev starts as null, cur at the head. Each step re-points one arrow backwards.'});
+ while(cur!==4){var n=nxt[cur];nxt[cur]=prev;S.push({a:vals,ptr:{prev:cur,cur:n},edges:E(),aux:A(),ok:[cur],note:'Save nxt = cur.next ('+(n===4?'null':vals[n])+'), set cur.next = prev, then move prev to '+vals[cur]+' and cur to '+(n===4?'null':vals[n])+'.'});prev=cur;cur=n}
+ S.push({a:vals,ptr:{head:prev},edges:E(),aux:A(),ok:[3,2,1,0],note:'cur is null, so prev is the new head: 4 → 3 → 2 → 1 → null. One pass, O(n) time, O(1) space.'});return S},
+floyd:function(){var vals=[3,2,0,-4],nxt=[1,2,3,1],S=[],s=0,f=0;
+ var E=['→','→','→'],A={label:'link',items:['−4 points back to 2 (the cycle start)']};
+ S.push({a:vals,ptr:{slow:0,fast:0},edges:E,aux:A,note:'Does the list loop? Slow moves 1 step, fast moves 2. In a loop the fast runner must eventually lap the slow one.'});
+ do{s=nxt[s];f=nxt[nxt[f]];S.push({a:vals,ptr:{slow:s,fast:f},hi:[s,f],edges:E,aux:A,ok:s===f?[s]:[],note:'slow → '+vals[s]+', fast → '+vals[f]+'.'+(s===f?' They meet: there is a cycle.':'')})}while(s!==f);
+ S.push({a:vals,ptr:{slow:0,fast:f},edges:E,aux:A,note:'Phase 2: put slow back at the head and keep fast at the meeting point. Move both one step at a time.'});
+ s=0;while(s!==f){s=nxt[s];f=nxt[f];S.push({a:vals,ptr:{slow:s,fast:f},hi:[s,f],edges:E,aux:A,ok:s===f?[s]:[],note:'slow → '+vals[s]+', fast → '+vals[f]+'.'+(s===f?' They meet exactly at the node where the cycle starts.':'')})}
+ S.push({a:vals,ptr:{start:s},edges:E,aux:A,ok:[s],note:'Cycle starts at the node with value '+vals[s]+'. Why: the distance from the head to the cycle start equals the distance from the meeting point onward to it (mod cycle length). O(n) time, O(1) space.'});return S},
+merge:function(){var A1=[1,2,4],B1=[1,3,4],all=A1.concat(B1),p=0,q=0,out=[],used=[],S=[];
+ function E(){return ['→','→','','→','→']}
+ function AX(){return {label:'merged',items:[out.length?out.join(' → '):'(empty)']}}
+ S.push({a:all,ptr:{p:0,q:3},edges:E(),aux:AX(),note:'Merge two sorted lists. A dummy tail node collects the result; p and q point at the smaller candidates.'});
+ while(p<3&&q<3){var x=A1[p],y=B1[q];
+  if(x<=y){S.push({a:all,ptr:{p:p,q:3+q},dim:used.slice(),hi:[p,3+q],edges:E(),aux:AX(),note:'Compare '+x+' and '+y+': '+x+' ≤ '+y+', so link the node from list 1 and advance p.'});used.push(p);out.push(x);p++}
+  else{S.push({a:all,ptr:{p:p,q:3+q},dim:used.slice(),hi:[p,3+q],edges:E(),aux:AX(),note:'Compare '+x+' and '+y+': '+y+' is smaller, so link the node from list 2 and advance q.'});used.push(3+q);out.push(y);q++}}
+ var rest=p<3?A1.slice(p):B1.slice(q);var idx=p<3?rng(p,2):rng(3+q,5);
+ S.push({a:all,ptr:{},dim:used.slice(),ok:idx,edges:E(),aux:AX(),note:'One list is empty. Attach the rest of the other list in one step: tail.next = remaining ('+rest.join(', ')+'). No copying.'});
+ rest.forEach(function(v){out.push(v)});
+ S.push({a:all,ptr:{},ok:rng(0,5),edges:E(),aux:AX(),note:'Merged list: '+out.join(' → ')+'. O(n + m) time, O(1) extra space (nodes are reused).'});return S},
+nth:function(){var vals=['D',1,2,3,4,5,'null'],S=[],slow=0,fast=0,n=2;
+ function E(){return ['→','→','→','→','→','→']}
+ S.push({a:vals,ptr:{slow:0,fast:0},edges:E(),note:'Remove the 2nd node from the end. Start slow and fast at the dummy D. Give fast a head start of n = 2 nodes.'});
+ for(var i=0;i<n;i++){fast++;S.push({a:vals,ptr:{slow:slow,fast:fast},edges:E(),note:'Head start: move fast ahead ('+(i+1)+' of '+n+').'})}
+ while(fast+1<6){fast++;slow++;S.push({a:vals,ptr:{slow:slow,fast:fast},hi:[slow,fast],edges:E(),note:'Move both one step. The gap between them stays n = '+n+'.'})}
+ S.push({a:vals,ptr:{slow:slow,fast:fast},hi:[slow,fast],edges:E(),note:'fast is on the last node (fast.next is null), so slow is exactly the node BEFORE the one to delete.'});
+ S.push({a:vals,ptr:{slow:slow},dim:[4],ok:[3],edges:['→','→','→','⇢','','→'],note:'slow.next = slow.next.next removes node 4. One pass, O(n) time, O(1) space. The dummy makes deleting the head work too.'});return S},
+palilist:function(){var vals=[1,2,3,2,1],S=[];
+ var full=['→','→','→','→'];
+ S.push({a:vals,ptr:{},edges:full,note:'Palindrome list in O(1) space: (1) find the middle, (2) reverse the second half, (3) compare the two halves.'});
+ S.push({a:vals,ptr:{slow:0,fast:0},edges:full,note:'Step 1: slow moves 1, fast moves 2.'});
+ S.push({a:vals,ptr:{slow:1,fast:2},edges:full,note:'slow = 1, fast = 2.'});
+ S.push({a:vals,ptr:{slow:2,fast:4},hi:[2],edges:full,note:'fast.next is null: stop. slow is the middle node (value 3).'});
+ S.push({a:vals,ptr:{mid:2},hi:[3,4],edges:['→','→','','→'],note:'Step 2: the second half starts after the middle: 2 → 1. Reverse it...'});
+ S.push({a:vals,ptr:{mid:2,head2:4},hi:[3,4],edges:['→','→','','←'],note:'...so it reads 1 → 2 (the arrow between the last two nodes flips).'});
+ S.push({a:vals,ptr:{p:0,q:4},hi:[0,4],ok:[0,4],edges:['→','→','','←'],note:'Step 3: compare p = 1 with q = 1. Equal: advance both.'});
+ S.push({a:vals,ptr:{p:1,q:3},hi:[1,3],ok:[0,1,3,4],edges:['→','→','','←'],note:'Compare p = 2 with q = 2. Equal. q reaches null, so every pair matched.'});
+ S.push({a:vals,ptr:{},ok:rng(0,4),edges:full,note:'Palindrome. (Optionally reverse the second half back to restore the list.) O(n) time, O(1) space.'});return S},
+addnum:function(){var A1=[2,4,3],B1=[5,6,4],all=A1.concat(B1),S=[],carry=0,out=[];
+ function E(){return ['→','→','','→','→']}
+ function AX(){return {label:'carry '+carry+'  |  result',items:[out.length?out.join(' → '):'(empty)']}}
+ S.push({a:all,ptr:{a:0,b:3},edges:E(),aux:AX(),note:'Digits are stored in reverse: 342 + 465. Add digit by digit from the head with a carry, exactly like paper arithmetic.'});
+ for(var i=0;i<3;i++){var s=A1[i]+B1[i]+carry,d=s%10,c=Math.floor(s/10);
+  S.push({a:all,ptr:{a:i,b:3+i},hi:[i,3+i],edges:E(),aux:AX(),note:A1[i]+' + '+B1[i]+' + carry '+carry+' = '+s+': write digit '+d+', new carry '+c+'.'});out.push(d);carry=c}
+ S.push({a:all,ptr:{},ok:rng(0,5),edges:E(),aux:AX(),note:'Result 7 → 0 → 8 (= 807). Keep looping while either list has nodes OR carry > 0; a final carry becomes a new node. O(max(n, m)) time.'});return S},
+lru:function(){var S=[],L=[],cap=3;
+ function E(){var e=[];for(var k=0;k<L.length-1;k++)e.push('↔');return e}
+ function P(n,extra){var o={a:L.map(function(x){return x[0]+':'+x[1]}),ptr:L.length?{MRU:0}:{},edges:E(),aux:{label:'hash map keys',items:L.length?L.map(function(x){return x[0]}):['(empty)']},note:n};if(L.length>1)o.ptr[''+'LRU']=L.length-1;if(extra)for(var k in extra)o[k]=extra[k];S.push(o)}
+ function find(k){for(var i=0;i<L.length;i++)if(L[i][0]===k)return i;return -1}
+ P('LRU cache, capacity 3. A hash map finds a node in O(1); a doubly linked list keeps recency order: front = most recent (MRU), back = least recent (LRU).');
+ L.unshift([1,'A']);P('put(1, A): new node goes to the front.',{ok:[0]});
+ L.unshift([2,'B']);P('put(2, B): new node goes to the front.',{ok:[0]});
+ L.unshift([3,'C']);P('put(3, C): list is now full (3 of 3).',{ok:[0]});
+ var i=find(1),n=L.splice(i,1)[0];L.unshift(n);P('get(1): map finds the node in O(1); unlink it (prev.next, next.prev) and move it to the front. Returns A.',{ok:[0]});
+ P('put(4, D): the cache is full, so evict the node at the back (key 2).',{dim:[2]});
+ L.pop();P('Unlink the tail node and delete key 2 from the map.');
+ L.unshift([4,'D']);P('Insert key 4 at the front. Both get and put are O(1).',{ok:[0]});
+ P('get(2): not in the map, so return −1 immediately. Dummy head and tail nodes make every unlink and insert free of null checks.');return S}};

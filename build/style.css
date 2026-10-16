@@ -87,6 +87,7 @@ details{border:1px solid var(--line);border-radius:12px;padding:9px 14px;margin:
 .cell.ok{background:var(--ok-soft);border-color:var(--ok)}
 .cell.dim{background:var(--soft);color:var(--mut);border-style:dashed;opacity:.6}
 .cell.pop{animation:pop .35s ease}
+.edge{align-self:flex-start;margin-top:31px;min-width:20px;text-align:center;color:var(--acc);font:700 17px ui-monospace,Consolas,monospace}
 .idx{font:11px ui-monospace,Consolas,monospace;color:var(--mut);margin-top:3px}
 .st-aux{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;min-height:30px;margin-top:8px}
 .st-aux .al{font:700 11px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}

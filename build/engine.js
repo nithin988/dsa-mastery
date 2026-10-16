@@ -42,14 +42,15 @@ function stepper(el){
   '<div class="st-ctl"><button data-a="prev" title="Previous (←)">◀</button><button data-a="play" title="Play / pause (space)">▶ Play</button><button data-a="next" title="Next (→)">▶|</button><button data-a="reset" title="Restart">↺</button>'+
   '<input type="range" min="0" max="'+(steps.length-1)+'" value="0" aria-label="Step"><select aria-label="Speed"><option value="2200">Slow</option><option value="1300" selected>Normal</option><option value="600">Fast</option></select><span class="st-count"></span></div>';
  var view=$('.st-view',el),aux=$('.st-aux',el),note=$('.st-note',el),cnt=$('.st-count',el),play=$('[data-a=play]',el),bar=$('.st-prog i',el),rg=$('input',el),sel=$('select',el);
- var cells=[],h='';for(var k=0;k<max;k++)h+='<div class="cellw"><div class="ptr"></div><div class="cell"></div><div class="idx">'+k+'</div></div>';
- view.innerHTML=h;$$('.cellw',view).forEach(function(w){cells.push({w:w,p:$('.ptr',w),c:$('.cell',w),v:null})});
+ var cells=[],h='';for(var k=0;k<max;k++)h+='<div class="cellw"><div class="ptr"></div><div class="cell"></div><div class="idx">'+k+'</div></div>'+(k<max-1?'<div class="edge"></div>':'');
+ view.innerHTML=h;$$('.cellw',view).forEach(function(w){cells.push({w:w,p:$('.ptr',w),c:$('.cell',w),v:null})});var edges=$$('.edge',view);
  function draw(){var s=steps[i],lab={};Object.keys(s.ptr||{}).forEach(function(k){var ix=s.ptr[k];(lab[ix]=lab[ix]||[]).push(k)});
   cells.forEach(function(o,ix){if(ix>=s.a.length){o.w.style.display='none';return}o.w.style.display='';
    var v=String(s.a[ix]);if(o.v!==null&&o.v!==v){o.c.classList.remove('pop');void o.c.offsetWidth;o.c.classList.add('pop')}
    o.v=v;o.c.textContent=v;
    o.c.className='cell'+((s.hi||[]).indexOf(ix)>=0?' in':'')+((s.ok||[]).indexOf(ix)>=0?' ok':'')+((s.dim||[]).indexOf(ix)>=0?' dim':'')+(o.c.classList.contains('pop')?' pop':'');
    o.p.innerHTML=lab[ix]?'<b>'+lab[ix].join(', ')+'</b>':''});
+  edges.forEach(function(g,k){var t=k<s.a.length-1?(s.edges?(s.edges[k]||''):(s.link?'→':'')):'';g.textContent=t;g.style.display=t?'':'none'});
   if(s.aux){aux.innerHTML='<span class="al">'+s.aux.label+'</span>'+s.aux.items.map(function(t){return '<span class="chip">'+String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span>'}).join('')}else aux.innerHTML='';
   note.textContent=s.note;cnt.textContent=(i+1)+' / '+steps.length;bar.style.width=(100*(i+1)/steps.length)+'%';rg.value=i}
  function stop(){if(timer){clearInterval(timer);timer=null;play.textContent='▶ Play'}}
