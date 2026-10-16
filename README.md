@@ -16,7 +16,8 @@ Every page has a **Download** button (and the index has one per topic), so frien
 | 04 | [Linked Lists](topics/04_linked_list.html) | done |
 | 05 | [Stacks, Queues and Deques](topics/05_stack_queue.html) | done |
 | 06 | [Sorting and Intervals](topics/06_sorting_intervals.html) | done |
-| 07-19 | see [ROADMAP.md](ROADMAP.md) | planned |
+| 07 | [Recursion and Backtracking](topics/07_recursion_backtracking.html) | done |
+| 08-19 | see [ROADMAP.md](ROADMAP.md) | planned |
 
 ## For contributors
 
@@ -27,5 +28,5 @@ python build/build.py      # writes index.html and topics/*.html
 ```
 
 - `build/lib.py`: page renderer; `build/style.css`: design; `build/engine.js`: page behaviour and the animated stepper; `build/sims.js`: the animations
-- `build/arrays.py`, `build/foundations.py`, `build/strings.py`, `build/linked_list.py`, `build/stack_queue.py`, `build/sorting_intervals.py`: topic content (copy one as the starting point for a new topic)
+- `build/arrays.py`, `build/foundations.py`, `build/strings.py`, `build/linked_list.py`, `build/stack_queue.py`, `build/sorting_intervals.py`, `build/recursion_backtracking.py`: topic content (copy one as the starting point for a new topic)
 - `build/build.py`: the topic catalogue and landing page

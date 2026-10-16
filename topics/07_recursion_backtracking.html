@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Recursion and Backtracking — Pattern Guide</title><style>:root{--bg:#f6f7fb;--surf:#fff;--fg:#151a26;--mut:#5b6579;--line:#e2e6ef;--soft:#f0f2f8;--acc:#4f46e5;--acc-soft:#eceafe;--cool:#0e7490;--cool-soft:#e0f4f8;
+--hot:#c2410c;--hot-soft:#ffedd5;--ok:#15803d;--ok-soft:#dcfce7;--warn:#b45309;--warn-soft:#fef3c7;--bad:#b91c1c;--code:#f3f4f9;--shadow:0 1px 2px rgba(20,26,40,.06),0 4px 16px rgba(20,26,40,.05)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0c0f16;--surf:#131824;--fg:#e8ebf3;--mut:#9ba5ba;--line:#252c3c;--soft:#1a2030;--acc:#8e96ff;--acc-soft:#232855;--cool:#35c3e0;--cool-soft:#0f2f38;--hot:#fb923c;--hot-soft:#3a2312;--ok:#4ade80;--ok-soft:#12361f;--warn:#fbbf24;--warn-soft:#3a2c0b;--bad:#f87171;--code:#181e2c;--shadow:none}}
+:root[data-theme=dark]{--bg:#0c0f16;--surf:#131824;--fg:#e8ebf3;--mut:#9ba5ba;--line:#252c3c;--soft:#1a2030;--acc:#8e96ff;--acc-soft:#232855;--cool:#35c3e0;--cool-soft:#0f2f38;--hot:#fb923c;--hot-soft:#3a2312;--ok:#4ade80;--ok-soft:#12361f;--warn:#fbbf24;--warn-soft:#3a2c0b;--bad:#f87171;--code:#181e2c;--shadow:none}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:15.5px/1.65 "Inter",-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--acc)}
+code{background:var(--code);padding:1px 6px;border-radius:5px;font:0.88em ui-monospace,"Cascadia Code",Consolas,Menlo,monospace}
+.mut,.muted{color:var(--mut)}.muted{font-size:13px;font-weight:400}
+/* top bar */
+.bar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--surf) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar-in{max-width:1180px;margin:0 auto;display:flex;gap:8px;align-items:center;padding:8px 16px}
+.brand{font-weight:800;text-decoration:none;color:var(--fg);margin-right:auto;letter-spacing:-.01em}.brand b{color:var(--acc)}
+.prog{font-size:13px;color:var(--mut);white-space:nowrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{border:0;border-radius:0;background:transparent}
+.bar button,.st-ctl button,.st-ctl select{font:inherit;font-size:13px;padding:6px 12px;border:1px solid var(--line);border-radius:9px;background:var(--surf);color:var(--fg);cursor:pointer}
+.bar button:hover,.st-ctl button:hover{border-color:var(--acc);color:var(--acc)}
+.bar button.on{background:var(--acc);color:#fff}
+.pbar{height:3px;background:var(--line)}.pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--cool));transition:width .4s}
+/* layout */
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px;display:grid;grid-template-columns:240px minmax(0,1fr);gap:36px}
+nav.side{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto;padding:22px 0;font-size:13.5px}
+nav.side h4{margin:14px 0 6px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--mut)}
+nav.side a{display:flex;gap:8px;align-items:center;padding:5px 9px;border-radius:8px;text-decoration:none;color:var(--fg);border-left:3px solid transparent}
+nav.side a:hover{background:var(--soft)}nav.side a.act{background:var(--acc-soft);color:var(--acc);border-color:var(--acc);font-weight:600}
+nav.side .dot{width:8px;height:8px;border-radius:50%;flex:none}.dot.hot{background:var(--hot)}.dot.sec{background:var(--cool)}
+nav.side .cnt{margin-left:auto;font-size:11px;color:var(--mut)}
+main{min-width:0;padding:28px 0 90px}
+.chips{display:none}
+/* hero */
+.hero{background:linear-gradient(135deg,var(--acc-soft),var(--cool-soft));border:1px solid var(--line);border-radius:20px;padding:30px 28px;margin-bottom:26px}
+.eyebrow{font:700 12px ui-monospace,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--acc)}
+.hero h1{font-size:clamp(26px,4vw,38px);line-height:1.15;margin:8px 0 10px;letter-spacing:-.02em}
+.lead{font-size:16.5px;color:var(--mut);margin:0;max-width:70ch}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.stat{background:var(--surf);border:1px solid var(--line);border-radius:99px;padding:4px 13px;font-size:13px}.stat b{color:var(--acc)}
+/* headings */
+h2{font-size:23px;margin:46px 0 10px;letter-spacing:-.01em;scroll-margin-top:72px;display:flex;align-items:center;gap:10px}
+h2::before{content:"";width:5px;height:22px;border-radius:3px;background:linear-gradient(var(--acc),var(--cool))}
+h3{margin:0;font-size:20px;letter-spacing:-.01em}
+.callout{border:1px solid var(--line);border-left:4px solid var(--acc);background:var(--surf);padding:10px 16px;border-radius:10px;margin:14px 0;box-shadow:var(--shadow)}
+.callout.intu{border-left-color:var(--cool);background:var(--cool-soft)}.callout p{margin:4px 0}
+.callout .lbl{margin-bottom:2px}
+/* pattern card */
+.pat{background:var(--surf);border:1px solid var(--line);border-radius:18px;padding:22px 22px 10px;margin:26px 0;box-shadow:var(--shadow);scroll-margin-top:72px;position:relative;overflow:hidden}
+.pat::before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:var(--acc)}.pat.sec::before{background:var(--cool)}
+.pat-h{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.badge{width:34px;height:34px;border-radius:10px;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:none}.sec .badge{background:var(--cool)}
+.tier{font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;white-space:nowrap}.tier.hot{background:var(--hot-soft);color:var(--hot)}.tier.sec{background:var(--cool-soft);color:var(--cool)}
+.pp{margin-left:auto;font-size:12px;color:var(--mut)}
+.glance{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:6px 0 14px}
+.gi{background:var(--soft);border-radius:12px;padding:10px 13px;font-size:14px}
+.lbl{font:700 11px/1.2 ui-monospace,Consolas,monospace;letter-spacing:.09em;text-transform:uppercase;color:var(--acc);margin-bottom:4px;display:block}
+.blk{margin:14px 0}.blk p{margin:4px 0}
+.blk ol,.blk ul{margin:4px 0;padding-left:22px}.blk li{margin:3px 0}
+.blk.warn .lbl{color:var(--warn)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cx{background:var(--ok-soft);color:var(--ok);border-radius:10px;padding:8px 13px;font-weight:600;font-size:14px;margin:12px 0}
+/* code */
+pre{background:var(--code);border:1px solid var(--line);border-radius:12px;padding:13px 15px;overflow-x:auto;margin:8px 0;position:relative;font-size:13px;line-height:1.55}
+pre code{background:none;padding:0;font-size:inherit}
+.code-java,.code-py{display:none}body[data-lang=java] .code-java,body[data-lang=py] .code-py{display:block}
+.cp{position:absolute;top:7px;right:7px;font-size:11px;padding:2px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surf);color:var(--mut);cursor:pointer;opacity:0;transition:.15s}
+pre:hover .cp,.cp:focus{opacity:1}
+.trace{border-left:3px solid var(--warn)}
+/* tables */
+.tw{overflow-x:auto;margin:10px 0;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;background:var(--surf)}
+th,td{padding:8px 11px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:var(--soft);font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}tr:last-child td{border-bottom:0}
+.ladder td:first-child{width:34px;text-align:center}.ladder .t{white-space:nowrap}.ladder .c{white-space:nowrap;font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+input.pk{width:17px;height:17px;accent-color:var(--acc);cursor:pointer}
+.pill{font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:99px;white-space:nowrap}.dE{background:var(--ok-soft);color:var(--ok)}.dM{background:var(--warn-soft);color:var(--warn)}.dH{background:var(--hot-soft);color:var(--bad)}
+tr.done td{background:var(--ok-soft)}tr.done td:nth-child(3){text-decoration:line-through;text-decoration-color:var(--mut)}
+details{border:1px solid var(--line);border-radius:12px;padding:9px 14px;margin:8px 0;background:var(--surf)}summary{cursor:pointer;font-weight:600}details[open]{border-color:var(--acc)}details p{margin:8px 0 2px;color:var(--mut)}
+/* stepper */
+.stepper{border:1px solid var(--line);border-radius:16px;padding:14px;margin:8px 0 14px;background:linear-gradient(var(--soft),var(--surf));outline:none}
+.stepper:focus-visible{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-soft)}
+.st-prog{height:4px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:10px}.st-prog i{display:block;height:100%;background:var(--acc);width:0;transition:width .3s}
+.st-view{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;padding:6px 0 2px;margin:0 auto}
+.cellw{display:flex;flex-direction:column;align-items:center;min-width:46px}
+.ptr{min-height:22px;font:700 11px ui-monospace,Consolas,monospace;color:#fff;margin-bottom:3px;display:flex;align-items:flex-end}
+.ptr b{background:var(--acc);padding:1px 7px;border-radius:99px;white-space:nowrap;animation:drop .25s ease}
+.cell{min-width:46px;height:46px;display:flex;align-items:center;justify-content:center;border:2px solid var(--line);border-radius:11px;background:var(--surf);font:600 16px ui-monospace,Consolas,monospace;padding:0 7px;transition:background .25s,border-color .25s,transform .25s,box-shadow .25s}
+.cell.in{background:var(--acc-soft);border-color:var(--acc);transform:translateY(-2px);box-shadow:0 4px 10px rgba(79,70,229,.18)}
+.cell.ok{background:var(--ok-soft);border-color:var(--ok)}
+.cell.dim{background:var(--soft);color:var(--mut);border-style:dashed;opacity:.6}
+.cell.pop{animation:pop .35s ease}
+.edge{align-self:flex-start;margin-top:31px;min-width:20px;text-align:center;color:var(--acc);font:700 17px ui-monospace,Consolas,monospace}
+.idx{font:11px ui-monospace,Consolas,monospace;color:var(--mut);margin-top:3px}
+.st-aux{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;min-height:30px;margin-top:8px}
+.st-aux .al{font:700 11px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}
+.chip{font:600 12.5px ui-monospace,Consolas,monospace;background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:2px 9px}
+.st-note{min-height:48px;margin:8px 2px;font-size:14.5px;padding:9px 13px;background:var(--surf);border:1px solid var(--line);border-radius:10px}
+.st-ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.st-ctl input[type=range]{flex:1;min-width:90px;accent-color:var(--acc)}
+.st-count{font-size:12px;color:var(--mut);white-space:nowrap}
+@keyframes pop{0%{transform:scale(.75)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes drop{from{transform:translateY(-6px);opacity:0}to{transform:none;opacity:1}}
+.foot{margin-top:50px;padding-top:18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:14px}
+@media (max-width:1020px){.wrap{display:block}nav.side{display:none}
+ .chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0;position:sticky;top:57px;z-index:10;background:var(--bg)}
+ .chips a{white-space:nowrap;font-size:12.5px;border:1px solid var(--line);background:var(--surf);padding:4px 11px;border-radius:99px;text-decoration:none;color:var(--fg)}}
+@media (max-width:640px){body{font-size:15px}.hero{padding:22px 18px}.pat{padding:16px 14px 6px}.two{grid-template-columns:1fr}.cell{min-width:36px;height:38px;font-size:13.5px}.cellw{min-width:36px}.brand span{display:none}.pp{margin-left:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{.bar,.pbar,nav.side,.chips,.st-ctl,.cp{display:none}.wrap{display:block}.code-java,.code-py{display:block!important}.pat{box-shadow:none;break-inside:avoid-page}body{background:#fff}}
+</style></head>
+<body data-lang="java" data-file="07_recursion_backtracking.html" data-topic="backtracking">
+<div class="bar"><div class="bar-in"><a class="brand" href="../index.html"><b>DSA</b> <span>Mastery</span></a>
+<span class="prog" id="prog"></span>
+<span class="seg"><button id="b-java" class="on">Java</button><button id="b-py">Python</button></span>
+<button id="b-theme" title="Toggle light / dark" aria-label="Toggle theme">◐</button>
+<button id="b-dl" title="Save this page as a standalone HTML file">⬇ Download</button></div><div class="pbar"><i id="pbar"></i></div></div>
+<div class="wrap"><nav class="side" aria-label="On this page"><h4>Start here</h4><a href="#mindset">The mindset</a><a href="#priority">Priority</a><a href="#cues">Problem cues</a><h4>Patterns</h4><a href="#p1"><span class="dot hot"></span>1. Recursion fundamentals: base case, trust and the call stack<span class="cnt"></span></a><a href="#p2"><span class="dot hot"></span>2. Subsets: the choose / explore / un-choose template<span class="cnt"></span></a><a href="#p3"><span class="dot hot"></span>3. Combinations and combination sum<span class="cnt"></span></a><a href="#p4"><span class="dot hot"></span>4. Permutations: choose any unused element<span class="cnt"></span></a><a href="#p5"><span class="dot hot"></span>5. Handling duplicates: sort and skip<span class="cnt"></span></a><a href="#p6"><span class="dot hot"></span>6. Strings: partitions, cuts and letter choices<span class="cnt"></span></a><a href="#p7"><span class="dot hot"></span>7. Grid and path search with visited marking<span class="cnt"></span></a><a href="#p8"><span class="dot hot"></span>8. Constraint search: N-Queens and Sudoku<span class="cnt"></span></a><a href="#p9"><span class="dot sec"></span>9. Pruning and memoisation: generate only valid states<span class="cnt"></span></a><h4>Wrap up</h4><a href="#recall">One-line recall</a><a href="#choose">Choosing</a><a href="#selftest">Self-test</a><a href="#plan">Study plan</a></nav><main><div class="chips"><a href="#p1">1. Recursion fundamentals: base case, trust and the call stack</a><a href="#p2">2. Subsets: the choose / explore / un-choose template</a><a href="#p3">3. Combinations and combination sum</a><a href="#p4">4. Permutations: choose any unused element</a><a href="#p5">5. Handling duplicates: sort and skip</a><a href="#p6">6. Strings: partitions, cuts and letter choices</a><a href="#p7">7. Grid and path search with visited marking</a><a href="#p8">8. Constraint search: N-Queens and Sudoku</a><a href="#p9">9. Pruning and memoisation: generate only valid states</a></div>
+<header class="hero"><div class="eyebrow">Topic 07</div><h1>Recursion and Backtracking — Pattern Guide</h1><p class="lead">Backtracking is a systematic way to try every possibility while abandoning dead ends early. This guide starts with recursion itself, then covers the choose / explore / un-choose template through subsets, combinations, permutations, duplicates, string partitions, grid search, N-Queens and pruning. Each pattern has the intuition, a step-through animation of the decision tree, Java and Python code, and a ladder of LeetCode problems.</p><div class="stats"><span class="stat"><b>9</b> patterns</span><span class="stat"><b>40</b> practice problems</span><span class="stat"><b>9</b> animations</span><span class="stat">Java + Python</span></div></header>
+<div class="callout"><span class="lbl">How to use this page</span><p>For each section: read <em>Detect</em> and <em>Intuition</em>, play the animation, then try to write the skeleton from memory before opening the code. Finish by solving the problem ladder in order.</p></div>
+<h2 id="mindset">The mindset</h2><p>Backtracking is <strong>depth-first search over a tree of decisions</strong>: pick an option, explore everything it leads to, then undo it and pick the next. Three questions define every solution: <strong>what is a choice</strong>, <strong>what makes a partial answer invalid (prune)</strong>, and <strong>when is it complete (record)</strong>. Always append a *copy* of the path and always undo what you did.</p><p>Ask these questions before writing the recursion:</p><ul><li><strong>What is one decision?</strong> (pick an element, place a queen, cut the string here)</li><li><strong>What state do I carry?</strong> (path, start index, used[], remaining, visited)</li><li><strong>When is the path complete?</strong> (record a copy)</li><li><strong>When can I abandon it early?</strong> (prune before recursing)</li><li><strong>Does order matter, and can values repeat?</strong> → start index vs used[], sort and skip duplicates.</li></ul>
+<h2 id="priority">Priority</h2><p class="muted">Ranked by how often these show up in interviews (our judgement from the common interview lists and company question banks, not hard data).</p><h3 style='margin:14px 0 4px;font-size:16px'>🔥 Frequently asked — master these first</h3><div class="tw"><table class=""><thead><tr><th>#</th><th>Pattern</th><th>Why it matters</th><th>Signature problem</th></tr></thead><tbody><tr><td>1</td><td><strong>Recursion fundamentals: base case, trust and the call stack</strong></td><td>Every tree, graph, DP and backtracking solution is recursion underneath</td><td>LC 509 / 50</td></tr><tr><td>2</td><td><strong>Subsets: the choose / explore / un-choose template</strong></td><td>The template that every other backtracking problem copies</td><td>LC 78</td></tr><tr><td>3</td><td><strong>Combinations and combination sum</strong></td><td>The reusable skeleton for "pick items summing to a target"</td><td>LC 39 / 77</td></tr><tr><td>4</td><td><strong>Permutations: choose any unused element</strong></td><td>The other core template: when order matters</td><td>LC 46</td></tr><tr><td>5</td><td><strong>Handling duplicates: sort and skip</strong></td><td>The usual twist that separates a correct answer from one with repeated results</td><td>LC 90 / 47 / 40</td></tr><tr><td>6</td><td><strong>Strings: partitions, cuts and letter choices</strong></td><td>Cutting strings into valid parts is a standard backtracking family</td><td>LC 131 / 93</td></tr><tr><td>7</td><td><strong>Grid and path search with visited marking</strong></td><td>Word Search and path-count problems appear in nearly every interview loop</td><td>LC 79</td></tr><tr><td>8</td><td><strong>Constraint search: N-Queens and Sudoku</strong></td><td>The standard "hard backtracking" interview problems</td><td>LC 51 / 37</td></tr></tbody></table></div><h3 style='margin:14px 0 4px;font-size:16px'>🧊 Secondary — know them</h3><div class="tw"><table class=""><thead><tr><th>#</th><th>Pattern</th><th>Why it matters</th><th>Signature problem</th></tr></thead><tbody><tr><td>9</td><td><strong>Pruning and memoisation: generate only valid states</strong></td><td>The difference between a TLE and an accepted backtracking solution</td><td>LC 22 / 139</td></tr></tbody></table></div>
+<h2 id="cues">Problem cues</h2><p class="muted">If the problem says this, think of that.</p><div class="tw"><table class=""><thead><tr><th>If the problem says / looks like…</th><th>Pattern</th></tr></thead><tbody><tr><td>a definition in terms of a smaller copy of itself</td><td><strong>P1</strong> Recursion fundamentals</td></tr><tr><td>"all subsets", "include or exclude"</td><td><strong>P2</strong> Subsets</td></tr><tr><td>"combinations", "combination sum", "choose k"</td><td><strong>P3</strong> Combinations</td></tr><tr><td>"all permutations / arrangements"</td><td><strong>P4</strong> Permutations</td></tr><tr><td>repeated values but unique results</td><td><strong>P5</strong> Skip duplicates</td></tr><tr><td>split a string into valid pieces</td><td><strong>P6</strong> String partitions</td></tr><tr><td>"word search", path through a grid without reuse</td><td><strong>P7</strong> Grid backtracking</td></tr><tr><td>"N-Queens", "Sudoku", fill a board</td><td><strong>P8</strong> Constraint search</td></tr><tr><td>"generate all valid …", too many invalid candidates</td><td><strong>P9</strong> Pruning and memoisation</td></tr></tbody></table></div>
+<h2>The patterns</h2>
+<section class="pat hot" id="p1">
+<div class="pat-h"><span class="badge">1</span><h3>Recursion fundamentals: base case, trust and the call stack</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>A problem is defined in terms of a smaller version of itself.</div><div class="gi"><span class="lbl">Detect it</span>"n! " · "power" · "reverse recursively" · "is it a power of two" · any definition with "the rest of the problem is the same but smaller".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Russian dolls: to open the biggest doll, open the next smaller one inside it and so on until the tiniest solid doll (the <strong>base case</strong>). You do not need to simulate every doll in your head. Trust that the call on the smaller problem returns the right answer, and just do the small step that combines it with yours.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Writing the loop for every depth of nesting is impossible for tree-shaped problems. Recursion lets the language manage the "to do later" list for you on the <strong>call stack</strong>.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Every recursive function has three parts: a <strong>base case</strong> that stops, a <strong>smaller subproblem</strong> (progress toward the base case), and a <strong>combine</strong> step that builds the answer from the sub-answer.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Write the base case first (smallest input, answer known).</li><li>Express the answer for <code>n</code> using the answer for something smaller.</li><li>Make sure every call moves toward the base case.</li><li>Check the depth: each pending call uses stack space, so depth = O(space).</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="callstack"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p><code>factorial(4)</code></p><pre class="trace"><code>f(4) = 4 * f(3)
+f(3) = 3 * f(2)
+f(2) = 2 * f(1)
+f(1) = 1            &lt;- base case, stack is deepest
+unwind: f(2)=2, f(3)=6, f(4)=24</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>factorial and recursive reverse (base case + smaller problem)</p><pre class="code-java"><code>int fact(int n) {
+    if (n &lt;= 1) return 1;                 // base case
+    return n * fact(n - 1);               // smaller problem, then combine
+}
+
+void reverse(char[] s, int l, int r) {
+    if (l &gt;= r) return;                   // base case: nothing left to swap
+    char t = s[l]; s[l] = s[r]; s[r] = t;
+    reverse(s, l + 1, r - 1);             // the middle is a smaller copy of the same problem
+}</code></pre><pre class="code-py"><code>def fact(n):
+    if n &lt;= 1:                            # base case
+        return 1
+    return n * fact(n - 1)                # smaller problem, then combine
+
+def reverse(s, l, r):
+    if l &gt;= r:                            # base case: nothing left to swap
+        return
+    s[l], s[r] = s[r], s[l]
+    reverse(s, l + 1, r - 1)              # the middle is a smaller copy of the same problem</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>remember answers: plain recursion → memoisation</p><pre class="code-java"><code>int[] memo = new int[n + 1];
+int climb(int n) {                         // ways to climb n stairs, 1 or 2 steps at a time
+    if (n &lt;= 1) return 1;
+    if (memo[n] != 0) return memo[n];      // already solved: reuse
+    return memo[n] = climb(n - 1) + climb(n - 2);
+}</code></pre><pre class="code-py"><code>from functools import lru_cache
+@lru_cache(None)
+def climb(n):                              # ways to climb n stairs, 1 or 2 steps at a time
+    if n &lt;= 1:
+        return 1
+    return climb(n - 1) + climb(n - 2)     # each n is computed once</code></pre></div>
+<div class="cx">⏱ Complexity — Time = (number of calls) × (work per call). Space = recursion depth (plus any memo).</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Missing or wrong base case causes infinite recursion and a stack overflow.</li><li>The recursive call must make progress (<code>n − 1</code>, <code>l + 1</code>); otherwise it loops forever.</li><li>Java and Python have no tail-call optimisation: depth of ~10⁴–10⁵ can overflow. Convert to a loop or an explicit stack.</li><li>Overlapping subproblems (Fibonacci) blow up to O(2ⁿ): add memoisation.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Fast power: halve the exponent each call (depth log n).</li><li>Mutual recursion and recursion on trees (topic 09).</li><li>Recursion → iteration: an explicit stack mimics the call stack.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When a simple loop is clearer and the depth could be huge.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="backtracking-509" aria-label="Solved LC 509"></td><td class="t"><a href="https://leetcode.com/problems/fibonacci-number/" target="_blank" rel="noopener">LC 509</a></td><td>Fibonacci Number</td><td><span class="pill dE">Easy</span></td><td>Two recursive calls; memoise to avoid O(2ⁿ)</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-231" aria-label="Solved LC 231"></td><td class="t"><a href="https://leetcode.com/problems/power-of-two/" target="_blank" rel="noopener">LC 231</a></td><td>Power of Two</td><td><span class="pill dE">Easy</span></td><td>n is a power of two if n/2 is, base case n == 1</td><td class="c">O(log n) / O(log n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-344" aria-label="Solved LC 344"></td><td class="t"><a href="https://leetcode.com/problems/reverse-string/" target="_blank" rel="noopener">LC 344</a></td><td>Reverse String</td><td><span class="pill dE">Easy</span></td><td>Swap ends, recurse on the middle</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-50" aria-label="Solved LC 50"></td><td class="t"><a href="https://leetcode.com/problems/powx-n/" target="_blank" rel="noopener">LC 50</a></td><td>Pow(x, n)</td><td><span class="pill dM">Medium</span></td><td>Halve the exponent; square the half result</td><td class="c">O(log n) / O(log n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-779" aria-label="Solved LC 779"></td><td class="t"><a href="https://leetcode.com/problems/k-th-symbol-in-grammar/" target="_blank" rel="noopener">LC 779</a></td><td>K-th Symbol in Grammar</td><td><span class="pill dM">Medium</span></td><td>Row n is row n−1 followed by its flip: recurse on the parent index</td><td class="c">O(n) / O(n)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p2">
+<div class="pat-h"><span class="badge">2</span><h3>Subsets: the choose / explore / un-choose template</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Generate all subsets, or decide for each element whether it is in or out.</div><div class="gi"><span class="lbl">Detect it</span>"all subsets / power set" · "all possible" · "letter case permutations" · "partition into k groups" · "target sum with +/−".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Picture a tree of decisions. At the root you have chosen nothing. Each step you add one more element from those not yet considered. Walking down is <strong>choose</strong>, recursing is <strong>explore</strong>, coming back up and removing the element is <strong>un-choose</strong> (backtrack). Because you undo every choice, the same path list is reused for the whole search.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Generating subsets with bitmasks works for small n. Backtracking is the same 2ⁿ work but lets you <strong>prune</strong> early (stop going down when a constraint is already broken).</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p><code>dfs(start, path)</code>: record <code>path</code>; for <code>i</code> from <code>start</code> to <code>n − 1</code>: append <code>a[i]</code>, <code>dfs(i + 1)</code>, remove <code>a[i]</code>. Using <code>start</code> ensures each combination is generated in one order only.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Record the current <code>path</code> (a copy!).</li><li>For each <code>i</code> from <code>start</code>: <strong>choose</strong> <code>a[i]</code> (append).</li><li><strong>Explore</strong> <code>dfs(i + 1, path)</code>.</li><li><strong>Un-choose</strong> (remove the last element) and try the next <code>i</code>.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="subsets"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p><code>[1,2,3]</code></p><pre class="trace"><code>[]  [1]  [1,2]  [1,2,3]  (back)  [1,3]  (back, back)
+[2]  [2,3]  (back, back)  [3]
+8 subsets = 2^3</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>subsets with the start-index template</p><pre class="code-java"><code>List&lt;List&lt;Integer&gt;&gt; res = new ArrayList&lt;&gt;();
+void dfs(int[] a, int start, List&lt;Integer&gt; path) {
+    res.add(new ArrayList&lt;&gt;(path));                     // copy: path keeps changing
+    for (int i = start; i &lt; a.length; i++) {
+        path.add(a[i]);                                  // choose
+        dfs(a, i + 1, path);                             // explore
+        path.remove(path.size() - 1);                    // un-choose
+    }
+}</code></pre><pre class="code-py"><code>res = []
+def dfs(start, path):
+    res.append(path[:])                                  # copy: path keeps changing
+    for i in range(start, len(a)):
+        path.append(a[i])                                # choose
+        dfs(i + 1, path)                                 # explore
+        path.pop()                                       # un-choose
+dfs(0, [])</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>include / exclude form and bitmask form</p><pre class="code-java"><code>// include or exclude each element
+void dfs(int[] a, int i, List&lt;Integer&gt; path) {
+    if (i == a.length) { res.add(new ArrayList&lt;&gt;(path)); return; }
+    dfs(a, i + 1, path);                                 // exclude a[i]
+    path.add(a[i]);
+    dfs(a, i + 1, path);                                 // include a[i]
+    path.remove(path.size() - 1);
+}
+// bitmask: every integer 0 .. 2^n - 1 is a subset
+for (int mask = 0; mask &lt; (1 &lt;&lt; n); mask++) {
+    List&lt;Integer&gt; s = new ArrayList&lt;&gt;();
+    for (int j = 0; j &lt; n; j++) if ((mask &gt;&gt; j &amp; 1) == 1) s.add(a[j]);
+    res.add(s);
+}</code></pre><pre class="code-py"><code>def dfs(i, path):
+    if i == len(a):
+        res.append(path[:])
+        return
+    dfs(i + 1, path)                                     # exclude a[i]
+    path.append(a[i])
+    dfs(i + 1, path)                                     # include a[i]
+    path.pop()
+
+# bitmask: every integer 0 .. 2^n - 1 is a subset
+for mask in range(1 &lt;&lt; len(a)):
+    res.append([a[j] for j in range(len(a)) if mask &gt;&gt; j &amp; 1])</code></pre></div>
+<div class="cx">⏱ Complexity — O(n · 2ⁿ) time (2ⁿ subsets, each copied in O(n)), O(n) recursion depth.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Append a <strong>copy</strong> of <code>path</code> (<code>new ArrayList&lt;&gt;(path)</code> / <code>path[:]</code>), not the list itself.</li><li>Always undo the choice after the recursive call, or paths leak into each other.</li><li>Pass <code>i + 1</code> (not <code>start + 1</code>) so elements are not reused or reordered.</li><li>Pruning belongs before the recursive call (check the constraint, then choose).</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Letter case permutation: two branches only at letters.</li><li>Target sum / partition to k equal subsets: include/exclude with a running sum and pruning.</li><li>Subsets of size k = combinations (next pattern).</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When the number of valid results is exponential but you only need a count or an optimum: use DP instead.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="backtracking-1863" aria-label="Solved LC 1863"></td><td class="t"><a href="https://leetcode.com/problems/sum-of-all-subset-xor-totals/" target="_blank" rel="noopener">LC 1863</a></td><td>Sum of All Subset XOR Totals</td><td><span class="pill dE">Easy</span></td><td>Include / exclude carrying the running XOR</td><td class="c">O(2ⁿ) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-78" aria-label="Solved LC 78"></td><td class="t"><a href="https://leetcode.com/problems/subsets/" target="_blank" rel="noopener">LC 78</a></td><td>Subsets</td><td><span class="pill dM">Medium</span></td><td>Start-index template, record on entry</td><td class="c">O(n·2ⁿ) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-784" aria-label="Solved LC 784"></td><td class="t"><a href="https://leetcode.com/problems/letter-case-permutation/" target="_blank" rel="noopener">LC 784</a></td><td>Letter Case Permutation</td><td><span class="pill dM">Medium</span></td><td>Branch lower / upper only at letters</td><td class="c">O(n·2ⁿ) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-494" aria-label="Solved LC 494"></td><td class="t"><a href="https://leetcode.com/problems/target-sum/" target="_blank" rel="noopener">LC 494</a></td><td>Target Sum</td><td><span class="pill dM">Medium</span></td><td>Include / exclude with ± and a running total (memo → DP)</td><td class="c">O(2ⁿ) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-698" aria-label="Solved LC 698"></td><td class="t"><a href="https://leetcode.com/problems/partition-to-k-equal-sum-subsets/" target="_blank" rel="noopener">LC 698</a></td><td>Partition to K Equal Sum Subsets</td><td><span class="pill dM">Medium</span></td><td>Fill buckets with pruning; skip duplicate states</td><td class="c">O(k·2ⁿ) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-473" aria-label="Solved LC 473"></td><td class="t"><a href="https://leetcode.com/problems/matchsticks-to-square/" target="_blank" rel="noopener">LC 473</a></td><td>Matchsticks to Square</td><td><span class="pill dM">Medium</span></td><td>Place each stick into one of 4 sides; sort descending to prune</td><td class="c">O(4ⁿ) / O(n)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p3">
+<div class="pat-h"><span class="badge">3</span><h3>Combinations and combination sum</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Choose k items, or any items whose sum meets a target, where order does not matter.</div><div class="gi"><span class="lbl">Detect it</span>"combinations of k numbers" · "combination sum" · "letter combinations of a phone number" · "choose items to reach a total".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Order does not matter for a combination, so impose one: only ever pick items at or after the one you took last. That removes the permutations of the same set without checking anything. Add <strong>pruning</strong>: if the candidate is already larger than what is left, stop (and, in a sorted list, so is everything after it).</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Generate all subsets and filter by sum: O(2ⁿ) work even when most are hopeless. Pruning cuts whole branches as soon as the remaining target is exceeded.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Sort candidates. <code>dfs(start, remaining, path)</code>: if <code>remaining == 0</code> record; for <code>i ≥ start</code>: if <code>c[i] &gt; remaining</code> break; choose <code>c[i]</code>; recurse with <code>start = i</code> (reuse allowed) or <code>i + 1</code> (each once); un-choose.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Sort the candidates (enables the early <code>break</code>).</li><li>Base case: <code>remaining == 0</code> → record a copy.</li><li>Loop <code>i</code> from <code>start</code>; <code>break</code> when <code>c[i] &gt; remaining</code>.</li><li>Recurse with <code>i</code> (unlimited reuse) or <code>i + 1</code> (single use).</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="combsum"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>candidates <code>[2,3,5]</code>, target 5</p><pre class="trace"><code>[2]  rem 3 -&gt; [2,2] rem 1 -&gt; 2 &gt; 1 prune
+              [2,3] rem 0  FOUND
+              5 &gt; 3 prune
+[3]  rem 2 -&gt; 3 &gt; 2 prune
+[5]  rem 0  FOUND
+=&gt; [2,3] [5]</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>combination sum (numbers reusable)</p><pre class="code-java"><code>void dfs(int[] c, int start, int rem, List&lt;Integer&gt; path) {
+    if (rem == 0) { res.add(new ArrayList&lt;&gt;(path)); return; }
+    for (int i = start; i &lt; c.length; i++) {
+        if (c[i] &gt; rem) break;                           // sorted: everything after is too big too
+        path.add(c[i]);
+        dfs(c, i, rem - c[i], path);                      // i, not i + 1: the same number may be reused
+        path.remove(path.size() - 1);
+    }
+}
+// call: Arrays.sort(c); dfs(c, 0, target, new ArrayList&lt;&gt;());</code></pre><pre class="code-py"><code>def dfs(start, rem, path):
+    if rem == 0:
+        res.append(path[:])
+        return
+    for i in range(start, len(c)):
+        if c[i] &gt; rem:
+            break                                        # sorted: everything after is too big too
+        path.append(c[i])
+        dfs(i, rem - c[i], path)                         # i, not i + 1: the same number may be reused
+        path.pop()
+c.sort()
+dfs(0, target, [])</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>combinations C(n, k) with a length-based prune</p><pre class="code-java"><code>void dfs(int n, int k, int start, List&lt;Integer&gt; path) {
+    if (path.size() == k) { res.add(new ArrayList&lt;&gt;(path)); return; }
+    for (int i = start; i &lt;= n - (k - path.size()) + 1; i++) {   // not enough numbers left otherwise
+        path.add(i);
+        dfs(n, k, i + 1, path);
+        path.remove(path.size() - 1);
+    }
+}</code></pre><pre class="code-py"><code>def dfs(start, path):
+    if len(path) == k:
+        res.append(path[:])
+        return
+    for i in range(start, n - (k - len(path)) + 2):              # not enough numbers left otherwise
+        path.append(i)
+        dfs(i + 1, path)
+        path.pop()
+dfs(1, [])</code></pre></div>
+<div class="cx">⏱ Complexity — Worst case O(2ⁿ) or C(n, k) × k; pruning reduces it a lot in practice. Depth O(target / min candidate).</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Use <code>i</code> for reusable candidates and <code>i + 1</code> for single-use ones.</li><li>Without sorting, the <code>break</code> prune is wrong (use <code>continue</code> instead).</li><li>Record a copy of <code>path</code>.</li><li>Phone-number letters is the same loop, but over the letters of the current digit instead of a start index.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Combination Sum III: exactly k numbers 1–9 summing to n.</li><li>Combination Sum II: each number once, with duplicates skipped (next pattern).</li><li>Number of ways (not the lists): use DP / unbounded knapsack instead.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When only the <strong>count</strong> of combinations is needed (DP is polynomial) or the target is huge.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="backtracking-77" aria-label="Solved LC 77"></td><td class="t"><a href="https://leetcode.com/problems/combinations/" target="_blank" rel="noopener">LC 77</a></td><td>Combinations</td><td><span class="pill dM">Medium</span></td><td>Pick k numbers from 1..n with a start index</td><td class="c">O(C(n,k)·k) / O(k)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-216" aria-label="Solved LC 216"></td><td class="t"><a href="https://leetcode.com/problems/combination-sum-iii/" target="_blank" rel="noopener">LC 216</a></td><td>Combination Sum III</td><td><span class="pill dM">Medium</span></td><td>k numbers from 1..9 summing to n, each once</td><td class="c">O(C(9,k)) / O(k)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-17" aria-label="Solved LC 17"></td><td class="t"><a href="https://leetcode.com/problems/letter-combinations-of-a-phone-number/" target="_blank" rel="noopener">LC 17</a></td><td>Letter Combinations of a Phone Number</td><td><span class="pill dM">Medium</span></td><td>One letter per digit: depth = number of digits</td><td class="c">O(4ⁿ·n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-39" aria-label="Solved LC 39"></td><td class="t"><a href="https://leetcode.com/problems/combination-sum/" target="_blank" rel="noopener">LC 39</a></td><td>Combination Sum</td><td><span class="pill dM">Medium</span></td><td>Reusable candidates, sorted, prune when too large</td><td class="c">O(2^target) / O(target)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p4">
+<div class="pat-h"><span class="badge">4</span><h3>Permutations: choose any unused element</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Arrange all items in every possible order.</div><div class="gi"><span class="lbl">Detect it</span>"all permutations" · "all arrangements" · "next / k-th permutation" · "beautiful arrangement".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Filling n seats one by one: for seat 1 you may pick anyone, for seat 2 anyone who is not already seated, and so on. The <code>used</code> array is the list of people already seated. When all seats are filled, record the arrangement; then un-seat the last person and try someone else.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Trying all n^n sequences and rejecting repeats is wasteful. Tracking <code>used</code> ensures only n! valid sequences are ever generated.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p><code>dfs(path)</code>: if <code>path.size() == n</code> record; for each index <code>i</code> not used: mark used, append, recurse, remove, unmark. A swap-based variant permutes the array in place.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Base case: path is full → record a copy.</li><li>For each element not used: mark it used and append.</li><li>Recurse for the next position.</li><li>Backtrack: remove it and mark unused.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="perm"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p><code>[1,2,3]</code></p><pre class="trace"><code>1 -&gt; 12 -&gt; 123 *   1 -&gt; 13 -&gt; 132 *
+2 -&gt; 21 -&gt; 213 *   2 -&gt; 23 -&gt; 231 *
+3 -&gt; 31 -&gt; 312 *   3 -&gt; 32 -&gt; 321 *
+6 permutations = 3!</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>permutations with a used array</p><pre class="code-java"><code>void dfs(int[] a, boolean[] used, List&lt;Integer&gt; path) {
+    if (path.size() == a.length) { res.add(new ArrayList&lt;&gt;(path)); return; }
+    for (int i = 0; i &lt; a.length; i++) {
+        if (used[i]) continue;
+        used[i] = true; path.add(a[i]);                  // choose
+        dfs(a, used, path);                              // explore
+        path.remove(path.size() - 1); used[i] = false;   // un-choose
+    }
+}</code></pre><pre class="code-py"><code>def dfs(path):
+    if len(path) == len(a):
+        res.append(path[:])
+        return
+    for i in range(len(a)):
+        if used[i]:
+            continue
+        used[i] = True
+        path.append(a[i])                                # choose
+        dfs(path)                                        # explore
+        path.pop()
+        used[i] = False                                  # un-choose
+used = [False] * len(a)
+dfs([])</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>in-place swap version</p><pre class="code-java"><code>void dfs(int[] a, int k) {
+    if (k == a.length) { res.add(toList(a)); return; }
+    for (int i = k; i &lt; a.length; i++) {
+        swap(a, k, i);                                   // place a[i] at position k
+        dfs(a, k + 1);
+        swap(a, k, i);                                   // undo
+    }
+}</code></pre><pre class="code-py"><code>def dfs(k):
+    if k == len(a):
+        res.append(a[:])
+        return
+    for i in range(k, len(a)):
+        a[k], a[i] = a[i], a[k]                          # place a[i] at position k
+        dfs(k + 1)
+        a[k], a[i] = a[i], a[k]                          # undo
+dfs(0)</code></pre></div>
+<div class="cx">⏱ Complexity — O(n · n!) time, O(n) space for recursion and the used array.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Start the loop at <code>0</code> (not <code>start</code>): order matters, so any unused element can come next.</li><li>Forgetting to reset <code>used[i] = false</code> after the recursive call.</li><li>n! grows fast: n = 10 is 3.6 million; n = 12 is 479 million.</li><li>For "next permutation" or the k-th permutation do <strong>not</strong> generate all of them: use the factorial number system or the next-permutation algorithm.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Beautiful arrangement: permutations with a divisibility check as pruning.</li><li>Permutation sequence: compute the k-th directly with factorials.</li><li>Permutations with duplicates: sort and skip repeats (next pattern).</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When you need only the k-th or next permutation, or the number of permutations (use math).</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="backtracking-46" aria-label="Solved LC 46"></td><td class="t"><a href="https://leetcode.com/problems/permutations/" target="_blank" rel="noopener">LC 46</a></td><td>Permutations</td><td><span class="pill dM">Medium</span></td><td>used[] array: choose any unused element at each position</td><td class="c">O(n·n!) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-526" aria-label="Solved LC 526"></td><td class="t"><a href="https://leetcode.com/problems/beautiful-arrangement/" target="_blank" rel="noopener">LC 526</a></td><td>Beautiful Arrangement</td><td><span class="pill dM">Medium</span></td><td>Permutation with a divisibility prune</td><td class="c">O(k) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-31" aria-label="Solved LC 31"></td><td class="t"><a href="https://leetcode.com/problems/next-permutation/" target="_blank" rel="noopener">LC 31</a></td><td>Next Permutation</td><td><span class="pill dM">Medium</span></td><td>No search needed: pivot, swap, reverse suffix</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-60" aria-label="Solved LC 60"></td><td class="t"><a href="https://leetcode.com/problems/permutation-sequence/" target="_blank" rel="noopener">LC 60</a></td><td>Permutation Sequence</td><td><span class="pill dH">Hard</span></td><td>Pick digits using factorials; no enumeration</td><td class="c">O(n²) / O(n)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p5">
+<div class="pat-h"><span class="badge">5</span><h3>Handling duplicates: sort and skip</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>The input has repeated values and the output must not contain duplicate subsets, permutations or combinations.</div><div class="gi"><span class="lbl">Detect it</span>"Subsets II" · "Permutations II" · "Combination Sum II" · "unique combinations" · "no duplicate sets".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>If two cards both show a 2, choosing "the first 2" and then "the second 2" gives the same hand as the reverse. To avoid that, make equal cards line up (sort) and add a rule: at any one position in the decision tree, you may use a given value <strong>only once as a choice</strong>. The second 2 can still be used deeper in the recursion (after the first 2 was chosen).</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Generate everything and remove duplicates with a set: correct but wastes time and memory. Skipping at the source never creates the duplicates.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Sort the array. In the loop at a given level, <code>if (i &gt; start &amp;&amp; a[i] == a[i − 1]) continue;</code>. For permutations use <code>used[]</code> and skip when <code>a[i] == a[i − 1] &amp;&amp; !used[i − 1]</code>.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Sort so equal values are adjacent.</li><li>Within one loop level, skip <code>a[i]</code> if it equals <code>a[i − 1]</code> and <code>i &gt; start</code> (the first of the run was already tried at this level).</li><li>Permutations: skip <code>a[i]</code> if <code>a[i − 1]</code> is equal and <strong>not currently used</strong>.</li><li>Everything else is the normal template.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="dedupe"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>subsets of <code>[1,2,2]</code></p><pre class="trace"><code>[] [1] [1,2] [1,2,2]
+  at level start=1: i=2 equals i=1 -&gt; skip
+[2] [2,2]
+  at root: i=2 equals i=1 -&gt; skip
+=&gt; [] [1] [1,2] [1,2,2] [2] [2,2]  (6, not 8)</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>Subsets II (duplicates in the input)</p><pre class="code-java"><code>Arrays.sort(a);
+void dfs(int[] a, int start, List&lt;Integer&gt; path) {
+    res.add(new ArrayList&lt;&gt;(path));
+    for (int i = start; i &lt; a.length; i++) {
+        if (i &gt; start &amp;&amp; a[i] == a[i - 1]) continue;         // same value already tried at this level
+        path.add(a[i]);
+        dfs(a, i + 1, path);
+        path.remove(path.size() - 1);
+    }
+}</code></pre><pre class="code-py"><code>a.sort()
+def dfs(start, path):
+    res.append(path[:])
+    for i in range(start, len(a)):
+        if i &gt; start and a[i] == a[i - 1]:
+            continue                                         # same value already tried at this level
+        path.append(a[i])
+        dfs(i + 1, path)
+        path.pop()
+dfs(0, [])</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>Permutations II (duplicates in the input)</p><pre class="code-java"><code>Arrays.sort(a);
+void dfs(int[] a, boolean[] used, List&lt;Integer&gt; path) {
+    if (path.size() == a.length) { res.add(new ArrayList&lt;&gt;(path)); return; }
+    for (int i = 0; i &lt; a.length; i++) {
+        if (used[i]) continue;
+        if (i &gt; 0 &amp;&amp; a[i] == a[i - 1] &amp;&amp; !used[i - 1]) continue;   // keep equal values in a fixed order
+        used[i] = true; path.add(a[i]);
+        dfs(a, used, path);
+        path.remove(path.size() - 1); used[i] = false;
+    }
+}</code></pre><pre class="code-py"><code>a.sort()
+used = [False] * len(a)
+def dfs(path):
+    if len(path) == len(a):
+        res.append(path[:])
+        return
+    for i in range(len(a)):
+        if used[i]:
+            continue
+        if i &gt; 0 and a[i] == a[i - 1] and not used[i - 1]:       # keep equal values in a fixed order
+            continue
+        used[i] = True
+        path.append(a[i])
+        dfs(path)
+        path.pop()
+        used[i] = False
+dfs([])</code></pre></div>
+<div class="cx">⏱ Complexity — Same as the base template; the skip removes duplicate subtrees (often a large saving).</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>You <strong>must</strong> sort first; the skip rule relies on equal values being adjacent.</li><li><code>i &gt; start</code> (not <code>i &gt; 0</code>) for subsets and combinations; <code>i &gt; 0</code> with the <code>!used[i − 1]</code> condition for permutations.</li><li>Skipping is per <strong>level</strong>, not global: the second 2 is still allowed deeper in the same path.</li><li>Combination Sum II: skip duplicates <strong>and</strong> recurse with <code>i + 1</code> (each element used once).</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Non-decreasing subsequences (no sorting allowed): use a per-level <code>HashSet</code> of values already tried.</li><li>Letter tile possibilities: count letters and branch over distinct letters.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>If all elements are distinct, none of this is needed.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="backtracking-90" aria-label="Solved LC 90"></td><td class="t"><a href="https://leetcode.com/problems/subsets-ii/" target="_blank" rel="noopener">LC 90</a></td><td>Subsets II</td><td><span class="pill dM">Medium</span></td><td>Sort; skip a[i] == a[i−1] when i &gt; start</td><td class="c">O(n·2ⁿ) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-47" aria-label="Solved LC 47"></td><td class="t"><a href="https://leetcode.com/problems/permutations-ii/" target="_blank" rel="noopener">LC 47</a></td><td>Permutations II</td><td><span class="pill dM">Medium</span></td><td>Sort; skip equal value if the previous equal is unused</td><td class="c">O(n·n!) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-40" aria-label="Solved LC 40"></td><td class="t"><a href="https://leetcode.com/problems/combination-sum-ii/" target="_blank" rel="noopener">LC 40</a></td><td>Combination Sum II</td><td><span class="pill dM">Medium</span></td><td>Sort; use each once; skip duplicates at a level</td><td class="c">O(2ⁿ) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-491" aria-label="Solved LC 491"></td><td class="t"><a href="https://leetcode.com/problems/non-decreasing-subsequences/" target="_blank" rel="noopener">LC 491</a></td><td>Non-decreasing Subsequences</td><td><span class="pill dM">Medium</span></td><td>Cannot sort: per-level set of used values</td><td class="c">O(n·2ⁿ) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-1079" aria-label="Solved LC 1079"></td><td class="t"><a href="https://leetcode.com/problems/letter-tile-possibilities/" target="_blank" rel="noopener">LC 1079</a></td><td>Letter Tile Possibilities</td><td><span class="pill dM">Medium</span></td><td>Count letters; branch over each distinct letter</td><td class="c">O(n!) / O(n)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p6">
+<div class="pat-h"><span class="badge">6</span><h3>Strings: partitions, cuts and letter choices</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Split a string into pieces that each satisfy a rule, or build a string from per-position choices.</div><div class="gi"><span class="lbl">Detect it</span>"palindrome partitioning" · "restore IP addresses" · "word break II" · "letter combinations" · "concatenated string with unique characters".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Cutting a loaf into slices where every slice must be acceptable. Stand at the current cut position and try every possible next slice: if the slice is valid, take it and continue from where it ends. If you reach the end of the loaf, the slices so far are an answer.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Try every set of cut positions (2ⁿ⁻¹) and check each piece afterwards. Checking each piece <strong>as soon as it is formed</strong> rejects bad cuts early.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p><code>dfs(start, path)</code>: if <code>start == n</code> record <code>path</code>. For <code>end</code> in <code>start..n−1</code>: <code>piece = s[start..end]</code>; if valid, append, <code>dfs(end + 1)</code>, remove.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Base case: <code>start == n</code> → record the partition.</li><li>Loop <code>end</code> from <code>start</code> to <code>n − 1</code>.</li><li>If <code>s[start..end]</code> is valid (palindrome, number 0–255, dictionary word), choose it.</li><li>Recurse from <code>end + 1</code>; then un-choose.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="partition"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>palindrome partitions of <code>"aab"</code></p><pre class="trace"><code>cut &quot;a&quot;   -&gt; &quot;a&quot; -&gt; &quot;b&quot;      record [a, a, b]
+          &quot;ab&quot; not a palindrome
+cut &quot;aa&quot;  -&gt; &quot;b&quot;             record [aa, b]
+cut &quot;aab&quot; not a palindrome</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>palindrome partitioning</p><pre class="code-java"><code>void dfs(String s, int start, List&lt;String&gt; path) {
+    if (start == s.length()) { res.add(new ArrayList&lt;&gt;(path)); return; }
+    for (int end = start; end &lt; s.length(); end++) {
+        if (!isPal(s, start, end)) continue;                       // prune: bad piece
+        path.add(s.substring(start, end + 1));
+        dfs(s, end + 1, path);
+        path.remove(path.size() - 1);
+    }
+}
+boolean isPal(String s, int l, int r) { while (l &lt; r) if (s.charAt(l++) != s.charAt(r--)) return false; return true; }</code></pre><pre class="code-py"><code>def dfs(start, path):
+    if start == len(s):
+        res.append(path[:])
+        return
+    for end in range(start, len(s)):
+        piece = s[start:end + 1]
+        if piece != piece[::-1]:
+            continue                                           # prune: bad piece
+        path.append(piece)
+        dfs(end + 1, path)
+        path.pop()
+dfs(0, [])</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>letter case permutation (branch only at letters)</p><pre class="code-java"><code>void dfs(char[] c, int i) {
+    if (i == c.length) { res.add(new String(c)); return; }
+    dfs(c, i + 1);                                           // keep as is
+    if (Character.isLetter(c[i])) {
+        c[i] ^= 32;                                          // flip the case
+        dfs(c, i + 1);
+        c[i] ^= 32;                                          // un-choose
+    }
+}</code></pre><pre class="code-py"><code>def dfs(i, cur):
+    if i == len(s):
+        res.append(&#x27;&#x27;.join(cur))
+        return
+    dfs(i + 1, cur)                                          # keep as is
+    if s[i].isalpha():
+        cur[i] = cur[i].swapcase()                           # flip the case
+        dfs(i + 1, cur)
+        cur[i] = cur[i].swapcase()                           # un-choose
+dfs(0, list(s))</code></pre></div>
+<div class="cx">⏱ Complexity — O(n · 2ⁿ) for palindrome partitioning (a DP table can precompute palindromes in O(n²)); IP addresses are bounded by 3⁴ cuts.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Do the validity check <strong>before</strong> recursing; do not generate then filter.</li><li>Cutting at <code>end + 1</code>, not <code>end</code>.</li><li>Leading zeros in IP octets (<code>"01"</code> invalid) and the range 0–255.</li><li>Word Break II: memoise on <code>start</code> or it times out.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Restore IP addresses: exactly 4 parts, each 1–3 digits and ≤ 255.</li><li>Word Break II: pieces must be dictionary words; memoise the sentences from each index.</li><li>Maximum length concatenation with unique characters: bitmask of used letters.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When only a count or the minimum number of cuts is needed (use DP).</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="backtracking-131" aria-label="Solved LC 131"></td><td class="t"><a href="https://leetcode.com/problems/palindrome-partitioning/" target="_blank" rel="noopener">LC 131</a></td><td>Palindrome Partitioning</td><td><span class="pill dM">Medium</span></td><td>Try every end; take only palindromic pieces</td><td class="c">O(n·2ⁿ) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-93" aria-label="Solved LC 93"></td><td class="t"><a href="https://leetcode.com/problems/restore-ip-addresses/" target="_blank" rel="noopener">LC 93</a></td><td>Restore IP Addresses</td><td><span class="pill dM">Medium</span></td><td>Four parts of 1–3 digits, value ≤ 255, no leading zero</td><td class="c">O(1) bounded / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-1239" aria-label="Solved LC 1239"></td><td class="t"><a href="https://leetcode.com/problems/maximum-length-of-a-concatenated-string-with-unique-characters/" target="_blank" rel="noopener">LC 1239</a></td><td>Maximum Length of a Concatenated String with Unique Characters</td><td><span class="pill dM">Medium</span></td><td>Include / exclude with a letter bitmask</td><td class="c">O(2ⁿ) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-140" aria-label="Solved LC 140"></td><td class="t"><a href="https://leetcode.com/problems/word-break-ii/" target="_blank" rel="noopener">LC 140</a></td><td>Word Break II</td><td><span class="pill dH">Hard</span></td><td>Try dictionary prefixes; memoise results per start</td><td class="c">O(2ⁿ) / O(2ⁿ)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p7">
+<div class="pat-h"><span class="badge">7</span><h3>Grid and path search with visited marking</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Find a path through a grid or board where cells cannot be reused within one path.</div><div class="gi"><span class="lbl">Detect it</span>"word search" · "path with maximum gold" · "unique paths III" · "can the word be formed from adjacent cells".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Exploring a maze with a ball of thread: leave a mark where you have been so you do not walk in circles, and when a corridor dead-ends, walk back <strong>removing the mark</strong> so a different route can still pass through that cell. The un-marking is what makes it backtracking rather than a plain flood fill.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Enumerating all paths blindly explodes. Matching the next letter at each step rejects almost every path immediately.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>For each start cell run <code>dfs(r, c, k)</code>: fail on out-of-bounds, a visited cell or a mismatch; mark the cell; try 4 neighbours; unmark; return whether any succeeded.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Try every cell as a start.</li><li><code>dfs</code>: if <code>k == len(word)</code> → success.</li><li>Reject if out of bounds or <code>board[r][c] != word[k]</code>.</li><li>Mark visited (e.g. set to <code>#</code>), recurse in 4 directions, restore the cell, return the result.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="wordgrid"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>ABCCED in a 3×4 board</p><pre class="trace"><code>A(0,0) -&gt; B(0,1) -&gt; C(0,2)
+C: right (0,3)=E not C  dead end
+   down  (1,2)=C ok -&gt; E(2,2) -&gt; D(2,1)   word complete
+path: (0,0)(0,1)(0,2)(1,2)(2,2)(2,1)</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>word search</p><pre class="code-java"><code>boolean exist(char[][] b, String w) {
+    for (int r = 0; r &lt; b.length; r++)
+        for (int c = 0; c &lt; b[0].length; c++)
+            if (dfs(b, w, 0, r, c)) return true;
+    return false;
+}
+boolean dfs(char[][] b, String w, int k, int r, int c) {
+    if (k == w.length()) return true;
+    if (r &lt; 0 || c &lt; 0 || r &gt;= b.length || c &gt;= b[0].length || b[r][c] != w.charAt(k)) return false;
+    char t = b[r][c];
+    b[r][c] = &#x27;#&#x27;;                                            // mark visited
+    boolean ok = dfs(b, w, k + 1, r + 1, c) || dfs(b, w, k + 1, r - 1, c)
+              || dfs(b, w, k + 1, r, c + 1) || dfs(b, w, k + 1, r, c - 1);
+    b[r][c] = t;                                              // un-mark (backtrack)
+    return ok;
+}</code></pre><pre class="code-py"><code>def exist(board, word):
+    R, C = len(board), len(board[0])
+    def dfs(r, c, k):
+        if k == len(word):
+            return True
+        if not (0 &lt;= r &lt; R and 0 &lt;= c &lt; C) or board[r][c] != word[k]:
+            return False
+        t, board[r][c] = board[r][c], &#x27;#&#x27;                     # mark visited
+        ok = (dfs(r + 1, c, k + 1) or dfs(r - 1, c, k + 1) or
+              dfs(r, c + 1, k + 1) or dfs(r, c - 1, k + 1))
+        board[r][c] = t                                       # un-mark (backtrack)
+        return ok
+    return any(dfs(r, c, 0) for r in range(R) for c in range(C))</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>path with maximum gold (best path, not just existence)</p><pre class="code-java"><code>int best = 0;
+for (int r = 0; r &lt; m; r++) for (int c = 0; c &lt; n; c++) best = Math.max(best, dfs(g, r, c));
+int dfs(int[][] g, int r, int c) {
+    if (r &lt; 0 || c &lt; 0 || r &gt;= g.length || c &gt;= g[0].length || g[r][c] == 0) return 0;
+    int gold = g[r][c];
+    g[r][c] = 0;                                              // mark
+    int next = Math.max(Math.max(dfs(g, r + 1, c), dfs(g, r - 1, c)), Math.max(dfs(g, r, c + 1), dfs(g, r, c - 1)));
+    g[r][c] = gold;                                           // un-mark
+    return gold + next;
+}</code></pre><pre class="code-py"><code>def dfs(r, c):
+    if not (0 &lt;= r &lt; m and 0 &lt;= c &lt; n) or g[r][c] == 0:
+        return 0
+    gold, g[r][c] = g[r][c], 0                                # mark
+    nxt = max(dfs(r + 1, c), dfs(r - 1, c), dfs(r, c + 1), dfs(r, c - 1))
+    g[r][c] = gold                                            # un-mark
+    return gold + nxt
+best = max(dfs(r, c) for r in range(m) for c in range(n))</code></pre></div>
+<div class="cx">⏱ Complexity — O(m · n · 3^L) for word length L (3 choices after the first step), O(L) recursion depth.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Forgetting to restore the cell makes later searches fail.</li><li>Order of checks: bounds <strong>first</strong>, then the cell value.</li><li>Use <code>||</code> short-circuiting so you stop at the first success.</li><li>For many words (Word Search II) build a trie and prune with it.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Unique Paths III: count paths that visit every empty cell exactly once (track remaining cells).</li><li>Word Search II: trie + same DFS.</li><li>Flood fill and islands are the same DFS <strong>without</strong> un-marking (topic 12).</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When you only need connectivity or shortest paths (BFS / DFS with permanent marks).</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="backtracking-79" aria-label="Solved LC 79"></td><td class="t"><a href="https://leetcode.com/problems/word-search/" target="_blank" rel="noopener">LC 79</a></td><td>Word Search</td><td><span class="pill dM">Medium</span></td><td>Match letter by letter; mark and un-mark the cell</td><td class="c">O(m·n·3^L) / O(L)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-1219" aria-label="Solved LC 1219"></td><td class="t"><a href="https://leetcode.com/problems/path-with-maximum-gold/" target="_blank" rel="noopener">LC 1219</a></td><td>Path with Maximum Gold</td><td><span class="pill dM">Medium</span></td><td>Return gold + best neighbour; un-mark after</td><td class="c">O(m·n·3^k) / O(k)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-980" aria-label="Solved LC 980"></td><td class="t"><a href="https://leetcode.com/problems/unique-paths-iii/" target="_blank" rel="noopener">LC 980</a></td><td>Unique Paths III</td><td><span class="pill dH">Hard</span></td><td>Count paths covering every empty cell once</td><td class="c">O(3^(m·n)) / O(m·n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-212" aria-label="Solved LC 212"></td><td class="t"><a href="https://leetcode.com/problems/word-search-ii/" target="_blank" rel="noopener">LC 212</a></td><td>Word Search II</td><td><span class="pill dH">Hard</span></td><td>Trie of words + DFS; prune dead trie branches</td><td class="c">O(m·n·3^L) / O(total letters)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p8">
+<div class="pat-h"><span class="badge">8</span><h3>Constraint search: N-Queens and Sudoku</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Fill a board so that every row, column or region obeys constraints.</div><div class="gi"><span class="lbl">Detect it</span>"N-Queens" · "Sudoku solver" · "place pieces so none attack" · "fill the grid".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Place one thing at a time in a fixed order (row by row). At each step only the options consistent with everything already placed are tried. If a row has <strong>no</strong> legal option, an earlier decision must have been wrong, so undo the previous placement and try its next option. Constant-time conflict checks (boolean arrays for columns and diagonals) keep it fast.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Putting n queens anywhere is C(n², n) boards. One queen per row cuts it to nⁿ; rejecting conflicts immediately cuts it to a tiny fraction.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p><code>dfs(row)</code>: if <code>row == n</code> record the board; for each column: if no conflict, place, <code>dfs(row + 1)</code>, remove. Conflicts: <code>col</code>, <code>row + col</code> (anti-diagonal) and <code>row − col</code> (diagonal) each tracked in a set or boolean array.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Row by row: for each column, test <code>cols[c]</code>, <code>d1[r + c]</code>, <code>d2[r − c + n − 1]</code>.</li><li>If safe: mark the three, place the queen, recurse to the next row.</li><li>On return: unmark and remove.</li><li>At <code>row == n</code>: record (or count) the solution.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="nqueens"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>4-Queens</p><pre class="trace"><code>row0 c0 -&gt; row1 c2 -&gt; row2 no safe column  undo c2
+        row1 c3 -&gt; row2 c1 -&gt; row3 no safe column  undo
+undo row0 c0, try c1
+row0 c1 -&gt; row1 c3 -&gt; row2 c0 -&gt; row3 c2   SOLUTION (1,3,0,2)</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>N-Queens (count solutions) with O(1) conflict checks</p><pre class="code-java"><code>int count = 0;
+boolean[] cols, d1, d2;                                 // d1[r + c], d2[r - c + n - 1]
+void dfs(int r, int n) {
+    if (r == n) { count++; return; }
+    for (int c = 0; c &lt; n; c++) {
+        if (cols[c] || d1[r + c] || d2[r - c + n - 1]) continue;
+        cols[c] = d1[r + c] = d2[r - c + n - 1] = true;          // place
+        dfs(r + 1, n);
+        cols[c] = d1[r + c] = d2[r - c + n - 1] = false;         // remove
+    }
+}
+// init: cols = new boolean[n]; d1 = new boolean[2 * n]; d2 = new boolean[2 * n];</code></pre><pre class="code-py"><code>def total_n_queens(n):
+    cols, d1, d2 = set(), set(), set()
+    def dfs(r):
+        if r == n:
+            return 1
+        count = 0
+        for c in range(n):
+            if c in cols or r + c in d1 or r - c in d2:
+                continue
+            cols.add(c); d1.add(r + c); d2.add(r - c)            # place
+            count += dfs(r + 1)
+            cols.remove(c); d1.remove(r + c); d2.remove(r - c)   # remove
+        return count
+    return dfs(0)</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>Sudoku solver (try digits in the first empty cell)</p><pre class="code-java"><code>boolean solve(char[][] b) {
+    for (int r = 0; r &lt; 9; r++) for (int c = 0; c &lt; 9; c++) {
+        if (b[r][c] != &#x27;.&#x27;) continue;
+        for (char d = &#x27;1&#x27;; d &lt;= &#x27;9&#x27;; d++) {
+            if (!ok(b, r, c, d)) continue;
+            b[r][c] = d;
+            if (solve(b)) return true;
+            b[r][c] = &#x27;.&#x27;;                                       // undo
+        }
+        return false;                                            // no digit fits: backtrack
+    }
+    return true;                                                 // no empty cell left
+}
+boolean ok(char[][] b, int r, int c, char d) {
+    for (int i = 0; i &lt; 9; i++)
+        if (b[r][i] == d || b[i][c] == d || b[r / 3 * 3 + i / 3][c / 3 * 3 + i % 3] == d) return false;
+    return true;
+}</code></pre><pre class="code-py"><code>def solve(b):
+    for r in range(9):
+        for c in range(9):
+            if b[r][c] != &#x27;.&#x27;:
+                continue
+            for d in &#x27;123456789&#x27;:
+                if ok(b, r, c, d):
+                    b[r][c] = d
+                    if solve(b):
+                        return True
+                    b[r][c] = &#x27;.&#x27;                                # undo
+            return False                                         # no digit fits: backtrack
+    return True                                                  # no empty cell left
+
+def ok(b, r, c, d):
+    for i in range(9):
+        if b[r][i] == d or b[i][c] == d or b[r // 3 * 3 + i // 3][c // 3 * 3 + i % 3] == d:
+            return False
+    return True</code></pre></div>
+<div class="cx">⏱ Complexity — N-Queens roughly O(n!) with pruning; Sudoku worst case exponential but fast in practice with constraint checks.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>The anti-diagonal index is <code>row + col</code>; the diagonal is <code>row − col</code> (offset by <code>n − 1</code> in an array).</li><li>Undo <strong>all three</strong> marks when backtracking.</li><li>For printing boards, build the strings only when a solution is complete.</li><li>Sudoku: choose the empty cell with the fewest candidates first (MRV) for a big speed-up.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>N-Queens II: count only.</li><li>Bitmask version of N-Queens with three integers is the fastest.</li><li>Other constraint puzzles (graph colouring, knight's tour) use the same skeleton.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When the constraint structure fits a polynomial algorithm (matching, DP).</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="backtracking-52" aria-label="Solved LC 52"></td><td class="t"><a href="https://leetcode.com/problems/n-queens-ii/" target="_blank" rel="noopener">LC 52</a></td><td>N-Queens II</td><td><span class="pill dH">Hard</span></td><td>Count solutions with column and diagonal sets</td><td class="c">O(n!) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-51" aria-label="Solved LC 51"></td><td class="t"><a href="https://leetcode.com/problems/n-queens/" target="_blank" rel="noopener">LC 51</a></td><td>N-Queens</td><td><span class="pill dH">Hard</span></td><td>Same search, build the board strings on success</td><td class="c">O(n!) / O(n²)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-37" aria-label="Solved LC 37"></td><td class="t"><a href="https://leetcode.com/problems/sudoku-solver/" target="_blank" rel="noopener">LC 37</a></td><td>Sudoku Solver</td><td><span class="pill dH">Hard</span></td><td>First empty cell, try 1–9 with row/column/box checks</td><td class="c">O(9^empty) / O(1)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat sec" id="p9">
+<div class="pat-h"><span class="badge">9</span><h3>Pruning and memoisation: generate only valid states</h3><span class="tier sec">🧊 Secondary</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Most branches of the search tree are invalid, or the same sub-state is reached again and again.</div><div class="gi"><span class="lbl">Detect it</span>"generate parentheses" · "remove invalid parentheses" · "word break" · "expression add operators" · "additive number".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Instead of writing every possible string and then crossing out the bad ones, never write a letter that can only lead to a bad string. For parentheses: you may open a bracket while some are still unspent, but you may close one only if an open one is waiting. The tree contains only valid prefixes, so nothing is wasted. When the same sub-problem reappears (the same suffix of a string), remember its answer.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Generating all 2^(2n) strings and filtering costs exponential time even for tiny answers. Pruned generation visits only the Catalan(n) valid results and their valid prefixes.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Carry the state that defines validity (<code>open</code>, <code>close</code>, current sum, last operand) and check it <strong>before</strong> recursing. If <code>dfs(state)</code> can be reached by several paths, cache <code>state → result</code> (memoisation); this is the bridge to dynamic programming.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Identify the invariant of a valid prefix (e.g. <code>close ≤ open ≤ n</code>).</li><li>Only recurse into choices that keep the invariant.</li><li>Record when the length (or goal) is reached.</li><li>If states repeat, add a memo keyed by the state.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="parens"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>n = 2 parentheses</p><pre class="trace"><code>(    open 1
+((   open 2   (cannot add another &#x27;(&#x27; : open == n)
+(()  close 1
+(()) close 2  RECORD
+()   close 1 &lt;= open 1
+()(  open 2
+()() RECORD
+=&gt; (()) ()()</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>generate parentheses (prune invalid prefixes)</p><pre class="code-java"><code>void dfs(int open, int close, int n, StringBuilder sb) {
+    if (sb.length() == 2 * n) { res.add(sb.toString()); return; }
+    if (open &lt; n) {                                         // may still open
+        sb.append(&#x27;(&#x27;); dfs(open + 1, close, n, sb); sb.deleteCharAt(sb.length() - 1);
+    }
+    if (close &lt; open) {                                     // may close only if something is open
+        sb.append(&#x27;)&#x27;); dfs(open, close + 1, n, sb); sb.deleteCharAt(sb.length() - 1);
+    }
+}</code></pre><pre class="code-py"><code>def generate(n):
+    res = []
+    def dfs(cur, open_, close):
+        if len(cur) == 2 * n:
+            res.append(&#x27;&#x27;.join(cur))
+            return
+        if open_ &lt; n:                                       # may still open
+            cur.append(&#x27;(&#x27;); dfs(cur, open_ + 1, close); cur.pop()
+        if close &lt; open_:                                   # may close only if something is open
+            cur.append(&#x27;)&#x27;); dfs(cur, open_, close + 1); cur.pop()
+    dfs([], 0, 0)
+    return res</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>word break with memoisation (same suffix reached repeatedly)</p><pre class="code-java"><code>Map&lt;Integer, Boolean&gt; memo = new HashMap&lt;&gt;();
+boolean dfs(String s, int start, Set&lt;String&gt; dict) {
+    if (start == s.length()) return true;
+    if (memo.containsKey(start)) return memo.get(start);
+    for (int end = start + 1; end &lt;= s.length(); end++)
+        if (dict.contains(s.substring(start, end)) &amp;&amp; dfs(s, end, dict)) { memo.put(start, true); return true; }
+    memo.put(start, false);
+    return false;
+}</code></pre><pre class="code-py"><code>from functools import lru_cache
+words = set(wordDict)
+@lru_cache(None)
+def dfs(start):
+    if start == len(s):
+        return True
+    return any(s[start:end] in words and dfs(end) for end in range(start + 1, len(s) + 1))
+return dfs(0)</code></pre></div>
+<div class="cx">⏱ Complexity — Generate parentheses: O(4ⁿ / √n) (Catalan growth). Memoised word break: O(n²) states × substring cost.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Check the constraint <strong>before</strong> recursing, not after.</li><li>Memoise only when the result depends solely on the state arguments, not on the current path.</li><li>Remove invalid parentheses: BFS by removals or DFS with a count of how many <code>(</code> / <code>)</code> to remove, skipping duplicates.</li><li>Expression add operators: track the previous operand to handle <code>*</code> precedence, and skip numbers with leading zeros.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Remove invalid parentheses: compute the minimum removals first, then prune.</li><li>Additive number: choose the first two numbers, then verify the rest greedily.</li><li>Expression add operators: DFS with value and last term.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When subproblems overlap heavily and you only need a count or boolean: switch to bottom-up DP (topics 15–16).</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="backtracking-22" aria-label="Solved LC 22"></td><td class="t"><a href="https://leetcode.com/problems/generate-parentheses/" target="_blank" rel="noopener">LC 22</a></td><td>Generate Parentheses</td><td><span class="pill dM">Medium</span></td><td>Add '(' while open &lt; n, ')' while close &lt; open</td><td class="c">O(4ⁿ/√n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-139" aria-label="Solved LC 139"></td><td class="t"><a href="https://leetcode.com/problems/word-break/" target="_blank" rel="noopener">LC 139</a></td><td>Word Break</td><td><span class="pill dM">Medium</span></td><td>Memoise on the start index (or bottom-up DP)</td><td class="c">O(n²) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-306" aria-label="Solved LC 306"></td><td class="t"><a href="https://leetcode.com/problems/additive-number/" target="_blank" rel="noopener">LC 306</a></td><td>Additive Number</td><td><span class="pill dM">Medium</span></td><td>Choose the first two numbers, check the rest</td><td class="c">O(n³) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-282" aria-label="Solved LC 282"></td><td class="t"><a href="https://leetcode.com/problems/expression-add-operators/" target="_blank" rel="noopener">LC 282</a></td><td>Expression Add Operators</td><td><span class="pill dH">Hard</span></td><td>Track value and last operand; handle * precedence</td><td class="c">O(4ⁿ) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="backtracking-301" aria-label="Solved LC 301"></td><td class="t"><a href="https://leetcode.com/problems/remove-invalid-parentheses/" target="_blank" rel="noopener">LC 301</a></td><td>Remove Invalid Parentheses</td><td><span class="pill dH">Hard</span></td><td>Minimum removals then DFS, skipping duplicates</td><td class="c">O(2ⁿ) / O(n)</td></tr></tbody></table></div></div>
+</section>
+<h2 id="recall">One-line recall</h2><div class="tw"><table class=""><thead><tr><th>#</th><th>Pattern</th><th>Tier</th><th>Core idea in one line</th></tr></thead><tbody><tr><td>1</td><td>Recursion fundamentals: base case, trust and the call stack</td><td>🔥</td><td>solve a smaller copy, trust it, combine</td></tr><tr><td>2</td><td>Subsets: the choose / explore / un-choose template</td><td>🔥</td><td>every path in the decision tree is an answer</td></tr><tr><td>3</td><td>Combinations and combination sum</td><td>🔥</td><td>a start index stops [2,3] and [3,2] being counted twice</td></tr><tr><td>4</td><td>Permutations: choose any unused element</td><td>🔥</td><td>a used[] array turns subsets into orderings</td></tr><tr><td>5</td><td>Handling duplicates: sort and skip</td><td>🔥</td><td>never pick the same value twice at the same level</td></tr><tr><td>6</td><td>Strings: partitions, cuts and letter choices</td><td>🔥</td><td>at each start index try every end, keep the valid piece</td></tr><tr><td>7</td><td>Grid and path search with visited marking</td><td>🔥</td><td>mark the cell, explore four ways, unmark on the way back</td></tr><tr><td>8</td><td>Constraint search: N-Queens and Sudoku</td><td>🔥</td><td>place, check constraints in O(1), undo when stuck</td></tr><tr><td>9</td><td>Pruning and memoisation: generate only valid states</td><td>🧊</td><td>never build the branches you know will fail</td></tr></tbody></table></div>
+<h2 id="choose">Choosing between them</h2><div class="tw"><table class=""><thead><tr><th>Need</th><th>Use</th></tr></thead><tbody><tr><td>Order does not matter, choose a subset</td><td>Start-index template (P2, P3)</td></tr><tr><td>Order matters, use every element</td><td>used[] permutations (P4)</td></tr><tr><td>Input has repeats, output must not</td><td>Sort + skip (P5)</td></tr><tr><td>Cut a string into valid pieces</td><td>Try every end (P6)</td></tr><tr><td>Path through cells without reuse</td><td>Mark / un-mark DFS (P7)</td></tr><tr><td>Place items under constraints</td><td>O(1) conflict sets (P8)</td></tr><tr><td>Same sub-state reached repeatedly</td><td>Memoise → DP (P9)</td></tr></tbody></table></div><div class="callout"><span class="lbl">Rule of thumb</span><p>if you can describe the answer as a <strong>sequence of choices</strong>, write <code>choose → explore → un-choose</code>; if the same sub-state repeats and you only need a count or a boolean, switch to <strong>DP</strong>.</p></div>
+<h2 id="selftest">Self-test</h2><p class="muted">Answer in your head first, then click to reveal.</p><details><summary>Why do we append <code>new ArrayList&lt;&gt;(path)</code> instead of <code>path</code> when recording a result?</summary><p><code>path</code> is reused and mutated throughout the search; recording the same object would make every stored result end up empty or equal to the last path.</p></details><details><summary>What is the difference between the subsets template and the permutations template?</summary><p>Subsets use a start index so elements are picked in increasing order (order does not matter). Permutations loop over all indices and use a <code>used</code> array because order matters.</p></details><details><summary>In Combination Sum, why recurse with <code>i</code> rather than <code>i + 1</code>?</summary><p>The same candidate may be reused, so the next level may pick the same index again; <code>i</code> (not <code>start</code>) also keeps combinations in non-decreasing order.</p></details><details><summary>How does <code>if (i &gt; start &amp;&amp; a[i] == a[i − 1]) continue;</code> prevent duplicates?</summary><p>At one level it lets only the first element of a run of equal values be chosen, so identical branches are not created; later equal values can still be used deeper.</p></details><details><summary>Why is un-marking the cell essential in Word Search?</summary><p>A cell visited in a failed path must become available again for other paths. Without un-marking, valid words are missed.</p></details><details><summary>Name the three conflict checks in N-Queens.</summary><p>Column, diagonal (<code>row − col</code>) and anti-diagonal (<code>row + col</code>), each in an O(1) boolean array or set.</p></details><details><summary>What does pruning change about the time complexity?</summary><p>The worst case is usually unchanged, but whole subtrees are skipped, so real running time drops massively (for example only Catalan(n) parenthesis strings are visited).</p></details><details><summary>When should backtracking become dynamic programming?</summary><p>When you only need a count, a boolean or an optimum and the same sub-state is reached through many paths; cache by state (memoise) or fill a table.</p></details>
+<h2 id="plan">Study plan</h2><ol><li><strong>Day 1:</strong> recursion basics (factorial, power, reverse); then write the subsets template from memory.</li><li><strong>Day 2:</strong> combinations, combination sum and phone-number letters.</li><li><strong>Day 3:</strong> permutations (both versions), then the duplicate-handling variants.</li><li><strong>Day 4:</strong> string partitions (palindrome partitioning, restore IP) and word search.</li><li><strong>Day 5:</strong> N-Queens; then the pruning problems (generate parentheses, word break with memo).</li><li><strong>Day 6:</strong> redo one problem per pattern without notes; for each, state the choice, the prune and the base case aloud.</li></ol>
+<div class="foot"><span><a href="06_sorting_intervals.html">← Sorting and Intervals</a></span><span></span></div>
+</main></div>
+<script>(function(){
+function rng(x,y){var r=[];for(var i=x;i<=y;i++)r.push(i);return r}
+function mapStr(m){var k=Object.keys(m);return '{'+k.map(function(x){return x+':'+m[x]}).join(', ')+'}'}
+var SIM={
+two:function(){var a=[1,3,4,6,8,11],t=10,S=[],l=0,r=a.length-1;
+ while(l<r){var s=a[l]+a[r];
+  if(s===t){S.push({a:a,ptr:{l:l,r:r},ok:[l,r],note:a[l]+' + '+a[r]+' = '+s+' equals the target '+t+'. Found the pair at indices '+l+' and '+r+'.'});break}
+  if(s<t){S.push({a:a,ptr:{l:l,r:r},note:a[l]+' + '+a[r]+' = '+s+' is smaller than '+t+'. The sum must grow, so move l right (a[l] can never pair with anything smaller than a[r]).'});l++}
+  else{S.push({a:a,ptr:{l:l,r:r},note:a[l]+' + '+a[r]+' = '+s+' is bigger than '+t+'. The sum must shrink, so move r left (a[r] is too large for every remaining partner).'});r--}}
+ S.unshift({a:a,ptr:{l:0,r:a.length-1},note:'Sorted array, target '+t+'. Put one pointer at each end.'});return S},
+fixed:function(){var a=[2,1,5,1,3,2],k=3,S=[],sum=0;for(var i=0;i<k;i++)sum+=a[i];var best=sum;
+ S.push({a:a,ptr:{},hi:rng(0,k-1),note:'First window of size '+k+': sum = '+sum+'. Best so far = '+best+'.'});
+ for(i=k;i<a.length;i++){sum+=a[i]-a[i-k];best=Math.max(best,sum);S.push({a:a,ptr:{i:i},hi:rng(i-k+1,i),note:'Slide: add '+a[i]+', drop '+a[i-k]+' → sum = '+sum+'. Best so far = '+best+'. (One add and one subtract, not a re-sum.)'})}
+ S.push({a:a,ptr:{},ok:[2,3,4],note:'Maximum window sum of size '+k+' is '+best+'.'});return S},
+variable:function(){var s='abcabcbb'.split(''),S=[],l=0,c={},best=0,bl=0;
+ for(var r=0;r<s.length;r++){var ch=s[r];c[ch]=(c[ch]||0)+1;
+  S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),note:"Expand: add '"+ch+"' at r="+r+'.'+(c[ch]>1?" '"+ch+"' now appears twice, so the window is invalid.":' Window "'+s.slice(l,r+1).join('')+'" is valid.')});
+  while(c[ch]>1){c[s[l]]--;l++;S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),note:'Shrink: drop the left character, l becomes '+l+'. Window "'+s.slice(l,r+1).join('')+'".'})}
+  if(r-l+1>best){best=r-l+1;bl=l}}
+ S.push({a:s,ptr:{},ok:rng(bl,bl+best-1),note:'Longest substring without repeats has length '+best+'. Each index entered and left the window once, so O(n).'});return S},
+prefix:function(){var a=[3,4,7,2,-3,1,4,2],k=7,S=[],m={0:1},sum=0,cnt=0;
+ S.push({a:a,ptr:{},note:'Count subarrays with sum = '+k+'. Seed the map with {0:1} (the empty prefix).'});
+ for(var i=0;i<a.length;i++){sum+=a[i];var need=sum-k,add=m[need]||0;cnt+=add;m[sum]=(m[sum]||0)+1;
+  S.push({a:a,ptr:{i:i},ok:add?[i]:[],note:'Prefix sum = '+sum+'. Need an earlier prefix of '+sum+' − '+k+' = '+need+': seen '+add+' time(s), so '+add+' subarray(s) end here. Total = '+cnt+'. Map = '+mapStr(m)})}
+ return S},
+kadane:function(){var a=[-2,1,-3,4,-1,2,1,-5,4],S=[],cur=a[0],st=0,best=a[0],bs=0,be=0;
+ S.push({a:a,ptr:{i:0},hi:[0],ok:[0],note:'Start: cur = '+cur+', best = '+best+'.'});
+ for(var i=1;i<a.length;i++){var restart=a[i]>cur+a[i];
+  if(restart){cur=a[i];st=i}else{cur+=a[i]}
+  if(cur>best){best=cur;bs=st;be=i}
+  S.push({a:a,ptr:{i:i},hi:rng(st,i),ok:rng(bs,be),note:(restart?'The running sum was negative, so restart at index '+i+': cur = '+cur+'.':'Extend the run: cur = '+cur+'.')+' best = '+best+' (green).'})}
+ return S},
+hash:function(){var a=[5,1,9,3,7],t=12,S=[],m={};S.push({a:a,ptr:{},note:'Find two numbers that sum to '+t+'. Keep a map value → index of what we have already seen.'});
+ for(var i=0;i<a.length;i++){var need=t-a[i];
+  if(need in m){S.push({a:a,ptr:{i:i},ok:[m[need],i],note:'Need '+need+' for '+a[i]+': it is in the map at index '+m[need]+'. Answer = ['+m[need]+', '+i+'].'});break}
+  m[a[i]]=i;S.push({a:a,ptr:{i:i},note:'At '+a[i]+': need '+need+', not seen yet. Store '+a[i]+' → '+i+'. Map = '+mapStr(m)})}
+ return S},
+dutch:function(){var a=[2,0,2,1,1,0],S=[],lo=0,mid=0,hi=a.length-1;
+ function p(n,ok){S.push({a:a.slice(),ptr:{lo:lo,mid:mid,hi:hi},ok:ok||[],note:n})}
+ p('lo marks the end of the 0s, hi the start of the 2s, mid scans the unknown middle.');
+ while(mid<=hi){var v=a[mid];
+  if(v===0){a[mid]=a[lo];a[lo]=0;lo++;mid++;p('a[mid] was 0: swap into the 0-zone, advance lo and mid.')}
+  else if(v===2){a[mid]=a[hi];a[hi]=2;hi--;p('a[mid] was 2: swap with a[hi], shrink hi. Do NOT advance mid; the swapped-in value is unexamined.')}
+  else{mid++;p('a[mid] is 1: it already belongs in the middle zone, advance mid.')}}
+ S.push({a:a.slice(),ptr:{},ok:rng(0,a.length-1),note:'mid passed hi: sorted in one pass, O(n), O(1) space.'});return S},
+binary:function(){var a=[1,3,5,7,7,7,9,11],t=7,S=[],lo=0,hi=a.length-1;
+ S.push({a:a,ptr:{lo:lo,hi:hi},note:'Find the FIRST index with a[i] ≥ '+t+' (lower bound). Invariant: the answer is always inside [lo, hi].'});
+ while(lo<hi){var mid=lo+((hi-lo)>>1);
+  if(a[mid]>=t){S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(lo,hi),note:'mid = '+mid+', a[mid] = '+a[mid]+' ≥ '+t+'. mid could be the answer, so keep it: hi = mid.'});hi=mid}
+  else{S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(lo,hi),note:'mid = '+mid+', a[mid] = '+a[mid]+' < '+t+'. Everything up to mid is too small: lo = mid + 1.'});lo=mid+1}}
+ S.push({a:a,ptr:{lo:lo},ok:[lo],note:'lo = hi = '+lo+'. First occurrence of '+t+' is at index '+lo+'. Each step halved the range: O(log n).'});return S},
+rotated:function(){var a=[4,5,6,7,0,1,2],t=0,S=[],lo=0,hi=a.length-1;
+ S.push({a:a,ptr:{lo:lo,hi:hi},note:'Sorted array rotated at an unknown point. Search for '+t+'. One half around mid is always sorted.'});
+ while(lo<=hi){var mid=lo+((hi-lo)>>1);
+  if(a[mid]===t){S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},ok:[mid],note:'a[mid] = '+t+'. Found at index '+mid+'.'});break}
+  if(a[lo]<=a[mid]){var go=a[lo]<=t&&t<a[mid];S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(lo,mid),note:'Left half ['+lo+'..'+mid+'] is sorted ('+a[lo]+' ≤ '+a[mid]+'). '+t+(go?' lies inside it: hi = mid − 1.':' is not inside it: search the right, lo = mid + 1.')});if(go)hi=mid-1;else lo=mid+1}
+  else{var go2=a[mid]<t&&t<=a[hi];S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(mid,hi),note:'Right half ['+mid+'..'+hi+'] is sorted. '+t+(go2?' lies inside it: lo = mid + 1.':' is not inside it: search the left, hi = mid − 1.')});if(go2)lo=mid+1;else hi=mid-1}}
+ return S},
+quick:function(){var a=[3,2,1,5,6,4],S=[],target=a.length-2,lo=0,hi=a.length-1;
+ function dim(){var d=[];for(var x=0;x<a.length;x++)if(x<lo||x>hi)d.push(x);return d}
+ S.push({a:a.slice(),ptr:{},note:'2nd largest = element at sorted index n − k = '+target+'. Partition around a pivot; recurse into ONE side only.'});
+ while(lo<=hi){var pv=a[hi],i=lo;
+  S.push({a:a.slice(),ptr:{lo:lo,pivot:hi},dim:dim(),hi:[hi],note:'Partition ['+lo+'..'+hi+'] with pivot '+pv+' (last element). i marks where the next smaller element goes.'});
+  for(var j=lo;j<hi;j++){if(a[j]<pv){var tm=a[i];a[i]=a[j];a[j]=tm;i++;S.push({a:a.slice(),ptr:{i:i,j:j,pivot:hi},dim:dim(),note:a[i-1]+' < '+pv+': swap into the "smaller" zone, i = '+i+'.'})}
+   else S.push({a:a.slice(),ptr:{i:i,j:j,pivot:hi},dim:dim(),note:a[j]+' ≥ '+pv+': leave it, move j on.'})}
+  var t2=a[i];a[i]=a[hi];a[hi]=t2;
+  if(i===target){S.push({a:a.slice(),ptr:{p:i},ok:[i],dim:dim(),note:'Pivot lands at index '+i+' = target index. Answer: '+a[i]+'.'});break}
+  S.push({a:a.slice(),ptr:{p:i},ok:[i],dim:dim(),note:'Pivot '+pv+' is now at its final sorted index '+i+(i<target?' < target '+target+': only the right side can contain it.':' > target '+target+': only the left side can contain it.')});
+  if(i<target)lo=i+1;else hi=i-1}
+ return S},
+amort:function(){var S=[],cap=1,n=0,a=[''],cost=0;
+ S.push({a:a.slice(),ptr:{},note:'A dynamic array starts with capacity 1. Append 1..8. When it is full, allocate double the space and copy everything over.'});
+ for(var v=1;v<=8;v++){
+  if(n===cap){var c=n;cap*=2;var b=[];for(var i=0;i<cap;i++)b.push(i<n?a[i]:'');cost+=c;a=b;S.push({a:a.slice(),ptr:{},hi:rng(0,n-1),note:'Full. Resize to capacity '+cap+': copy '+c+' element(s). Total copy cost so far = '+cost+'.'})}
+  a[n]=v;n++;S.push({a:a.slice(),ptr:{i:n-1},ok:[n-1],note:'Append '+v+' (cost 1). Length '+n+', capacity '+cap+'.'})}
+ S.push({a:a.slice(),ptr:{},note:'8 appends cost 8 writes + '+cost+' copies = '+(8+cost)+' units, under 2 per append. Rare expensive steps are paid for by many cheap ones: amortised O(1).'});return S},
+pairs:function(){var a=['a','b','c','d','e'],S=[],k=0;
+ S.push({a:a,ptr:{},note:'Nested loop: for every i, for every j > i. Count how many (i, j) pairs get visited.'});
+ for(var i=0;i<a.length;i++)for(var j=i+1;j<a.length;j++){k++;S.push({a:a,ptr:{i:i,j:j},hi:[i,j],note:'Pair #'+k+': ('+a[i]+', '+a[j]+').'})}
+ S.push({a:a,ptr:{},ok:rng(0,a.length-1),note:'n = 5 gave '+k+' pairs = n(n−1)/2. Double n and the work roughly quadruples: O(n²).'});return S},
+anagram:function(){var s='listen',t='silent',a=s.split('').concat(t.split('')),S=[],c={};
+ function A(){return {label:'counts',items:Object.keys(c).map(function(k){return k+': '+c[k]})}}
+ S.push({a:a,ptr:{},note:'Are "listen" and "silent" anagrams? Count the letters of the first word UP and the second word DOWN.'});
+ for(var i=0;i<s.length;i++){c[s[i]]=(c[s[i]]||0)+1;S.push({a:a,ptr:{i:i},hi:[i],aux:A(),note:"First word: +1 for '"+s[i]+"'."})}
+ for(var j=0;j<t.length;j++){var k=s.length+j;c[t[j]]=(c[t[j]]||0)-1;S.push({a:a,ptr:{j:k},hi:[k],aux:A(),note:"Second word: −1 for '"+t[j]+"'."+(c[t[j]]<0?' The count went negative, so it is not an anagram.':'')})}
+ S.push({a:a,ptr:{},ok:rng(0,a.length-1),aux:A(),note:'Every count is back to 0, so they are anagrams. O(n) time and O(1) space (26 letters).'});return S},
+palin:function(){var s='a.b,.B.a'.split(''),S=[],l=0,r=s.length-1;
+ function al(c){return /[a-z0-9]/i.test(c)}
+ S.push({a:s,ptr:{l:l,r:r},note:'Valid palindrome, ignoring case and punctuation. One pointer at each end.'});
+ while(l<r){
+  if(!al(s[l])){S.push({a:s,ptr:{l:l,r:r},dim:[l],note:"'"+s[l]+"' is not a letter or digit: skip it (l++)."});l++;continue}
+  if(!al(s[r])){S.push({a:s,ptr:{l:l,r:r},dim:[r],note:"'"+s[r]+"' is not a letter or digit: skip it (r--)."});r--;continue}
+  var eq=s[l].toLowerCase()===s[r].toLowerCase();
+  S.push({a:s,ptr:{l:l,r:r},hi:[l,r],ok:eq?[l,r]:[],note:"Compare '"+s[l]+"' and '"+s[r]+"' ignoring case: "+(eq?'match, move both inward.':'mismatch, so it is NOT a palindrome.')});
+  if(!eq)return S;l++;r--}
+ S.push({a:s,ptr:{},ok:rng(0,s.length-1),note:'The pointers met without a mismatch: palindrome. O(n) time, O(1) space.'});return S},
+center:function(){var s='babad'.split(''),S=[],bl=0,bestLen=0;
+ function tryC(l,r,kind){var any=false;
+  while(l>=0&&r<s.length&&s[l]===s[r]){any=true;var len=r-l+1;if(len>bestLen){bestLen=len;bl=l}
+   S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),ok:bestLen?rng(bl,bl+bestLen-1):[],note:kind+' centre: "'+s.slice(l,r+1).join('')+'" is a palindrome (length '+len+'). Best so far: '+bestLen+'. Expand outward.'});l--;r++}
+  S.push({a:s,ptr:{},ok:bestLen?rng(bl,bl+bestLen-1):[],note:kind+' centre: '+(any?'cannot expand further (mismatch or edge).':'the two sides differ immediately, nothing to expand.')})}
+ S.push({a:s,ptr:{},note:'Every palindrome mirrors around a centre: a letter (odd length) or a gap (even length). Try all 2n−1 centres and expand while both sides match.'});
+ for(var i=0;i<s.length;i++){tryC(i,i,'Odd (index '+i+')');if(i<s.length-1)tryC(i,i+1,'Even (gap after '+i+')')}
+ S.push({a:s,ptr:{},ok:rng(bl,bl+bestLen-1),note:'Longest palindromic substring: "'+s.slice(bl,bl+bestLen).join('')+'" (length '+bestLen+'; "aba" ties). 2n−1 centres × O(n) expansion = O(n²) time, O(1) space.'});return S},
+minwin:function(){var s='ADOBECODEBANC'.split(''),S=[],need={A:1,B:1,C:1},have={},formed=0,req=3,l=0,best=1e9,bl=0;
+ function A(){return {label:'covered '+formed+' / '+req,items:['A','B','C'].map(function(k){return k+' '+(have[k]||0)+'/1'})}}
+ S.push({a:s,ptr:{l:0,r:0},aux:A(),note:'Smallest window of the string that contains A, B and C. Expand r; once the window covers everything, shrink l as far as possible.'});
+ for(var r=0;r<s.length;r++){var c=s[r];if(need[c]){have[c]=(have[c]||0)+1;if(have[c]===need[c])formed++}
+  S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),aux:A(),note:"Expand: add '"+c+"'. "+(formed===req?'The window now covers A, B and C.':'Still missing some required letters.')});
+  while(formed===req){if(r-l+1<best){best=r-l+1;bl=l}var d=s[l];
+   S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),ok:rng(bl,bl+best-1),aux:A(),note:'Valid window "'+s.slice(l,r+1).join('')+'" (length '+(r-l+1)+'); shortest so far = '+best+'. Try to shrink: drop \''+d+'\' from the left.'});
+   if(need[d]){have[d]--;if(have[d]<need[d])formed--}l++}}
+ S.push({a:s,ptr:{},ok:rng(bl,bl+best-1),note:'Minimum window: "'+s.slice(bl,bl+best).join('')+'". l and r only move forward, so O(n).'});return S},
+kmp:function(){var p='ababaca'.split(''),lps=[0],S=[],len=0,i=1;
+ function A(){return {label:'lps (longest border)',items:lps.map(function(v,k){return k+': '+v})}}
+ S.push({a:p,ptr:{},aux:A(),note:'lps[i] = length of the longest proper prefix of p[0..i] that is also a suffix of it. lps[0] = 0. KMP uses it to never re-read text.'});
+ while(i<p.length){var ii=i,ll=len;
+  if(p[i]===p[len]){len++;lps[i]=len;i++;S.push({a:p,ptr:{i:ii,len:ll},hi:[ii,ll],ok:[ii],aux:A(),note:'p['+ii+'] = p['+ll+'] = \''+p[ii]+'\': the border grows, lps['+ii+'] = '+len+'.'})}
+  else if(len>0){len=lps[len-1];S.push({a:p,ptr:{i:ii,len:ll},hi:[ii,ll],aux:A(),note:'p['+ii+'] \''+p[ii]+'\' ≠ p['+ll+'] \''+p[ll]+'\'. Fall back to len = lps['+(ll-1)+'] = '+len+' (try a shorter border; never restart from scratch).'})}
+  else{lps[i]=0;i++;S.push({a:p,ptr:{i:ii,len:0},hi:[ii],aux:A(),note:'\''+p[ii]+'\' ≠ \''+p[0]+'\' and there is no shorter border: lps['+ii+'] = 0.'})}}
+ S.push({a:p,ptr:{},ok:rng(0,p.length-1),aux:A(),note:'lps = ['+lps.join(', ')+']. Built in O(m): len only falls back as far as it has climbed.'});return S},
+decode:function(){var s='3[a2[c]]'.split(''),S=[],stack=[],cur='',num=0;
+ function A(){return {label:'stack (count, text before)',items:(stack.length?stack.map(function(x){return '('+x[0]+', "'+x[1]+'")'}):['empty']).concat(['cur = "'+cur+'"'])}}
+ S.push({a:s,ptr:{},aux:A(),note:'Decode k[text]. Keep a stack: on "[" save (count, text so far); on "]" pop and repeat the inner text.'});
+ for(var i=0;i<s.length;i++){var c=s[i],n;
+  if(/\d/.test(c)){num=num*10+(+c);n='Digit: repeat count is now '+num+'.'}
+  else if(c==='['){stack.push([num,cur]);n='"[": push ('+num+', "'+cur+'") and start a fresh inner string.';num=0;cur=''}
+  else if(c===']'){var t=stack.pop();n='"]": pop ('+t[0]+', "'+t[1]+'"). New text = "'+t[1]+'" + "'+cur+'" × '+t[0]+'.';cur=t[1]+cur.repeat(t[0])}
+  else{cur+=c;n="Letter '"+c+"': append to the current text."}
+  S.push({a:s,ptr:{i:i},hi:[i],aux:A(),note:n})}
+ S.push({a:s,ptr:{},ok:rng(0,s.length-1),aux:A(),note:'Result: "'+cur+'". Each character is handled once: O(n + output length).'});return S},
+compress:function(){var a='aabbccc'.split(''),S=[],w=0,r=0;
+ S.push({a:a.slice(),ptr:{w:0,r:0},note:'Compress runs in place: "aabbccc" → "a2b2c3". r reads groups, w writes the result at the front. w never passes r, so no extra array.'});
+ while(r<a.length){var ch=a[r],st=r;while(r<a.length&&a[r]===ch)r++;var cnt=r-st;
+  S.push({a:a.slice(),ptr:{w:w,r:st},hi:rng(st,r-1),note:"Group found: '"+ch+"' × "+cnt+'.'});
+  a[w++]=ch;if(cnt>1)String(cnt).split('').forEach(function(d){a[w++]=d});
+  S.push({a:a.slice(),ptr:{w:w},ok:rng(0,w-1),note:"Write '"+ch+"'"+(cnt>1?' and the count '+cnt:'')+' at the front. Compressed so far: "'+a.slice(0,w).join('')+'".'})}
+ S.push({a:a.slice(),ptr:{},ok:rng(0,w-1),dim:rng(w,a.length-1),note:'New length = '+w+' ("'+a.slice(0,w).join('')+'"). Anything after w is ignored. O(n) time, O(1) space.'});return S},
+unique:function(){var s='loveleetcode'.split(''),S=[],c={};
+ function A(){return {label:'counts',items:Object.keys(c).map(function(k){return k+': '+c[k]})}}
+ S.push({a:s,ptr:{},note:'First non-repeating character. Pass 1 counts every letter; pass 2 finds the first letter whose count is 1.'});
+ for(var i=0;i<s.length;i++){c[s[i]]=(c[s[i]]||0)+1;S.push({a:s,ptr:{i:i},hi:[i],aux:A(),note:"Pass 1: count '"+s[i]+"'."})}
+ for(i=0;i<s.length;i++){if(c[s[i]]===1){S.push({a:s,ptr:{i:i},ok:[i],aux:A(),note:"Pass 2: '"+s[i]+"' has count 1: answer is index "+i+'.'});return S}
+  S.push({a:s,ptr:{i:i},dim:[i],aux:A(),note:"Pass 2: '"+s[i]+"' appears "+c[s[i]]+' times, skip it.'})}
+ return S},
+delete:function(){var vals=['D',1,6,3,6,'null'],nxt=[1,2,3,4,5,-1],removed=[],S=[],prev=0,val=6;
+ function E(){var e=[];for(var k=0;k<5;k++)e.push(removed.indexOf(k)>=0?'':(nxt[k]===k+1?'→':'⇢'));return e}
+ function P(p,c,n,ok){S.push({a:vals,ptr:c===undefined?{prev:p}:{prev:p,cur:c},edges:E(),dim:removed.slice(),ok:ok||[],note:n})}
+ P(0,undefined,'Remove every node with value 6. D is a dummy node placed before the head, so deleting the first real node needs no special case.');
+ while(nxt[prev]!==5){var cur=nxt[prev];
+  if(vals[cur]===val){removed.push(cur);nxt[prev]=nxt[cur];P(prev,cur,'cur.val = '+val+': unlink it with prev.next = prev.next.next. prev stays where it is, because the new next node has not been checked yet.')}
+  else{P(prev,cur,'cur.val = '+vals[cur]+' is kept: advance prev to cur.');prev=cur}}
+ P(prev,undefined,'prev.next is null: done. Result D → 1 → 3 → null. Return dummy.next.',[0,1,3,5]);return S},
+reverse:function(){var vals=[1,2,3,4,'null'],nxt=[1,2,3,4,-1],S=[],prev=4,cur=0;
+ function E(){var e=[];for(var k=0;k<4;k++)e.push(nxt[k]===k+1?'→':(nxt[k+1]===k?'←':''));return e}
+ function A(){var it=[];for(var k=0;k<4;k++)it.push(vals[k]+' → '+(nxt[k]===4||nxt[k]===-1?'null':vals[nxt[k]]));return {label:'next pointers',items:it}}
+ S.push({a:vals,ptr:{prev:4,cur:0},edges:E(),aux:A(),link:true,note:'Reverse 1→2→3→4. prev starts as null, cur at the head. Each step re-points one arrow backwards.'});
+ while(cur!==4){var n=nxt[cur];nxt[cur]=prev;S.push({a:vals,ptr:{prev:cur,cur:n},edges:E(),aux:A(),ok:[cur],note:'Save nxt = cur.next ('+(n===4?'null':vals[n])+'), set cur.next = prev, then move prev to '+vals[cur]+' and cur to '+(n===4?'null':vals[n])+'.'});prev=cur;cur=n}
+ S.push({a:vals,ptr:{head:prev},edges:E(),aux:A(),ok:[3,2,1,0],note:'cur is null, so prev is the new head: 4 → 3 → 2 → 1 → null. One pass, O(n) time, O(1) space.'});return S},
+floyd:function(){var vals=[3,2,0,-4],nxt=[1,2,3,1],S=[],s=0,f=0;
+ var E=['→','→','→'],A={label:'link',items:['−4 points back to 2 (the cycle start)']};
+ S.push({a:vals,ptr:{slow:0,fast:0},edges:E,aux:A,note:'Does the list loop? Slow moves 1 step, fast moves 2. In a loop the fast runner must eventually lap the slow one.'});
+ do{s=nxt[s];f=nxt[nxt[f]];S.push({a:vals,ptr:{slow:s,fast:f},hi:[s,f],edges:E,aux:A,ok:s===f?[s]:[],note:'slow → '+vals[s]+', fast → '+vals[f]+'.'+(s===f?' They meet: there is a cycle.':'')})}while(s!==f);
+ S.push({a:vals,ptr:{slow:0,fast:f},edges:E,aux:A,note:'Phase 2: put slow back at the head and keep fast at the meeting point. Move both one step at a time.'});
+ s=0;while(s!==f){s=nxt[s];f=nxt[f];S.push({a:vals,ptr:{slow:s,fast:f},hi:[s,f],edges:E,aux:A,ok:s===f?[s]:[],note:'slow → '+vals[s]+', fast → '+vals[f]+'.'+(s===f?' They meet exactly at the node where the cycle starts.':'')})}
+ S.push({a:vals,ptr:{start:s},edges:E,aux:A,ok:[s],note:'Cycle starts at the node with value '+vals[s]+'. Why: the distance from the head to the cycle start equals the distance from the meeting point onward to it (mod cycle length). O(n) time, O(1) space.'});return S},
+merge:function(){var A1=[1,2,4],B1=[1,3,4],all=A1.concat(B1),p=0,q=0,out=[],used=[],S=[];
+ function E(){return ['→','→','','→','→']}
+ function AX(){return {label:'merged',items:[out.length?out.join(' → '):'(empty)']}}
+ S.push({a:all,ptr:{p:0,q:3},edges:E(),aux:AX(),note:'Merge two sorted lists. A dummy tail node collects the result; p and q point at the smaller candidates.'});
+ while(p<3&&q<3){var x=A1[p],y=B1[q];
+  if(x<=y){S.push({a:all,ptr:{p:p,q:3+q},dim:used.slice(),hi:[p,3+q],edges:E(),aux:AX(),note:'Compare '+x+' and '+y+': '+x+' ≤ '+y+', so link the node from list 1 and advance p.'});used.push(p);out.push(x);p++}
+  else{S.push({a:all,ptr:{p:p,q:3+q},dim:used.slice(),hi:[p,3+q],edges:E(),aux:AX(),note:'Compare '+x+' and '+y+': '+y+' is smaller, so link the node from list 2 and advance q.'});used.push(3+q);out.push(y);q++}}
+ var rest=p<3?A1.slice(p):B1.slice(q);var idx=p<3?rng(p,2):rng(3+q,5);
+ S.push({a:all,ptr:{},dim:used.slice(),ok:idx,edges:E(),aux:AX(),note:'One list is empty. Attach the rest of the other list in one step: tail.next = remaining ('+rest.join(', ')+'). No copying.'});
+ rest.forEach(function(v){out.push(v)});
+ S.push({a:all,ptr:{},ok:rng(0,5),edges:E(),aux:AX(),note:'Merged list: '+out.join(' → ')+'. O(n + m) time, O(1) extra space (nodes are reused).'});return S},
+nth:function(){var vals=['D',1,2,3,4,5,'null'],S=[],slow=0,fast=0,n=2;
+ function E(){return ['→','→','→','→','→','→']}
+ S.push({a:vals,ptr:{slow:0,fast:0},edges:E(),note:'Remove the 2nd node from the end. Start slow and fast at the dummy D. Give fast a head start of n = 2 nodes.'});
+ for(var i=0;i<n;i++){fast++;S.push({a:vals,ptr:{slow:slow,fast:fast},edges:E(),note:'Head start: move fast ahead ('+(i+1)+' of '+n+').'})}
+ while(fast+1<6){fast++;slow++;S.push({a:vals,ptr:{slow:slow,fast:fast},hi:[slow,fast],edges:E(),note:'Move both one step. The gap between them stays n = '+n+'.'})}
+ S.push({a:vals,ptr:{slow:slow,fast:fast},hi:[slow,fast],edges:E(),note:'fast is on the last node (fast.next is null), so slow is exactly the node BEFORE the one to delete.'});
+ S.push({a:vals,ptr:{slow:slow},dim:[4],ok:[3],edges:['→','→','→','⇢','','→'],note:'slow.next = slow.next.next removes node 4. One pass, O(n) time, O(1) space. The dummy makes deleting the head work too.'});return S},
+palilist:function(){var vals=[1,2,3,2,1],S=[];
+ var full=['→','→','→','→'];
+ S.push({a:vals,ptr:{},edges:full,note:'Palindrome list in O(1) space: (1) find the middle, (2) reverse the second half, (3) compare the two halves.'});
+ S.push({a:vals,ptr:{slow:0,fast:0},edges:full,note:'Step 1: slow moves 1, fast moves 2.'});
+ S.push({a:vals,ptr:{slow:1,fast:2},edges:full,note:'slow = 1, fast = 2.'});
+ S.push({a:vals,ptr:{slow:2,fast:4},hi:[2],edges:full,note:'fast.next is null: stop. slow is the middle node (value 3).'});
+ S.push({a:vals,ptr:{mid:2},hi:[3,4],edges:['→','→','','→'],note:'Step 2: the second half starts after the middle: 2 → 1. Reverse it...'});
+ S.push({a:vals,ptr:{mid:2,head2:4},hi:[3,4],edges:['→','→','','←'],note:'...so it reads 1 → 2 (the arrow between the last two nodes flips).'});
+ S.push({a:vals,ptr:{p:0,q:4},hi:[0,4],ok:[0,4],edges:['→','→','','←'],note:'Step 3: compare p = 1 with q = 1. Equal: advance both.'});
+ S.push({a:vals,ptr:{p:1,q:3},hi:[1,3],ok:[0,1,3,4],edges:['→','→','','←'],note:'Compare p = 2 with q = 2. Equal. q reaches null, so every pair matched.'});
+ S.push({a:vals,ptr:{},ok:rng(0,4),edges:full,note:'Palindrome. (Optionally reverse the second half back to restore the list.) O(n) time, O(1) space.'});return S},
+addnum:function(){var A1=[2,4,3],B1=[5,6,4],all=A1.concat(B1),S=[],carry=0,out=[];
+ function E(){return ['→','→','','→','→']}
+ function AX(){return {label:'carry '+carry+'  |  result',items:[out.length?out.join(' → '):'(empty)']}}
+ S.push({a:all,ptr:{a:0,b:3},edges:E(),aux:AX(),note:'Digits are stored in reverse: 342 + 465. Add digit by digit from the head with a carry, exactly like paper arithmetic.'});
+ for(var i=0;i<3;i++){var s=A1[i]+B1[i]+carry,d=s%10,c=Math.floor(s/10);
+  S.push({a:all,ptr:{a:i,b:3+i},hi:[i,3+i],edges:E(),aux:AX(),note:A1[i]+' + '+B1[i]+' + carry '+carry+' = '+s+': write digit '+d+', new carry '+c+'.'});out.push(d);carry=c}
+ S.push({a:all,ptr:{},ok:rng(0,5),edges:E(),aux:AX(),note:'Result 7 → 0 → 8 (= 807). Keep looping while either list has nodes OR carry > 0; a final carry becomes a new node. O(max(n, m)) time.'});return S},
+lru:function(){var S=[],L=[],cap=3;
+ function E(){var e=[];for(var k=0;k<L.length-1;k++)e.push('↔');return e}
+ function P(n,extra){var o={a:L.map(function(x){return x[0]+':'+x[1]}),ptr:L.length?{MRU:0}:{},edges:E(),aux:{label:'hash map keys',items:L.length?L.map(function(x){return x[0]}):['(empty)']},note:n};if(L.length>1)o.ptr[''+'LRU']=L.length-1;if(extra)for(var k in extra)o[k]=extra[k];S.push(o)}
+ function find(k){for(var i=0;i<L.length;i++)if(L[i][0]===k)return i;return -1}
+ P('LRU cache, capacity 3. A hash map finds a node in O(1); a doubly linked list keeps recency order: front = most recent (MRU), back = least recent (LRU).');
+ L.unshift([1,'A']);P('put(1, A): new node goes to the front.',{ok:[0]});
+ L.unshift([2,'B']);P('put(2, B): new node goes to the front.',{ok:[0]});
+ L.unshift([3,'C']);P('put(3, C): list is now full (3 of 3).',{ok:[0]});
+ var i=find(1),n=L.splice(i,1)[0];L.unshift(n);P('get(1): map finds the node in O(1); unlink it (prev.next, next.prev) and move it to the front. Returns A.',{ok:[0]});
+ P('put(4, D): the cache is full, so evict the node at the back (key 2).',{dim:[2]});
+ L.pop();P('Unlink the tail node and delete key 2 from the map.');
+ L.unshift([4,'D']);P('Insert key 4 at the front. Both get and put are O(1).',{ok:[0]});
+ P('get(2): not in the map, so return −1 immediately. Dummy head and tail nodes make every unlink and insert free of null checks.');return S},
+minstack:function(){var st=[],mins=[],S=[];
+ function P(n,ok){S.push({a:st.slice(),ptr:st.length?{top:st.length-1}:{},ok:ok||[],aux:{label:'min so far, per entry',items:mins.length?mins.slice():['(empty)']},note:n})}
+ function push(x){var m=mins.length?Math.min(x,mins[mins.length-1]):x;st.push(x);mins.push(m);P('push('+x+'): store the value and the minimum of everything below and including it → '+m+'.',[st.length-1])}
+ function pop(){var v=st.pop();mins.pop();P('pop() removes '+v+' and its stored minimum together, so the previous minimum is back instantly.')}
+ function gm(){P('getMin() = '+mins[mins.length-1]+' (just read the top of the min column: O(1)).',[st.length-1])}
+ P('Min Stack: every entry remembers the minimum of the stack up to itself, so getMin is O(1).');
+ push(5);push(3);push(7);push(3);gm();pop();gm();pop();pop();gm();return S},
+nge:function(){var t=[73,74,75,71,69,72,76,73],S=[],st=[],ans=t.map(function(){return 0});
+ function A(){return {label:'stack (index:temp)',items:(st.length?st.map(function(j){return j+':'+t[j]}):['empty']).concat(['answers = ['+ans.join(',')+']'])}}
+ S.push({a:t,ptr:{},aux:A(),note:'Days until a warmer temperature. The stack holds indices still waiting for a warmer day; temperatures on it are decreasing.'});
+ for(var i=0;i<t.length;i++){
+  while(st.length&&t[i]>t[st[st.length-1]]){var j=st.pop();ans[j]=i-j;S.push({a:t,ptr:{i:i,popped:j},hi:[i],ok:[j],aux:A(),note:t[i]+' > '+t[j]+': day '+j+' found its warmer day. answer['+j+'] = '+i+' − '+j+' = '+ans[j]+'.'})}
+  st.push(i);S.push({a:t,ptr:{i:i},hi:[i],aux:A(),note:'Push index '+i+' ('+t[i]+'): it now waits for something warmer.'})}
+ S.push({a:t,ptr:{},ok:rng(0,t.length-1),aux:A(),note:'Anything left on the stack never found a warmer day (answer 0). Each index is pushed once and popped once: O(n).'});return S},
+hist:function(){var h=[2,1,5,6,2,3],a=h.concat([0]),S=[],st=[],best=0,bl=0,br=-1;
+ function A(){return {label:'stack (index:height)',items:(st.length?st.map(function(j){return j+':'+a[j]}):['empty']).concat(['best area = '+best])}}
+ S.push({a:a,ptr:{},aux:A(),note:'Largest rectangle in a histogram (a sentinel 0 is added at the end to flush the stack). The stack keeps heights increasing; a smaller bar closes every taller bar before it.'});
+ for(var i=0;i<a.length;i++){var cur=a[i];
+  while(st.length&&cur<a[st[st.length-1]]){var top=st.pop(),ht=a[top],left=st.length?st[st.length-1]:-1,w=i-left-1,ar=ht*w;if(ar>best){best=ar;bl=left+1;br=i-1}
+   S.push({a:a,ptr:{i:i,bar:top},hi:rng(left+1,i-1),ok:br>=0?rng(bl,br):[],aux:A(),note:'Bar '+top+' (height '+ht+') ends here: it is taller than '+cur+'. Its rectangle spans indices '+(left+1)+'..'+(i-1)+', width '+w+' × height '+ht+' = '+ar+'.'})}
+  st.push(i);S.push({a:a,ptr:{i:i},hi:[i],ok:br>=0?rng(bl,br):[],aux:A(),note:'Push index '+i+' (height '+cur+').'})}
+ S.push({a:a,ptr:{},ok:rng(bl,br),aux:A(),note:'Largest rectangle = '+best+' (bars '+bl+'..'+br+'). Each bar is pushed and popped once: O(n).'});return S},
+twostack:function(){var inn=[],out=[],S=[];
+ function P(n,hl){S.push({a:inn.concat(out),ptr:{},hi:inn.map(function(_,i){return i}),ok:out.map(function(_,i){return inn.length+i}),aux:{label:'in-stack (push) | out-stack (pop, top at right)',items:['in: ['+inn.join(',')+']','out: ['+out.join(',')+']']},note:n})}
+ function enq(x){inn.push(x);P('enqueue('+x+'): push onto the in-stack.')}
+ function deq(){if(!out.length){var m=inn.length;while(inn.length)out.push(inn.pop());P('out-stack is empty: pour the in-stack into it (reverses the order, moved '+m+' element(s)). Each element is moved at most once.')}
+  var v=out.pop();P('dequeue() pops '+v+' from the out-stack: the oldest element.')}
+ P('Queue (FIFO) from two stacks. Blue = in-stack (new items), green = out-stack (items ready to leave).');
+ enq(1);enq(2);enq(3);deq();enq(4);deq();deq();deq();
+ S.push({a:[],ptr:{},aux:{label:'cost',items:['4 enqueues + 4 dequeues','8 pushes, 8 pops, 4 moves']},note:'Each element moves between stacks at most once, so dequeue is O(1) amortised.'});return S},
+bfs:function(){var adj={0:[1,2],1:[3],2:[3,4],3:[5],4:[5],5:[6],6:[]},nodes=[0,1,2,3,4,5,6],S=[],q=[0],dist={0:0},done=[];
+ function A(){return {label:'queue → front',items:[q.length?q.join(', '):'empty','dist: '+Object.keys(dist).map(function(k){return k+'='+dist[k]}).join(' ')]}}
+ S.push({a:nodes,ptr:{start:0},hi:[0],aux:A(),note:'Shortest path from 0 to every node (edges: 0→1,2  1→3  2→3,4  3→5  4→5  5→6). Queue = nodes discovered but not processed; BFS reaches nodes in order of distance.'});
+ while(q.length){var u=q.shift();var found=[];adj[u].forEach(function(v){if(!(v in dist)){dist[v]=dist[u]+1;q.push(v);found.push(v)}});done.push(u);
+  S.push({a:nodes,ptr:{cur:u},hi:q.slice(),ok:[u],dim:done.filter(function(x){return x!==u}),aux:A(),note:'Dequeue '+u+' (distance '+dist[u]+'). '+(found.length?'Enqueue unseen neighbours '+found.join(', ')+' with distance '+(dist[u]+1)+'.':'No unseen neighbours.')})}
+ S.push({a:nodes,ptr:{},ok:rng(0,6),aux:A(),note:'Shortest distance to node 6 is '+dist[6]+'. Mark nodes as seen when you ENQUEUE them so none enters the queue twice. O(V + E).'});return S},
+dequemax:function(){var a=[1,3,-1,-3,5,3,6,7],k=3,S=[],dq=[],res=[];
+ function A(){return {label:'deque (index:value), front = max',items:(dq.length?dq.map(function(j){return j+':'+a[j]}):['empty']).concat(['result = ['+res.join(',')+']'])}}
+ S.push({a:a,ptr:{},aux:A(),note:'Maximum of every window of size 3. The deque keeps indices whose values are decreasing, so the front is always the window maximum.'});
+ for(var i=0;i<a.length;i++){var msg=[];
+  if(dq.length&&dq[0]<=i-k){msg.push('drop front '+dq[0]+' (left the window)');dq.shift()}
+  var rem=[];while(dq.length&&a[dq[dq.length-1]]<=a[i]){rem.push(dq.pop())}
+  if(rem.length)msg.push('pop back '+rem.join(', ')+' (smaller than '+a[i]+', they can never be a max again)');
+  dq.push(i);msg.push('push '+i);
+  if(i>=k-1){res.push(a[dq[0]]);msg.push('window max = '+a[dq[0]])}
+  S.push({a:a,ptr:{i:i},hi:rng(Math.max(0,i-k+1),i),ok:i>=k-1?[dq[0]]:[],aux:A(),note:'i = '+i+': '+msg.join('; ')+'.'})}
+ S.push({a:a,ptr:{},ok:rng(0,a.length-1),aux:A(),note:'Result = ['+res.join(', ')+']. Every index is pushed and popped once: O(n).'});return S},
+calc:function(){var s='3+2*2'.split(''),S=[],st=[],num=0,sign='+';
+ function A(){return {label:'number stack',items:[st.length?'['+st.join(', ')+']':'empty','sign = '+sign,'num = '+num]}}
+ S.push({a:s,ptr:{},aux:A(),note:'Evaluate 3+2*2 without parentheses. Push numbers on a stack; * and / are applied immediately to the top, + and − are deferred (negate for −). Sum the stack at the end.'});
+ for(var i=0;i<s.length;i++){var c=s[i],isd=/\d/.test(c),n;
+  if(isd){num=num*10+(+c);n='Digit '+c+': number so far = '+num+'.'}
+  if(!isd||i===s.length-1){n=(isd?n+' End of input: ':'Operator \''+c+'\' ends the number '+num+'. ')+'Apply the PREVIOUS sign \''+sign+'\': ';
+   if(sign==='+'){st.push(num);n+='push '+num+'.'}else if(sign==='-'){st.push(-num);n+='push '+(-num)+'.'}else if(sign==='*'){var t=st.pop();st.push(t*num);n+='top '+t+' × '+num+' = '+(t*num)+'.'}else{var t2=st.pop();st.push(Math.trunc(t2/num));n+='top '+t2+' ÷ '+num+'.'}
+   sign=isd?sign:c;num=0}
+  S.push({a:s,ptr:{i:i},hi:[i],aux:A(),note:n})}
+ var total=st.reduce(function(x,y){return x+y},0);
+ S.push({a:s,ptr:{},ok:rng(0,s.length-1),aux:A(),note:'Sum of the stack = '+total+'. O(n) time, O(n) space.'});return S},
+removek:function(){var d='1432219'.split(''),k=3,S=[],st=[];
+ function A(){return {label:'stack (digits kept)',items:[st.length?st.join(' '):'empty','k left = '+k]}}
+ S.push({a:d,ptr:{},aux:A(),note:'Remove 3 digits to make the smallest number. Greedy: if a digit is larger than the one after it, deleting it helps. A stack keeps the digits increasing.'});
+ for(var i=0;i<d.length;i++){var c=d[i],rm=[];while(k>0&&st.length&&st[st.length-1]>c){rm.push(st.pop());k--}
+  st.push(c);S.push({a:d,ptr:{i:i},hi:[i],aux:A(),note:'Digit '+c+': '+(rm.length?'pop '+rm.join(', ')+' (larger and earlier, so removing helps), then push.':'nothing larger on top, push.')})}
+ S.push({a:d,ptr:{},ok:rng(0,d.length-1),aux:A(),note:'k reached 0, so the result is "'+st.join('')+'". (If k is left over, trim digits from the end; then strip leading zeros.) O(n).'});return S},
+circular:function(){var buf=['','','',''],head=0,tail=0,size=0,S=[];
+ function P(n,ok){S.push({a:buf.slice(),ptr:{head:head,tail:tail},ok:ok||[],aux:{label:'state',items:['size = '+size,'capacity = 4','head = '+head,'tail = '+tail]},note:n})}
+ function enq(x){if(size===4){P('enqueue('+x+') fails: the queue is full (size == capacity). Note head == tail here, so a separate size counter tells full from empty.');return}
+  buf[tail]=x;var w=tail;tail=(tail+1)%4;size++;P('enqueue('+x+'): write at tail, then tail = (tail + 1) % 4'+(w===3?' (wraps to 0)':'')+'.',[w])}
+ function deq(){if(!size){P('dequeue on empty queue fails.');return}var v=buf[head];buf[head]='';head=(head+1)%4;size--;P('dequeue() returns '+v+': read at head, head = (head + 1) % 4.')}
+ P('Circular queue in a fixed array of 4 slots: head = next to remove, tail = next free slot. Indices wrap around with % capacity, so no shifting is ever needed.');
+ enq('A');enq('B');enq('C');enq('D');enq('E');deq();enq('E');deq();deq();return S},
+mergesort:function(){var a=[5,2,4,7,1,3,2,6],S=[];
+ S.push({a:a.slice(),ptr:{},note:'Merge sort: split in half until single elements (already sorted), then merge sorted halves back together. Each level of merging does n work and there are log n levels.'});
+ function ms(l,r){if(l>=r)return;var m=(l+r)>>1;ms(l,m);ms(m+1,r);
+  var L=a.slice(l,m+1),R=a.slice(m+1,r+1),i=0,j=0,k=l;
+  while(i<L.length&&j<R.length){a[k++]=L[i]<=R[j]?L[i++]:R[j++]}
+  while(i<L.length)a[k++]=L[i++];while(j<R.length)a[k++]=R[j++];
+  S.push({a:a.slice(),ptr:{lo:l,hi:r},hi:rng(l,r),ok:rng(l,r),dim:a.map(function(_,x){return x}).filter(function(x){return x<l||x>r}),note:'Merge ['+L.join(',')+'] and ['+R.join(',')+'] → ['+a.slice(l,r+1).join(',')+'] (take the smaller front element each time; ≤ keeps equal items in order = stable).'})}
+ ms(0,a.length-1);
+ S.push({a:a.slice(),ptr:{},ok:rng(0,a.length-1),note:'Sorted: '+a.join(', ')+'. O(n log n) in every case, O(n) extra space, stable.'});return S},
+largestnum:function(){var a=['3','30','34','5','9'],S=[];
+ S.push({a:a.slice(),ptr:{},note:'Arrange the numbers to form the largest value. The rule: x comes before y if the string x+y is bigger than y+x. Insertion sort with that comparator.'});
+ for(var i=1;i<a.length;i++){for(var j=i-1;j>=0;j--){var x=a[j],y=a[j+1],sw=y+x>x+y;
+   S.push({a:a.slice(),ptr:{j:j,next:j+1},hi:[j,j+1],note:'Compare "'+y+'" before "'+x+'": "'+y+x+'" vs "'+x+y+'". '+(sw?'"'+y+x+'" is larger, so '+y+' moves ahead of '+x+'.':'"'+x+y+'" is larger or equal, so the order is already right. Stop.')});
+   if(sw){a[j]=y;a[j+1]=x}else break}}
+ S.push({a:a.slice(),ptr:{},ok:rng(0,a.length-1),note:'Order: '+a.join(' ')+' → "'+a.join('')+'". Sorting with a custom comparator is O(n log n) comparisons × O(length) per comparison.'});return S},
+bucket:function(){var nums=[1,1,1,2,2,3],k=2,S=[],cnt={},b=['','','','','','',''];
+ function A(){return {label:'counts',items:Object.keys(cnt).map(function(x){return x+': '+cnt[x]})}}
+ S.push({a:b.slice(),ptr:{},note:'Top-2 frequent in [1,1,1,2,2,3]. Count each value, then drop it into a bucket indexed by its frequency (1..n). No sorting needed.'});
+ nums.forEach(function(x){cnt[x]=(cnt[x]||0)+1});
+ S.push({a:b.slice(),ptr:{},aux:A(),note:'Counting pass: value → how many times it appears.'});
+ Object.keys(cnt).sort(function(x,y){return cnt[x]-cnt[y]}).forEach(function(x){var f=cnt[x];b[f]=b[f]?b[f]+','+x:x;S.push({a:b.slice(),ptr:{freq:f},ok:[f],aux:A(),note:'Value '+x+' appears '+f+' time(s): put it in bucket['+f+'].'})});
+ var res=[];for(var f=b.length-1;f>=1&&res.length<k;f--){if(b[f]){b[f].split(',').forEach(function(x){if(res.length<k)res.push(+x)});S.push({a:b.slice(),ptr:{scan:f},ok:[f],aux:{label:'result',items:['['+res.join(', ')+']']},note:'Scan buckets from the highest frequency down; take '+b[f]+' → result so far ['+res.join(', ')+'].'})}}
+ S.push({a:b.slice(),ptr:{},aux:{label:'result',items:['['+res.join(', ')+']']},note:'Top '+k+' frequent: ['+res.join(', ')+']. O(n) time, O(n) space, better than the O(n log n) of sorting counts.'});return S},
+mergeiv:function(){var raw=[[8,10],[1,3],[15,18],[2,6]],iv=raw.slice().sort(function(x,y){return x[0]-y[0]}),S=[],out=[];
+ function f(arr){return arr.map(function(p){return '['+p[0]+','+p[1]+']'})}
+ function A(){return {label:'merged',items:out.length?f(out):['(empty)']}}
+ S.push({a:f(raw),ptr:{},aux:A(),note:'Merge overlapping intervals. Step 1: sort by start, so any overlap can only be with the previous merged interval.'});
+ S.push({a:f(iv),ptr:{},aux:A(),note:'Sorted by start: '+f(iv).join(' ')+'.'});
+ iv.forEach(function(p,i){var last=out[out.length-1],n;
+  if(!last||last[1]<p[0]){out.push([p[0],p[1]]);n=last?'['+p[0]+','+p[1]+'] starts after '+last[1]+' (gap): start a new merged interval.':'First interval: start the merged list.'}
+  else{var old=last[1];last[1]=Math.max(last[1],p[1]);n='['+p[0]+','+p[1]+'] starts at '+p[0]+' ≤ '+old+' (overlap): extend the end to max('+old+', '+p[1]+') = '+last[1]+'.'}
+  S.push({a:f(iv),ptr:{i:i},hi:[i],ok:rng(0,i),aux:A(),note:n})});
+ S.push({a:f(iv),ptr:{},ok:rng(0,iv.length-1),aux:A(),note:'Result: '+f(out).join(' ')+'. Sorting dominates: O(n log n) time.'});return S},
+insertiv:function(){var iv=[[1,2],[3,5],[6,7],[8,10],[12,16]],ni=[4,8],S=[],res=[];
+ function f(arr){return arr.map(function(p){return '['+p[0]+','+p[1]+']'})}
+ function A(ph){return {label:'phase | new interval | result',items:[ph,'new = ['+ni[0]+','+ni[1]+']','result: '+(res.length?f(res).join(' '):'(empty)')]}}
+ var cells=f(iv);
+ S.push({a:cells,ptr:{},aux:A('start'),note:'Insert [4,8] into a sorted, non-overlapping list in one pass: (1) copy intervals that end before it starts, (2) merge the ones that overlap it, (3) copy the rest.'});
+ var i=0;while(i<iv.length&&iv[i][1]<ni[0]){res.push(iv[i]);S.push({a:cells,ptr:{i:i},hi:[i],aux:A('1 · before'),note:'['+iv[i]+'] ends at '+iv[i][1]+' < '+ni[0]+': completely before the new interval, copy it.'});i++}
+ while(i<iv.length&&iv[i][0]<=ni[1]){var o=ni.slice();ni[0]=Math.min(ni[0],iv[i][0]);ni[1]=Math.max(ni[1],iv[i][1]);S.push({a:cells,ptr:{i:i},hi:[i],aux:A('2 · overlap'),note:'['+iv[i]+'] starts at '+iv[i][0]+' ≤ '+o[1]+': overlaps. Absorb it: new becomes ['+ni[0]+','+ni[1]+'].'});i++}
+ res.push(ni.slice());S.push({a:cells,ptr:{},aux:A('2 · overlap'),note:'No more overlaps: add the merged new interval ['+ni[0]+','+ni[1]+'].'});
+ while(i<iv.length){res.push(iv[i]);S.push({a:cells,ptr:{i:i},hi:[i],aux:A('3 · after'),note:'['+iv[i]+'] starts after the new interval: copy it unchanged.'});i++}
+ S.push({a:f(res),ptr:{},ok:rng(0,res.length-1),aux:A('done'),note:'Result: '+f(res).join(' ')+'. One pass, O(n).'});return S},
+sweep:function(){var iv=[[0,30],[5,10],[15,20]],ev=[],S=[];
+ iv.forEach(function(p){ev.push([p[0],1]);ev.push([p[1],-1])});ev.sort(function(x,y){return x[0]-y[0]||x[1]-y[1]});
+ var cells=ev.map(function(e){return e[0]+(e[1]>0?' ▲':' ▼')}),act=0,mx=0;
+ function A(){return {label:'now | peak',items:['active meetings = '+act,'rooms needed (peak) = '+mx]}}
+ S.push({a:cells,ptr:{},aux:A(),note:'Minimum rooms for meetings [0,30] [5,10] [15,20]. Turn each meeting into two events (▲ start +1, ▼ end −1), sort by time (ends before starts on ties), sweep and track the running count.'});
+ ev.forEach(function(e,i){act+=e[1];mx=Math.max(mx,act);S.push({a:cells,ptr:{t:i},hi:[i],ok:act===mx&&e[1]>0?[i]:[],aux:A(),note:'Time '+e[0]+': a meeting '+(e[1]>0?'starts (+1)':'ends (−1)')+'. Active = '+act+'. Peak so far = '+mx+'.'})});
+ S.push({a:cells,ptr:{},ok:rng(0,cells.length-1),aux:A(),note:'Maximum overlap = '+mx+' room(s). Sorting the events costs O(n log n); the sweep itself is O(n).'});return S},
+greedyiv:function(){var raw=[[1,2],[2,3],[3,4],[1,3]],iv=raw.slice().sort(function(x,y){return x[1]-y[1]}),S=[],end=-1e9,removed=0,kept=[],dim=[];
+ function f(arr){return arr.map(function(p){return '['+p[0]+','+p[1]+']'})}
+ function A(){return {label:'greedy state',items:['last kept end = '+(end<-1e8?'none':end),'removed = '+removed]}}
+ S.push({a:f(raw),ptr:{},aux:A(),note:'Fewest intervals to remove so that the rest do not overlap = keep as many as possible. Greedy: sort by END time and always keep the interval that finishes first.'});
+ S.push({a:f(iv),ptr:{},aux:A(),note:'Sorted by end: '+f(iv).join(' ')+'.'});
+ iv.forEach(function(p,i){var n;if(p[0]>=end){end=p[1];kept.push(i);n='['+p[0]+','+p[1]+'] starts at '+p[0]+' ≥ last end: keep it. New last end = '+end+'.'}else{removed++;dim.push(i);n='['+p[0]+','+p[1]+'] starts at '+p[0]+' < last end '+end+': it overlaps, remove it (it ends later than the one we kept).'}
+  S.push({a:f(iv),ptr:{i:i},hi:[i],ok:kept.slice(),dim:dim.slice(),aux:A(),note:n})});
+ S.push({a:f(iv),ptr:{},ok:kept.slice(),dim:dim.slice(),aux:A(),note:'Remove '+removed+' interval(s). Finishing earliest leaves the most room for later intervals: that is the exchange argument. O(n log n).'});return S},
+boats:function(){var p=[1,2,2,3],limit=3,S=[],l=0,r=3,boats=0,dim=[];
+ S.push({a:p,ptr:{l:0,r:3},aux:{label:'limit | boats',items:['limit = '+limit,'boats = 0']},note:'Each boat carries at most 2 people and weighs at most '+limit+'. Sort the weights; pair the lightest with the heaviest if they fit.'});
+ while(l<=r){var fits=l<r&&p[l]+p[r]<=limit,n;
+  if(fits){n=p[l]+' + '+p[r]+' = '+(p[l]+p[r])+' ≤ '+limit+': they share a boat.';dim.push(l);dim.push(r);l++;r--}else{n=(l<r?p[l]+' + '+p[r]+' = '+(p[l]+p[r])+' > '+limit+': the heaviest ('+p[r]+') goes alone; ':'Last person ')+(l<r?'':'goes alone. ');dim.push(r);r--}
+  boats++;S.push({a:p,ptr:{l:l,r:r},ok:dim.slice(),aux:{label:'limit | boats',items:['limit = '+limit,'boats = '+boats]},note:n+' Boats used: '+boats+'.'})}
+ S.push({a:p,ptr:{},ok:rng(0,3),aux:{label:'limit | boats',items:['boats = '+boats]},note:'Minimum boats = '+boats+'. The heaviest person needs a boat anyway; pairing them with the lightest is always the best use of it. O(n log n).'});return S},
+cyclic:function(){var a=[3,4,-1,1],S=[],n=a.length;
+ S.push({a:a.slice(),ptr:{},note:'First missing positive. Idea: the sorted answer for 1..n would be [1,2,3,4]. Put each value x in 1..n at index x−1 by swapping; then the first index i with a[i] ≠ i+1 reveals the missing number i+1.'});
+ var i=0;while(i<n){var x=a[i];
+  if(x>=1&&x<=n&&a[x-1]!==x){var t=a[x-1];a[x-1]=x;a[i]=t;S.push({a:a.slice(),ptr:{i:i,home:x-1},hi:[i,x-1],note:'a['+i+'] = '+x+' belongs at index '+(x-1)+'. Swap it home. a['+i+'] is now '+t+' (check again).'})}
+  else{S.push({a:a.slice(),ptr:{i:i},ok:(x>=1&&x<=n&&a[x-1]===x)?[i]:[],dim:(x<1||x>n)?[i]:[],note:'a['+i+'] = '+x+': '+((x>=1&&x<=n)?'already at its home index (or its home holds the same value). Move on.':'out of range 1..'+n+', ignore it. Move on.')});i++}}
+ var miss=n+1;for(var k=0;k<n;k++){if(a[k]!==k+1){miss=k+1;break}}
+ S.push({a:a.slice(),ptr:{},ok:a.map(function(v,j){return j}).filter(function(j){return a[j]===j+1}),note:'Scan: index '+(miss-1)+' holds '+a[miss-1]+' instead of '+miss+'. The first missing positive is '+miss+'. O(n) time, O(1) space: every swap puts one value home for good.'});return S},
+callstack:function(){var S=[],fr=[];
+ function P(n,ok,x){S.push({a:fr.slice(),ptr:fr.length?{top:fr.length-1}:{},ok:ok||[],aux:x||{label:'call stack (bottom → top)',items:fr.length?fr.slice():['empty']},note:n})}
+ S.push({a:[],ptr:{},aux:{label:'call stack',items:['empty']},note:'factorial(4): n! = n × (n−1)!. Every call that has not returned waits on the call stack. Watch it grow down to the base case, then unwind.'});
+ for(var n=4;n>=1;n--){fr.push('f('+n+')');P(n>1?'Call f('+n+'): not the base case, so it calls f('+(n-1)+') and waits for the answer.':'Call f(1): BASE CASE. It returns 1 immediately without calling anything. The stack is as deep as it gets.',n===1?[fr.length-1]:[])}
+ var val=1;P('f(1) returns 1 and its frame is popped.',[],null);fr.pop();
+ for(var m=2;m<=4;m++){val*=m;fr[fr.length-1]='f('+m+') = '+val;S.push({a:fr.slice(),ptr:{top:fr.length-1},ok:[fr.length-1],aux:{label:'returning',items:[m+' × f('+(m-1)+') = '+val]},note:'f('+m+') receives the answer from below and computes '+m+' × '+(val/m)+' = '+val+'.'});fr.pop();if(fr.length)S.push({a:fr.slice(),ptr:{top:fr.length-1},aux:{label:'returning',items:['value passed up: '+val]},note:'f('+m+') returns '+val+' and its frame is popped.'})}
+ S.push({a:[],ptr:{},aux:{label:'answer',items:['4! = '+val]},note:'Stack empty: factorial(4) = '+val+'. Depth was 4, so the call stack used O(n) space. Without a base case the stack grows until it overflows.'});return S},
+subsets:function(){var a=[1,2,3],S=[],path=[],res=[];
+ function A(){return {label:'subsets found ('+res.length+')',items:res.map(function(r){return '['+r.join(',')+']'})}}
+ function P(n,hl){S.push({a:path.slice(),ptr:path.length?{top:path.length-1}:{},ok:hl?[path.length-1]:[],aux:A(),note:n})}
+ function dfs(start){res.push(path.slice());P('Record the current path as a subset: ['+path.join(', ')+'].',false);
+  for(var i=start;i<a.length;i++){path.push(a[i]);P('Choose '+a[i]+' → path ['+path.join(', ')+']. Recurse on the elements after it.',true);dfs(i+1);var r=path.pop();P('Un-choose '+r+' (backtrack) → path ['+path.join(', ')+']. Try the next candidate at this level.',false)}}
+ S.push({a:[],ptr:{},aux:A(),note:'All subsets of [1,2,3]. Every path from the root of the decision tree IS a subset: record it on entry, then try adding each later element, and undo after returning.'});
+ dfs(0);S.push({a:[],ptr:{},aux:A(),note:'2³ = 8 subsets. Work is O(n · 2ⁿ) (each subset is copied once).'});return S},
+combsum:function(){var c=[2,3,5],target=5,S=[],path=[],res=[];
+ function A(rem){return {label:'remaining | results',items:['remaining = '+rem].concat(res.length?res.map(function(r){return '['+r.join(',')+']'}):['(none yet)'])}}
+ function P(n,rem,ok){S.push({a:path.slice(),ptr:path.length?{top:path.length-1}:{},ok:ok?rng(0,path.length-1):[],aux:A(rem),note:n})}
+ function dfs(start,rem){if(rem===0){res.push(path.slice());P('Remaining = 0: found a combination ['+path.join(', ')+']. Record it.',rem,true);return}
+  for(var i=start;i<c.length;i++){if(c[i]>rem){P('Candidate '+c[i]+' > remaining '+rem+': prune. The array is sorted, so every later candidate is too big as well: break.',rem,false);break}
+   path.push(c[i]);P('Choose '+c[i]+' → path ['+path.join(', ')+'], remaining '+(rem-c[i])+'. Recurse from index '+i+' (the same number may be reused).',rem-c[i],false);
+   dfs(i,rem-c[i]);var r=path.pop();P('Backtrack: remove '+r+'.',rem,false)}}
+ S.push({a:[],ptr:{},aux:A(target),note:'Combination sum: candidates [2,3,5] (sorted), target 5, numbers reusable. Recurse with a start index so order never repeats ([2,3] and [3,2] are the same combination).'});
+ dfs(0,target);S.push({a:[],ptr:{},aux:A(0),note:'Combinations: '+res.map(function(r){return '['+r.join(',')+']'}).join(' ')+'. Sorting plus the early break prunes whole subtrees.'});return S},
+perm:function(){var a=[1,2,3],S=[],path=[],used=[false,false,false],res=[];
+ function A(){return {label:'used | results',items:['used: ['+used.map(function(u,i){return u?a[i]:'·'}).join(' ')+']'].concat(res.map(function(r){return r.join('')}))}}
+ function dfs(){if(path.length===a.length){res.push(path.slice());S.push({a:path.slice(),ptr:{},ok:rng(0,a.length-1),aux:A(),note:'Path is full: record the permutation '+path.join('')+'.'});return}
+  for(var i=0;i<a.length;i++){if(used[i])continue;used[i]=true;path.push(a[i]);S.push({a:path.slice(),ptr:{top:path.length-1},hi:[path.length-1],aux:A(),note:'Position '+(path.length)+': choose '+a[i]+' (not used yet). Path ['+path.join(', ')+'].'});dfs();path.pop();used[i]=false}}
+ S.push({a:[],ptr:{},aux:A(),note:'Permutations of [1,2,3]. At each position choose any element not yet used; mark it used, recurse, then unmark it (backtrack).'});
+ dfs();S.push({a:[],ptr:{},aux:A(),note:'3! = 6 permutations. Time O(n · n!). The "used" array is what makes this different from subsets.'});return S},
+dedupe:function(){var a=[1,2,2],S=[],path=[],res=[];
+ function A(){return {label:'subsets found ('+res.length+')',items:res.map(function(r){return '['+r.join(',')+']'})}}
+ function dfs(start){res.push(path.slice());S.push({a:path.slice(),ptr:path.length?{top:path.length-1}:{},ok:path.length?[path.length-1]:[],aux:A(),note:'Record ['+path.join(', ')+'].'});
+  for(var i=start;i<a.length;i++){if(i>start&&a[i]===a[i-1]){S.push({a:path.slice(),ptr:{},dim:[],aux:A(),note:'SKIP: a['+i+'] = '+a[i]+' equals a['+(i-1)+'] and is not the first choice at this level (i > start). Choosing it would repeat a subset already produced.'});continue}
+   path.push(a[i]);S.push({a:path.slice(),ptr:{top:path.length-1},hi:[path.length-1],aux:A(),note:'Choose a['+i+'] = '+a[i]+'.'});dfs(i+1);path.pop()}}
+ S.push({a:[],ptr:{},aux:A(),note:'Subsets of [1,2,2] WITHOUT duplicate subsets. Sort first so equal values are adjacent; then at each level never pick the same value twice as the FIRST element of a choice.'});
+ dfs(0);S.push({a:[],ptr:{},aux:A(),note:'6 distinct subsets instead of 8. Rule: sort, then skip when i > start and a[i] == a[i−1].'});return S},
+partition:function(){var s='aab',ch=s.split(''),S=[],path=[],res=[];
+ function A(){return {label:'path | results',items:['path: '+(path.length?path.join(' | '):'(empty)')].concat(res.map(function(r){return r.join('|')}))}}
+ function pal(x){return x===x.split('').reverse().join('')}
+ function dfs(st){if(st===ch.length){res.push(path.slice());S.push({a:ch,ptr:{},ok:rng(0,ch.length-1),aux:A(),note:'Reached the end of the string: record the partition '+path.join(' | ')+'.'});return}
+  for(var e=st;e<ch.length;e++){var sub=s.slice(st,e+1);
+   if(pal(sub)){path.push(sub);S.push({a:ch,ptr:{start:st,end:e},hi:rng(st,e),aux:A(),note:'"'+sub+'" is a palindrome: cut here, then partition the rest starting at index '+(e+1)+'.'});dfs(e+1);path.pop()}
+   else S.push({a:ch,ptr:{start:st,end:e},dim:rng(st,e),aux:A(),note:'"'+sub+'" is not a palindrome: skip this cut (prune).'})}}
+ S.push({a:ch,ptr:{},aux:A(),note:'Split "aab" so every piece is a palindrome. At each start index try every end; if the piece is a palindrome, take it and recurse on the remainder.'});
+ dfs(0);S.push({a:ch,ptr:{},aux:A(),note:'Partitions: '+res.map(function(r){return r.join('|')}).join('  ')+'. Worst case O(n · 2ⁿ); the palindrome check prunes invalid branches.'});return S},
+wordgrid:function(){var g='ABCESFCSADEE'.split(''),R=3,C=4,word='ABCCED',S=[],path=[];
+ var dirs=[[0,1,'right'],[1,0,'down'],[0,-1,'left'],[-1,0,'up']],found=false;
+ function P(n,o){var x={a:g,cols:C,ptr:path.length?{head:path[path.length-1]}:{},hi:path.slice(),aux:{label:'matched so far',items:[word.slice(0,path.length)||'(none)']},note:n};if(o)for(var k in o)x[k]=o[k];S.push(x)}
+ function dfs(r,c,k){if(k===word.length){found=true;return true}
+  if(r<0||c<0||r>=R||c>=C||path.indexOf(r*C+c)>=0)return false;var idx=r*C+c;
+  if(g[idx]!==word[k]){P('('+r+','+c+') holds '+g[idx]+' but we need '+word[k]+': dead end, backtrack.',{dim:[idx],ptr:{try:idx}});return false}
+  path.push(idx);P('('+r+','+c+') = '+g[idx]+' matches word['+k+']. Mark it visited and look at the neighbours for '+(k+1<word.length?'"'+word[k+1]+'"':'the end of the word')+'.',{ok:path.slice()});
+  for(var d=0;d<4;d++){if(dfs(r+dirs[d][0],c+dirs[d][1],k+1))return true}
+  path.pop();P('All neighbours failed from ('+r+','+c+'): unmark it and backtrack.');return false}
+ P('Does the word ABCCED exist in the board as a path of adjacent cells, each cell used once? DFS from a matching first letter; mark visited, un-mark on backtrack.');
+ outer:for(var r=0;r<R;r++)for(var c=0;c<C;c++){if(dfs(r,c,0))break outer}
+ S.push({a:g,cols:C,ptr:{},ok:path.slice(),aux:{label:'result',items:[found?'found: '+word:'not found']},note:'Found ABCCED. Visited marks prevent reusing a cell; undoing them on the way back lets other paths use it. O(m·n·3^L).'});return S},
+nqueens:function(){var n=4,S=[],q=[],found=false;
+ function cells(){var a=[];for(var i=0;i<n*n;i++)a.push('');q.forEach(function(c,r){a[r*n+c]='♛'});return a}
+ function safe(r,c){for(var i=0;i<r;i++){if(q[i]===c||Math.abs(q[i]-c)===r-i)return false}return true}
+ function P(note,x){var o={a:cells(),cols:n,ptr:{},aux:{label:'queens by row',items:[q.length?q.map(function(c,r){return 'r'+r+'→c'+c}).join('  '):'(none)']},note:note};if(x)for(var k in x)o[k]=x[k];S.push(o)}
+ function dfs(r){if(r===n){found=true;return true}
+  for(var c=0;c<n;c++){if(!safe(r,c))continue;q.push(c);P('Row '+r+': column '+c+' is safe (no queen shares its column or diagonals). Place a queen.',{ok:[r*n+c]});
+   if(dfs(r+1))return true;q.pop();P('Row '+(r+1)+' has no safe column, so undo the queen at row '+r+', column '+c+' and try the next column.',{dim:[r*n+c]})}
+  return false}
+ P('Place 4 queens on a 4×4 board so none attack each other. Row by row: try each column, keep it if safe, recurse; if a later row is stuck, undo and try the next column.');
+ dfs(0);P('Solution: columns '+q.join(', ')+' (one queen per row, column and diagonal). Checking safety with three boolean arrays is O(1).',{ok:q.map(function(c,r){return r*n+c})});return S},
+parens:function(){var n=2,S=[],cur=[],res=[];
+ function A(o,c){return {label:'open | close | results',items:['open = '+o,'close = '+c].concat(res)}}
+ function dfs(o,c){if(cur.length===2*n){res.push(cur.join(''));S.push({a:cur.slice(),ptr:{},ok:rng(0,cur.length-1),aux:A(o,c),note:'Length '+(2*n)+' reached: record "'+cur.join('')+'".'});return}
+  if(o<n){cur.push('(');S.push({a:cur.slice(),ptr:{top:cur.length-1},hi:[cur.length-1],aux:A(o+1,c),note:'open ('+o+') < n ('+n+'): we may add "(". String "'+cur.join('')+'".'});dfs(o+1,c);cur.pop()}
+  if(c<o){cur.push(')');S.push({a:cur.slice(),ptr:{top:cur.length-1},hi:[cur.length-1],aux:A(o,c+1),note:'close ('+c+') < open ('+o+'): we may add ")". String "'+cur.join('')+'".'});dfs(o,c+1);cur.pop()}}
+ S.push({a:[],ptr:{},aux:A(0,0),note:'Generate all valid strings with 2 pairs of parentheses. Prune instead of filtering: add "(" only while open < n, add ")" only while close < open. Invalid strings are never built.'});
+ dfs(0,0);S.push({a:[],ptr:{},aux:A(n,n),note:'Valid strings: '+res.join(', ')+'. The count is the Catalan number (2 for n = 2, 5 for n = 3, 14 for n = 4); pruning avoids the 2^(2n) raw strings.'});return S}};
+
+var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+var body=document.body;
+/* language + theme */
+function setLang(l){body.dataset.lang=l;$('#b-java').classList.toggle('on',l==='java');$('#b-py').classList.toggle('on',l==='py');ls('dsa-lang',l)}
+setLang(ls('dsa-lang')||'java');
+$('#b-java').onclick=function(){setLang('java')};$('#b-py').onclick=function(){setLang('py')};
+var th=ls('dsa-theme');if(th)document.documentElement.dataset.theme=th;
+$('#b-theme').onclick=function(){var d=document.documentElement,dark=d.dataset.theme?d.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;d.dataset.theme=dark?'light':'dark';ls('dsa-theme',d.dataset.theme)};
+/* progress (saved in this browser only) */
+function load(){try{return JSON.parse(ls('dsa-progress')||'{}')}catch(e){return {}}}
+var prog=load();
+function refresh(){var boxes=$$('.pk'),n=0;
+ boxes.forEach(function(b){var on=!!prog[b.dataset.k];b.checked=on;b.closest('tr').classList.toggle('done',on);if(on)n++});
+ $('#prog').textContent=n+' / '+boxes.length+' solved';$('#pbar').style.width=(boxes.length?100*n/boxes.length:0)+'%';
+ $$('.pat').forEach(function(p){var bx=$$('.pk',p),d=bx.filter(function(c){return c.checked}).length,e=$('.pp',p),s=$('nav.side a[href="#'+p.id+'"] .cnt');
+  if(e)e.textContent=d+' / '+bx.length+' solved';if(s)s.textContent=d+'/'+bx.length})}
+$$('.pk').forEach(function(b){b.onchange=function(){if(b.checked)prog[b.dataset.k]=1;else delete prog[b.dataset.k];ls('dsa-progress',JSON.stringify(prog));refresh()}});
+refresh();
+/* copy buttons */
+$$('.cp').forEach(function(e){e.remove()});
+$$('pre').forEach(function(p){var b=document.createElement('button');b.className='cp';b.textContent='Copy';b.onclick=function(){var t=p.querySelector('code').textContent;try{navigator.clipboard.writeText(t);b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1200)}catch(e){}};p.appendChild(b)});
+/* scroll spy */
+var links=$$('nav.side a');
+if('IntersectionObserver' in window&&links.length){var map={};links.forEach(function(a){map[a.getAttribute('href').slice(1)]=a});
+ var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(a){a.classList.remove('act')});var a=map[e.target.id];if(a)a.classList.add('act')}})},{rootMargin:'-70px 0px -70% 0px'});
+ Object.keys(map).forEach(function(id){var t=document.getElementById(id);if(t)io.observe(t)})}
+/* download */
+$('#b-dl').onclick=function(){
+ var clone=document.documentElement.cloneNode(true);
+ $$('.stepper',clone).forEach(function(e){e.innerHTML=''});$$('.cp',clone).forEach(function(e){e.remove()});
+ $$('.pk',clone).forEach(function(e){e.removeAttribute('checked')});$$('tr.done',clone).forEach(function(e){e.classList.remove('done')});
+ $$('a.act',clone).forEach(function(e){e.classList.remove('act')});
+ var h='<!DOCTYPE html>\n'+clone.outerHTML,blob=new Blob([h],{type:'text/html'}),a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);a.download=body.dataset.file||'topic.html';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)};
+/* animated stepper */
+function stepper(el){
+ var steps=SIM[el.dataset.sim](),i=0,timer=null,speed=1300,max=0;
+ steps.forEach(function(s){max=Math.max(max,s.a.length)});
+ el.setAttribute('tabindex','0');el.setAttribute('aria-label','Step-by-step animation');
+ el.innerHTML='<div class="st-prog"><i></i></div><div class="st-view"></div><div class="st-aux"></div><div class="st-note" aria-live="polite"></div>'+
+  '<div class="st-ctl"><button data-a="prev" title="Previous (←)">◀</button><button data-a="play" title="Play / pause (space)">▶ Play</button><button data-a="next" title="Next (→)">▶|</button><button data-a="reset" title="Restart">↺</button>'+
+  '<input type="range" min="0" max="'+(steps.length-1)+'" value="0" aria-label="Step"><select aria-label="Speed"><option value="2200">Slow</option><option value="1300" selected>Normal</option><option value="600">Fast</option></select><span class="st-count"></span></div>';
+ var view=$('.st-view',el),aux=$('.st-aux',el),note=$('.st-note',el),cnt=$('.st-count',el),play=$('[data-a=play]',el),bar=$('.st-prog i',el),rg=$('input',el),sel=$('select',el);
+ var cells=[],h='';for(var k=0;k<max;k++)h+='<div class="cellw"><div class="ptr"></div><div class="cell"></div><div class="idx">'+k+'</div></div>'+(k<max-1?'<div class="edge"></div>':'');
+ view.innerHTML=h;$$('.cellw',view).forEach(function(w){cells.push({w:w,p:$('.ptr',w),c:$('.cell',w),v:null})});var edges=$$('.edge',view);
+ function draw(){var s=steps[i],lab={};Object.keys(s.ptr||{}).forEach(function(k){var ix=s.ptr[k];(lab[ix]=lab[ix]||[]).push(k)});
+  cells.forEach(function(o,ix){if(ix>=s.a.length){o.w.style.display='none';return}o.w.style.display='';
+   var v=String(s.a[ix]);if(o.v!==null&&o.v!==v){o.c.classList.remove('pop');void o.c.offsetWidth;o.c.classList.add('pop')}
+   o.v=v;o.c.textContent=v;
+   o.c.className='cell'+((s.hi||[]).indexOf(ix)>=0?' in':'')+((s.ok||[]).indexOf(ix)>=0?' ok':'')+((s.dim||[]).indexOf(ix)>=0?' dim':'')+(o.c.classList.contains('pop')?' pop':'');
+   o.p.innerHTML=lab[ix]?'<b>'+lab[ix].join(', ')+'</b>':''});
+  view.style.maxWidth=s.cols?(s.cols*53)+'px':'';
+  edges.forEach(function(g,k){var t=k<s.a.length-1?(s.edges?(s.edges[k]||''):(s.link?'→':'')):'';g.textContent=t;g.style.display=t?'':'none'});
+  if(s.aux){aux.innerHTML='<span class="al">'+s.aux.label+'</span>'+s.aux.items.map(function(t){return '<span class="chip">'+String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span>'}).join('')}else aux.innerHTML='';
+  note.textContent=s.note;cnt.textContent=(i+1)+' / '+steps.length;bar.style.width=(100*(i+1)/steps.length)+'%';rg.value=i}
+ function stop(){if(timer){clearInterval(timer);timer=null;play.textContent='▶ Play'}}
+ function go(n){i=Math.max(0,Math.min(steps.length-1,n));draw()}
+ function start(){if(i>=steps.length-1)i=0;play.textContent='❚❚ Pause';draw();timer=setInterval(function(){if(i<steps.length-1){i++;draw()}else stop()},speed)}
+ $('[data-a=prev]',el).onclick=function(){stop();go(i-1)};$('[data-a=next]',el).onclick=function(){stop();go(i+1)};
+ $('[data-a=reset]',el).onclick=function(){stop();go(0)};play.onclick=function(){timer?stop():start()};
+ rg.oninput=function(){stop();go(+rg.value)};sel.onchange=function(){speed=+sel.value;if(timer){stop();start()}};
+ el.onkeydown=function(e){if(e.target!==el)return;if(e.key==='ArrowRight'){stop();go(i+1);e.preventDefault()}else if(e.key==='ArrowLeft'){stop();go(i-1);e.preventDefault()}else if(e.key===' '){timer?stop():start();e.preventDefault()}};
+ draw()}
+$$('.stepper').forEach(stepper);
+
+})();</script>
+</body></html>

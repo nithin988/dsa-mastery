@@ -80,7 +80,7 @@ details{border:1px solid var(--line);border-radius:12px;padding:9px 14px;margin:
 .stepper{border:1px solid var(--line);border-radius:16px;padding:14px;margin:8px 0 14px;background:linear-gradient(var(--soft),var(--surf));outline:none}
 .stepper:focus-visible{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-soft)}
 .st-prog{height:4px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:10px}.st-prog i{display:block;height:100%;background:var(--acc);width:0;transition:width .3s}
-.st-view{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;padding:6px 0 2px}
+.st-view{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;padding:6px 0 2px;margin:0 auto}
 .cellw{display:flex;flex-direction:column;align-items:center;min-width:46px}
 .ptr{min-height:22px;font:700 11px ui-monospace,Consolas,monospace;color:#fff;margin-bottom:3px;display:flex;align-items:flex-end}
 .ptr b{background:var(--acc);padding:1px 7px;border-radius:99px;white-space:nowrap;animation:drop .25s ease}
@@ -1004,7 +1004,81 @@ cyclic:function(){var a=[3,4,-1,1],S=[],n=a.length;
   if(x>=1&&x<=n&&a[x-1]!==x){var t=a[x-1];a[x-1]=x;a[i]=t;S.push({a:a.slice(),ptr:{i:i,home:x-1},hi:[i,x-1],note:'a['+i+'] = '+x+' belongs at index '+(x-1)+'. Swap it home. a['+i+'] is now '+t+' (check again).'})}
   else{S.push({a:a.slice(),ptr:{i:i},ok:(x>=1&&x<=n&&a[x-1]===x)?[i]:[],dim:(x<1||x>n)?[i]:[],note:'a['+i+'] = '+x+': '+((x>=1&&x<=n)?'already at its home index (or its home holds the same value). Move on.':'out of range 1..'+n+', ignore it. Move on.')});i++}}
  var miss=n+1;for(var k=0;k<n;k++){if(a[k]!==k+1){miss=k+1;break}}
- S.push({a:a.slice(),ptr:{},ok:a.map(function(v,j){return j}).filter(function(j){return a[j]===j+1}),note:'Scan: index '+(miss-1)+' holds '+a[miss-1]+' instead of '+miss+'. The first missing positive is '+miss+'. O(n) time, O(1) space: every swap puts one value home for good.'});return S}};
+ S.push({a:a.slice(),ptr:{},ok:a.map(function(v,j){return j}).filter(function(j){return a[j]===j+1}),note:'Scan: index '+(miss-1)+' holds '+a[miss-1]+' instead of '+miss+'. The first missing positive is '+miss+'. O(n) time, O(1) space: every swap puts one value home for good.'});return S},
+callstack:function(){var S=[],fr=[];
+ function P(n,ok,x){S.push({a:fr.slice(),ptr:fr.length?{top:fr.length-1}:{},ok:ok||[],aux:x||{label:'call stack (bottom → top)',items:fr.length?fr.slice():['empty']},note:n})}
+ S.push({a:[],ptr:{},aux:{label:'call stack',items:['empty']},note:'factorial(4): n! = n × (n−1)!. Every call that has not returned waits on the call stack. Watch it grow down to the base case, then unwind.'});
+ for(var n=4;n>=1;n--){fr.push('f('+n+')');P(n>1?'Call f('+n+'): not the base case, so it calls f('+(n-1)+') and waits for the answer.':'Call f(1): BASE CASE. It returns 1 immediately without calling anything. The stack is as deep as it gets.',n===1?[fr.length-1]:[])}
+ var val=1;P('f(1) returns 1 and its frame is popped.',[],null);fr.pop();
+ for(var m=2;m<=4;m++){val*=m;fr[fr.length-1]='f('+m+') = '+val;S.push({a:fr.slice(),ptr:{top:fr.length-1},ok:[fr.length-1],aux:{label:'returning',items:[m+' × f('+(m-1)+') = '+val]},note:'f('+m+') receives the answer from below and computes '+m+' × '+(val/m)+' = '+val+'.'});fr.pop();if(fr.length)S.push({a:fr.slice(),ptr:{top:fr.length-1},aux:{label:'returning',items:['value passed up: '+val]},note:'f('+m+') returns '+val+' and its frame is popped.'})}
+ S.push({a:[],ptr:{},aux:{label:'answer',items:['4! = '+val]},note:'Stack empty: factorial(4) = '+val+'. Depth was 4, so the call stack used O(n) space. Without a base case the stack grows until it overflows.'});return S},
+subsets:function(){var a=[1,2,3],S=[],path=[],res=[];
+ function A(){return {label:'subsets found ('+res.length+')',items:res.map(function(r){return '['+r.join(',')+']'})}}
+ function P(n,hl){S.push({a:path.slice(),ptr:path.length?{top:path.length-1}:{},ok:hl?[path.length-1]:[],aux:A(),note:n})}
+ function dfs(start){res.push(path.slice());P('Record the current path as a subset: ['+path.join(', ')+'].',false);
+  for(var i=start;i<a.length;i++){path.push(a[i]);P('Choose '+a[i]+' → path ['+path.join(', ')+']. Recurse on the elements after it.',true);dfs(i+1);var r=path.pop();P('Un-choose '+r+' (backtrack) → path ['+path.join(', ')+']. Try the next candidate at this level.',false)}}
+ S.push({a:[],ptr:{},aux:A(),note:'All subsets of [1,2,3]. Every path from the root of the decision tree IS a subset: record it on entry, then try adding each later element, and undo after returning.'});
+ dfs(0);S.push({a:[],ptr:{},aux:A(),note:'2³ = 8 subsets. Work is O(n · 2ⁿ) (each subset is copied once).'});return S},
+combsum:function(){var c=[2,3,5],target=5,S=[],path=[],res=[];
+ function A(rem){return {label:'remaining | results',items:['remaining = '+rem].concat(res.length?res.map(function(r){return '['+r.join(',')+']'}):['(none yet)'])}}
+ function P(n,rem,ok){S.push({a:path.slice(),ptr:path.length?{top:path.length-1}:{},ok:ok?rng(0,path.length-1):[],aux:A(rem),note:n})}
+ function dfs(start,rem){if(rem===0){res.push(path.slice());P('Remaining = 0: found a combination ['+path.join(', ')+']. Record it.',rem,true);return}
+  for(var i=start;i<c.length;i++){if(c[i]>rem){P('Candidate '+c[i]+' > remaining '+rem+': prune. The array is sorted, so every later candidate is too big as well: break.',rem,false);break}
+   path.push(c[i]);P('Choose '+c[i]+' → path ['+path.join(', ')+'], remaining '+(rem-c[i])+'. Recurse from index '+i+' (the same number may be reused).',rem-c[i],false);
+   dfs(i,rem-c[i]);var r=path.pop();P('Backtrack: remove '+r+'.',rem,false)}}
+ S.push({a:[],ptr:{},aux:A(target),note:'Combination sum: candidates [2,3,5] (sorted), target 5, numbers reusable. Recurse with a start index so order never repeats ([2,3] and [3,2] are the same combination).'});
+ dfs(0,target);S.push({a:[],ptr:{},aux:A(0),note:'Combinations: '+res.map(function(r){return '['+r.join(',')+']'}).join(' ')+'. Sorting plus the early break prunes whole subtrees.'});return S},
+perm:function(){var a=[1,2,3],S=[],path=[],used=[false,false,false],res=[];
+ function A(){return {label:'used | results',items:['used: ['+used.map(function(u,i){return u?a[i]:'·'}).join(' ')+']'].concat(res.map(function(r){return r.join('')}))}}
+ function dfs(){if(path.length===a.length){res.push(path.slice());S.push({a:path.slice(),ptr:{},ok:rng(0,a.length-1),aux:A(),note:'Path is full: record the permutation '+path.join('')+'.'});return}
+  for(var i=0;i<a.length;i++){if(used[i])continue;used[i]=true;path.push(a[i]);S.push({a:path.slice(),ptr:{top:path.length-1},hi:[path.length-1],aux:A(),note:'Position '+(path.length)+': choose '+a[i]+' (not used yet). Path ['+path.join(', ')+'].'});dfs();path.pop();used[i]=false}}
+ S.push({a:[],ptr:{},aux:A(),note:'Permutations of [1,2,3]. At each position choose any element not yet used; mark it used, recurse, then unmark it (backtrack).'});
+ dfs();S.push({a:[],ptr:{},aux:A(),note:'3! = 6 permutations. Time O(n · n!). The "used" array is what makes this different from subsets.'});return S},
+dedupe:function(){var a=[1,2,2],S=[],path=[],res=[];
+ function A(){return {label:'subsets found ('+res.length+')',items:res.map(function(r){return '['+r.join(',')+']'})}}
+ function dfs(start){res.push(path.slice());S.push({a:path.slice(),ptr:path.length?{top:path.length-1}:{},ok:path.length?[path.length-1]:[],aux:A(),note:'Record ['+path.join(', ')+'].'});
+  for(var i=start;i<a.length;i++){if(i>start&&a[i]===a[i-1]){S.push({a:path.slice(),ptr:{},dim:[],aux:A(),note:'SKIP: a['+i+'] = '+a[i]+' equals a['+(i-1)+'] and is not the first choice at this level (i > start). Choosing it would repeat a subset already produced.'});continue}
+   path.push(a[i]);S.push({a:path.slice(),ptr:{top:path.length-1},hi:[path.length-1],aux:A(),note:'Choose a['+i+'] = '+a[i]+'.'});dfs(i+1);path.pop()}}
+ S.push({a:[],ptr:{},aux:A(),note:'Subsets of [1,2,2] WITHOUT duplicate subsets. Sort first so equal values are adjacent; then at each level never pick the same value twice as the FIRST element of a choice.'});
+ dfs(0);S.push({a:[],ptr:{},aux:A(),note:'6 distinct subsets instead of 8. Rule: sort, then skip when i > start and a[i] == a[i−1].'});return S},
+partition:function(){var s='aab',ch=s.split(''),S=[],path=[],res=[];
+ function A(){return {label:'path | results',items:['path: '+(path.length?path.join(' | '):'(empty)')].concat(res.map(function(r){return r.join('|')}))}}
+ function pal(x){return x===x.split('').reverse().join('')}
+ function dfs(st){if(st===ch.length){res.push(path.slice());S.push({a:ch,ptr:{},ok:rng(0,ch.length-1),aux:A(),note:'Reached the end of the string: record the partition '+path.join(' | ')+'.'});return}
+  for(var e=st;e<ch.length;e++){var sub=s.slice(st,e+1);
+   if(pal(sub)){path.push(sub);S.push({a:ch,ptr:{start:st,end:e},hi:rng(st,e),aux:A(),note:'"'+sub+'" is a palindrome: cut here, then partition the rest starting at index '+(e+1)+'.'});dfs(e+1);path.pop()}
+   else S.push({a:ch,ptr:{start:st,end:e},dim:rng(st,e),aux:A(),note:'"'+sub+'" is not a palindrome: skip this cut (prune).'})}}
+ S.push({a:ch,ptr:{},aux:A(),note:'Split "aab" so every piece is a palindrome. At each start index try every end; if the piece is a palindrome, take it and recurse on the remainder.'});
+ dfs(0);S.push({a:ch,ptr:{},aux:A(),note:'Partitions: '+res.map(function(r){return r.join('|')}).join('  ')+'. Worst case O(n · 2ⁿ); the palindrome check prunes invalid branches.'});return S},
+wordgrid:function(){var g='ABCESFCSADEE'.split(''),R=3,C=4,word='ABCCED',S=[],path=[];
+ var dirs=[[0,1,'right'],[1,0,'down'],[0,-1,'left'],[-1,0,'up']],found=false;
+ function P(n,o){var x={a:g,cols:C,ptr:path.length?{head:path[path.length-1]}:{},hi:path.slice(),aux:{label:'matched so far',items:[word.slice(0,path.length)||'(none)']},note:n};if(o)for(var k in o)x[k]=o[k];S.push(x)}
+ function dfs(r,c,k){if(k===word.length){found=true;return true}
+  if(r<0||c<0||r>=R||c>=C||path.indexOf(r*C+c)>=0)return false;var idx=r*C+c;
+  if(g[idx]!==word[k]){P('('+r+','+c+') holds '+g[idx]+' but we need '+word[k]+': dead end, backtrack.',{dim:[idx],ptr:{try:idx}});return false}
+  path.push(idx);P('('+r+','+c+') = '+g[idx]+' matches word['+k+']. Mark it visited and look at the neighbours for '+(k+1<word.length?'"'+word[k+1]+'"':'the end of the word')+'.',{ok:path.slice()});
+  for(var d=0;d<4;d++){if(dfs(r+dirs[d][0],c+dirs[d][1],k+1))return true}
+  path.pop();P('All neighbours failed from ('+r+','+c+'): unmark it and backtrack.');return false}
+ P('Does the word ABCCED exist in the board as a path of adjacent cells, each cell used once? DFS from a matching first letter; mark visited, un-mark on backtrack.');
+ outer:for(var r=0;r<R;r++)for(var c=0;c<C;c++){if(dfs(r,c,0))break outer}
+ S.push({a:g,cols:C,ptr:{},ok:path.slice(),aux:{label:'result',items:[found?'found: '+word:'not found']},note:'Found ABCCED. Visited marks prevent reusing a cell; undoing them on the way back lets other paths use it. O(m·n·3^L).'});return S},
+nqueens:function(){var n=4,S=[],q=[],found=false;
+ function cells(){var a=[];for(var i=0;i<n*n;i++)a.push('');q.forEach(function(c,r){a[r*n+c]='♛'});return a}
+ function safe(r,c){for(var i=0;i<r;i++){if(q[i]===c||Math.abs(q[i]-c)===r-i)return false}return true}
+ function P(note,x){var o={a:cells(),cols:n,ptr:{},aux:{label:'queens by row',items:[q.length?q.map(function(c,r){return 'r'+r+'→c'+c}).join('  '):'(none)']},note:note};if(x)for(var k in x)o[k]=x[k];S.push(o)}
+ function dfs(r){if(r===n){found=true;return true}
+  for(var c=0;c<n;c++){if(!safe(r,c))continue;q.push(c);P('Row '+r+': column '+c+' is safe (no queen shares its column or diagonals). Place a queen.',{ok:[r*n+c]});
+   if(dfs(r+1))return true;q.pop();P('Row '+(r+1)+' has no safe column, so undo the queen at row '+r+', column '+c+' and try the next column.',{dim:[r*n+c]})}
+  return false}
+ P('Place 4 queens on a 4×4 board so none attack each other. Row by row: try each column, keep it if safe, recurse; if a later row is stuck, undo and try the next column.');
+ dfs(0);P('Solution: columns '+q.join(', ')+' (one queen per row, column and diagonal). Checking safety with three boolean arrays is O(1).',{ok:q.map(function(c,r){return r*n+c})});return S},
+parens:function(){var n=2,S=[],cur=[],res=[];
+ function A(o,c){return {label:'open | close | results',items:['open = '+o,'close = '+c].concat(res)}}
+ function dfs(o,c){if(cur.length===2*n){res.push(cur.join(''));S.push({a:cur.slice(),ptr:{},ok:rng(0,cur.length-1),aux:A(o,c),note:'Length '+(2*n)+' reached: record "'+cur.join('')+'".'});return}
+  if(o<n){cur.push('(');S.push({a:cur.slice(),ptr:{top:cur.length-1},hi:[cur.length-1],aux:A(o+1,c),note:'open ('+o+') < n ('+n+'): we may add "(". String "'+cur.join('')+'".'});dfs(o+1,c);cur.pop()}
+  if(c<o){cur.push(')');S.push({a:cur.slice(),ptr:{top:cur.length-1},hi:[cur.length-1],aux:A(o,c+1),note:'close ('+c+') < open ('+o+'): we may add ")". String "'+cur.join('')+'".'});dfs(o,c+1);cur.pop()}}
+ S.push({a:[],ptr:{},aux:A(0,0),note:'Generate all valid strings with 2 pairs of parentheses. Prune instead of filtering: add "(" only while open < n, add ")" only while close < open. Invalid strings are never built.'});
+ dfs(0,0);S.push({a:[],ptr:{},aux:A(n,n),note:'Valid strings: '+res.join(', ')+'. The count is the Catalan number (2 for n = 2, 5 for n = 3, 14 for n = 4); pruning avoids the 2^(2n) raw strings.'});return S}};
 
 var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
@@ -1058,6 +1132,7 @@ function stepper(el){
    o.v=v;o.c.textContent=v;
    o.c.className='cell'+((s.hi||[]).indexOf(ix)>=0?' in':'')+((s.ok||[]).indexOf(ix)>=0?' ok':'')+((s.dim||[]).indexOf(ix)>=0?' dim':'')+(o.c.classList.contains('pop')?' pop':'');
    o.p.innerHTML=lab[ix]?'<b>'+lab[ix].join(', ')+'</b>':''});
+  view.style.maxWidth=s.cols?(s.cols*53)+'px':'';
   edges.forEach(function(g,k){var t=k<s.a.length-1?(s.edges?(s.edges[k]||''):(s.link?'→':'')):'';g.textContent=t;g.style.display=t?'':'none'});
   if(s.aux){aux.innerHTML='<span class="al">'+s.aux.label+'</span>'+s.aux.items.map(function(t){return '<span class="chip">'+String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span>'}).join('')}else aux.innerHTML='';
   note.textContent=s.note;cnt.textContent=(i+1)+' / '+steps.length;bar.style.width=(100*(i+1)/steps.length)+'%';rg.value=i}

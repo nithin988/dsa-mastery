@@ -14,7 +14,7 @@ Each topic is one self-contained HTML file (`topics/NN_name.html`) with a built-
 | 04 | `04_linked_list` | Linked lists | Dummy node, reversal, fast/slow (Floyd), merge and sort, runner gap, split-reverse-merge, two chains and carry, LRU design | **done** (8 patterns, 36 problems) |
 | 05 | `05_stack_queue` | Stacks, queues, deques | Stack bookkeeping, monotonic stack (next greater, ranges), two-stack queue, BFS, monotonic deque, expression evaluation, greedy stack, circular buffers | **done** (9 patterns, 47 problems) |
 | 06 | `06_sorting_intervals` | Sorting and intervals | Merge/quick sort, custom comparators, counting and bucket sort, merge and insert intervals, sweep line, greedy scheduling, sort + two pointers, cyclic sort | **done** (9 patterns, 49 problems) |
-| 07 | `07_recursion_backtracking` | Recursion and backtracking | Subsets, permutations, combinations, constraint search (N-Queens, Sudoku), pruning, dedupe | planned |
+| 07 | `07_recursion_backtracking` | Recursion and backtracking | Recursion basics, subsets, combinations, permutations, duplicate handling, string partitions, grid search, N-Queens / Sudoku, pruning and memoisation | **done** (9 patterns, 40 problems) |
 | 08 | `08_bit_math` | Bit manipulation and math | XOR tricks, masks, counting bits, gcd/sieve, modular arithmetic, fast power | planned |
 | 09 | `09_trees` | Binary trees and BST | DFS (pre/in/post), BFS levels, path sums, LCA, serialize, BST invariants, tree DP | planned |
 | 10 | `10_heap_priority_queue` | Heaps | Top-K, two heaps (median), k-way merge, scheduling, lazy deletion | planned |
