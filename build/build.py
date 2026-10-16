@@ -9,12 +9,13 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 from lib import render_topic, CSS  # noqa: E402
 import arrays  # noqa: E402
+import foundations  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # (file, title, blurb, topic module or None)
 CATALOG = [
-    ("01_complexity_foundations", "Complexity and Problem-Solving Method", "Big-O, constraints to complexity, how to read a problem", None),
+    ("01_complexity_foundations", "Complexity and Problem-Solving Method", "Big-O, constraints to complexity, brute force to optimal, interview method", foundations.TOPIC),
     ("02_arrays", "Arrays, Hashing and Searching", "Two pointers, sliding window, prefix sum, Kadane, hashing, binary search, quick select", arrays.TOPIC),
     ("03_strings", "Strings", "Palindromes, frequency windows, KMP / Z / Rabin-Karp", None),
     ("04_linked_list", "Linked Lists", "Fast/slow pointers, reversal, merge, cycle detection, LRU", None),
@@ -48,7 +49,7 @@ def index_html():
         num = f.split("_")[0]
         if topic:
             n = sum(len(p["problems"]) for p in topic["patterns"])
-            meta = f"{len(topic['patterns'])} patterns · {n} problems"
+            meta = f"{len(topic['patterns'])} {topic.get('unit', 'Pattern').lower()}s · {n} problems"
             actions = (
                 f'<a class="btn pri" href="topics/{f}.html">Open</a>'
                 f'<a class="btn" href="topics/{f}.html" download="{f}.html">⬇ Download</a>'

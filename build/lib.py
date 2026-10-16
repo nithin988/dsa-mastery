@@ -47,11 +47,11 @@ def problems_table(topic_id, probs):
     )
 
 
-def render_pattern(topic_id, n, p):
+def render_pattern(topic_id, n, p, unit="Pattern"):
     pid = f"p{n}"
     out = [f'<section class="pat" id="{pid}">']
     out.append(
-        f'<h3>Pattern {n} — {html.escape(p["title"])} <span class="tier {p["tier"]}">{TIER[p["tier"]]}</span></h3>'
+        f'<h3>{unit} {n} — {html.escape(p["title"])} <span class="tier {p["tier"]}">{TIER[p["tier"]]}</span></h3>'
     )
     out.append(f'<p><strong>When to use</strong> — {md(p["when"])}</p>')
     out.append(f'<p><strong>Detect</strong> — {md(p["detect"])}</p>')
@@ -113,16 +113,16 @@ def render_topic(t):
         "this browser.</div>"
     )
     body.append('<h2 id="contents">Contents</h2>' + toc_html)
-    body.append('<h2 id="mindset">The mindset</h2>' + f"<p>{md(t['mindset'])}</p><p>Ask three questions on every array problem:</p>" + ul(t["questions"]))
+    body.append('<h2 id="mindset">The mindset</h2>' + f"<p>{md(t['mindset'])}</p><p>{md(t.get('qintro', 'Ask these questions on every array problem:'))}</p>" + ul(t["questions"]))
     body.append(
         '<h2 id="priority">Pattern priority</h2><p class="muted">Ranked by how often these show up in interviews '
         "(judgement from the common interview lists and company question banks, not hard data).</p>"
         "<h3>🔥 Frequently asked — master these first</h3>" + table(ph, hot) + "<h3>🧊 Secondary — know them</h3>" + table(ph, sec)
     )
     body.append('<h2 id="cues">Problem-cue selector</h2>' + table(["If the problem says / looks like…", "Pattern"], t["cues"]))
-    body.append("<h2>The patterns</h2>")
+    body.append("<h2>" + t.get("units_heading", "The patterns") + "</h2>")
     for i, p in enumerate(pats):
-        body.append(render_pattern(tid, i + 1, p))
+        body.append(render_pattern(tid, i + 1, p, t.get('unit', 'Pattern')))
     body.append(
         '<h2 id="recall">One-line recall</h2>'
         + table(["#", "Pattern", "Tier", "Core idea in one line"], [[str(i + 1), p["title"], "🔥" if p["tier"] == "hot" else "🧊", p["oneline"]] for i, p in enumerate(pats)])
@@ -311,7 +311,17 @@ quick:function(){var a=[3,2,1,5,6,4],S=[],target=a.length-2,lo=0,hi=a.length-1;
   if(i===target){S.push({a:a.slice(),ptr:{p:i},ok:[i],dim:dim(),note:'Pivot lands at index '+i+' = target index. Answer: '+a[i]+'.'});break}
   S.push({a:a.slice(),ptr:{p:i},ok:[i],dim:dim(),note:'Pivot '+pv+' is now at its final sorted index '+i+(i<target?' < target '+target+': only the right side can contain it.':' > target '+target+': only the left side can contain it.')});
   if(i<target)lo=i+1;else hi=i-1}
- return S}};
+ return S},
+amort:function(){var S=[],cap=1,n=0,a=[''],cost=0;
+ S.push({a:a.slice(),ptr:{},note:'A dynamic array starts with capacity 1. Append 1..8. When it is full, allocate double the space and copy everything over.'});
+ for(var v=1;v<=8;v++){
+  if(n===cap){var c=n;cap*=2;var b=[];for(var i=0;i<cap;i++)b.push(i<n?a[i]:'');cost+=c;a=b;S.push({a:a.slice(),ptr:{},hi:rng(0,n-1),note:'Full. Resize to capacity '+cap+': copy '+c+' element(s). Total copy cost so far = '+cost+'.'})}
+  a[n]=v;n++;S.push({a:a.slice(),ptr:{i:n-1},ok:[n-1],note:'Append '+v+' (cost 1). Length '+n+', capacity '+cap+'.'})}
+ S.push({a:a.slice(),ptr:{},note:'8 appends cost 8 writes + '+cost+' copies = '+(8+cost)+' units, under 2 per append. Rare expensive steps are paid for by many cheap ones: amortised O(1).'});return S},
+pairs:function(){var a=['a','b','c','d','e'],S=[],k=0;
+ S.push({a:a,ptr:{},note:'Nested loop: for every i, for every j > i. Count how many (i, j) pairs get visited.'});
+ for(var i=0;i<a.length;i++)for(var j=i+1;j<a.length;j++){k++;S.push({a:a,ptr:{i:i,j:j},hi:[i,j],note:'Pair #'+k+': ('+a[i]+', '+a[j]+').'})}
+ S.push({a:a,ptr:{},ok:rng(0,a.length-1),note:'n = 5 gave '+k+' pairs = n(n−1)/2. Double n and the work roughly quadruples: O(n²).'});return S}};
 function stepper(el){var steps=SIM[el.dataset.sim](),i=0,timer=null;
  el.innerHTML='<div class="st-view"></div><div class="st-note"></div><div class="st-ctl"><button data-a="prev">◀ Prev</button><button data-a="play">▶ Play</button><button data-a="next">Next ▶</button><button data-a="reset">↺ Reset</button><span class="st-count"></span></div>';
  var view=$('.st-view',el),note=$('.st-note',el),cnt=$('.st-count',el),play=$('[data-a=play]',el);

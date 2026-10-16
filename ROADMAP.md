@@ -8,7 +8,7 @@ Each topic is one self-contained HTML file (`topics/NN_name.html`) with a built-
 
 | # | File | Topic | Patterns covered | Status |
 |---|------|-------|------------------|--------|
-| 01 | `01_complexity_foundations` | Complexity and problem-solving method | Big-O, amortised cost, constraints-to-complexity table, how to read a problem, dry-running | planned |
+| 01 | `01_complexity_foundations` | Complexity and problem-solving method | Big-O, constraints to complexity, amortised cost, space and recursion stack, recurrences, brute force to optimal, interview method, edge cases, hidden library costs | **done** (9 concepts, 54 problems) |
 | 02 | `02_arrays` | Arrays, hashing, searching | Two pointers, sliding window (fixed/variable), prefix sum, Kadane, hashing, Dutch flag, binary search (basic, on answer, rotated), quick select/merge sort, specialised tricks | **done** (11 patterns, 77 problems) |
 | 03 | `03_strings` | Strings | Palindromes, anagram/frequency windows, KMP / Z / Rabin-Karp, parsing, string DP hooks | planned |
 | 04 | `04_linked_list` | Linked lists | Fast/slow pointers, reversal, merge, dummy node, cycle (Floyd), LRU design | planned |
