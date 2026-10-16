@@ -890,7 +890,78 @@ circular:function(){var buf=['','','',''],head=0,tail=0,size=0,S=[];
   buf[tail]=x;var w=tail;tail=(tail+1)%4;size++;P('enqueue('+x+'): write at tail, then tail = (tail + 1) % 4'+(w===3?' (wraps to 0)':'')+'.',[w])}
  function deq(){if(!size){P('dequeue on empty queue fails.');return}var v=buf[head];buf[head]='';head=(head+1)%4;size--;P('dequeue() returns '+v+': read at head, head = (head + 1) % 4.')}
  P('Circular queue in a fixed array of 4 slots: head = next to remove, tail = next free slot. Indices wrap around with % capacity, so no shifting is ever needed.');
- enq('A');enq('B');enq('C');enq('D');enq('E');deq();enq('E');deq();deq();return S}};
+ enq('A');enq('B');enq('C');enq('D');enq('E');deq();enq('E');deq();deq();return S},
+mergesort:function(){var a=[5,2,4,7,1,3,2,6],S=[];
+ S.push({a:a.slice(),ptr:{},note:'Merge sort: split in half until single elements (already sorted), then merge sorted halves back together. Each level of merging does n work and there are log n levels.'});
+ function ms(l,r){if(l>=r)return;var m=(l+r)>>1;ms(l,m);ms(m+1,r);
+  var L=a.slice(l,m+1),R=a.slice(m+1,r+1),i=0,j=0,k=l;
+  while(i<L.length&&j<R.length){a[k++]=L[i]<=R[j]?L[i++]:R[j++]}
+  while(i<L.length)a[k++]=L[i++];while(j<R.length)a[k++]=R[j++];
+  S.push({a:a.slice(),ptr:{lo:l,hi:r},hi:rng(l,r),ok:rng(l,r),dim:a.map(function(_,x){return x}).filter(function(x){return x<l||x>r}),note:'Merge ['+L.join(',')+'] and ['+R.join(',')+'] → ['+a.slice(l,r+1).join(',')+'] (take the smaller front element each time; ≤ keeps equal items in order = stable).'})}
+ ms(0,a.length-1);
+ S.push({a:a.slice(),ptr:{},ok:rng(0,a.length-1),note:'Sorted: '+a.join(', ')+'. O(n log n) in every case, O(n) extra space, stable.'});return S},
+largestnum:function(){var a=['3','30','34','5','9'],S=[];
+ S.push({a:a.slice(),ptr:{},note:'Arrange the numbers to form the largest value. The rule: x comes before y if the string x+y is bigger than y+x. Insertion sort with that comparator.'});
+ for(var i=1;i<a.length;i++){for(var j=i-1;j>=0;j--){var x=a[j],y=a[j+1],sw=y+x>x+y;
+   S.push({a:a.slice(),ptr:{j:j,next:j+1},hi:[j,j+1],note:'Compare "'+y+'" before "'+x+'": "'+y+x+'" vs "'+x+y+'". '+(sw?'"'+y+x+'" is larger, so '+y+' moves ahead of '+x+'.':'"'+x+y+'" is larger or equal, so the order is already right. Stop.')});
+   if(sw){a[j]=y;a[j+1]=x}else break}}
+ S.push({a:a.slice(),ptr:{},ok:rng(0,a.length-1),note:'Order: '+a.join(' ')+' → "'+a.join('')+'". Sorting with a custom comparator is O(n log n) comparisons × O(length) per comparison.'});return S},
+bucket:function(){var nums=[1,1,1,2,2,3],k=2,S=[],cnt={},b=['','','','','','',''];
+ function A(){return {label:'counts',items:Object.keys(cnt).map(function(x){return x+': '+cnt[x]})}}
+ S.push({a:b.slice(),ptr:{},note:'Top-2 frequent in [1,1,1,2,2,3]. Count each value, then drop it into a bucket indexed by its frequency (1..n). No sorting needed.'});
+ nums.forEach(function(x){cnt[x]=(cnt[x]||0)+1});
+ S.push({a:b.slice(),ptr:{},aux:A(),note:'Counting pass: value → how many times it appears.'});
+ Object.keys(cnt).sort(function(x,y){return cnt[x]-cnt[y]}).forEach(function(x){var f=cnt[x];b[f]=b[f]?b[f]+','+x:x;S.push({a:b.slice(),ptr:{freq:f},ok:[f],aux:A(),note:'Value '+x+' appears '+f+' time(s): put it in bucket['+f+'].'})});
+ var res=[];for(var f=b.length-1;f>=1&&res.length<k;f--){if(b[f]){b[f].split(',').forEach(function(x){if(res.length<k)res.push(+x)});S.push({a:b.slice(),ptr:{scan:f},ok:[f],aux:{label:'result',items:['['+res.join(', ')+']']},note:'Scan buckets from the highest frequency down; take '+b[f]+' → result so far ['+res.join(', ')+'].'})}}
+ S.push({a:b.slice(),ptr:{},aux:{label:'result',items:['['+res.join(', ')+']']},note:'Top '+k+' frequent: ['+res.join(', ')+']. O(n) time, O(n) space, better than the O(n log n) of sorting counts.'});return S},
+mergeiv:function(){var raw=[[8,10],[1,3],[15,18],[2,6]],iv=raw.slice().sort(function(x,y){return x[0]-y[0]}),S=[],out=[];
+ function f(arr){return arr.map(function(p){return '['+p[0]+','+p[1]+']'})}
+ function A(){return {label:'merged',items:out.length?f(out):['(empty)']}}
+ S.push({a:f(raw),ptr:{},aux:A(),note:'Merge overlapping intervals. Step 1: sort by start, so any overlap can only be with the previous merged interval.'});
+ S.push({a:f(iv),ptr:{},aux:A(),note:'Sorted by start: '+f(iv).join(' ')+'.'});
+ iv.forEach(function(p,i){var last=out[out.length-1],n;
+  if(!last||last[1]<p[0]){out.push([p[0],p[1]]);n=last?'['+p[0]+','+p[1]+'] starts after '+last[1]+' (gap): start a new merged interval.':'First interval: start the merged list.'}
+  else{var old=last[1];last[1]=Math.max(last[1],p[1]);n='['+p[0]+','+p[1]+'] starts at '+p[0]+' ≤ '+old+' (overlap): extend the end to max('+old+', '+p[1]+') = '+last[1]+'.'}
+  S.push({a:f(iv),ptr:{i:i},hi:[i],ok:rng(0,i),aux:A(),note:n})});
+ S.push({a:f(iv),ptr:{},ok:rng(0,iv.length-1),aux:A(),note:'Result: '+f(out).join(' ')+'. Sorting dominates: O(n log n) time.'});return S},
+insertiv:function(){var iv=[[1,2],[3,5],[6,7],[8,10],[12,16]],ni=[4,8],S=[],res=[];
+ function f(arr){return arr.map(function(p){return '['+p[0]+','+p[1]+']'})}
+ function A(ph){return {label:'phase | new interval | result',items:[ph,'new = ['+ni[0]+','+ni[1]+']','result: '+(res.length?f(res).join(' '):'(empty)')]}}
+ var cells=f(iv);
+ S.push({a:cells,ptr:{},aux:A('start'),note:'Insert [4,8] into a sorted, non-overlapping list in one pass: (1) copy intervals that end before it starts, (2) merge the ones that overlap it, (3) copy the rest.'});
+ var i=0;while(i<iv.length&&iv[i][1]<ni[0]){res.push(iv[i]);S.push({a:cells,ptr:{i:i},hi:[i],aux:A('1 · before'),note:'['+iv[i]+'] ends at '+iv[i][1]+' < '+ni[0]+': completely before the new interval, copy it.'});i++}
+ while(i<iv.length&&iv[i][0]<=ni[1]){var o=ni.slice();ni[0]=Math.min(ni[0],iv[i][0]);ni[1]=Math.max(ni[1],iv[i][1]);S.push({a:cells,ptr:{i:i},hi:[i],aux:A('2 · overlap'),note:'['+iv[i]+'] starts at '+iv[i][0]+' ≤ '+o[1]+': overlaps. Absorb it: new becomes ['+ni[0]+','+ni[1]+'].'});i++}
+ res.push(ni.slice());S.push({a:cells,ptr:{},aux:A('2 · overlap'),note:'No more overlaps: add the merged new interval ['+ni[0]+','+ni[1]+'].'});
+ while(i<iv.length){res.push(iv[i]);S.push({a:cells,ptr:{i:i},hi:[i],aux:A('3 · after'),note:'['+iv[i]+'] starts after the new interval: copy it unchanged.'});i++}
+ S.push({a:f(res),ptr:{},ok:rng(0,res.length-1),aux:A('done'),note:'Result: '+f(res).join(' ')+'. One pass, O(n).'});return S},
+sweep:function(){var iv=[[0,30],[5,10],[15,20]],ev=[],S=[];
+ iv.forEach(function(p){ev.push([p[0],1]);ev.push([p[1],-1])});ev.sort(function(x,y){return x[0]-y[0]||x[1]-y[1]});
+ var cells=ev.map(function(e){return e[0]+(e[1]>0?' ▲':' ▼')}),act=0,mx=0;
+ function A(){return {label:'now | peak',items:['active meetings = '+act,'rooms needed (peak) = '+mx]}}
+ S.push({a:cells,ptr:{},aux:A(),note:'Minimum rooms for meetings [0,30] [5,10] [15,20]. Turn each meeting into two events (▲ start +1, ▼ end −1), sort by time (ends before starts on ties), sweep and track the running count.'});
+ ev.forEach(function(e,i){act+=e[1];mx=Math.max(mx,act);S.push({a:cells,ptr:{t:i},hi:[i],ok:act===mx&&e[1]>0?[i]:[],aux:A(),note:'Time '+e[0]+': a meeting '+(e[1]>0?'starts (+1)':'ends (−1)')+'. Active = '+act+'. Peak so far = '+mx+'.'})});
+ S.push({a:cells,ptr:{},ok:rng(0,cells.length-1),aux:A(),note:'Maximum overlap = '+mx+' room(s). Sorting the events costs O(n log n); the sweep itself is O(n).'});return S},
+greedyiv:function(){var raw=[[1,2],[2,3],[3,4],[1,3]],iv=raw.slice().sort(function(x,y){return x[1]-y[1]}),S=[],end=-1e9,removed=0,kept=[],dim=[];
+ function f(arr){return arr.map(function(p){return '['+p[0]+','+p[1]+']'})}
+ function A(){return {label:'greedy state',items:['last kept end = '+(end<-1e8?'none':end),'removed = '+removed]}}
+ S.push({a:f(raw),ptr:{},aux:A(),note:'Fewest intervals to remove so that the rest do not overlap = keep as many as possible. Greedy: sort by END time and always keep the interval that finishes first.'});
+ S.push({a:f(iv),ptr:{},aux:A(),note:'Sorted by end: '+f(iv).join(' ')+'.'});
+ iv.forEach(function(p,i){var n;if(p[0]>=end){end=p[1];kept.push(i);n='['+p[0]+','+p[1]+'] starts at '+p[0]+' ≥ last end: keep it. New last end = '+end+'.'}else{removed++;dim.push(i);n='['+p[0]+','+p[1]+'] starts at '+p[0]+' < last end '+end+': it overlaps, remove it (it ends later than the one we kept).'}
+  S.push({a:f(iv),ptr:{i:i},hi:[i],ok:kept.slice(),dim:dim.slice(),aux:A(),note:n})});
+ S.push({a:f(iv),ptr:{},ok:kept.slice(),dim:dim.slice(),aux:A(),note:'Remove '+removed+' interval(s). Finishing earliest leaves the most room for later intervals: that is the exchange argument. O(n log n).'});return S},
+boats:function(){var p=[1,2,2,3],limit=3,S=[],l=0,r=3,boats=0,dim=[];
+ S.push({a:p,ptr:{l:0,r:3},aux:{label:'limit | boats',items:['limit = '+limit,'boats = 0']},note:'Each boat carries at most 2 people and weighs at most '+limit+'. Sort the weights; pair the lightest with the heaviest if they fit.'});
+ while(l<=r){var fits=l<r&&p[l]+p[r]<=limit,n;
+  if(fits){n=p[l]+' + '+p[r]+' = '+(p[l]+p[r])+' ≤ '+limit+': they share a boat.';dim.push(l);dim.push(r);l++;r--}else{n=(l<r?p[l]+' + '+p[r]+' = '+(p[l]+p[r])+' > '+limit+': the heaviest ('+p[r]+') goes alone; ':'Last person ')+(l<r?'':'goes alone. ');dim.push(r);r--}
+  boats++;S.push({a:p,ptr:{l:l,r:r},ok:dim.slice(),aux:{label:'limit | boats',items:['limit = '+limit,'boats = '+boats]},note:n+' Boats used: '+boats+'.'})}
+ S.push({a:p,ptr:{},ok:rng(0,3),aux:{label:'limit | boats',items:['boats = '+boats]},note:'Minimum boats = '+boats+'. The heaviest person needs a boat anyway; pairing them with the lightest is always the best use of it. O(n log n).'});return S},
+cyclic:function(){var a=[3,4,-1,1],S=[],n=a.length;
+ S.push({a:a.slice(),ptr:{},note:'First missing positive. Idea: the sorted answer for 1..n would be [1,2,3,4]. Put each value x in 1..n at index x−1 by swapping; then the first index i with a[i] ≠ i+1 reveals the missing number i+1.'});
+ var i=0;while(i<n){var x=a[i];
+  if(x>=1&&x<=n&&a[x-1]!==x){var t=a[x-1];a[x-1]=x;a[i]=t;S.push({a:a.slice(),ptr:{i:i,home:x-1},hi:[i,x-1],note:'a['+i+'] = '+x+' belongs at index '+(x-1)+'. Swap it home. a['+i+'] is now '+t+' (check again).'})}
+  else{S.push({a:a.slice(),ptr:{i:i},ok:(x>=1&&x<=n&&a[x-1]===x)?[i]:[],dim:(x<1||x>n)?[i]:[],note:'a['+i+'] = '+x+': '+((x>=1&&x<=n)?'already at its home index (or its home holds the same value). Move on.':'out of range 1..'+n+', ignore it. Move on.')});i++}}
+ var miss=n+1;for(var k=0;k<n;k++){if(a[k]!==k+1){miss=k+1;break}}
+ S.push({a:a.slice(),ptr:{},ok:a.map(function(v,j){return j}).filter(function(j){return a[j]===j+1}),note:'Scan: index '+(miss-1)+' holds '+a[miss-1]+' instead of '+miss+'. The first missing positive is '+miss+'. O(n) time, O(1) space: every swap puts one value home for good.'});return S}};
 
 var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}

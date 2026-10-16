@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sorting and Intervals — Pattern Guide</title><style>:root{--bg:#f6f7fb;--surf:#fff;--fg:#151a26;--mut:#5b6579;--line:#e2e6ef;--soft:#f0f2f8;--acc:#4f46e5;--acc-soft:#eceafe;--cool:#0e7490;--cool-soft:#e0f4f8;
+--hot:#c2410c;--hot-soft:#ffedd5;--ok:#15803d;--ok-soft:#dcfce7;--warn:#b45309;--warn-soft:#fef3c7;--bad:#b91c1c;--code:#f3f4f9;--shadow:0 1px 2px rgba(20,26,40,.06),0 4px 16px rgba(20,26,40,.05)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0c0f16;--surf:#131824;--fg:#e8ebf3;--mut:#9ba5ba;--line:#252c3c;--soft:#1a2030;--acc:#8e96ff;--acc-soft:#232855;--cool:#35c3e0;--cool-soft:#0f2f38;--hot:#fb923c;--hot-soft:#3a2312;--ok:#4ade80;--ok-soft:#12361f;--warn:#fbbf24;--warn-soft:#3a2c0b;--bad:#f87171;--code:#181e2c;--shadow:none}}
+:root[data-theme=dark]{--bg:#0c0f16;--surf:#131824;--fg:#e8ebf3;--mut:#9ba5ba;--line:#252c3c;--soft:#1a2030;--acc:#8e96ff;--acc-soft:#232855;--cool:#35c3e0;--cool-soft:#0f2f38;--hot:#fb923c;--hot-soft:#3a2312;--ok:#4ade80;--ok-soft:#12361f;--warn:#fbbf24;--warn-soft:#3a2c0b;--bad:#f87171;--code:#181e2c;--shadow:none}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:15.5px/1.65 "Inter",-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--acc)}
+code{background:var(--code);padding:1px 6px;border-radius:5px;font:0.88em ui-monospace,"Cascadia Code",Consolas,Menlo,monospace}
+.mut,.muted{color:var(--mut)}.muted{font-size:13px;font-weight:400}
+/* top bar */
+.bar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--surf) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar-in{max-width:1180px;margin:0 auto;display:flex;gap:8px;align-items:center;padding:8px 16px}
+.brand{font-weight:800;text-decoration:none;color:var(--fg);margin-right:auto;letter-spacing:-.01em}.brand b{color:var(--acc)}
+.prog{font-size:13px;color:var(--mut);white-space:nowrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{border:0;border-radius:0;background:transparent}
+.bar button,.st-ctl button,.st-ctl select{font:inherit;font-size:13px;padding:6px 12px;border:1px solid var(--line);border-radius:9px;background:var(--surf);color:var(--fg);cursor:pointer}
+.bar button:hover,.st-ctl button:hover{border-color:var(--acc);color:var(--acc)}
+.bar button.on{background:var(--acc);color:#fff}
+.pbar{height:3px;background:var(--line)}.pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--cool));transition:width .4s}
+/* layout */
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px;display:grid;grid-template-columns:240px minmax(0,1fr);gap:36px}
+nav.side{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto;padding:22px 0;font-size:13.5px}
+nav.side h4{margin:14px 0 6px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--mut)}
+nav.side a{display:flex;gap:8px;align-items:center;padding:5px 9px;border-radius:8px;text-decoration:none;color:var(--fg);border-left:3px solid transparent}
+nav.side a:hover{background:var(--soft)}nav.side a.act{background:var(--acc-soft);color:var(--acc);border-color:var(--acc);font-weight:600}
+nav.side .dot{width:8px;height:8px;border-radius:50%;flex:none}.dot.hot{background:var(--hot)}.dot.sec{background:var(--cool)}
+nav.side .cnt{margin-left:auto;font-size:11px;color:var(--mut)}
+main{min-width:0;padding:28px 0 90px}
+.chips{display:none}
+/* hero */
+.hero{background:linear-gradient(135deg,var(--acc-soft),var(--cool-soft));border:1px solid var(--line);border-radius:20px;padding:30px 28px;margin-bottom:26px}
+.eyebrow{font:700 12px ui-monospace,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--acc)}
+.hero h1{font-size:clamp(26px,4vw,38px);line-height:1.15;margin:8px 0 10px;letter-spacing:-.02em}
+.lead{font-size:16.5px;color:var(--mut);margin:0;max-width:70ch}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.stat{background:var(--surf);border:1px solid var(--line);border-radius:99px;padding:4px 13px;font-size:13px}.stat b{color:var(--acc)}
+/* headings */
+h2{font-size:23px;margin:46px 0 10px;letter-spacing:-.01em;scroll-margin-top:72px;display:flex;align-items:center;gap:10px}
+h2::before{content:"";width:5px;height:22px;border-radius:3px;background:linear-gradient(var(--acc),var(--cool))}
+h3{margin:0;font-size:20px;letter-spacing:-.01em}
+.callout{border:1px solid var(--line);border-left:4px solid var(--acc);background:var(--surf);padding:10px 16px;border-radius:10px;margin:14px 0;box-shadow:var(--shadow)}
+.callout.intu{border-left-color:var(--cool);background:var(--cool-soft)}.callout p{margin:4px 0}
+.callout .lbl{margin-bottom:2px}
+/* pattern card */
+.pat{background:var(--surf);border:1px solid var(--line);border-radius:18px;padding:22px 22px 10px;margin:26px 0;box-shadow:var(--shadow);scroll-margin-top:72px;position:relative;overflow:hidden}
+.pat::before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:var(--acc)}.pat.sec::before{background:var(--cool)}
+.pat-h{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.badge{width:34px;height:34px;border-radius:10px;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:none}.sec .badge{background:var(--cool)}
+.tier{font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;white-space:nowrap}.tier.hot{background:var(--hot-soft);color:var(--hot)}.tier.sec{background:var(--cool-soft);color:var(--cool)}
+.pp{margin-left:auto;font-size:12px;color:var(--mut)}
+.glance{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:6px 0 14px}
+.gi{background:var(--soft);border-radius:12px;padding:10px 13px;font-size:14px}
+.lbl{font:700 11px/1.2 ui-monospace,Consolas,monospace;letter-spacing:.09em;text-transform:uppercase;color:var(--acc);margin-bottom:4px;display:block}
+.blk{margin:14px 0}.blk p{margin:4px 0}
+.blk ol,.blk ul{margin:4px 0;padding-left:22px}.blk li{margin:3px 0}
+.blk.warn .lbl{color:var(--warn)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cx{background:var(--ok-soft);color:var(--ok);border-radius:10px;padding:8px 13px;font-weight:600;font-size:14px;margin:12px 0}
+/* code */
+pre{background:var(--code);border:1px solid var(--line);border-radius:12px;padding:13px 15px;overflow-x:auto;margin:8px 0;position:relative;font-size:13px;line-height:1.55}
+pre code{background:none;padding:0;font-size:inherit}
+.code-java,.code-py{display:none}body[data-lang=java] .code-java,body[data-lang=py] .code-py{display:block}
+.cp{position:absolute;top:7px;right:7px;font-size:11px;padding:2px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surf);color:var(--mut);cursor:pointer;opacity:0;transition:.15s}
+pre:hover .cp,.cp:focus{opacity:1}
+.trace{border-left:3px solid var(--warn)}
+/* tables */
+.tw{overflow-x:auto;margin:10px 0;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;background:var(--surf)}
+th,td{padding:8px 11px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:var(--soft);font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}tr:last-child td{border-bottom:0}
+.ladder td:first-child{width:34px;text-align:center}.ladder .t{white-space:nowrap}.ladder .c{white-space:nowrap;font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+input.pk{width:17px;height:17px;accent-color:var(--acc);cursor:pointer}
+.pill{font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:99px;white-space:nowrap}.dE{background:var(--ok-soft);color:var(--ok)}.dM{background:var(--warn-soft);color:var(--warn)}.dH{background:var(--hot-soft);color:var(--bad)}
+tr.done td{background:var(--ok-soft)}tr.done td:nth-child(3){text-decoration:line-through;text-decoration-color:var(--mut)}
+details{border:1px solid var(--line);border-radius:12px;padding:9px 14px;margin:8px 0;background:var(--surf)}summary{cursor:pointer;font-weight:600}details[open]{border-color:var(--acc)}details p{margin:8px 0 2px;color:var(--mut)}
+/* stepper */
+.stepper{border:1px solid var(--line);border-radius:16px;padding:14px;margin:8px 0 14px;background:linear-gradient(var(--soft),var(--surf));outline:none}
+.stepper:focus-visible{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-soft)}
+.st-prog{height:4px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:10px}.st-prog i{display:block;height:100%;background:var(--acc);width:0;transition:width .3s}
+.st-view{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;padding:6px 0 2px}
+.cellw{display:flex;flex-direction:column;align-items:center;min-width:46px}
+.ptr{min-height:22px;font:700 11px ui-monospace,Consolas,monospace;color:#fff;margin-bottom:3px;display:flex;align-items:flex-end}
+.ptr b{background:var(--acc);padding:1px 7px;border-radius:99px;white-space:nowrap;animation:drop .25s ease}
+.cell{min-width:46px;height:46px;display:flex;align-items:center;justify-content:center;border:2px solid var(--line);border-radius:11px;background:var(--surf);font:600 16px ui-monospace,Consolas,monospace;padding:0 7px;transition:background .25s,border-color .25s,transform .25s,box-shadow .25s}
+.cell.in{background:var(--acc-soft);border-color:var(--acc);transform:translateY(-2px);box-shadow:0 4px 10px rgba(79,70,229,.18)}
+.cell.ok{background:var(--ok-soft);border-color:var(--ok)}
+.cell.dim{background:var(--soft);color:var(--mut);border-style:dashed;opacity:.6}
+.cell.pop{animation:pop .35s ease}
+.edge{align-self:flex-start;margin-top:31px;min-width:20px;text-align:center;color:var(--acc);font:700 17px ui-monospace,Consolas,monospace}
+.idx{font:11px ui-monospace,Consolas,monospace;color:var(--mut);margin-top:3px}
+.st-aux{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;min-height:30px;margin-top:8px}
+.st-aux .al{font:700 11px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}
+.chip{font:600 12.5px ui-monospace,Consolas,monospace;background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:2px 9px}
+.st-note{min-height:48px;margin:8px 2px;font-size:14.5px;padding:9px 13px;background:var(--surf);border:1px solid var(--line);border-radius:10px}
+.st-ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.st-ctl input[type=range]{flex:1;min-width:90px;accent-color:var(--acc)}
+.st-count{font-size:12px;color:var(--mut);white-space:nowrap}
+@keyframes pop{0%{transform:scale(.75)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes drop{from{transform:translateY(-6px);opacity:0}to{transform:none;opacity:1}}
+.foot{margin-top:50px;padding-top:18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:14px}
+@media (max-width:1020px){.wrap{display:block}nav.side{display:none}
+ .chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0;position:sticky;top:57px;z-index:10;background:var(--bg)}
+ .chips a{white-space:nowrap;font-size:12.5px;border:1px solid var(--line);background:var(--surf);padding:4px 11px;border-radius:99px;text-decoration:none;color:var(--fg)}}
+@media (max-width:640px){body{font-size:15px}.hero{padding:22px 18px}.pat{padding:16px 14px 6px}.two{grid-template-columns:1fr}.cell{min-width:36px;height:38px;font-size:13.5px}.cellw{min-width:36px}.brand span{display:none}.pp{margin-left:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{.bar,.pbar,nav.side,.chips,.st-ctl,.cp{display:none}.wrap{display:block}.code-java,.code-py{display:block!important}.pat{box-shadow:none;break-inside:avoid-page}body{background:#fff}}
+</style></head>
+<body data-lang="java" data-file="06_sorting_intervals.html" data-topic="sorting_intervals">
+<div class="bar"><div class="bar-in"><a class="brand" href="../index.html"><b>DSA</b> <span>Mastery</span></a>
+<span class="prog" id="prog"></span>
+<span class="seg"><button id="b-java" class="on">Java</button><button id="b-py">Python</button></span>
+<button id="b-theme" title="Toggle light / dark" aria-label="Toggle theme">◐</button>
+<button id="b-dl" title="Save this page as a standalone HTML file">⬇ Download</button></div><div class="pbar"><i id="pbar"></i></div></div>
+<div class="wrap"><nav class="side" aria-label="On this page"><h4>Start here</h4><a href="#mindset">The mindset</a><a href="#priority">Priority</a><a href="#cues">Problem cues</a><h4>Patterns</h4><a href="#p1"><span class="dot hot"></span>1. Comparison sorts: merge, quick and what to pick<span class="cnt"></span></a><a href="#p2"><span class="dot hot"></span>2. Custom comparators and multi-key sorting<span class="cnt"></span></a><a href="#p3"><span class="dot hot"></span>3. Counting and bucket sort (beating n log n)<span class="cnt"></span></a><a href="#p4"><span class="dot hot"></span>4. Merging intervals<span class="cnt"></span></a><a href="#p5"><span class="dot hot"></span>5. Insert into a sorted interval list; calendar booking<span class="cnt"></span></a><a href="#p6"><span class="dot hot"></span>6. Sweep line: counting overlaps over time<span class="cnt"></span></a><a href="#p7"><span class="dot hot"></span>7. Greedy interval scheduling<span class="cnt"></span></a><a href="#p8"><span class="dot hot"></span>8. Sort first, then two pointers or neighbours<span class="cnt"></span></a><a href="#p9"><span class="dot sec"></span>9. Cyclic sort: use the index as the hash<span class="cnt"></span></a><h4>Wrap up</h4><a href="#recall">One-line recall</a><a href="#choose">Choosing</a><a href="#selftest">Self-test</a><a href="#plan">Study plan</a></nav><main><div class="chips"><a href="#p1">1. Comparison sorts: merge, quick and what to pick</a><a href="#p2">2. Custom comparators and multi-key sorting</a><a href="#p3">3. Counting and bucket sort (beating n log n)</a><a href="#p4">4. Merging intervals</a><a href="#p5">5. Insert into a sorted interval list; calendar booking</a><a href="#p6">6. Sweep line: counting overlaps over time</a><a href="#p7">7. Greedy interval scheduling</a><a href="#p8">8. Sort first, then two pointers or neighbours</a><a href="#p9">9. Cyclic sort: use the index as the hash</a></div>
+<header class="hero"><div class="eyebrow">Topic 06</div><h1>Sorting and Intervals — Pattern Guide</h1><p class="lead">Sorting is rarely the final answer; it is the move that makes the real answer easy. This guide covers the sorts you must know, custom comparators, counting and bucket sort, and the interval toolbox: merging, inserting, sweep line and greedy scheduling, plus sorting as preprocessing and cyclic sort. Each pattern has the intuition, a step-through animation, Java and Python code, and a ladder of LeetCode problems.</p><div class="stats"><span class="stat"><b>9</b> patterns</span><span class="stat"><b>49</b> practice problems</span><span class="stat"><b>9</b> animations</span><span class="stat">Java + Python</span></div></header>
+<div class="callout"><span class="lbl">How to use this page</span><p>For each section: read <em>Detect</em> and <em>Intuition</em>, play the animation, then try to write the skeleton from memory before opening the code. Finish by solving the problem ladder in order.</p></div>
+<h2 id="mindset">The mindset</h2><p>Sorting costs O(n log n) once and then buys you <strong>order</strong>: neighbours are the closest, ends are the extremes, overlaps become adjacent. For interval problems the two decisions are almost always the same: <strong>what do I sort by</strong> (start for merging and inserting, end for greedy selection) and <strong>what do I track while scanning</strong> (the last end, a running count, a heap of end times).</p><p>Ask these questions on every sorting or interval problem:</p><ul><li><strong>Will sorting make the answer easier?</strong> → pairs of extremes, adjacent differences, matching two lists.</li><li><strong>Do I sort by start or by end?</strong> → start to merge/insert; end to select the maximum number.</li><li><strong>Is the range of values small?</strong> → counting or bucket sort in O(n).</li><li><strong>Do I need the number of overlaps?</strong> → sweep line (+1 / −1 events) or a heap of end times.</li><li><strong>Are the values exactly 1..n?</strong> → cyclic sort with O(1) space.</li></ul>
+<h2 id="priority">Priority</h2><p class="muted">Ranked by how often these show up in interviews (our judgement from the common interview lists and company question banks, not hard data).</p><h3 style='margin:14px 0 4px;font-size:16px'>🔥 Frequently asked — master these first</h3><div class="tw"><table class=""><thead><tr><th>#</th><th>Pattern</th><th>Why it matters</th><th>Signature problem</th></tr></thead><tbody><tr><td>1</td><td><strong>Comparison sorts: merge, quick and what to pick</strong></td><td>You must know one O(n log n) sort cold and justify your choice</td><td>LC 912 / 88</td></tr><tr><td>2</td><td><strong>Custom comparators and multi-key sorting</strong></td><td>Many problems are just "sort by the right rule"</td><td>LC 179 / 406</td></tr><tr><td>3</td><td><strong>Counting and bucket sort (beating n log n)</strong></td><td>Gives O(n) answers for frequency and range-limited problems</td><td>LC 347 / 75</td></tr><tr><td>4</td><td><strong>Merging intervals</strong></td><td>The template behind most interval questions</td><td>LC 56 / 986</td></tr><tr><td>5</td><td><strong>Insert into a sorted interval list; calendar booking</strong></td><td>Tests clean three-phase scanning and ordered-set thinking</td><td>LC 57 / 729</td></tr><tr><td>6</td><td><strong>Sweep line: counting overlaps over time</strong></td><td>The standard way to answer "how many at once?"</td><td>LC 253 / 1094 / 218</td></tr><tr><td>7</td><td><strong>Greedy interval scheduling</strong></td><td>A clean greedy proof (exchange argument) that appears in many forms</td><td>LC 435 / 452</td></tr><tr><td>8</td><td><strong>Sort first, then two pointers or neighbours</strong></td><td>A cheap O(n log n) preprocessing step that simplifies many problems</td><td>LC 881 / 455</td></tr></tbody></table></div><h3 style='margin:14px 0 4px;font-size:16px'>🧊 Secondary — know them</h3><div class="tw"><table class=""><thead><tr><th>#</th><th>Pattern</th><th>Why it matters</th><th>Signature problem</th></tr></thead><tbody><tr><td>9</td><td><strong>Cyclic sort: use the index as the hash</strong></td><td>O(1)-space answer for missing and duplicate numbers in 1..n</td><td>LC 41 / 448</td></tr></tbody></table></div>
+<h2 id="cues">Problem cues</h2><p class="muted">If the problem says this, think of that.</p><div class="tw"><table class=""><thead><tr><th>If the problem says / looks like…</th><th>Pattern</th></tr></thead><tbody><tr><td>"sort an array", "merge sorted", "count inversions"</td><td><strong>P1</strong> Comparison sorts</td></tr><tr><td>"arrange to form the largest", "sort by X then Y"</td><td><strong>P2</strong> Custom comparator</td></tr><tr><td>"top K frequent", small value range, "h-index"</td><td><strong>P3</strong> Counting and bucket sort</td></tr><tr><td>"merge intervals", "union of ranges", "intersections"</td><td><strong>P4</strong> Merge intervals</td></tr><tr><td>"insert interval", "my calendar", online booking</td><td><strong>P5</strong> Insert and ordered intervals</td></tr><tr><td>"minimum rooms", "maximum concurrent", "car pooling", "skyline"</td><td><strong>P6</strong> Sweep line</td></tr><tr><td>"non-overlapping", "minimum arrows", "maximum events"</td><td><strong>P7</strong> Greedy scheduling</td></tr><tr><td>"boats", "assign", "minimum difference", pairing extremes</td><td><strong>P8</strong> Sort then two pointers</td></tr><tr><td>"missing / duplicate number in 1..n", O(1) space</td><td><strong>P9</strong> Cyclic sort</td></tr></tbody></table></div>
+<h2>The patterns</h2>
+<section class="pat hot" id="p1">
+<div class="pat-h"><span class="badge">1</span><h3>Comparison sorts: merge, quick and what to pick</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>You are asked to implement a sort, to merge sorted data, or to count inversions during a sort.</div><div class="gi"><span class="lbl">Detect it</span>"sort an array" · "merge two sorted arrays" · "count smaller numbers after self" · "reverse pairs" · "stable sort needed".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Merge sort is how you would sort a deck of cards with a friend: split it in two, each sorts their half, then you interleave the two sorted piles by always taking the smaller top card. Interleaving two sorted piles is cheap (one pass), and halving gives only log n rounds. Quick sort instead picks a pivot and throws smaller cards left, larger right.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Insertion or bubble sort compares nearly every pair: O(n²). Any comparison sort needs at least n log n comparisons; merge sort reaches it in every case.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Merge sort: <code>sort(left)</code>, <code>sort(right)</code>, <code>merge</code>. The merge step is a two-pointer walk over two sorted runs. Quick sort: partition around a pivot, recurse on both sides (average O(n log n), worst O(n²) without a random pivot).</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Base case: 0 or 1 elements are sorted.</li><li>Split at <code>mid</code>; recursively sort both halves.</li><li>Merge: two pointers <code>i</code>, <code>j</code>; copy the smaller (<code>&lt;=</code> keeps it stable) into a temp array.</li><li>Copy the temp back (or return the merged list).</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="mergesort"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>algorithm cheat sheet</p><pre class="trace"><code>algorithm      best        average     worst       space    stable
+insertion      O(n)        O(n^2)      O(n^2)      O(1)     yes   (great for tiny or nearly sorted input)
+merge          O(n log n)  O(n log n)  O(n log n)  O(n)     yes   (linked lists, stable sort, counting inversions)
+quick          O(n log n)  O(n log n)  O(n^2)      O(log n) no    (fastest in practice, random pivot)
+heap           O(n log n)  O(n log n)  O(n log n)  O(1)     no    (in-place guarantee)
+counting       O(n + k)    O(n + k)    O(n + k)    O(k)     yes   (small integer range)
+Java: Arrays.sort(int[]) is dual-pivot quicksort; sort(Object[]) / Collections.sort is TimSort (stable).
+Python: list.sort / sorted use TimSort (stable).</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>merge sort</p><pre class="code-java"><code>void mergeSort(int[] a, int[] tmp, int lo, int hi) {
+    if (lo &gt;= hi) return;
+    int mid = (lo + hi) &gt;&gt;&gt; 1;
+    mergeSort(a, tmp, lo, mid);
+    mergeSort(a, tmp, mid + 1, hi);
+    int i = lo, j = mid + 1, k = lo;
+    while (i &lt;= mid &amp;&amp; j &lt;= hi) tmp[k++] = (a[i] &lt;= a[j]) ? a[i++] : a[j++];   // &lt;= keeps it stable
+    while (i &lt;= mid) tmp[k++] = a[i++];
+    while (j &lt;= hi) tmp[k++] = a[j++];
+    System.arraycopy(tmp, lo, a, lo, hi - lo + 1);
+}</code></pre><pre class="code-py"><code>def merge_sort(a):
+    if len(a) &lt;= 1:
+        return a
+    mid = len(a) // 2
+    left, right = merge_sort(a[:mid]), merge_sort(a[mid:])
+    out, i, j = [], 0, 0
+    while i &lt; len(left) and j &lt; len(right):
+        if left[i] &lt;= right[j]:                      # &lt;= keeps it stable
+            out.append(left[i]); i += 1
+        else:
+            out.append(right[j]); j += 1
+    return out + left[i:] + right[j:]</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>quick sort with a random pivot</p><pre class="code-java"><code>void quickSort(int[] a, int lo, int hi) {
+    if (lo &gt;= hi) return;
+    int r = lo + (int) (Math.random() * (hi - lo + 1));
+    swap(a, r, hi);                                   // random pivot avoids the sorted-input worst case
+    int pivot = a[hi], i = lo;
+    for (int j = lo; j &lt; hi; j++) if (a[j] &lt; pivot) swap(a, i++, j);
+    swap(a, i, hi);
+    quickSort(a, lo, i - 1);
+    quickSort(a, i + 1, hi);
+}</code></pre><pre class="code-py"><code>import random
+def quick_sort(a, lo, hi):
+    if lo &gt;= hi:
+        return
+    r = random.randint(lo, hi)
+    a[r], a[hi] = a[hi], a[r]                         # random pivot avoids the sorted-input worst case
+    pivot, i = a[hi], lo
+    for j in range(lo, hi):
+        if a[j] &lt; pivot:
+            a[i], a[j] = a[j], a[i]
+            i += 1
+    a[i], a[hi] = a[hi], a[i]
+    quick_sort(a, lo, i - 1)
+    quick_sort(a, i + 1, hi)</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>merge sorted array into the front array (fill from the back)</p><pre class="code-java"><code>int i = m - 1, j = n - 1, k = m + n - 1;
+while (j &gt;= 0) {
+    if (i &gt;= 0 &amp;&amp; a[i] &gt; b[j]) a[k--] = a[i--];
+    else a[k--] = b[j--];
+}</code></pre><pre class="code-py"><code>i, j, k = m - 1, n - 1, m + n - 1
+while j &gt;= 0:
+    if i &gt;= 0 and a[i] &gt; b[j]:
+        a[k] = a[i]; i -= 1
+    else:
+        a[k] = b[j]; j -= 1
+    k -= 1</code></pre></div>
+<div class="cx">⏱ Complexity — Merge sort O(n log n) time, O(n) space. Quick sort O(n log n) average, O(n²) worst, O(log n) stack.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Quick sort on already-sorted input with a fixed pivot is O(n²): randomise or use median-of-three.</li><li><code>(lo + hi) / 2</code> can overflow: use <code>lo + (hi − lo) / 2</code> or <code>&gt;&gt;&gt; 1</code>.</li><li>Stability matters when sorting records by one key after another; use <code>&lt;=</code> in the merge.</li><li>Merging in place from the <strong>back</strong> avoids overwriting unread elements.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Count inversions or reverse pairs: count cross-half pairs just before merging.</li><li>Sort a linked list: merge sort needs no extra array.</li><li>External sort: sort chunks that fit in memory, then k-way merge with a heap.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>Small integer ranges (counting sort), nearly sorted data (insertion sort / TimSort), or when you only need the k-th element (quick select).</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-88" aria-label="Solved LC 88"></td><td class="t"><a href="https://leetcode.com/problems/merge-sorted-array/" target="_blank" rel="noopener">LC 88</a></td><td>Merge Sorted Array</td><td><span class="pill dE">Easy</span></td><td>Fill from the back with three pointers</td><td class="c">O(m + n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-912" aria-label="Solved LC 912"></td><td class="t"><a href="https://leetcode.com/problems/sort-an-array/" target="_blank" rel="noopener">LC 912</a></td><td>Sort an Array</td><td><span class="pill dM">Medium</span></td><td>Merge sort (guaranteed) or randomised quick sort</td><td class="c">O(n log n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-215" aria-label="Solved LC 215"></td><td class="t"><a href="https://leetcode.com/problems/kth-largest-element-in-an-array/" target="_blank" rel="noopener">LC 215</a></td><td>Kth Largest Element in an Array</td><td><span class="pill dM">Medium</span></td><td>Quick select partition, expected O(n)</td><td class="c">O(n) avg / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-315" aria-label="Solved LC 315"></td><td class="t"><a href="https://leetcode.com/problems/count-of-smaller-numbers-after-self/" target="_blank" rel="noopener">LC 315</a></td><td>Count of Smaller Numbers After Self</td><td><span class="pill dH">Hard</span></td><td>Merge sort on indices, count elements jumped over</td><td class="c">O(n log n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-493" aria-label="Solved LC 493"></td><td class="t"><a href="https://leetcode.com/problems/reverse-pairs/" target="_blank" rel="noopener">LC 493</a></td><td>Reverse Pairs</td><td><span class="pill dH">Hard</span></td><td>Count a[i] &gt; 2·a[j] across halves before merging</td><td class="c">O(n log n) / O(n)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p2">
+<div class="pat-h"><span class="badge">2</span><h3>Custom comparators and multi-key sorting</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>The natural order is not the order you want: concatenation order, by frequency then alphabet, by height then position.</div><div class="gi"><span class="lbl">Detect it</span>"arrange to form the largest" · "sort by … then by …" · "reconstruct queue" · "rank teams" · "custom order".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>A comparator answers one question for any two items: <strong>who goes first?</strong> If that answer is consistent (a proper ordering), any sort algorithm will arrange the whole list. For "largest number" you cannot compare 3 and 30 numerically, but you can ask which concatenation is bigger: <code>"330"</code> vs <code>"303"</code>.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Trying all permutations is O(n!). Finding a valid comparator reduces it to one sort: O(n log n).</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Write <code>compare(a, b)</code> returning negative if <code>a</code> should come first. It must be <strong>transitive and consistent</strong>. For multiple keys, compare the first key and fall back to the next on ties.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Decide the rule that puts <code>a</code> before <code>b</code>.</li><li>Check it is a strict weak order (transitive, consistent for ties).</li><li>Sort with the comparator (or a key function).</li><li>Post-process (join, insert at index, strip zeros).</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="largestnum"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>largest number from <code>[3, 30, 34, 5, 9]</code></p><pre class="trace"><code>34 vs 3  : &quot;343&quot; &gt; &quot;334&quot;  -&gt; 34 first
+3  vs 30 : &quot;330&quot; &gt; &quot;303&quot;  -&gt; 3 first
+sorted order: 9, 5, 34, 3, 30
+result: &quot;9534330&quot;</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>largest number (comparator on concatenation)</p><pre class="code-java"><code>String[] s = new String[n];
+for (int i = 0; i &lt; n; i++) s[i] = String.valueOf(nums[i]);
+Arrays.sort(s, (x, y) -&gt; (y + x).compareTo(x + y));          // bigger concatenation first
+if (s[0].equals(&quot;0&quot;)) return &quot;0&quot;;                              // all zeros
+return String.join(&quot;&quot;, s);</code></pre><pre class="code-py"><code>from functools import cmp_to_key
+s = [str(x) for x in nums]
+s.sort(key=cmp_to_key(lambda x, y: -1 if x + y &gt; y + x else (1 if x + y &lt; y + x else 0)))
+return &quot;0&quot; if s[0] == &quot;0&quot; else &quot;&quot;.join(s)</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>queue reconstruction: sort by height desc, then k asc; insert at index k</p><pre class="code-java"><code>Arrays.sort(people, (a, b) -&gt; a[0] != b[0] ? Integer.compare(b[0], a[0]) : Integer.compare(a[1], b[1]));
+List&lt;int[]&gt; res = new ArrayList&lt;&gt;();
+for (int[] p : people) res.add(p[1], p);                       // taller people are already placed
+return res.toArray(new int[0][]);</code></pre><pre class="code-py"><code>people.sort(key=lambda p: (-p[0], p[1]))
+res = []
+for p in people:
+    res.insert(p[1], p)                                       # taller people are already placed
+return res</code></pre></div>
+<div class="cx">⏱ Complexity — O(n log n) comparisons × cost of one comparison.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Never write <code>(a, b) -&gt; a − b</code> for ints: it can overflow. Use <code>Integer.compare</code>.</li><li>An inconsistent comparator makes Java throw "Comparison method violates its general contract".</li><li>Edge case: all zeros in largest-number must return <code>"0"</code>, not <code>"000"</code>.</li><li>Python 3 has no <code>cmp=</code>: use <code>key=</code> or <code>functools.cmp_to_key</code>.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Sort by frequency then value: <code>key=(count, value)</code>.</li><li>Custom alphabet (alien dictionary): map each letter to its rank and compare rank tuples.</li><li>Sort intervals by start, or by end for greedy (patterns 4 and 7).</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When a simple key (one number or string) already gives the order; do not over-engineer a comparator.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-2418" aria-label="Solved LC 2418"></td><td class="t"><a href="https://leetcode.com/problems/sort-the-people/" target="_blank" rel="noopener">LC 2418</a></td><td>Sort the People</td><td><span class="pill dE">Easy</span></td><td>Sort names by height descending</td><td class="c">O(n log n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-1636" aria-label="Solved LC 1636"></td><td class="t"><a href="https://leetcode.com/problems/sort-array-by-increasing-frequency/" target="_blank" rel="noopener">LC 1636</a></td><td>Sort Array by Increasing Frequency</td><td><span class="pill dE">Easy</span></td><td>Key = (frequency, −value)</td><td class="c">O(n log n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-179" aria-label="Solved LC 179"></td><td class="t"><a href="https://leetcode.com/problems/largest-number/" target="_blank" rel="noopener">LC 179</a></td><td>Largest Number</td><td><span class="pill dM">Medium</span></td><td>Comparator: x + y vs y + x</td><td class="c">O(n log n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-937" aria-label="Solved LC 937"></td><td class="t"><a href="https://leetcode.com/problems/reorder-data-in-log-files/" target="_blank" rel="noopener">LC 937</a></td><td>Reorder Data in Log Files</td><td><span class="pill dM">Medium</span></td><td>Letter logs by content then id; digit logs keep order</td><td class="c">O(n log n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-406" aria-label="Solved LC 406"></td><td class="t"><a href="https://leetcode.com/problems/queue-reconstruction-by-height/" target="_blank" rel="noopener">LC 406</a></td><td>Queue Reconstruction by Height</td><td><span class="pill dM">Medium</span></td><td>Sort tall first, insert at index k</td><td class="c">O(n²) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-1366" aria-label="Solved LC 1366"></td><td class="t"><a href="https://leetcode.com/problems/rank-teams-by-votes/" target="_blank" rel="noopener">LC 1366</a></td><td>Rank Teams by Votes</td><td><span class="pill dM">Medium</span></td><td>Vote counts per position as the sort key, then letter</td><td class="c">O(n·k + k² log k) / O(k²)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p3">
+<div class="pat-h"><span class="badge">3</span><h3>Counting and bucket sort (beating n log n)</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Values or frequencies lie in a small known range, so you can use them directly as array indices.</div><div class="gi"><span class="lbl">Detect it</span>"top K frequent" · "sort colors / ages / scores in 0..100" · "h-index" · "sort characters by frequency" · values up to ~10⁶.</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Sorting library books by shelf number is easier than comparing titles: just drop each book in the box labelled with its shelf, then read the boxes in order. Bucket sort uses the key as the box number. Frequencies are ideal keys: no element appears more than <code>n</code> times, so there are only <code>n</code> boxes.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Sorting the entries by count is O(n log n). Placing each value in <code>bucket[frequency]</code> and scanning from the highest bucket down is O(n).</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Count occurrences, then place items in an array of buckets indexed by count (or by value for counting sort). Read the buckets in the order you need.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Count: <code>cnt[x]++</code> (hash map or array).</li><li>Create <code>buckets[0..n]</code>; put each value <code>x</code> into <code>buckets[cnt[x]]</code>.</li><li>Scan buckets from high to low, collecting until you have <code>k</code> items.</li><li>Counting sort: walk values <code>0..max</code> and output each value <code>cnt[v]</code> times.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="bucket"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>top 2 frequent in <code>[1,1,1,2,2,3]</code></p><pre class="trace"><code>counts: 1-&gt;3, 2-&gt;2, 3-&gt;1
+buckets: [1]={3}  [2]={2}  [3]={1}
+scan from high: bucket 3 -&gt; 1, bucket 2 -&gt; 2
+=&gt; [1, 2]</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>top K frequent elements with buckets</p><pre class="code-java"><code>Map&lt;Integer, Integer&gt; cnt = new HashMap&lt;&gt;();
+for (int x : nums) cnt.merge(x, 1, Integer::sum);
+List&lt;Integer&gt;[] buckets = new List[nums.length + 1];
+for (var e : cnt.entrySet()) {
+    int f = e.getValue();
+    if (buckets[f] == null) buckets[f] = new ArrayList&lt;&gt;();
+    buckets[f].add(e.getKey());
+}
+int[] res = new int[k]; int idx = 0;
+for (int f = buckets.length - 1; f &gt;= 1 &amp;&amp; idx &lt; k; f--)
+    if (buckets[f] != null) for (int x : buckets[f]) if (idx &lt; k) res[idx++] = x;
+return res;</code></pre><pre class="code-py"><code>from collections import Counter
+cnt = Counter(nums)
+buckets = [[] for _ in range(len(nums) + 1)]
+for x, f in cnt.items():
+    buckets[f].append(x)
+res = []
+for f in range(len(buckets) - 1, 0, -1):
+    for x in buckets[f]:
+        res.append(x)
+        if len(res) == k:
+            return res</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>counting sort for small integer ranges (sort colors)</p><pre class="code-java"><code>int[] count = new int[3];
+for (int x : a) count[x]++;
+int idx = 0;
+for (int v = 0; v &lt; 3; v++)
+    while (count[v]-- &gt; 0) a[idx++] = v;</code></pre><pre class="code-py"><code>count = [0] * 3
+for x in a:
+    count[x] += 1
+i = 0
+for v in range(3):
+    for _ in range(count[v]):
+        a[i] = v
+        i += 1</code></pre></div>
+<div class="cx">⏱ Complexity — O(n + k) time, O(n + k) space for range size k.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Only valid when keys are small, non-negative integers (or can be shifted into that range).</li><li>Counting sort is stable only if you place elements from the back using prefix sums.</li><li>Top K with ties: decide whether to return all tied items or exactly k.</li><li>A heap of size k is O(n log k) and handles streaming input; buckets need all data first.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>H-index: <code>buckets[min(citations, n)]</code>, then scan from high to low.</li><li>Radix sort: counting sort digit by digit, O(d·(n + b)).</li><li>Maximum gap: bucket by value range; the answer lies between buckets.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>Large or unbounded key ranges (use comparison sort) or streaming data where the full count is unknown.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-75" aria-label="Solved LC 75"></td><td class="t"><a href="https://leetcode.com/problems/sort-colors/" target="_blank" rel="noopener">LC 75</a></td><td>Sort Colors</td><td><span class="pill dM">Medium</span></td><td>Counting sort with 3 counters (or one-pass Dutch flag)</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-347" aria-label="Solved LC 347"></td><td class="t"><a href="https://leetcode.com/problems/top-k-frequent-elements/" target="_blank" rel="noopener">LC 347</a></td><td>Top K Frequent Elements</td><td><span class="pill dM">Medium</span></td><td>Count, bucket by frequency, scan from the top</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-451" aria-label="Solved LC 451"></td><td class="t"><a href="https://leetcode.com/problems/sort-characters-by-frequency/" target="_blank" rel="noopener">LC 451</a></td><td>Sort Characters By Frequency</td><td><span class="pill dM">Medium</span></td><td>Count letters, bucket by frequency, build output</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-274" aria-label="Solved LC 274"></td><td class="t"><a href="https://leetcode.com/problems/h-index/" target="_blank" rel="noopener">LC 274</a></td><td>H-Index</td><td><span class="pill dM">Medium</span></td><td>Bucket citations capped at n, scan from the top</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-692" aria-label="Solved LC 692"></td><td class="t"><a href="https://leetcode.com/problems/top-k-frequent-words/" target="_blank" rel="noopener">LC 692</a></td><td>Top K Frequent Words</td><td><span class="pill dM">Medium</span></td><td>Counts with a (−count, word) key or a heap</td><td class="c">O(n log k) / O(n)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p4">
+<div class="pat-h"><span class="badge">4</span><h3>Merging intervals</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Combine overlapping ranges, find union length, or intersect two interval lists.</div><div class="gi"><span class="lbl">Detect it</span>"merge intervals" · "overlapping" · "union of ranges" · "summary ranges" · "interval list intersections".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Imagine laying coloured strips on a ruler. Once the strips are sorted by their left end, the only strip a new one can overlap is the latest strip you placed (everything earlier ends before it). So you either stretch that last strip or put a new strip down.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Compare every pair of intervals and union overlaps repeatedly: O(n²) or worse. Sorting by start turns it into one linear scan after an O(n log n) sort.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Sort by start. Keep a result list. For each interval: if it starts after the last merged interval ends → append; otherwise extend the last interval's end to <code>max(end, cur.end)</code>.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Sort intervals by start.</li><li>Put the first interval in <code>merged</code>.</li><li>For each next interval: <code>if start &gt; last.end</code> append it, else <code>last.end = max(last.end, end)</code>.</li><li>Return <code>merged</code>.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="mergeiv"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p><code>[[8,10],[1,3],[15,18],[2,6]]</code></p><pre class="trace"><code>sort by start: [1,3] [2,6] [8,10] [15,18]
+[1,3]   start new       merged [1,3]
+[2,6]   2 &lt;= 3 overlap  merged [1,6]
+[8,10]  8 &gt;  6 gap      merged [1,6] [8,10]
+[15,18] 15 &gt; 10 gap     merged [1,6] [8,10] [15,18]</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>merge intervals</p><pre class="code-java"><code>Arrays.sort(iv, (a, b) -&gt; Integer.compare(a[0], b[0]));
+List&lt;int[]&gt; out = new ArrayList&lt;&gt;();
+for (int[] cur : iv) {
+    if (out.isEmpty() || out.get(out.size() - 1)[1] &lt; cur[0]) out.add(cur);          // gap: new interval
+    else out.get(out.size() - 1)[1] = Math.max(out.get(out.size() - 1)[1], cur[1]);  // overlap: extend
+}
+return out.toArray(new int[0][]);</code></pre><pre class="code-py"><code>iv.sort()
+out = []
+for s, e in iv:
+    if out and out[-1][1] &gt;= s:                      # overlap (touching counts): extend
+        out[-1][1] = max(out[-1][1], e)
+    else:
+        out.append([s, e])                           # gap: new interval
+return out</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>intersection of two sorted interval lists (two pointers)</p><pre class="code-java"><code>List&lt;int[]&gt; res = new ArrayList&lt;&gt;();
+int i = 0, j = 0;
+while (i &lt; A.length &amp;&amp; j &lt; B.length) {
+    int lo = Math.max(A[i][0], B[j][0]), hi = Math.min(A[i][1], B[j][1]);
+    if (lo &lt;= hi) res.add(new int[]{lo, hi});                      // overlap exists
+    if (A[i][1] &lt; B[j][1]) i++; else j++;                          // drop the one that ends first
+}</code></pre><pre class="code-py"><code>res, i, j = [], 0, 0
+while i &lt; len(A) and j &lt; len(B):
+    lo, hi = max(A[i][0], B[j][0]), min(A[i][1], B[j][1])
+    if lo &lt;= hi:
+        res.append([lo, hi])                                      # overlap exists
+    if A[i][1] &lt; B[j][1]:
+        i += 1                                                    # drop the one that ends first
+    else:
+        j += 1</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>remove covered intervals (sort start asc, end desc)</p><pre class="code-java"><code>Arrays.sort(iv, (a, b) -&gt; a[0] == b[0] ? Integer.compare(b[1], a[1]) : Integer.compare(a[0], b[0]));
+int count = 0, maxEnd = 0;
+for (int[] in : iv) if (in[1] &gt; maxEnd) { count++; maxEnd = in[1]; }      // not covered by an earlier one
+return count;</code></pre><pre class="code-py"><code>iv.sort(key=lambda p: (p[0], -p[1]))
+count = max_end = 0
+for s, e in iv:
+    if e &gt; max_end:                                  # not covered by an earlier interval
+        count += 1
+        max_end = e
+return count</code></pre></div>
+<div class="cx">⏱ Complexity — O(n log n) time (sorting), O(n) space for the output.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Decide whether touching intervals (<code>[1,4]</code>, <code>[4,5]</code>) merge: usually yes (<code>&lt;=</code>).</li><li>Extend with <code>max(last.end, end)</code>: a later interval can be fully inside the last one.</li><li>In Java, mutate a copy or the sorted array's inner arrays carefully; they are shared objects.</li><li>Do not forget to sort, or the single-pass logic is wrong.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Summary ranges on a sorted array: group consecutive numbers.</li><li>Count ways to group overlapping ranges: number of merged groups g → <code>2^g</code>.</li><li>Employee free time: merge all schedules, take the gaps.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>Intervals that arrive online with queries in between (use a balanced tree / <code>TreeMap</code>).</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-228" aria-label="Solved LC 228"></td><td class="t"><a href="https://leetcode.com/problems/summary-ranges/" target="_blank" rel="noopener">LC 228</a></td><td>Summary Ranges</td><td><span class="pill dE">Easy</span></td><td>Scan, extend a run while consecutive</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-56" aria-label="Solved LC 56"></td><td class="t"><a href="https://leetcode.com/problems/merge-intervals/" target="_blank" rel="noopener">LC 56</a></td><td>Merge Intervals</td><td><span class="pill dM">Medium</span></td><td>Sort by start, extend or append</td><td class="c">O(n log n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-1288" aria-label="Solved LC 1288"></td><td class="t"><a href="https://leetcode.com/problems/remove-covered-intervals/" target="_blank" rel="noopener">LC 1288</a></td><td>Remove Covered Intervals</td><td><span class="pill dM">Medium</span></td><td>Sort start asc, end desc; count increasing ends</td><td class="c">O(n log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-986" aria-label="Solved LC 986"></td><td class="t"><a href="https://leetcode.com/problems/interval-list-intersections/" target="_blank" rel="noopener">LC 986</a></td><td>Interval List Intersections</td><td><span class="pill dM">Medium</span></td><td>Two pointers; advance the interval that ends first</td><td class="c">O(m + n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-2580" aria-label="Solved LC 2580"></td><td class="t"><a href="https://leetcode.com/problems/count-ways-to-group-overlapping-ranges/" target="_blank" rel="noopener">LC 2580</a></td><td>Count Ways to Group Overlapping Ranges</td><td><span class="pill dM">Medium</span></td><td>Merge, count groups g, answer 2^g mod 1e9+7</td><td class="c">O(n log n) / O(1)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p5">
+<div class="pat-h"><span class="badge">5</span><h3>Insert into a sorted interval list; calendar booking</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Intervals are already sorted and disjoint, and you add one (or many, online) while keeping the invariant.</div><div class="gi"><span class="lbl">Detect it</span>"insert interval" · "my calendar" · "data stream as disjoint intervals" · "range module".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>A shelf of sorted, non-touching books and a new book to insert. Slide past every book that ends before the new one starts. Then, while books overlap the new one, absorb them (stretch the new book to cover them). Finally put the new book down and copy the remaining books.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Append the new interval and re-run merge intervals: O(n log n). Because the list is already sorted, one linear pass in three phases is O(n).</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Three loops over the same index: (1) <code>iv[i].end &lt; new.start</code> → copy; (2) <code>iv[i].start &lt;= new.end</code> → merge into <code>new</code>; (3) copy the rest. For online insertion keep a <code>TreeMap</code> keyed by start and use <code>floorKey</code> / <code>ceilingKey</code> for neighbours.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Copy all intervals that end before <code>new.start</code>.</li><li>While <code>iv[i].start &lt;= new.end</code>: <code>new.start = min</code>, <code>new.end = max</code>; <code>i++</code>.</li><li>Add <code>new</code>.</li><li>Copy the rest.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="insertiv"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>insert <code>[4,8]</code> into <code>[1,2] [3,5] [6,7] [8,10] [12,16]</code></p><pre class="trace"><code>[1,2]   ends 2 &lt; 4        copy
+[3,5]   3 &lt;= 8  overlap   new = [3,8]
+[6,7]   6 &lt;= 8  overlap   new = [3,8]
+[8,10]  8 &lt;= 8  overlap   new = [3,10]
+[12,16] 12 &gt; 10 after     copy
+=&gt; [1,2] [3,10] [12,16]</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>insert interval</p><pre class="code-java"><code>List&lt;int[]&gt; res = new ArrayList&lt;&gt;();
+int i = 0, n = iv.length;
+while (i &lt; n &amp;&amp; iv[i][1] &lt; ni[0]) res.add(iv[i++]);               // before
+while (i &lt; n &amp;&amp; iv[i][0] &lt;= ni[1]) {                              // overlapping: absorb
+    ni[0] = Math.min(ni[0], iv[i][0]);
+    ni[1] = Math.max(ni[1], iv[i][1]);
+    i++;
+}
+res.add(ni);
+while (i &lt; n) res.add(iv[i++]);                                   // after
+return res.toArray(new int[0][]);</code></pre><pre class="code-py"><code>res, i, n = [], 0, len(iv)
+while i &lt; n and iv[i][1] &lt; ni[0]:                                 # before
+    res.append(iv[i]); i += 1
+while i &lt; n and iv[i][0] &lt;= ni[1]:                                # overlapping: absorb
+    ni = [min(ni[0], iv[i][0]), max(ni[1], iv[i][1])]
+    i += 1
+res.append(ni)
+res.extend(iv[i:])                                                # after
+return res</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>My Calendar I: reject overlapping bookings</p><pre class="code-java"><code>class MyCalendar {
+    TreeMap&lt;Integer, Integer&gt; m = new TreeMap&lt;&gt;();                // start -&gt; end
+    boolean book(int s, int e) {
+        Integer prev = m.floorKey(s), next = m.ceilingKey(s);
+        if (prev != null &amp;&amp; m.get(prev) &gt; s) return false;         // previous booking runs into us
+        if (next != null &amp;&amp; next &lt; e) return false;                // we run into the next booking
+        m.put(s, e);
+        return true;
+    }
+}</code></pre><pre class="code-py"><code>import bisect
+class MyCalendar:
+    def __init__(self):
+        self.s = []                                               # sorted (start, end)
+    def book(self, start, end):
+        i = bisect.bisect_left(self.s, (start, end))
+        if i &gt; 0 and self.s[i - 1][1] &gt; start:
+            return False                                          # previous booking runs into us
+        if i &lt; len(self.s) and self.s[i][0] &lt; end:
+            return False                                          # we run into the next booking
+        self.s.insert(i, (start, end))
+        return True</code></pre></div>
+<div class="cx">⏱ Complexity — Insert interval: O(n) time, O(n) output. Calendar with a TreeMap: O(log n) per booking.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Overlap test for half-open intervals <code>[s, e)</code>: <code>a.s &lt; b.e &amp;&amp; b.s &lt; a.e</code>; for closed intervals use <code>&lt;=</code>.</li><li>The first loop uses <code>end &lt; new.start</code> (strict) so touching intervals are merged in the second loop.</li><li>Do not mutate the caller's <code>new</code> interval if the problem forbids it.</li><li>Python's <code>list.insert</code> is O(n); use <code>sortedcontainers</code> or a tree for large online inputs.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Data stream as disjoint intervals: <code>TreeMap</code> of start → end, merge with neighbours on insert.</li><li>Range module: add, remove and query ranges with a <code>TreeMap</code>.</li><li>My Calendar II / III: count overlaps with a difference map (pattern 6).</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When the input is not sorted (merge-sort first) or you only need the number of overlaps (sweep line).</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-57" aria-label="Solved LC 57"></td><td class="t"><a href="https://leetcode.com/problems/insert-interval/" target="_blank" rel="noopener">LC 57</a></td><td>Insert Interval</td><td><span class="pill dM">Medium</span></td><td>Three phases: before, absorb overlaps, after</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-729" aria-label="Solved LC 729"></td><td class="t"><a href="https://leetcode.com/problems/my-calendar-i/" target="_blank" rel="noopener">LC 729</a></td><td>My Calendar I</td><td><span class="pill dM">Medium</span></td><td>Check the floor and ceiling neighbours in an ordered map</td><td class="c">O(log n) per op / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-986" aria-label="Solved LC 986"></td><td class="t"><a href="https://leetcode.com/problems/interval-list-intersections/" target="_blank" rel="noopener">LC 986</a></td><td>Interval List Intersections</td><td><span class="pill dM">Medium</span></td><td>Two pointers over two sorted lists</td><td class="c">O(m + n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-352" aria-label="Solved LC 352"></td><td class="t"><a href="https://leetcode.com/problems/data-stream-as-disjoint-intervals/" target="_blank" rel="noopener">LC 352</a></td><td>Data Stream as Disjoint Intervals</td><td><span class="pill dH">Hard</span></td><td>TreeMap of disjoint intervals; merge neighbours on insert</td><td class="c">O(log n) per op / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-715" aria-label="Solved LC 715"></td><td class="t"><a href="https://leetcode.com/problems/range-module/" target="_blank" rel="noopener">LC 715</a></td><td>Range Module</td><td><span class="pill dH">Hard</span></td><td>Ordered map add / remove / query over ranges</td><td class="c">O(log n) amortised / O(n)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p6">
+<div class="pat-h"><span class="badge">6</span><h3>Sweep line: counting overlaps over time</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>You need the maximum number of simultaneous intervals, or a total over time (rooms, platforms, capacity).</div><div class="gi"><span class="lbl">Detect it</span>"minimum meeting rooms" · "car pooling" · "maximum concurrent" · "skyline" · "my calendar III" · "minimum platforms".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Stand at the door and count: every time someone walks in add one, every time someone walks out subtract one. If you list all the entrances and exits in time order, the running count tells you how many are inside at every moment, and the biggest value is the number of rooms you need.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Check the overlap count at every possible time: O(n × range). Sorting the 2n events and sweeping once is O(n log n).</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Convert each <code>[start, end)</code> to events <code>(start, +1)</code> and <code>(end, −1)</code>. Sort by time, with <strong>ends before starts at equal times</strong> (the room is free the moment the old meeting ends). Sweep keeping a running sum and its maximum. Alternative: sort starts and ends separately and use two pointers; or use a min-heap of end times.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Create events <code>(time, +1/−1)</code>.</li><li>Sort by time; at ties put <code>−1</code> first.</li><li>Sweep: <code>active += delta</code>; <code>peak = max(peak, active)</code>.</li><li>Return <code>peak</code> (rooms) or check <code>active ≤ capacity</code> at every step.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="sweep"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>meetings <code>[0,30] [5,10] [15,20]</code></p><pre class="trace"><code>events sorted: 0+  5+  10-  15+  20-  30-
+active:        1   2   1    2    1    0
+peak = 2 rooms</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>minimum meeting rooms (sorted starts and ends)</p><pre class="code-java"><code>int n = iv.length;
+int[] s = new int[n], e = new int[n];
+for (int i = 0; i &lt; n; i++) { s[i] = iv[i][0]; e[i] = iv[i][1]; }
+Arrays.sort(s); Arrays.sort(e);
+int rooms = 0, j = 0;
+for (int i = 0; i &lt; n; i++) {
+    if (s[i] &lt; e[j]) rooms++;        // starts before the earliest end: need another room
+    else j++;                        // reuse that room
+}
+return rooms;</code></pre><pre class="code-py"><code>s = sorted(a for a, b in iv)
+e = sorted(b for a, b in iv)
+rooms = j = 0
+for i in range(len(iv)):
+    if s[i] &lt; e[j]:
+        rooms += 1                   # starts before the earliest end: need another room
+    else:
+        j += 1                       # reuse that room
+return rooms</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>car pooling (difference array over positions)</p><pre class="code-java"><code>int[] diff = new int[1001];
+for (int[] t : trips) { diff[t[1]] += t[0]; diff[t[2]] -= t[0]; }      // [from, to) passengers
+int cur = 0;
+for (int d : diff) { cur += d; if (cur &gt; capacity) return false; }
+return true;</code></pre><pre class="code-py"><code>diff = [0] * 1001
+for p, a, b in trips:
+    diff[a] += p
+    diff[b] -= p                                                       # [from, to) passengers
+cur = 0
+for d in diff:
+    cur += d
+    if cur &gt; capacity:
+        return False
+return True</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>min-heap of end times (also works when you must assign rooms)</p><pre class="code-java"><code>Arrays.sort(iv, (a, b) -&gt; Integer.compare(a[0], b[0]));
+PriorityQueue&lt;Integer&gt; ends = new PriorityQueue&lt;&gt;();
+for (int[] m : iv) {
+    if (!ends.isEmpty() &amp;&amp; ends.peek() &lt;= m[0]) ends.poll();        // a room freed up
+    ends.add(m[1]);
+}
+return ends.size();</code></pre><pre class="code-py"><code>import heapq
+iv.sort()
+ends = []
+for s, e in iv:
+    if ends and ends[0] &lt;= s:
+        heapq.heappop(ends)                                          # a room freed up
+    heapq.heappush(ends, e)
+return len(ends)</code></pre></div>
+<div class="cx">⏱ Complexity — O(n log n) time (sorting), O(n) space; the difference-array version is O(n + range).</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Tie-breaking: with <code>[s, e)</code> meetings, process ends before starts at the same time.</li><li>Sorting starts and ends separately loses the pairing, which is fine for counting but not for assigning which room.</li><li>Difference arrays need a bounded coordinate range; otherwise compress coordinates or use a <code>TreeMap</code>.</li><li>Skyline needs a max-heap of active heights plus event ordering by x, then height.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>My Calendar III: <code>TreeMap&lt;time, delta&gt;</code>; after each booking sweep for the max.</li><li>Skyline: heap of active buildings.</li><li>Minimum platforms for trains: identical to meeting rooms.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When you only need a yes/no on overlap (sort by start and compare neighbours) or when positions are huge and sparse with no ordered structure available.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-729" aria-label="Solved LC 729"></td><td class="t"><a href="https://leetcode.com/problems/my-calendar-i/" target="_blank" rel="noopener">LC 729</a></td><td>My Calendar I</td><td><span class="pill dM">Medium</span></td><td>Reject a booking that overlaps either neighbour</td><td class="c">O(log n) per op / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-1094" aria-label="Solved LC 1094"></td><td class="t"><a href="https://leetcode.com/problems/car-pooling/" target="_blank" rel="noopener">LC 1094</a></td><td>Car Pooling</td><td><span class="pill dM">Medium</span></td><td>Difference array, running passenger count vs capacity</td><td class="c">O(n + range) / O(range)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-2406" aria-label="Solved LC 2406"></td><td class="t"><a href="https://leetcode.com/problems/divide-intervals-into-minimum-number-of-groups/" target="_blank" rel="noopener">LC 2406</a></td><td>Divide Intervals Into Minimum Number of Groups</td><td><span class="pill dM">Medium</span></td><td>Maximum overlap = number of groups</td><td class="c">O(n log n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-732" aria-label="Solved LC 732"></td><td class="t"><a href="https://leetcode.com/problems/my-calendar-iii/" target="_blank" rel="noopener">LC 732</a></td><td>My Calendar III</td><td><span class="pill dH">Hard</span></td><td>TreeMap of deltas; sweep to find the max overlap</td><td class="c">O(n) per op / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-218" aria-label="Solved LC 218"></td><td class="t"><a href="https://leetcode.com/problems/the-skyline-problem/" target="_blank" rel="noopener">LC 218</a></td><td>The Skyline Problem</td><td><span class="pill dH">Hard</span></td><td>Sweep x; max-heap of active building heights</td><td class="c">O(n log n) / O(n)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p7">
+<div class="pat-h"><span class="badge">7</span><h3>Greedy interval scheduling</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Select the maximum number of non-overlapping intervals, or the minimum removals or points needed to cover/pierce all.</div><div class="gi"><span class="lbl">Detect it</span>"non-overlapping intervals" · "minimum arrows to burst balloons" · "maximum events attended" · "longest chain of pairs" · "partition labels".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>You are choosing which meetings to attend in one room. The meeting that <strong>ends earliest</strong> leaves the most time for everything after it, so taking it can never be worse than taking a longer one that starts at the same place. Repeat on what remains. That is the exchange argument: swap any optimal solution's first meeting for the earliest-ending one and nothing gets worse.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Try every subset of intervals: O(2ⁿ). A DP over sorted intervals is O(n²) or O(n log n). The greedy gets O(n log n) with a single scan.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Sort by <strong>end</strong>. Keep <code>lastEnd</code>. For each interval: if <code>start &gt;= lastEnd</code> keep it and update <code>lastEnd</code>; otherwise it overlaps, so count it as removed (or skip). Balloons: one arrow bursts everything sharing a point, so count a new arrow when <code>start &gt; lastEnd</code>.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Sort by end (ascending).</li><li><code>lastEnd = −∞</code>, <code>kept = 0</code>.</li><li>For each interval: if <code>start &gt;= lastEnd</code> → keep, <code>lastEnd = end</code>.</li><li>Removed = <code>n − kept</code>.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="greedyiv"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p><code>[1,2] [2,3] [3,4] [1,3]</code></p><pre class="trace"><code>sort by end: [1,2] [2,3] [1,3] [3,4]
+keep [1,2]  lastEnd 2
+keep [2,3]  2 &gt;= 2          lastEnd 3
+skip [1,3]  1 &lt;  3 overlap  removed 1
+keep [3,4]  3 &gt;= 3          lastEnd 4
+=&gt; remove 1</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>non-overlapping intervals (minimum removals)</p><pre class="code-java"><code>Arrays.sort(iv, (a, b) -&gt; Integer.compare(a[1], b[1]));         // by END
+int removed = 0, end = Integer.MIN_VALUE;
+for (int[] cur : iv) {
+    if (cur[0] &gt;= end) end = cur[1];                                // keep
+    else removed++;                                                 // overlaps: drop it
+}
+return removed;</code></pre><pre class="code-py"><code>iv.sort(key=lambda p: p[1])                                         # by END
+removed, end = 0, float(&#x27;-inf&#x27;)
+for s, e in iv:
+    if s &gt;= end:
+        end = e                                                     # keep
+    else:
+        removed += 1                                                # overlaps: drop it
+return removed</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>minimum arrows to burst balloons</p><pre class="code-java"><code>Arrays.sort(pts, (a, b) -&gt; Integer.compare(a[1], b[1]));
+int arrows = 0; long end = Long.MIN_VALUE;
+for (int[] p : pts) {
+    if (p[0] &gt; end) { arrows++; end = p[1]; }                       // need a new arrow
+}
+return arrows;</code></pre><pre class="code-py"><code>pts.sort(key=lambda p: p[1])
+arrows, end = 0, float(&#x27;-inf&#x27;)
+for s, e in pts:
+    if s &gt; end:
+        arrows += 1                                                 # need a new arrow
+        end = e
+return arrows</code></pre></div>
+<div class="cx">⏱ Complexity — O(n log n) time for the sort, O(1) extra space.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Sort by <strong>end</strong>, not start, for selection problems (sorting by start fails on <code>[1,10] [2,3] [4,5]</code>).</li><li>Touching intervals <code>[1,2] [2,3]</code> do <strong>not</strong> overlap for scheduling (<code>start &gt;= lastEnd</code>), but balloons with shared endpoints can share an arrow (<code>start &gt; end</code> for a new arrow).</li><li>Use <code>Long</code> or <code>Integer.compare</code> to avoid overflow with extreme coordinates.</li><li>Maximum events attended (one per day) needs a min-heap of end days, not this simple scan.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Maximum length of pair chain: same greedy by end.</li><li>Partition labels: last occurrence of each letter, extend the current part's end.</li><li>Weighted job scheduling: DP + binary search (greedy fails with weights).</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>Weighted intervals (use DP), or when you must pick exactly k intervals with other constraints.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-646" aria-label="Solved LC 646"></td><td class="t"><a href="https://leetcode.com/problems/maximum-length-of-pair-chain/" target="_blank" rel="noopener">LC 646</a></td><td>Maximum Length of Pair Chain</td><td><span class="pill dM">Medium</span></td><td>Sort by end, greedily extend the chain</td><td class="c">O(n log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-452" aria-label="Solved LC 452"></td><td class="t"><a href="https://leetcode.com/problems/minimum-number-of-arrows-to-burst-balloons/" target="_blank" rel="noopener">LC 452</a></td><td>Minimum Number of Arrows to Burst Balloons</td><td><span class="pill dM">Medium</span></td><td>Sort by end; new arrow when start &gt; last arrow</td><td class="c">O(n log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-435" aria-label="Solved LC 435"></td><td class="t"><a href="https://leetcode.com/problems/non-overlapping-intervals/" target="_blank" rel="noopener">LC 435</a></td><td>Non-overlapping Intervals</td><td><span class="pill dM">Medium</span></td><td>Sort by end; count overlaps removed</td><td class="c">O(n log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-763" aria-label="Solved LC 763"></td><td class="t"><a href="https://leetcode.com/problems/partition-labels/" target="_blank" rel="noopener">LC 763</a></td><td>Partition Labels</td><td><span class="pill dM">Medium</span></td><td>Extend the part to the last index of every letter seen</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-1353" aria-label="Solved LC 1353"></td><td class="t"><a href="https://leetcode.com/problems/maximum-number-of-events-that-can-be-attended/" target="_blank" rel="noopener">LC 1353</a></td><td>Maximum Number of Events That Can Be Attended</td><td><span class="pill dM">Medium</span></td><td>Day by day with a min-heap of end days</td><td class="c">O(n log n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-1235" aria-label="Solved LC 1235"></td><td class="t"><a href="https://leetcode.com/problems/maximum-profit-in-job-scheduling/" target="_blank" rel="noopener">LC 1235</a></td><td>Maximum Profit in Job Scheduling</td><td><span class="pill dH">Hard</span></td><td>Weights break greedy: DP + binary search on end times</td><td class="c">O(n log n) / O(n)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p8">
+<div class="pat-h"><span class="badge">8</span><h3>Sort first, then two pointers or neighbours</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Pairing smallest with largest, matching two lists, or the answer depends on adjacent elements in sorted order.</div><div class="gi"><span class="lbl">Detect it</span>"boats to save people" · "assign cookies" · "minimum difference" · "largest perimeter triangle" · "two city scheduling" · "array partition".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Once data is sorted, the extremes sit at the ends and the closest values sit side by side. To fit people into 2-seat boats, the heaviest person is the hardest to place, so give them the lightest partner that fits; if even the lightest does not fit, they travel alone. Sorting turns "who goes with whom" into walking two pointers inward.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Trying every pairing is O(n²) or worse. After sorting, one linear two-pointer pass decides everything.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Sort, then either use <code>l</code> and <code>r</code> at the ends (pair extremes), or scan adjacent elements (minimum difference, duplicates, triangle sides), or use a greedy that processes in sorted order.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Sort the array (or both arrays).</li><li>Choose the pass: opposite ends, adjacent pairs, or matching two sorted lists.</li><li>Apply the greedy rule at each step and move pointers.</li><li>Count or accumulate the answer.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="boats"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>boats: weights <code>[1,2,2,3]</code>, limit 3</p><pre class="trace"><code>l=0(1) r=3(3): 4 &gt; 3  -&gt; 3 goes alone       boats 1
+l=0(1) r=2(2): 3 &lt;= 3 -&gt; 1 and 2 share       boats 2
+l=1(2) r=1(2): last person alone              boats 3
+=&gt; 3 boats</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>boats to save people (max 2 per boat)</p><pre class="code-java"><code>Arrays.sort(p);
+int l = 0, r = p.length - 1, boats = 0;
+while (l &lt;= r) {
+    if (p[l] + p[r] &lt;= limit) l++;       // lightest shares with the heaviest
+    r--;                                 // heaviest always leaves
+    boats++;
+}
+return boats;</code></pre><pre class="code-py"><code>p.sort()
+l, r, boats = 0, len(p) - 1, 0
+while l &lt;= r:
+    if p[l] + p[r] &lt;= limit:
+        l += 1                           # lightest shares with the heaviest
+    r -= 1                               # heaviest always leaves
+    boats += 1
+return boats</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>assign cookies (match two sorted lists)</p><pre class="code-java"><code>Arrays.sort(g); Arrays.sort(s);
+int child = 0;
+for (int cookie : s)
+    if (child &lt; g.length &amp;&amp; g[child] &lt;= cookie) child++;     // smallest unsatisfied child first
+return child;</code></pre><pre class="code-py"><code>g.sort(); s.sort()
+child = 0
+for cookie in s:
+    if child &lt; len(g) and g[child] &lt;= cookie:
+        child += 1                                           # smallest unsatisfied child first
+return child</code></pre></div>
+<div class="cx">⏱ Complexity — O(n log n) for the sort, O(n) for the pass, O(1) extra space.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Check <code>l &lt;= r</code> (not <code>&lt;</code>) so a single remaining person still takes a boat.</li><li>State why the greedy is right: the heaviest must ride, so pair them with the best partner available.</li><li>Sorting changes indices; if the answer needs original positions, sort <code>(value, index)</code> pairs.</li><li>For circular or time values (minimum time difference), also compare the first and last elements around the wrap.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Minimum difference between any two elements: adjacent pairs after sorting.</li><li>Largest perimeter triangle: sort descending, first triple with <code>a &lt; b + c</code>.</li><li>Array partition: pair adjacent sorted elements, sum the minimums.</li><li>Two city scheduling: sort by cost difference.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When order must be preserved and cannot be recovered, or when an O(n) hash-based approach exists and is simpler.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-561" aria-label="Solved LC 561"></td><td class="t"><a href="https://leetcode.com/problems/array-partition/" target="_blank" rel="noopener">LC 561</a></td><td>Array Partition</td><td><span class="pill dE">Easy</span></td><td>Sort and sum every other element</td><td class="c">O(n log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-455" aria-label="Solved LC 455"></td><td class="t"><a href="https://leetcode.com/problems/assign-cookies/" target="_blank" rel="noopener">LC 455</a></td><td>Assign Cookies</td><td><span class="pill dE">Easy</span></td><td>Sort both; feed the least greedy child first</td><td class="c">O(n log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-976" aria-label="Solved LC 976"></td><td class="t"><a href="https://leetcode.com/problems/largest-perimeter-triangle/" target="_blank" rel="noopener">LC 976</a></td><td>Largest Perimeter Triangle</td><td><span class="pill dE">Easy</span></td><td>Sort descending; first valid triple</td><td class="c">O(n log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-881" aria-label="Solved LC 881"></td><td class="t"><a href="https://leetcode.com/problems/boats-to-save-people/" target="_blank" rel="noopener">LC 881</a></td><td>Boats to Save People</td><td><span class="pill dM">Medium</span></td><td>Sort; pair heaviest with lightest if it fits</td><td class="c">O(n log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-539" aria-label="Solved LC 539"></td><td class="t"><a href="https://leetcode.com/problems/minimum-time-difference/" target="_blank" rel="noopener">LC 539</a></td><td>Minimum Time Difference</td><td><span class="pill dM">Medium</span></td><td>Minutes sorted; adjacent gaps plus the wrap-around</td><td class="c">O(n log n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-1029" aria-label="Solved LC 1029"></td><td class="t"><a href="https://leetcode.com/problems/two-city-scheduling/" target="_blank" rel="noopener">LC 1029</a></td><td>Two City Scheduling</td><td><span class="pill dM">Medium</span></td><td>Sort by cost(A) − cost(B); first half to A</td><td class="c">O(n log n) / O(1)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat sec" id="p9">
+<div class="pat-h"><span class="badge">9</span><h3>Cyclic sort: use the index as the hash</h3><span class="tier sec">🧊 Secondary</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>An array of size n holds numbers from 1..n (possibly with duplicates and gaps) and you must find missing or repeated values.</div><div class="gi"><span class="lbl">Detect it</span>"missing number" · "find all duplicates" · "set mismatch" · "first missing positive" · values within <code>[1, n]</code>.</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Seat numbered guests at a table with n numbered chairs: guest <code>x</code> should sit in chair <code>x</code>. Walk along and whenever a guest is in the wrong chair, swap them toward their own chair. When every guest who can be seated is seated, any chair holding the wrong guest points straight at the missing or duplicated number.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Use a hash set or boolean array: O(n) extra space. Cyclic sort rearranges the input array itself, so the extra space is O(1).</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>For each index <code>i</code>: while <code>a[i]</code> is in <code>1..n</code> and <code>a[a[i] − 1] != a[i]</code>, swap <code>a[i]</code> into its home. Each swap sends one value to its final place, so total swaps ≤ n. Afterwards, scan for <code>a[i] != i + 1</code>.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li><code>i = 0</code>.</li><li>While <code>a[i]</code> is in range and its home does not already hold it: swap <code>a[i]</code> with <code>a[a[i] − 1]</code>.</li><li>Otherwise <code>i++</code>.</li><li>Scan: the first <code>i</code> with <code>a[i] != i + 1</code> gives the missing number <code>i + 1</code> (and <code>a[i]</code> is a duplicate).</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="cyclic"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>first missing positive in <code>[3, 4, −1, 1]</code></p><pre class="trace"><code>swap 3 home (index 2)   [-1, 4, 3, 1]
+swap 4 home (index 3)   [-1, 1, 3, 4]
+swap 1 home (index 0)   [ 1,-1, 3, 4]
+-1 ignored, 3 and 4 already home
+scan: index 1 holds -1 instead of 2 -&gt; first missing positive = 2</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>find all numbers disappeared in 1..n (and duplicates)</p><pre class="code-java"><code>for (int i = 0; i &lt; n; i++) {
+    while (a[i] != a[a[i] - 1]) {                    // its home holds something else
+        int j = a[i] - 1, t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+}
+List&lt;Integer&gt; missing = new ArrayList&lt;&gt;();
+for (int i = 0; i &lt; n; i++) if (a[i] != i + 1) missing.add(i + 1);   // a[i] is a duplicate</code></pre><pre class="code-py"><code>n = len(a)
+for i in range(n):
+    while a[i] != a[a[i] - 1]:                       # its home holds something else
+        j = a[i] - 1
+        a[i], a[j] = a[j], a[i]
+missing = [i + 1 for i in range(n) if a[i] != i + 1]          # a[i] is a duplicate</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>first missing positive (values can be out of range)</p><pre class="code-java"><code>for (int i = 0; i &lt; n; i++) {
+    while (a[i] &gt; 0 &amp;&amp; a[i] &lt;= n &amp;&amp; a[a[i] - 1] != a[i]) {
+        int j = a[i] - 1, t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+}
+for (int i = 0; i &lt; n; i++) if (a[i] != i + 1) return i + 1;
+return n + 1;</code></pre><pre class="code-py"><code>n = len(a)
+for i in range(n):
+    while 0 &lt; a[i] &lt;= n and a[a[i] - 1] != a[i]:
+        j = a[i] - 1
+        a[i], a[j] = a[j], a[i]
+for i in range(n):
+    if a[i] != i + 1:
+        return i + 1
+return n + 1</code></pre></div>
+<div class="cx">⏱ Complexity — O(n) time (each swap fixes one value), O(1) extra space; it mutates the input.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>The inner loop must be a <code>while</code>: after a swap the new <code>a[i]</code> may also need moving.</li><li>Guard against duplicates with <code>a[a[i] − 1] != a[i]</code> or you loop forever.</li><li>Check the range first: <code>a[i] &gt; 0 &amp;&amp; a[i] &lt;= n</code>.</li><li>If the array may not be modified, use a boolean array or negation marking instead.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Negative marking: flip the sign at index <code>|x| − 1</code> instead of swapping (also O(1) space).</li><li>Find the duplicate (Floyd cycle detection, one duplicate, no modification).</li><li>Missing number in 0..n: XOR or sum formula.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>Values outside 1..n that carry information, a read-only array, or when a hash set is acceptable and clearer.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-268" aria-label="Solved LC 268"></td><td class="t"><a href="https://leetcode.com/problems/missing-number/" target="_blank" rel="noopener">LC 268</a></td><td>Missing Number</td><td><span class="pill dE">Easy</span></td><td>Cyclic sort, or XOR / sum formula</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-448" aria-label="Solved LC 448"></td><td class="t"><a href="https://leetcode.com/problems/find-all-numbers-disappeared-in-an-array/" target="_blank" rel="noopener">LC 448</a></td><td>Find All Numbers Disappeared in an Array</td><td><span class="pill dE">Easy</span></td><td>Cyclic sort then list misplaced indices</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-645" aria-label="Solved LC 645"></td><td class="t"><a href="https://leetcode.com/problems/set-mismatch/" target="_blank" rel="noopener">LC 645</a></td><td>Set Mismatch</td><td><span class="pill dE">Easy</span></td><td>After cyclic sort, a[i] != i+1 gives duplicate and missing</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-442" aria-label="Solved LC 442"></td><td class="t"><a href="https://leetcode.com/problems/find-all-duplicates-in-an-array/" target="_blank" rel="noopener">LC 442</a></td><td>Find All Duplicates in an Array</td><td><span class="pill dM">Medium</span></td><td>Sign-marking or cyclic sort</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-287" aria-label="Solved LC 287"></td><td class="t"><a href="https://leetcode.com/problems/find-the-duplicate-number/" target="_blank" rel="noopener">LC 287</a></td><td>Find the Duplicate Number</td><td><span class="pill dM">Medium</span></td><td>Cyclic sort, or Floyd's cycle detection</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="sorting_intervals-41" aria-label="Solved LC 41"></td><td class="t"><a href="https://leetcode.com/problems/first-missing-positive/" target="_blank" rel="noopener">LC 41</a></td><td>First Missing Positive</td><td><span class="pill dH">Hard</span></td><td>Cyclic sort within 1..n; first mismatch</td><td class="c">O(n) / O(1)</td></tr></tbody></table></div></div>
+</section>
+<h2 id="recall">One-line recall</h2><div class="tw"><table class=""><thead><tr><th>#</th><th>Pattern</th><th>Tier</th><th>Core idea in one line</th></tr></thead><tbody><tr><td>1</td><td>Comparison sorts: merge, quick and what to pick</td><td>🔥</td><td>divide, sort the halves, merge; n log n is the floor</td></tr><tr><td>2</td><td>Custom comparators and multi-key sorting</td><td>🔥</td><td>define "comes first" and let the sort do the rest</td></tr><tr><td>3</td><td>Counting and bucket sort (beating n log n)</td><td>🔥</td><td>when keys are small integers, index instead of compare</td></tr><tr><td>4</td><td>Merging intervals</td><td>🔥</td><td>sort by start, extend the last interval or start a new one</td></tr><tr><td>5</td><td>Insert into a sorted interval list; calendar booking</td><td>🔥</td><td>copy before, merge the overlap, copy after</td></tr><tr><td>6</td><td>Sweep line: counting overlaps over time</td><td>🔥</td><td>turn intervals into +1 / −1 events and scan in time order</td></tr><tr><td>7</td><td>Greedy interval scheduling</td><td>🔥</td><td>sort by end time and always take the one that finishes first</td></tr><tr><td>8</td><td>Sort first, then two pointers or neighbours</td><td>🔥</td><td>sorting makes extremes and neighbours meaningful</td></tr><tr><td>9</td><td>Cyclic sort: use the index as the hash</td><td>🧊</td><td>put each value x at index x − 1, then read the gaps</td></tr></tbody></table></div>
+<h2 id="choose">Choosing between them</h2><div class="tw"><table class=""><thead><tr><th>Need</th><th>Use</th></tr></thead><tbody><tr><td>Need a guaranteed O(n log n) stable sort</td><td>Merge sort (P1)</td></tr><tr><td>Order defined by a rule, not by value</td><td>Comparator (P2)</td></tr><tr><td>Keys are small integers or frequencies</td><td>Counting / bucket (P3)</td></tr><tr><td>Combine overlapping ranges</td><td>Sort by start, merge (P4)</td></tr><tr><td>Add one range to a sorted list</td><td>Three-phase insert (P5)</td></tr><tr><td>Most ranges overlapping at once</td><td>Sweep line or heap (P6)</td></tr><tr><td>Keep as many non-overlapping as possible</td><td>Sort by end, greedy (P7)</td></tr><tr><td>Pair extremes or nearest values</td><td>Sort + two pointers (P8)</td></tr><tr><td>Missing / duplicate in 1..n, O(1) space</td><td>Cyclic sort (P9)</td></tr></tbody></table></div><div class="callout"><span class="lbl">Rule of thumb</span><p><strong>merge → sort by start; select the most → sort by end; count overlaps → sweep or heap.</strong> If the range of values is small, skip sorting and index into an array.</p></div>
+<h2 id="selftest">Self-test</h2><p class="muted">Answer in your head first, then click to reveal.</p><details><summary>Why is merge sort stable and what keeps it stable?</summary><p>Taking from the left run when <code>left[i] &lt;= right[j]</code> keeps equal elements in their original relative order.</p></details><details><summary>Why must non-overlapping-interval greedy sort by <strong>end</strong>, not start?</summary><p>The interval that ends earliest leaves the most room for later ones. Sorting by start can pick a long interval that blocks many short ones.</p></details><details><summary>In the sweep line, why process end events before start events at the same time?</summary><p>For half-open intervals <code>[s, e)</code>, a meeting ending at time t has already freed its room when another starts at t.</p></details><details><summary>When can bucket sort run in O(n)?</summary><p>When keys lie in a known, small range (for example frequencies 1..n or ages 0..120), so each key maps directly to a bucket.</p></details><details><summary>How does Insert Interval stay O(n) when the list is sorted?</summary><p>Intervals before the new one are copied, overlapping ones are absorbed in one scan, and the rest are copied, so each interval is touched once.</p></details><details><summary>Why does a comparator like <code>(a, b) -&gt; a − b</code> risk bugs?</summary><p>Subtraction overflows for extreme values; use <code>Integer.compare</code>.</p></details><details><summary>What does cyclic sort guarantee after the swapping loop?</summary><p>Every value in 1..n that appears is at index value − 1, so any index with the wrong value reveals a missing number.</p></details><details><summary>What is the worst case of quick sort and how do you avoid it?</summary><p>O(n²) when pivots are always the smallest or largest (for example sorted input with a fixed pivot). Randomise the pivot or use median-of-three.</p></details>
+<h2 id="plan">Study plan</h2><ol><li><strong>Day 1:</strong> merge sort and quick sort from memory; merge sorted array from the back.</li><li><strong>Day 2:</strong> comparators and multi-key sorts; counting and bucket sort for frequency problems.</li><li><strong>Day 3:</strong> merge intervals and interval intersections; write the three-phase insert without notes.</li><li><strong>Day 4:</strong> sweep line and the heap version of meeting rooms; car pooling with a difference array.</li><li><strong>Day 5:</strong> greedy scheduling: prove to yourself why sorting by end works on one counterexample.</li><li><strong>Day 6:</strong> sort-then-two-pointers problems and cyclic sort; redo anything needing a hint.</li></ol>
+<div class="foot"><span><a href="05_stack_queue.html">← Stacks, Queues and Deques</a></span><span></span></div>
+</main></div>
+<script>(function(){
+function rng(x,y){var r=[];for(var i=x;i<=y;i++)r.push(i);return r}
+function mapStr(m){var k=Object.keys(m);return '{'+k.map(function(x){return x+':'+m[x]}).join(', ')+'}'}
+var SIM={
+two:function(){var a=[1,3,4,6,8,11],t=10,S=[],l=0,r=a.length-1;
+ while(l<r){var s=a[l]+a[r];
+  if(s===t){S.push({a:a,ptr:{l:l,r:r},ok:[l,r],note:a[l]+' + '+a[r]+' = '+s+' equals the target '+t+'. Found the pair at indices '+l+' and '+r+'.'});break}
+  if(s<t){S.push({a:a,ptr:{l:l,r:r},note:a[l]+' + '+a[r]+' = '+s+' is smaller than '+t+'. The sum must grow, so move l right (a[l] can never pair with anything smaller than a[r]).'});l++}
+  else{S.push({a:a,ptr:{l:l,r:r},note:a[l]+' + '+a[r]+' = '+s+' is bigger than '+t+'. The sum must shrink, so move r left (a[r] is too large for every remaining partner).'});r--}}
+ S.unshift({a:a,ptr:{l:0,r:a.length-1},note:'Sorted array, target '+t+'. Put one pointer at each end.'});return S},
+fixed:function(){var a=[2,1,5,1,3,2],k=3,S=[],sum=0;for(var i=0;i<k;i++)sum+=a[i];var best=sum;
+ S.push({a:a,ptr:{},hi:rng(0,k-1),note:'First window of size '+k+': sum = '+sum+'. Best so far = '+best+'.'});
+ for(i=k;i<a.length;i++){sum+=a[i]-a[i-k];best=Math.max(best,sum);S.push({a:a,ptr:{i:i},hi:rng(i-k+1,i),note:'Slide: add '+a[i]+', drop '+a[i-k]+' → sum = '+sum+'. Best so far = '+best+'. (One add and one subtract, not a re-sum.)'})}
+ S.push({a:a,ptr:{},ok:[2,3,4],note:'Maximum window sum of size '+k+' is '+best+'.'});return S},
+variable:function(){var s='abcabcbb'.split(''),S=[],l=0,c={},best=0,bl=0;
+ for(var r=0;r<s.length;r++){var ch=s[r];c[ch]=(c[ch]||0)+1;
+  S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),note:"Expand: add '"+ch+"' at r="+r+'.'+(c[ch]>1?" '"+ch+"' now appears twice, so the window is invalid.":' Window "'+s.slice(l,r+1).join('')+'" is valid.')});
+  while(c[ch]>1){c[s[l]]--;l++;S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),note:'Shrink: drop the left character, l becomes '+l+'. Window "'+s.slice(l,r+1).join('')+'".'})}
+  if(r-l+1>best){best=r-l+1;bl=l}}
+ S.push({a:s,ptr:{},ok:rng(bl,bl+best-1),note:'Longest substring without repeats has length '+best+'. Each index entered and left the window once, so O(n).'});return S},
+prefix:function(){var a=[3,4,7,2,-3,1,4,2],k=7,S=[],m={0:1},sum=0,cnt=0;
+ S.push({a:a,ptr:{},note:'Count subarrays with sum = '+k+'. Seed the map with {0:1} (the empty prefix).'});
+ for(var i=0;i<a.length;i++){sum+=a[i];var need=sum-k,add=m[need]||0;cnt+=add;m[sum]=(m[sum]||0)+1;
+  S.push({a:a,ptr:{i:i},ok:add?[i]:[],note:'Prefix sum = '+sum+'. Need an earlier prefix of '+sum+' − '+k+' = '+need+': seen '+add+' time(s), so '+add+' subarray(s) end here. Total = '+cnt+'. Map = '+mapStr(m)})}
+ return S},
+kadane:function(){var a=[-2,1,-3,4,-1,2,1,-5,4],S=[],cur=a[0],st=0,best=a[0],bs=0,be=0;
+ S.push({a:a,ptr:{i:0},hi:[0],ok:[0],note:'Start: cur = '+cur+', best = '+best+'.'});
+ for(var i=1;i<a.length;i++){var restart=a[i]>cur+a[i];
+  if(restart){cur=a[i];st=i}else{cur+=a[i]}
+  if(cur>best){best=cur;bs=st;be=i}
+  S.push({a:a,ptr:{i:i},hi:rng(st,i),ok:rng(bs,be),note:(restart?'The running sum was negative, so restart at index '+i+': cur = '+cur+'.':'Extend the run: cur = '+cur+'.')+' best = '+best+' (green).'})}
+ return S},
+hash:function(){var a=[5,1,9,3,7],t=12,S=[],m={};S.push({a:a,ptr:{},note:'Find two numbers that sum to '+t+'. Keep a map value → index of what we have already seen.'});
+ for(var i=0;i<a.length;i++){var need=t-a[i];
+  if(need in m){S.push({a:a,ptr:{i:i},ok:[m[need],i],note:'Need '+need+' for '+a[i]+': it is in the map at index '+m[need]+'. Answer = ['+m[need]+', '+i+'].'});break}
+  m[a[i]]=i;S.push({a:a,ptr:{i:i},note:'At '+a[i]+': need '+need+', not seen yet. Store '+a[i]+' → '+i+'. Map = '+mapStr(m)})}
+ return S},
+dutch:function(){var a=[2,0,2,1,1,0],S=[],lo=0,mid=0,hi=a.length-1;
+ function p(n,ok){S.push({a:a.slice(),ptr:{lo:lo,mid:mid,hi:hi},ok:ok||[],note:n})}
+ p('lo marks the end of the 0s, hi the start of the 2s, mid scans the unknown middle.');
+ while(mid<=hi){var v=a[mid];
+  if(v===0){a[mid]=a[lo];a[lo]=0;lo++;mid++;p('a[mid] was 0: swap into the 0-zone, advance lo and mid.')}
+  else if(v===2){a[mid]=a[hi];a[hi]=2;hi--;p('a[mid] was 2: swap with a[hi], shrink hi. Do NOT advance mid; the swapped-in value is unexamined.')}
+  else{mid++;p('a[mid] is 1: it already belongs in the middle zone, advance mid.')}}
+ S.push({a:a.slice(),ptr:{},ok:rng(0,a.length-1),note:'mid passed hi: sorted in one pass, O(n), O(1) space.'});return S},
+binary:function(){var a=[1,3,5,7,7,7,9,11],t=7,S=[],lo=0,hi=a.length-1;
+ S.push({a:a,ptr:{lo:lo,hi:hi},note:'Find the FIRST index with a[i] ≥ '+t+' (lower bound). Invariant: the answer is always inside [lo, hi].'});
+ while(lo<hi){var mid=lo+((hi-lo)>>1);
+  if(a[mid]>=t){S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(lo,hi),note:'mid = '+mid+', a[mid] = '+a[mid]+' ≥ '+t+'. mid could be the answer, so keep it: hi = mid.'});hi=mid}
+  else{S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(lo,hi),note:'mid = '+mid+', a[mid] = '+a[mid]+' < '+t+'. Everything up to mid is too small: lo = mid + 1.'});lo=mid+1}}
+ S.push({a:a,ptr:{lo:lo},ok:[lo],note:'lo = hi = '+lo+'. First occurrence of '+t+' is at index '+lo+'. Each step halved the range: O(log n).'});return S},
+rotated:function(){var a=[4,5,6,7,0,1,2],t=0,S=[],lo=0,hi=a.length-1;
+ S.push({a:a,ptr:{lo:lo,hi:hi},note:'Sorted array rotated at an unknown point. Search for '+t+'. One half around mid is always sorted.'});
+ while(lo<=hi){var mid=lo+((hi-lo)>>1);
+  if(a[mid]===t){S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},ok:[mid],note:'a[mid] = '+t+'. Found at index '+mid+'.'});break}
+  if(a[lo]<=a[mid]){var go=a[lo]<=t&&t<a[mid];S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(lo,mid),note:'Left half ['+lo+'..'+mid+'] is sorted ('+a[lo]+' ≤ '+a[mid]+'). '+t+(go?' lies inside it: hi = mid − 1.':' is not inside it: search the right, lo = mid + 1.')});if(go)hi=mid-1;else lo=mid+1}
+  else{var go2=a[mid]<t&&t<=a[hi];S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(mid,hi),note:'Right half ['+mid+'..'+hi+'] is sorted. '+t+(go2?' lies inside it: lo = mid + 1.':' is not inside it: search the left, hi = mid − 1.')});if(go2)lo=mid+1;else hi=mid-1}}
+ return S},
+quick:function(){var a=[3,2,1,5,6,4],S=[],target=a.length-2,lo=0,hi=a.length-1;
+ function dim(){var d=[];for(var x=0;x<a.length;x++)if(x<lo||x>hi)d.push(x);return d}
+ S.push({a:a.slice(),ptr:{},note:'2nd largest = element at sorted index n − k = '+target+'. Partition around a pivot; recurse into ONE side only.'});
+ while(lo<=hi){var pv=a[hi],i=lo;
+  S.push({a:a.slice(),ptr:{lo:lo,pivot:hi},dim:dim(),hi:[hi],note:'Partition ['+lo+'..'+hi+'] with pivot '+pv+' (last element). i marks where the next smaller element goes.'});
+  for(var j=lo;j<hi;j++){if(a[j]<pv){var tm=a[i];a[i]=a[j];a[j]=tm;i++;S.push({a:a.slice(),ptr:{i:i,j:j,pivot:hi},dim:dim(),note:a[i-1]+' < '+pv+': swap into the "smaller" zone, i = '+i+'.'})}
+   else S.push({a:a.slice(),ptr:{i:i,j:j,pivot:hi},dim:dim(),note:a[j]+' ≥ '+pv+': leave it, move j on.'})}
+  var t2=a[i];a[i]=a[hi];a[hi]=t2;
+  if(i===target){S.push({a:a.slice(),ptr:{p:i},ok:[i],dim:dim(),note:'Pivot lands at index '+i+' = target index. Answer: '+a[i]+'.'});break}
+  S.push({a:a.slice(),ptr:{p:i},ok:[i],dim:dim(),note:'Pivot '+pv+' is now at its final sorted index '+i+(i<target?' < target '+target+': only the right side can contain it.':' > target '+target+': only the left side can contain it.')});
+  if(i<target)lo=i+1;else hi=i-1}
+ return S},
+amort:function(){var S=[],cap=1,n=0,a=[''],cost=0;
+ S.push({a:a.slice(),ptr:{},note:'A dynamic array starts with capacity 1. Append 1..8. When it is full, allocate double the space and copy everything over.'});
+ for(var v=1;v<=8;v++){
+  if(n===cap){var c=n;cap*=2;var b=[];for(var i=0;i<cap;i++)b.push(i<n?a[i]:'');cost+=c;a=b;S.push({a:a.slice(),ptr:{},hi:rng(0,n-1),note:'Full. Resize to capacity '+cap+': copy '+c+' element(s). Total copy cost so far = '+cost+'.'})}
+  a[n]=v;n++;S.push({a:a.slice(),ptr:{i:n-1},ok:[n-1],note:'Append '+v+' (cost 1). Length '+n+', capacity '+cap+'.'})}
+ S.push({a:a.slice(),ptr:{},note:'8 appends cost 8 writes + '+cost+' copies = '+(8+cost)+' units, under 2 per append. Rare expensive steps are paid for by many cheap ones: amortised O(1).'});return S},
+pairs:function(){var a=['a','b','c','d','e'],S=[],k=0;
+ S.push({a:a,ptr:{},note:'Nested loop: for every i, for every j > i. Count how many (i, j) pairs get visited.'});
+ for(var i=0;i<a.length;i++)for(var j=i+1;j<a.length;j++){k++;S.push({a:a,ptr:{i:i,j:j},hi:[i,j],note:'Pair #'+k+': ('+a[i]+', '+a[j]+').'})}
+ S.push({a:a,ptr:{},ok:rng(0,a.length-1),note:'n = 5 gave '+k+' pairs = n(n−1)/2. Double n and the work roughly quadruples: O(n²).'});return S},
+anagram:function(){var s='listen',t='silent',a=s.split('').concat(t.split('')),S=[],c={};
+ function A(){return {label:'counts',items:Object.keys(c).map(function(k){return k+': '+c[k]})}}
+ S.push({a:a,ptr:{},note:'Are "listen" and "silent" anagrams? Count the letters of the first word UP and the second word DOWN.'});
+ for(var i=0;i<s.length;i++){c[s[i]]=(c[s[i]]||0)+1;S.push({a:a,ptr:{i:i},hi:[i],aux:A(),note:"First word: +1 for '"+s[i]+"'."})}
+ for(var j=0;j<t.length;j++){var k=s.length+j;c[t[j]]=(c[t[j]]||0)-1;S.push({a:a,ptr:{j:k},hi:[k],aux:A(),note:"Second word: −1 for '"+t[j]+"'."+(c[t[j]]<0?' The count went negative, so it is not an anagram.':'')})}
+ S.push({a:a,ptr:{},ok:rng(0,a.length-1),aux:A(),note:'Every count is back to 0, so they are anagrams. O(n) time and O(1) space (26 letters).'});return S},
+palin:function(){var s='a.b,.B.a'.split(''),S=[],l=0,r=s.length-1;
+ function al(c){return /[a-z0-9]/i.test(c)}
+ S.push({a:s,ptr:{l:l,r:r},note:'Valid palindrome, ignoring case and punctuation. One pointer at each end.'});
+ while(l<r){
+  if(!al(s[l])){S.push({a:s,ptr:{l:l,r:r},dim:[l],note:"'"+s[l]+"' is not a letter or digit: skip it (l++)."});l++;continue}
+  if(!al(s[r])){S.push({a:s,ptr:{l:l,r:r},dim:[r],note:"'"+s[r]+"' is not a letter or digit: skip it (r--)."});r--;continue}
+  var eq=s[l].toLowerCase()===s[r].toLowerCase();
+  S.push({a:s,ptr:{l:l,r:r},hi:[l,r],ok:eq?[l,r]:[],note:"Compare '"+s[l]+"' and '"+s[r]+"' ignoring case: "+(eq?'match, move both inward.':'mismatch, so it is NOT a palindrome.')});
+  if(!eq)return S;l++;r--}
+ S.push({a:s,ptr:{},ok:rng(0,s.length-1),note:'The pointers met without a mismatch: palindrome. O(n) time, O(1) space.'});return S},
+center:function(){var s='babad'.split(''),S=[],bl=0,bestLen=0;
+ function tryC(l,r,kind){var any=false;
+  while(l>=0&&r<s.length&&s[l]===s[r]){any=true;var len=r-l+1;if(len>bestLen){bestLen=len;bl=l}
+   S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),ok:bestLen?rng(bl,bl+bestLen-1):[],note:kind+' centre: "'+s.slice(l,r+1).join('')+'" is a palindrome (length '+len+'). Best so far: '+bestLen+'. Expand outward.'});l--;r++}
+  S.push({a:s,ptr:{},ok:bestLen?rng(bl,bl+bestLen-1):[],note:kind+' centre: '+(any?'cannot expand further (mismatch or edge).':'the two sides differ immediately, nothing to expand.')})}
+ S.push({a:s,ptr:{},note:'Every palindrome mirrors around a centre: a letter (odd length) or a gap (even length). Try all 2n−1 centres and expand while both sides match.'});
+ for(var i=0;i<s.length;i++){tryC(i,i,'Odd (index '+i+')');if(i<s.length-1)tryC(i,i+1,'Even (gap after '+i+')')}
+ S.push({a:s,ptr:{},ok:rng(bl,bl+bestLen-1),note:'Longest palindromic substring: "'+s.slice(bl,bl+bestLen).join('')+'" (length '+bestLen+'; "aba" ties). 2n−1 centres × O(n) expansion = O(n²) time, O(1) space.'});return S},
+minwin:function(){var s='ADOBECODEBANC'.split(''),S=[],need={A:1,B:1,C:1},have={},formed=0,req=3,l=0,best=1e9,bl=0;
+ function A(){return {label:'covered '+formed+' / '+req,items:['A','B','C'].map(function(k){return k+' '+(have[k]||0)+'/1'})}}
+ S.push({a:s,ptr:{l:0,r:0},aux:A(),note:'Smallest window of the string that contains A, B and C. Expand r; once the window covers everything, shrink l as far as possible.'});
+ for(var r=0;r<s.length;r++){var c=s[r];if(need[c]){have[c]=(have[c]||0)+1;if(have[c]===need[c])formed++}
+  S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),aux:A(),note:"Expand: add '"+c+"'. "+(formed===req?'The window now covers A, B and C.':'Still missing some required letters.')});
+  while(formed===req){if(r-l+1<best){best=r-l+1;bl=l}var d=s[l];
+   S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),ok:rng(bl,bl+best-1),aux:A(),note:'Valid window "'+s.slice(l,r+1).join('')+'" (length '+(r-l+1)+'); shortest so far = '+best+'. Try to shrink: drop \''+d+'\' from the left.'});
+   if(need[d]){have[d]--;if(have[d]<need[d])formed--}l++}}
+ S.push({a:s,ptr:{},ok:rng(bl,bl+best-1),note:'Minimum window: "'+s.slice(bl,bl+best).join('')+'". l and r only move forward, so O(n).'});return S},
+kmp:function(){var p='ababaca'.split(''),lps=[0],S=[],len=0,i=1;
+ function A(){return {label:'lps (longest border)',items:lps.map(function(v,k){return k+': '+v})}}
+ S.push({a:p,ptr:{},aux:A(),note:'lps[i] = length of the longest proper prefix of p[0..i] that is also a suffix of it. lps[0] = 0. KMP uses it to never re-read text.'});
+ while(i<p.length){var ii=i,ll=len;
+  if(p[i]===p[len]){len++;lps[i]=len;i++;S.push({a:p,ptr:{i:ii,len:ll},hi:[ii,ll],ok:[ii],aux:A(),note:'p['+ii+'] = p['+ll+'] = \''+p[ii]+'\': the border grows, lps['+ii+'] = '+len+'.'})}
+  else if(len>0){len=lps[len-1];S.push({a:p,ptr:{i:ii,len:ll},hi:[ii,ll],aux:A(),note:'p['+ii+'] \''+p[ii]+'\' ≠ p['+ll+'] \''+p[ll]+'\'. Fall back to len = lps['+(ll-1)+'] = '+len+' (try a shorter border; never restart from scratch).'})}
+  else{lps[i]=0;i++;S.push({a:p,ptr:{i:ii,len:0},hi:[ii],aux:A(),note:'\''+p[ii]+'\' ≠ \''+p[0]+'\' and there is no shorter border: lps['+ii+'] = 0.'})}}
+ S.push({a:p,ptr:{},ok:rng(0,p.length-1),aux:A(),note:'lps = ['+lps.join(', ')+']. Built in O(m): len only falls back as far as it has climbed.'});return S},
+decode:function(){var s='3[a2[c]]'.split(''),S=[],stack=[],cur='',num=0;
+ function A(){return {label:'stack (count, text before)',items:(stack.length?stack.map(function(x){return '('+x[0]+', "'+x[1]+'")'}):['empty']).concat(['cur = "'+cur+'"'])}}
+ S.push({a:s,ptr:{},aux:A(),note:'Decode k[text]. Keep a stack: on "[" save (count, text so far); on "]" pop and repeat the inner text.'});
+ for(var i=0;i<s.length;i++){var c=s[i],n;
+  if(/\d/.test(c)){num=num*10+(+c);n='Digit: repeat count is now '+num+'.'}
+  else if(c==='['){stack.push([num,cur]);n='"[": push ('+num+', "'+cur+'") and start a fresh inner string.';num=0;cur=''}
+  else if(c===']'){var t=stack.pop();n='"]": pop ('+t[0]+', "'+t[1]+'"). New text = "'+t[1]+'" + "'+cur+'" × '+t[0]+'.';cur=t[1]+cur.repeat(t[0])}
+  else{cur+=c;n="Letter '"+c+"': append to the current text."}
+  S.push({a:s,ptr:{i:i},hi:[i],aux:A(),note:n})}
+ S.push({a:s,ptr:{},ok:rng(0,s.length-1),aux:A(),note:'Result: "'+cur+'". Each character is handled once: O(n + output length).'});return S},
+compress:function(){var a='aabbccc'.split(''),S=[],w=0,r=0;
+ S.push({a:a.slice(),ptr:{w:0,r:0},note:'Compress runs in place: "aabbccc" → "a2b2c3". r reads groups, w writes the result at the front. w never passes r, so no extra array.'});
+ while(r<a.length){var ch=a[r],st=r;while(r<a.length&&a[r]===ch)r++;var cnt=r-st;
+  S.push({a:a.slice(),ptr:{w:w,r:st},hi:rng(st,r-1),note:"Group found: '"+ch+"' × "+cnt+'.'});
+  a[w++]=ch;if(cnt>1)String(cnt).split('').forEach(function(d){a[w++]=d});
+  S.push({a:a.slice(),ptr:{w:w},ok:rng(0,w-1),note:"Write '"+ch+"'"+(cnt>1?' and the count '+cnt:'')+' at the front. Compressed so far: "'+a.slice(0,w).join('')+'".'})}
+ S.push({a:a.slice(),ptr:{},ok:rng(0,w-1),dim:rng(w,a.length-1),note:'New length = '+w+' ("'+a.slice(0,w).join('')+'"). Anything after w is ignored. O(n) time, O(1) space.'});return S},
+unique:function(){var s='loveleetcode'.split(''),S=[],c={};
+ function A(){return {label:'counts',items:Object.keys(c).map(function(k){return k+': '+c[k]})}}
+ S.push({a:s,ptr:{},note:'First non-repeating character. Pass 1 counts every letter; pass 2 finds the first letter whose count is 1.'});
+ for(var i=0;i<s.length;i++){c[s[i]]=(c[s[i]]||0)+1;S.push({a:s,ptr:{i:i},hi:[i],aux:A(),note:"Pass 1: count '"+s[i]+"'."})}
+ for(i=0;i<s.length;i++){if(c[s[i]]===1){S.push({a:s,ptr:{i:i},ok:[i],aux:A(),note:"Pass 2: '"+s[i]+"' has count 1: answer is index "+i+'.'});return S}
+  S.push({a:s,ptr:{i:i},dim:[i],aux:A(),note:"Pass 2: '"+s[i]+"' appears "+c[s[i]]+' times, skip it.'})}
+ return S},
+delete:function(){var vals=['D',1,6,3,6,'null'],nxt=[1,2,3,4,5,-1],removed=[],S=[],prev=0,val=6;
+ function E(){var e=[];for(var k=0;k<5;k++)e.push(removed.indexOf(k)>=0?'':(nxt[k]===k+1?'→':'⇢'));return e}
+ function P(p,c,n,ok){S.push({a:vals,ptr:c===undefined?{prev:p}:{prev:p,cur:c},edges:E(),dim:removed.slice(),ok:ok||[],note:n})}
+ P(0,undefined,'Remove every node with value 6. D is a dummy node placed before the head, so deleting the first real node needs no special case.');
+ while(nxt[prev]!==5){var cur=nxt[prev];
+  if(vals[cur]===val){removed.push(cur);nxt[prev]=nxt[cur];P(prev,cur,'cur.val = '+val+': unlink it with prev.next = prev.next.next. prev stays where it is, because the new next node has not been checked yet.')}
+  else{P(prev,cur,'cur.val = '+vals[cur]+' is kept: advance prev to cur.');prev=cur}}
+ P(prev,undefined,'prev.next is null: done. Result D → 1 → 3 → null. Return dummy.next.',[0,1,3,5]);return S},
+reverse:function(){var vals=[1,2,3,4,'null'],nxt=[1,2,3,4,-1],S=[],prev=4,cur=0;
+ function E(){var e=[];for(var k=0;k<4;k++)e.push(nxt[k]===k+1?'→':(nxt[k+1]===k?'←':''));return e}
+ function A(){var it=[];for(var k=0;k<4;k++)it.push(vals[k]+' → '+(nxt[k]===4||nxt[k]===-1?'null':vals[nxt[k]]));return {label:'next pointers',items:it}}
+ S.push({a:vals,ptr:{prev:4,cur:0},edges:E(),aux:A(),link:true,note:'Reverse 1→2→3→4. prev starts as null, cur at the head. Each step re-points one arrow backwards.'});
+ while(cur!==4){var n=nxt[cur];nxt[cur]=prev;S.push({a:vals,ptr:{prev:cur,cur:n},edges:E(),aux:A(),ok:[cur],note:'Save nxt = cur.next ('+(n===4?'null':vals[n])+'), set cur.next = prev, then move prev to '+vals[cur]+' and cur to '+(n===4?'null':vals[n])+'.'});prev=cur;cur=n}
+ S.push({a:vals,ptr:{head:prev},edges:E(),aux:A(),ok:[3,2,1,0],note:'cur is null, so prev is the new head: 4 → 3 → 2 → 1 → null. One pass, O(n) time, O(1) space.'});return S},
+floyd:function(){var vals=[3,2,0,-4],nxt=[1,2,3,1],S=[],s=0,f=0;
+ var E=['→','→','→'],A={label:'link',items:['−4 points back to 2 (the cycle start)']};
+ S.push({a:vals,ptr:{slow:0,fast:0},edges:E,aux:A,note:'Does the list loop? Slow moves 1 step, fast moves 2. In a loop the fast runner must eventually lap the slow one.'});
+ do{s=nxt[s];f=nxt[nxt[f]];S.push({a:vals,ptr:{slow:s,fast:f},hi:[s,f],edges:E,aux:A,ok:s===f?[s]:[],note:'slow → '+vals[s]+', fast → '+vals[f]+'.'+(s===f?' They meet: there is a cycle.':'')})}while(s!==f);
+ S.push({a:vals,ptr:{slow:0,fast:f},edges:E,aux:A,note:'Phase 2: put slow back at the head and keep fast at the meeting point. Move both one step at a time.'});
+ s=0;while(s!==f){s=nxt[s];f=nxt[f];S.push({a:vals,ptr:{slow:s,fast:f},hi:[s,f],edges:E,aux:A,ok:s===f?[s]:[],note:'slow → '+vals[s]+', fast → '+vals[f]+'.'+(s===f?' They meet exactly at the node where the cycle starts.':'')})}
+ S.push({a:vals,ptr:{start:s},edges:E,aux:A,ok:[s],note:'Cycle starts at the node with value '+vals[s]+'. Why: the distance from the head to the cycle start equals the distance from the meeting point onward to it (mod cycle length). O(n) time, O(1) space.'});return S},
+merge:function(){var A1=[1,2,4],B1=[1,3,4],all=A1.concat(B1),p=0,q=0,out=[],used=[],S=[];
+ function E(){return ['→','→','','→','→']}
+ function AX(){return {label:'merged',items:[out.length?out.join(' → '):'(empty)']}}
+ S.push({a:all,ptr:{p:0,q:3},edges:E(),aux:AX(),note:'Merge two sorted lists. A dummy tail node collects the result; p and q point at the smaller candidates.'});
+ while(p<3&&q<3){var x=A1[p],y=B1[q];
+  if(x<=y){S.push({a:all,ptr:{p:p,q:3+q},dim:used.slice(),hi:[p,3+q],edges:E(),aux:AX(),note:'Compare '+x+' and '+y+': '+x+' ≤ '+y+', so link the node from list 1 and advance p.'});used.push(p);out.push(x);p++}
+  else{S.push({a:all,ptr:{p:p,q:3+q},dim:used.slice(),hi:[p,3+q],edges:E(),aux:AX(),note:'Compare '+x+' and '+y+': '+y+' is smaller, so link the node from list 2 and advance q.'});used.push(3+q);out.push(y);q++}}
+ var rest=p<3?A1.slice(p):B1.slice(q);var idx=p<3?rng(p,2):rng(3+q,5);
+ S.push({a:all,ptr:{},dim:used.slice(),ok:idx,edges:E(),aux:AX(),note:'One list is empty. Attach the rest of the other list in one step: tail.next = remaining ('+rest.join(', ')+'). No copying.'});
+ rest.forEach(function(v){out.push(v)});
+ S.push({a:all,ptr:{},ok:rng(0,5),edges:E(),aux:AX(),note:'Merged list: '+out.join(' → ')+'. O(n + m) time, O(1) extra space (nodes are reused).'});return S},
+nth:function(){var vals=['D',1,2,3,4,5,'null'],S=[],slow=0,fast=0,n=2;
+ function E(){return ['→','→','→','→','→','→']}
+ S.push({a:vals,ptr:{slow:0,fast:0},edges:E(),note:'Remove the 2nd node from the end. Start slow and fast at the dummy D. Give fast a head start of n = 2 nodes.'});
+ for(var i=0;i<n;i++){fast++;S.push({a:vals,ptr:{slow:slow,fast:fast},edges:E(),note:'Head start: move fast ahead ('+(i+1)+' of '+n+').'})}
+ while(fast+1<6){fast++;slow++;S.push({a:vals,ptr:{slow:slow,fast:fast},hi:[slow,fast],edges:E(),note:'Move both one step. The gap between them stays n = '+n+'.'})}
+ S.push({a:vals,ptr:{slow:slow,fast:fast},hi:[slow,fast],edges:E(),note:'fast is on the last node (fast.next is null), so slow is exactly the node BEFORE the one to delete.'});
+ S.push({a:vals,ptr:{slow:slow},dim:[4],ok:[3],edges:['→','→','→','⇢','','→'],note:'slow.next = slow.next.next removes node 4. One pass, O(n) time, O(1) space. The dummy makes deleting the head work too.'});return S},
+palilist:function(){var vals=[1,2,3,2,1],S=[];
+ var full=['→','→','→','→'];
+ S.push({a:vals,ptr:{},edges:full,note:'Palindrome list in O(1) space: (1) find the middle, (2) reverse the second half, (3) compare the two halves.'});
+ S.push({a:vals,ptr:{slow:0,fast:0},edges:full,note:'Step 1: slow moves 1, fast moves 2.'});
+ S.push({a:vals,ptr:{slow:1,fast:2},edges:full,note:'slow = 1, fast = 2.'});
+ S.push({a:vals,ptr:{slow:2,fast:4},hi:[2],edges:full,note:'fast.next is null: stop. slow is the middle node (value 3).'});
+ S.push({a:vals,ptr:{mid:2},hi:[3,4],edges:['→','→','','→'],note:'Step 2: the second half starts after the middle: 2 → 1. Reverse it...'});
+ S.push({a:vals,ptr:{mid:2,head2:4},hi:[3,4],edges:['→','→','','←'],note:'...so it reads 1 → 2 (the arrow between the last two nodes flips).'});
+ S.push({a:vals,ptr:{p:0,q:4},hi:[0,4],ok:[0,4],edges:['→','→','','←'],note:'Step 3: compare p = 1 with q = 1. Equal: advance both.'});
+ S.push({a:vals,ptr:{p:1,q:3},hi:[1,3],ok:[0,1,3,4],edges:['→','→','','←'],note:'Compare p = 2 with q = 2. Equal. q reaches null, so every pair matched.'});
+ S.push({a:vals,ptr:{},ok:rng(0,4),edges:full,note:'Palindrome. (Optionally reverse the second half back to restore the list.) O(n) time, O(1) space.'});return S},
+addnum:function(){var A1=[2,4,3],B1=[5,6,4],all=A1.concat(B1),S=[],carry=0,out=[];
+ function E(){return ['→','→','','→','→']}
+ function AX(){return {label:'carry '+carry+'  |  result',items:[out.length?out.join(' → '):'(empty)']}}
+ S.push({a:all,ptr:{a:0,b:3},edges:E(),aux:AX(),note:'Digits are stored in reverse: 342 + 465. Add digit by digit from the head with a carry, exactly like paper arithmetic.'});
+ for(var i=0;i<3;i++){var s=A1[i]+B1[i]+carry,d=s%10,c=Math.floor(s/10);
+  S.push({a:all,ptr:{a:i,b:3+i},hi:[i,3+i],edges:E(),aux:AX(),note:A1[i]+' + '+B1[i]+' + carry '+carry+' = '+s+': write digit '+d+', new carry '+c+'.'});out.push(d);carry=c}
+ S.push({a:all,ptr:{},ok:rng(0,5),edges:E(),aux:AX(),note:'Result 7 → 0 → 8 (= 807). Keep looping while either list has nodes OR carry > 0; a final carry becomes a new node. O(max(n, m)) time.'});return S},
+lru:function(){var S=[],L=[],cap=3;
+ function E(){var e=[];for(var k=0;k<L.length-1;k++)e.push('↔');return e}
+ function P(n,extra){var o={a:L.map(function(x){return x[0]+':'+x[1]}),ptr:L.length?{MRU:0}:{},edges:E(),aux:{label:'hash map keys',items:L.length?L.map(function(x){return x[0]}):['(empty)']},note:n};if(L.length>1)o.ptr[''+'LRU']=L.length-1;if(extra)for(var k in extra)o[k]=extra[k];S.push(o)}
+ function find(k){for(var i=0;i<L.length;i++)if(L[i][0]===k)return i;return -1}
+ P('LRU cache, capacity 3. A hash map finds a node in O(1); a doubly linked list keeps recency order: front = most recent (MRU), back = least recent (LRU).');
+ L.unshift([1,'A']);P('put(1, A): new node goes to the front.',{ok:[0]});
+ L.unshift([2,'B']);P('put(2, B): new node goes to the front.',{ok:[0]});
+ L.unshift([3,'C']);P('put(3, C): list is now full (3 of 3).',{ok:[0]});
+ var i=find(1),n=L.splice(i,1)[0];L.unshift(n);P('get(1): map finds the node in O(1); unlink it (prev.next, next.prev) and move it to the front. Returns A.',{ok:[0]});
+ P('put(4, D): the cache is full, so evict the node at the back (key 2).',{dim:[2]});
+ L.pop();P('Unlink the tail node and delete key 2 from the map.');
+ L.unshift([4,'D']);P('Insert key 4 at the front. Both get and put are O(1).',{ok:[0]});
+ P('get(2): not in the map, so return −1 immediately. Dummy head and tail nodes make every unlink and insert free of null checks.');return S},
+minstack:function(){var st=[],mins=[],S=[];
+ function P(n,ok){S.push({a:st.slice(),ptr:st.length?{top:st.length-1}:{},ok:ok||[],aux:{label:'min so far, per entry',items:mins.length?mins.slice():['(empty)']},note:n})}
+ function push(x){var m=mins.length?Math.min(x,mins[mins.length-1]):x;st.push(x);mins.push(m);P('push('+x+'): store the value and the minimum of everything below and including it → '+m+'.',[st.length-1])}
+ function pop(){var v=st.pop();mins.pop();P('pop() removes '+v+' and its stored minimum together, so the previous minimum is back instantly.')}
+ function gm(){P('getMin() = '+mins[mins.length-1]+' (just read the top of the min column: O(1)).',[st.length-1])}
+ P('Min Stack: every entry remembers the minimum of the stack up to itself, so getMin is O(1).');
+ push(5);push(3);push(7);push(3);gm();pop();gm();pop();pop();gm();return S},
+nge:function(){var t=[73,74,75,71,69,72,76,73],S=[],st=[],ans=t.map(function(){return 0});
+ function A(){return {label:'stack (index:temp)',items:(st.length?st.map(function(j){return j+':'+t[j]}):['empty']).concat(['answers = ['+ans.join(',')+']'])}}
+ S.push({a:t,ptr:{},aux:A(),note:'Days until a warmer temperature. The stack holds indices still waiting for a warmer day; temperatures on it are decreasing.'});
+ for(var i=0;i<t.length;i++){
+  while(st.length&&t[i]>t[st[st.length-1]]){var j=st.pop();ans[j]=i-j;S.push({a:t,ptr:{i:i,popped:j},hi:[i],ok:[j],aux:A(),note:t[i]+' > '+t[j]+': day '+j+' found its warmer day. answer['+j+'] = '+i+' − '+j+' = '+ans[j]+'.'})}
+  st.push(i);S.push({a:t,ptr:{i:i},hi:[i],aux:A(),note:'Push index '+i+' ('+t[i]+'): it now waits for something warmer.'})}
+ S.push({a:t,ptr:{},ok:rng(0,t.length-1),aux:A(),note:'Anything left on the stack never found a warmer day (answer 0). Each index is pushed once and popped once: O(n).'});return S},
+hist:function(){var h=[2,1,5,6,2,3],a=h.concat([0]),S=[],st=[],best=0,bl=0,br=-1;
+ function A(){return {label:'stack (index:height)',items:(st.length?st.map(function(j){return j+':'+a[j]}):['empty']).concat(['best area = '+best])}}
+ S.push({a:a,ptr:{},aux:A(),note:'Largest rectangle in a histogram (a sentinel 0 is added at the end to flush the stack). The stack keeps heights increasing; a smaller bar closes every taller bar before it.'});
+ for(var i=0;i<a.length;i++){var cur=a[i];
+  while(st.length&&cur<a[st[st.length-1]]){var top=st.pop(),ht=a[top],left=st.length?st[st.length-1]:-1,w=i-left-1,ar=ht*w;if(ar>best){best=ar;bl=left+1;br=i-1}
+   S.push({a:a,ptr:{i:i,bar:top},hi:rng(left+1,i-1),ok:br>=0?rng(bl,br):[],aux:A(),note:'Bar '+top+' (height '+ht+') ends here: it is taller than '+cur+'. Its rectangle spans indices '+(left+1)+'..'+(i-1)+', width '+w+' × height '+ht+' = '+ar+'.'})}
+  st.push(i);S.push({a:a,ptr:{i:i},hi:[i],ok:br>=0?rng(bl,br):[],aux:A(),note:'Push index '+i+' (height '+cur+').'})}
+ S.push({a:a,ptr:{},ok:rng(bl,br),aux:A(),note:'Largest rectangle = '+best+' (bars '+bl+'..'+br+'). Each bar is pushed and popped once: O(n).'});return S},
+twostack:function(){var inn=[],out=[],S=[];
+ function P(n,hl){S.push({a:inn.concat(out),ptr:{},hi:inn.map(function(_,i){return i}),ok:out.map(function(_,i){return inn.length+i}),aux:{label:'in-stack (push) | out-stack (pop, top at right)',items:['in: ['+inn.join(',')+']','out: ['+out.join(',')+']']},note:n})}
+ function enq(x){inn.push(x);P('enqueue('+x+'): push onto the in-stack.')}
+ function deq(){if(!out.length){var m=inn.length;while(inn.length)out.push(inn.pop());P('out-stack is empty: pour the in-stack into it (reverses the order, moved '+m+' element(s)). Each element is moved at most once.')}
+  var v=out.pop();P('dequeue() pops '+v+' from the out-stack: the oldest element.')}
+ P('Queue (FIFO) from two stacks. Blue = in-stack (new items), green = out-stack (items ready to leave).');
+ enq(1);enq(2);enq(3);deq();enq(4);deq();deq();deq();
+ S.push({a:[],ptr:{},aux:{label:'cost',items:['4 enqueues + 4 dequeues','8 pushes, 8 pops, 4 moves']},note:'Each element moves between stacks at most once, so dequeue is O(1) amortised.'});return S},
+bfs:function(){var adj={0:[1,2],1:[3],2:[3,4],3:[5],4:[5],5:[6],6:[]},nodes=[0,1,2,3,4,5,6],S=[],q=[0],dist={0:0},done=[];
+ function A(){return {label:'queue → front',items:[q.length?q.join(', '):'empty','dist: '+Object.keys(dist).map(function(k){return k+'='+dist[k]}).join(' ')]}}
+ S.push({a:nodes,ptr:{start:0},hi:[0],aux:A(),note:'Shortest path from 0 to every node (edges: 0→1,2  1→3  2→3,4  3→5  4→5  5→6). Queue = nodes discovered but not processed; BFS reaches nodes in order of distance.'});
+ while(q.length){var u=q.shift();var found=[];adj[u].forEach(function(v){if(!(v in dist)){dist[v]=dist[u]+1;q.push(v);found.push(v)}});done.push(u);
+  S.push({a:nodes,ptr:{cur:u},hi:q.slice(),ok:[u],dim:done.filter(function(x){return x!==u}),aux:A(),note:'Dequeue '+u+' (distance '+dist[u]+'). '+(found.length?'Enqueue unseen neighbours '+found.join(', ')+' with distance '+(dist[u]+1)+'.':'No unseen neighbours.')})}
+ S.push({a:nodes,ptr:{},ok:rng(0,6),aux:A(),note:'Shortest distance to node 6 is '+dist[6]+'. Mark nodes as seen when you ENQUEUE them so none enters the queue twice. O(V + E).'});return S},
+dequemax:function(){var a=[1,3,-1,-3,5,3,6,7],k=3,S=[],dq=[],res=[];
+ function A(){return {label:'deque (index:value), front = max',items:(dq.length?dq.map(function(j){return j+':'+a[j]}):['empty']).concat(['result = ['+res.join(',')+']'])}}
+ S.push({a:a,ptr:{},aux:A(),note:'Maximum of every window of size 3. The deque keeps indices whose values are decreasing, so the front is always the window maximum.'});
+ for(var i=0;i<a.length;i++){var msg=[];
+  if(dq.length&&dq[0]<=i-k){msg.push('drop front '+dq[0]+' (left the window)');dq.shift()}
+  var rem=[];while(dq.length&&a[dq[dq.length-1]]<=a[i]){rem.push(dq.pop())}
+  if(rem.length)msg.push('pop back '+rem.join(', ')+' (smaller than '+a[i]+', they can never be a max again)');
+  dq.push(i);msg.push('push '+i);
+  if(i>=k-1){res.push(a[dq[0]]);msg.push('window max = '+a[dq[0]])}
+  S.push({a:a,ptr:{i:i},hi:rng(Math.max(0,i-k+1),i),ok:i>=k-1?[dq[0]]:[],aux:A(),note:'i = '+i+': '+msg.join('; ')+'.'})}
+ S.push({a:a,ptr:{},ok:rng(0,a.length-1),aux:A(),note:'Result = ['+res.join(', ')+']. Every index is pushed and popped once: O(n).'});return S},
+calc:function(){var s='3+2*2'.split(''),S=[],st=[],num=0,sign='+';
+ function A(){return {label:'number stack',items:[st.length?'['+st.join(', ')+']':'empty','sign = '+sign,'num = '+num]}}
+ S.push({a:s,ptr:{},aux:A(),note:'Evaluate 3+2*2 without parentheses. Push numbers on a stack; * and / are applied immediately to the top, + and − are deferred (negate for −). Sum the stack at the end.'});
+ for(var i=0;i<s.length;i++){var c=s[i],isd=/\d/.test(c),n;
+  if(isd){num=num*10+(+c);n='Digit '+c+': number so far = '+num+'.'}
+  if(!isd||i===s.length-1){n=(isd?n+' End of input: ':'Operator \''+c+'\' ends the number '+num+'. ')+'Apply the PREVIOUS sign \''+sign+'\': ';
+   if(sign==='+'){st.push(num);n+='push '+num+'.'}else if(sign==='-'){st.push(-num);n+='push '+(-num)+'.'}else if(sign==='*'){var t=st.pop();st.push(t*num);n+='top '+t+' × '+num+' = '+(t*num)+'.'}else{var t2=st.pop();st.push(Math.trunc(t2/num));n+='top '+t2+' ÷ '+num+'.'}
+   sign=isd?sign:c;num=0}
+  S.push({a:s,ptr:{i:i},hi:[i],aux:A(),note:n})}
+ var total=st.reduce(function(x,y){return x+y},0);
+ S.push({a:s,ptr:{},ok:rng(0,s.length-1),aux:A(),note:'Sum of the stack = '+total+'. O(n) time, O(n) space.'});return S},
+removek:function(){var d='1432219'.split(''),k=3,S=[],st=[];
+ function A(){return {label:'stack (digits kept)',items:[st.length?st.join(' '):'empty','k left = '+k]}}
+ S.push({a:d,ptr:{},aux:A(),note:'Remove 3 digits to make the smallest number. Greedy: if a digit is larger than the one after it, deleting it helps. A stack keeps the digits increasing.'});
+ for(var i=0;i<d.length;i++){var c=d[i],rm=[];while(k>0&&st.length&&st[st.length-1]>c){rm.push(st.pop());k--}
+  st.push(c);S.push({a:d,ptr:{i:i},hi:[i],aux:A(),note:'Digit '+c+': '+(rm.length?'pop '+rm.join(', ')+' (larger and earlier, so removing helps), then push.':'nothing larger on top, push.')})}
+ S.push({a:d,ptr:{},ok:rng(0,d.length-1),aux:A(),note:'k reached 0, so the result is "'+st.join('')+'". (If k is left over, trim digits from the end; then strip leading zeros.) O(n).'});return S},
+circular:function(){var buf=['','','',''],head=0,tail=0,size=0,S=[];
+ function P(n,ok){S.push({a:buf.slice(),ptr:{head:head,tail:tail},ok:ok||[],aux:{label:'state',items:['size = '+size,'capacity = 4','head = '+head,'tail = '+tail]},note:n})}
+ function enq(x){if(size===4){P('enqueue('+x+') fails: the queue is full (size == capacity). Note head == tail here, so a separate size counter tells full from empty.');return}
+  buf[tail]=x;var w=tail;tail=(tail+1)%4;size++;P('enqueue('+x+'): write at tail, then tail = (tail + 1) % 4'+(w===3?' (wraps to 0)':'')+'.',[w])}
+ function deq(){if(!size){P('dequeue on empty queue fails.');return}var v=buf[head];buf[head]='';head=(head+1)%4;size--;P('dequeue() returns '+v+': read at head, head = (head + 1) % 4.')}
+ P('Circular queue in a fixed array of 4 slots: head = next to remove, tail = next free slot. Indices wrap around with % capacity, so no shifting is ever needed.');
+ enq('A');enq('B');enq('C');enq('D');enq('E');deq();enq('E');deq();deq();return S},
+mergesort:function(){var a=[5,2,4,7,1,3,2,6],S=[];
+ S.push({a:a.slice(),ptr:{},note:'Merge sort: split in half until single elements (already sorted), then merge sorted halves back together. Each level of merging does n work and there are log n levels.'});
+ function ms(l,r){if(l>=r)return;var m=(l+r)>>1;ms(l,m);ms(m+1,r);
+  var L=a.slice(l,m+1),R=a.slice(m+1,r+1),i=0,j=0,k=l;
+  while(i<L.length&&j<R.length){a[k++]=L[i]<=R[j]?L[i++]:R[j++]}
+  while(i<L.length)a[k++]=L[i++];while(j<R.length)a[k++]=R[j++];
+  S.push({a:a.slice(),ptr:{lo:l,hi:r},hi:rng(l,r),ok:rng(l,r),dim:a.map(function(_,x){return x}).filter(function(x){return x<l||x>r}),note:'Merge ['+L.join(',')+'] and ['+R.join(',')+'] → ['+a.slice(l,r+1).join(',')+'] (take the smaller front element each time; ≤ keeps equal items in order = stable).'})}
+ ms(0,a.length-1);
+ S.push({a:a.slice(),ptr:{},ok:rng(0,a.length-1),note:'Sorted: '+a.join(', ')+'. O(n log n) in every case, O(n) extra space, stable.'});return S},
+largestnum:function(){var a=['3','30','34','5','9'],S=[];
+ S.push({a:a.slice(),ptr:{},note:'Arrange the numbers to form the largest value. The rule: x comes before y if the string x+y is bigger than y+x. Insertion sort with that comparator.'});
+ for(var i=1;i<a.length;i++){for(var j=i-1;j>=0;j--){var x=a[j],y=a[j+1],sw=y+x>x+y;
+   S.push({a:a.slice(),ptr:{j:j,next:j+1},hi:[j,j+1],note:'Compare "'+y+'" before "'+x+'": "'+y+x+'" vs "'+x+y+'". '+(sw?'"'+y+x+'" is larger, so '+y+' moves ahead of '+x+'.':'"'+x+y+'" is larger or equal, so the order is already right. Stop.')});
+   if(sw){a[j]=y;a[j+1]=x}else break}}
+ S.push({a:a.slice(),ptr:{},ok:rng(0,a.length-1),note:'Order: '+a.join(' ')+' → "'+a.join('')+'". Sorting with a custom comparator is O(n log n) comparisons × O(length) per comparison.'});return S},
+bucket:function(){var nums=[1,1,1,2,2,3],k=2,S=[],cnt={},b=['','','','','','',''];
+ function A(){return {label:'counts',items:Object.keys(cnt).map(function(x){return x+': '+cnt[x]})}}
+ S.push({a:b.slice(),ptr:{},note:'Top-2 frequent in [1,1,1,2,2,3]. Count each value, then drop it into a bucket indexed by its frequency (1..n). No sorting needed.'});
+ nums.forEach(function(x){cnt[x]=(cnt[x]||0)+1});
+ S.push({a:b.slice(),ptr:{},aux:A(),note:'Counting pass: value → how many times it appears.'});
+ Object.keys(cnt).sort(function(x,y){return cnt[x]-cnt[y]}).forEach(function(x){var f=cnt[x];b[f]=b[f]?b[f]+','+x:x;S.push({a:b.slice(),ptr:{freq:f},ok:[f],aux:A(),note:'Value '+x+' appears '+f+' time(s): put it in bucket['+f+'].'})});
+ var res=[];for(var f=b.length-1;f>=1&&res.length<k;f--){if(b[f]){b[f].split(',').forEach(function(x){if(res.length<k)res.push(+x)});S.push({a:b.slice(),ptr:{scan:f},ok:[f],aux:{label:'result',items:['['+res.join(', ')+']']},note:'Scan buckets from the highest frequency down; take '+b[f]+' → result so far ['+res.join(', ')+'].'})}}
+ S.push({a:b.slice(),ptr:{},aux:{label:'result',items:['['+res.join(', ')+']']},note:'Top '+k+' frequent: ['+res.join(', ')+']. O(n) time, O(n) space, better than the O(n log n) of sorting counts.'});return S},
+mergeiv:function(){var raw=[[8,10],[1,3],[15,18],[2,6]],iv=raw.slice().sort(function(x,y){return x[0]-y[0]}),S=[],out=[];
+ function f(arr){return arr.map(function(p){return '['+p[0]+','+p[1]+']'})}
+ function A(){return {label:'merged',items:out.length?f(out):['(empty)']}}
+ S.push({a:f(raw),ptr:{},aux:A(),note:'Merge overlapping intervals. Step 1: sort by start, so any overlap can only be with the previous merged interval.'});
+ S.push({a:f(iv),ptr:{},aux:A(),note:'Sorted by start: '+f(iv).join(' ')+'.'});
+ iv.forEach(function(p,i){var last=out[out.length-1],n;
+  if(!last||last[1]<p[0]){out.push([p[0],p[1]]);n=last?'['+p[0]+','+p[1]+'] starts after '+last[1]+' (gap): start a new merged interval.':'First interval: start the merged list.'}
+  else{var old=last[1];last[1]=Math.max(last[1],p[1]);n='['+p[0]+','+p[1]+'] starts at '+p[0]+' ≤ '+old+' (overlap): extend the end to max('+old+', '+p[1]+') = '+last[1]+'.'}
+  S.push({a:f(iv),ptr:{i:i},hi:[i],ok:rng(0,i),aux:A(),note:n})});
+ S.push({a:f(iv),ptr:{},ok:rng(0,iv.length-1),aux:A(),note:'Result: '+f(out).join(' ')+'. Sorting dominates: O(n log n) time.'});return S},
+insertiv:function(){var iv=[[1,2],[3,5],[6,7],[8,10],[12,16]],ni=[4,8],S=[],res=[];
+ function f(arr){return arr.map(function(p){return '['+p[0]+','+p[1]+']'})}
+ function A(ph){return {label:'phase | new interval | result',items:[ph,'new = ['+ni[0]+','+ni[1]+']','result: '+(res.length?f(res).join(' '):'(empty)')]}}
+ var cells=f(iv);
+ S.push({a:cells,ptr:{},aux:A('start'),note:'Insert [4,8] into a sorted, non-overlapping list in one pass: (1) copy intervals that end before it starts, (2) merge the ones that overlap it, (3) copy the rest.'});
+ var i=0;while(i<iv.length&&iv[i][1]<ni[0]){res.push(iv[i]);S.push({a:cells,ptr:{i:i},hi:[i],aux:A('1 · before'),note:'['+iv[i]+'] ends at '+iv[i][1]+' < '+ni[0]+': completely before the new interval, copy it.'});i++}
+ while(i<iv.length&&iv[i][0]<=ni[1]){var o=ni.slice();ni[0]=Math.min(ni[0],iv[i][0]);ni[1]=Math.max(ni[1],iv[i][1]);S.push({a:cells,ptr:{i:i},hi:[i],aux:A('2 · overlap'),note:'['+iv[i]+'] starts at '+iv[i][0]+' ≤ '+o[1]+': overlaps. Absorb it: new becomes ['+ni[0]+','+ni[1]+'].'});i++}
+ res.push(ni.slice());S.push({a:cells,ptr:{},aux:A('2 · overlap'),note:'No more overlaps: add the merged new interval ['+ni[0]+','+ni[1]+'].'});
+ while(i<iv.length){res.push(iv[i]);S.push({a:cells,ptr:{i:i},hi:[i],aux:A('3 · after'),note:'['+iv[i]+'] starts after the new interval: copy it unchanged.'});i++}
+ S.push({a:f(res),ptr:{},ok:rng(0,res.length-1),aux:A('done'),note:'Result: '+f(res).join(' ')+'. One pass, O(n).'});return S},
+sweep:function(){var iv=[[0,30],[5,10],[15,20]],ev=[],S=[];
+ iv.forEach(function(p){ev.push([p[0],1]);ev.push([p[1],-1])});ev.sort(function(x,y){return x[0]-y[0]||x[1]-y[1]});
+ var cells=ev.map(function(e){return e[0]+(e[1]>0?' ▲':' ▼')}),act=0,mx=0;
+ function A(){return {label:'now | peak',items:['active meetings = '+act,'rooms needed (peak) = '+mx]}}
+ S.push({a:cells,ptr:{},aux:A(),note:'Minimum rooms for meetings [0,30] [5,10] [15,20]. Turn each meeting into two events (▲ start +1, ▼ end −1), sort by time (ends before starts on ties), sweep and track the running count.'});
+ ev.forEach(function(e,i){act+=e[1];mx=Math.max(mx,act);S.push({a:cells,ptr:{t:i},hi:[i],ok:act===mx&&e[1]>0?[i]:[],aux:A(),note:'Time '+e[0]+': a meeting '+(e[1]>0?'starts (+1)':'ends (−1)')+'. Active = '+act+'. Peak so far = '+mx+'.'})});
+ S.push({a:cells,ptr:{},ok:rng(0,cells.length-1),aux:A(),note:'Maximum overlap = '+mx+' room(s). Sorting the events costs O(n log n); the sweep itself is O(n).'});return S},
+greedyiv:function(){var raw=[[1,2],[2,3],[3,4],[1,3]],iv=raw.slice().sort(function(x,y){return x[1]-y[1]}),S=[],end=-1e9,removed=0,kept=[],dim=[];
+ function f(arr){return arr.map(function(p){return '['+p[0]+','+p[1]+']'})}
+ function A(){return {label:'greedy state',items:['last kept end = '+(end<-1e8?'none':end),'removed = '+removed]}}
+ S.push({a:f(raw),ptr:{},aux:A(),note:'Fewest intervals to remove so that the rest do not overlap = keep as many as possible. Greedy: sort by END time and always keep the interval that finishes first.'});
+ S.push({a:f(iv),ptr:{},aux:A(),note:'Sorted by end: '+f(iv).join(' ')+'.'});
+ iv.forEach(function(p,i){var n;if(p[0]>=end){end=p[1];kept.push(i);n='['+p[0]+','+p[1]+'] starts at '+p[0]+' ≥ last end: keep it. New last end = '+end+'.'}else{removed++;dim.push(i);n='['+p[0]+','+p[1]+'] starts at '+p[0]+' < last end '+end+': it overlaps, remove it (it ends later than the one we kept).'}
+  S.push({a:f(iv),ptr:{i:i},hi:[i],ok:kept.slice(),dim:dim.slice(),aux:A(),note:n})});
+ S.push({a:f(iv),ptr:{},ok:kept.slice(),dim:dim.slice(),aux:A(),note:'Remove '+removed+' interval(s). Finishing earliest leaves the most room for later intervals: that is the exchange argument. O(n log n).'});return S},
+boats:function(){var p=[1,2,2,3],limit=3,S=[],l=0,r=3,boats=0,dim=[];
+ S.push({a:p,ptr:{l:0,r:3},aux:{label:'limit | boats',items:['limit = '+limit,'boats = 0']},note:'Each boat carries at most 2 people and weighs at most '+limit+'. Sort the weights; pair the lightest with the heaviest if they fit.'});
+ while(l<=r){var fits=l<r&&p[l]+p[r]<=limit,n;
+  if(fits){n=p[l]+' + '+p[r]+' = '+(p[l]+p[r])+' ≤ '+limit+': they share a boat.';dim.push(l);dim.push(r);l++;r--}else{n=(l<r?p[l]+' + '+p[r]+' = '+(p[l]+p[r])+' > '+limit+': the heaviest ('+p[r]+') goes alone; ':'Last person ')+(l<r?'':'goes alone. ');dim.push(r);r--}
+  boats++;S.push({a:p,ptr:{l:l,r:r},ok:dim.slice(),aux:{label:'limit | boats',items:['limit = '+limit,'boats = '+boats]},note:n+' Boats used: '+boats+'.'})}
+ S.push({a:p,ptr:{},ok:rng(0,3),aux:{label:'limit | boats',items:['boats = '+boats]},note:'Minimum boats = '+boats+'. The heaviest person needs a boat anyway; pairing them with the lightest is always the best use of it. O(n log n).'});return S},
+cyclic:function(){var a=[3,4,-1,1],S=[],n=a.length;
+ S.push({a:a.slice(),ptr:{},note:'First missing positive. Idea: the sorted answer for 1..n would be [1,2,3,4]. Put each value x in 1..n at index x−1 by swapping; then the first index i with a[i] ≠ i+1 reveals the missing number i+1.'});
+ var i=0;while(i<n){var x=a[i];
+  if(x>=1&&x<=n&&a[x-1]!==x){var t=a[x-1];a[x-1]=x;a[i]=t;S.push({a:a.slice(),ptr:{i:i,home:x-1},hi:[i,x-1],note:'a['+i+'] = '+x+' belongs at index '+(x-1)+'. Swap it home. a['+i+'] is now '+t+' (check again).'})}
+  else{S.push({a:a.slice(),ptr:{i:i},ok:(x>=1&&x<=n&&a[x-1]===x)?[i]:[],dim:(x<1||x>n)?[i]:[],note:'a['+i+'] = '+x+': '+((x>=1&&x<=n)?'already at its home index (or its home holds the same value). Move on.':'out of range 1..'+n+', ignore it. Move on.')});i++}}
+ var miss=n+1;for(var k=0;k<n;k++){if(a[k]!==k+1){miss=k+1;break}}
+ S.push({a:a.slice(),ptr:{},ok:a.map(function(v,j){return j}).filter(function(j){return a[j]===j+1}),note:'Scan: index '+(miss-1)+' holds '+a[miss-1]+' instead of '+miss+'. The first missing positive is '+miss+'. O(n) time, O(1) space: every swap puts one value home for good.'});return S}};
+
+var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+var body=document.body;
+/* language + theme */
+function setLang(l){body.dataset.lang=l;$('#b-java').classList.toggle('on',l==='java');$('#b-py').classList.toggle('on',l==='py');ls('dsa-lang',l)}
+setLang(ls('dsa-lang')||'java');
+$('#b-java').onclick=function(){setLang('java')};$('#b-py').onclick=function(){setLang('py')};
+var th=ls('dsa-theme');if(th)document.documentElement.dataset.theme=th;
+$('#b-theme').onclick=function(){var d=document.documentElement,dark=d.dataset.theme?d.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;d.dataset.theme=dark?'light':'dark';ls('dsa-theme',d.dataset.theme)};
+/* progress (saved in this browser only) */
+function load(){try{return JSON.parse(ls('dsa-progress')||'{}')}catch(e){return {}}}
+var prog=load();
+function refresh(){var boxes=$$('.pk'),n=0;
+ boxes.forEach(function(b){var on=!!prog[b.dataset.k];b.checked=on;b.closest('tr').classList.toggle('done',on);if(on)n++});
+ $('#prog').textContent=n+' / '+boxes.length+' solved';$('#pbar').style.width=(boxes.length?100*n/boxes.length:0)+'%';
+ $$('.pat').forEach(function(p){var bx=$$('.pk',p),d=bx.filter(function(c){return c.checked}).length,e=$('.pp',p),s=$('nav.side a[href="#'+p.id+'"] .cnt');
+  if(e)e.textContent=d+' / '+bx.length+' solved';if(s)s.textContent=d+'/'+bx.length})}
+$$('.pk').forEach(function(b){b.onchange=function(){if(b.checked)prog[b.dataset.k]=1;else delete prog[b.dataset.k];ls('dsa-progress',JSON.stringify(prog));refresh()}});
+refresh();
+/* copy buttons */
+$$('.cp').forEach(function(e){e.remove()});
+$$('pre').forEach(function(p){var b=document.createElement('button');b.className='cp';b.textContent='Copy';b.onclick=function(){var t=p.querySelector('code').textContent;try{navigator.clipboard.writeText(t);b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1200)}catch(e){}};p.appendChild(b)});
+/* scroll spy */
+var links=$$('nav.side a');
+if('IntersectionObserver' in window&&links.length){var map={};links.forEach(function(a){map[a.getAttribute('href').slice(1)]=a});
+ var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(a){a.classList.remove('act')});var a=map[e.target.id];if(a)a.classList.add('act')}})},{rootMargin:'-70px 0px -70% 0px'});
+ Object.keys(map).forEach(function(id){var t=document.getElementById(id);if(t)io.observe(t)})}
+/* download */
+$('#b-dl').onclick=function(){
+ var clone=document.documentElement.cloneNode(true);
+ $$('.stepper',clone).forEach(function(e){e.innerHTML=''});$$('.cp',clone).forEach(function(e){e.remove()});
+ $$('.pk',clone).forEach(function(e){e.removeAttribute('checked')});$$('tr.done',clone).forEach(function(e){e.classList.remove('done')});
+ $$('a.act',clone).forEach(function(e){e.classList.remove('act')});
+ var h='<!DOCTYPE html>\n'+clone.outerHTML,blob=new Blob([h],{type:'text/html'}),a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);a.download=body.dataset.file||'topic.html';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)};
+/* animated stepper */
+function stepper(el){
+ var steps=SIM[el.dataset.sim](),i=0,timer=null,speed=1300,max=0;
+ steps.forEach(function(s){max=Math.max(max,s.a.length)});
+ el.setAttribute('tabindex','0');el.setAttribute('aria-label','Step-by-step animation');
+ el.innerHTML='<div class="st-prog"><i></i></div><div class="st-view"></div><div class="st-aux"></div><div class="st-note" aria-live="polite"></div>'+
+  '<div class="st-ctl"><button data-a="prev" title="Previous (←)">◀</button><button data-a="play" title="Play / pause (space)">▶ Play</button><button data-a="next" title="Next (→)">▶|</button><button data-a="reset" title="Restart">↺</button>'+
+  '<input type="range" min="0" max="'+(steps.length-1)+'" value="0" aria-label="Step"><select aria-label="Speed"><option value="2200">Slow</option><option value="1300" selected>Normal</option><option value="600">Fast</option></select><span class="st-count"></span></div>';
+ var view=$('.st-view',el),aux=$('.st-aux',el),note=$('.st-note',el),cnt=$('.st-count',el),play=$('[data-a=play]',el),bar=$('.st-prog i',el),rg=$('input',el),sel=$('select',el);
+ var cells=[],h='';for(var k=0;k<max;k++)h+='<div class="cellw"><div class="ptr"></div><div class="cell"></div><div class="idx">'+k+'</div></div>'+(k<max-1?'<div class="edge"></div>':'');
+ view.innerHTML=h;$$('.cellw',view).forEach(function(w){cells.push({w:w,p:$('.ptr',w),c:$('.cell',w),v:null})});var edges=$$('.edge',view);
+ function draw(){var s=steps[i],lab={};Object.keys(s.ptr||{}).forEach(function(k){var ix=s.ptr[k];(lab[ix]=lab[ix]||[]).push(k)});
+  cells.forEach(function(o,ix){if(ix>=s.a.length){o.w.style.display='none';return}o.w.style.display='';
+   var v=String(s.a[ix]);if(o.v!==null&&o.v!==v){o.c.classList.remove('pop');void o.c.offsetWidth;o.c.classList.add('pop')}
+   o.v=v;o.c.textContent=v;
+   o.c.className='cell'+((s.hi||[]).indexOf(ix)>=0?' in':'')+((s.ok||[]).indexOf(ix)>=0?' ok':'')+((s.dim||[]).indexOf(ix)>=0?' dim':'')+(o.c.classList.contains('pop')?' pop':'');
+   o.p.innerHTML=lab[ix]?'<b>'+lab[ix].join(', ')+'</b>':''});
+  edges.forEach(function(g,k){var t=k<s.a.length-1?(s.edges?(s.edges[k]||''):(s.link?'→':'')):'';g.textContent=t;g.style.display=t?'':'none'});
+  if(s.aux){aux.innerHTML='<span class="al">'+s.aux.label+'</span>'+s.aux.items.map(function(t){return '<span class="chip">'+String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span>'}).join('')}else aux.innerHTML='';
+  note.textContent=s.note;cnt.textContent=(i+1)+' / '+steps.length;bar.style.width=(100*(i+1)/steps.length)+'%';rg.value=i}
+ function stop(){if(timer){clearInterval(timer);timer=null;play.textContent='▶ Play'}}
+ function go(n){i=Math.max(0,Math.min(steps.length-1,n));draw()}
+ function start(){if(i>=steps.length-1)i=0;play.textContent='❚❚ Pause';draw();timer=setInterval(function(){if(i<steps.length-1){i++;draw()}else stop()},speed)}
+ $('[data-a=prev]',el).onclick=function(){stop();go(i-1)};$('[data-a=next]',el).onclick=function(){stop();go(i+1)};
+ $('[data-a=reset]',el).onclick=function(){stop();go(0)};play.onclick=function(){timer?stop():start()};
+ rg.oninput=function(){stop();go(+rg.value)};sel.onchange=function(){speed=+sel.value;if(timer){stop();start()}};
+ el.onkeydown=function(e){if(e.target!==el)return;if(e.key==='ArrowRight'){stop();go(i+1);e.preventDefault()}else if(e.key==='ArrowLeft'){stop();go(i-1);e.preventDefault()}else if(e.key===' '){timer?stop():start();e.preventDefault()}};
+ draw()}
+$$('.stepper').forEach(stepper);
+
+})();</script>
+</body></html>
