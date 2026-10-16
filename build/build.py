@@ -15,6 +15,7 @@ import linked_list  # noqa: E402
 import stack_queue  # noqa: E402
 import sorting_intervals  # noqa: E402
 import recursion_backtracking  # noqa: E402
+import bit_math  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -27,7 +28,7 @@ CATALOG = [
     ("05_stack_queue", "Stacks, Queues and Deques", "Monotonic stack and deque, BFS, expression evaluation, greedy stack, circular buffers", stack_queue.TOPIC),
     ("06_sorting_intervals", "Sorting and Intervals", "Merge/quick sort, comparators, bucket sort, merge/insert intervals, sweep line, greedy scheduling, cyclic sort", sorting_intervals.TOPIC),
     ("07_recursion_backtracking", "Recursion and Backtracking", "Recursion, subsets, combinations, permutations, duplicates, grid search, N-Queens, pruning", recursion_backtracking.TOPIC),
-    ("08_bit_math", "Bit Manipulation and Math", "XOR tricks, masks, gcd, sieve, fast power", None),
+    ("08_bit_math", "Bit Manipulation and Math", "Bit tricks, XOR, bitmasks, fast power, GCD and primes, digits, formulas", bit_math.TOPIC),
     ("09_trees", "Binary Trees and BST", "DFS/BFS, paths, LCA, BST, tree DP", None),
     ("10_heap_priority_queue", "Heaps and Priority Queues", "Top-K, two heaps, k-way merge", None),
     ("11_trie", "Tries", "Prefix search, word dictionary, XOR trie", None),

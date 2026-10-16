@@ -610,6 +610,7 @@ return n + 1</code></pre></div>
 <script>(function(){
 function rng(x,y){var r=[];for(var i=x;i<=y;i++)r.push(i);return r}
 function mapStr(m){var k=Object.keys(m);return '{'+k.map(function(x){return x+':'+m[x]}).join(', ')+'}'}
+function bitsOf(x,n){var s=(x>>>0).toString(2);while(s.length<n)s='0'+s;return s.split('')}
 var SIM={
 two:function(){var a=[1,3,4,6,8,11],t=10,S=[],l=0,r=a.length-1;
  while(l<r){var s=a[l]+a[r];
@@ -1037,7 +1038,65 @@ parens:function(){var n=2,S=[],cur=[],res=[];
   if(o<n){cur.push('(');S.push({a:cur.slice(),ptr:{top:cur.length-1},hi:[cur.length-1],aux:A(o+1,c),note:'open ('+o+') < n ('+n+'): we may add "(". String "'+cur.join('')+'".'});dfs(o+1,c);cur.pop()}
   if(c<o){cur.push(')');S.push({a:cur.slice(),ptr:{top:cur.length-1},hi:[cur.length-1],aux:A(o,c+1),note:'close ('+c+') < open ('+o+'): we may add ")". String "'+cur.join('')+'".'});dfs(o,c+1);cur.pop()}}
  S.push({a:[],ptr:{},aux:A(0,0),note:'Generate all valid strings with 2 pairs of parentheses. Prune instead of filtering: add "(" only while open < n, add ")" only while close < open. Invalid strings are never built.'});
- dfs(0,0);S.push({a:[],ptr:{},aux:A(n,n),note:'Valid strings: '+res.join(', ')+'. The count is the Catalan number (2 for n = 2, 5 for n = 3, 14 for n = 4); pruning avoids the 2^(2n) raw strings.'});return S}};
+ dfs(0,0);S.push({a:[],ptr:{},aux:A(n,n),note:'Valid strings: '+res.join(', ')+'. The count is the Catalan number (2 for n = 2, 5 for n = 3, 14 for n = 4); pruning avoids the 2^(2n) raw strings.'});return S},
+bits:function(){var x=44,S=[],W=8;
+ function P(n,o){var r={a:bitsOf(x,W),ptr:{},aux:{label:'value',items:['x = '+x,'binary '+bitsOf(x,W).join('')]},note:n};if(o)for(var k in o)r[k]=o[k];S.push(r)}
+ function ix(b){return W-1-b}
+ P('x = 44 = 00101100. Bit 0 is the rightmost (least significant) bit. The index under each cell is its position from the left; bit k sits at position '+(W-1)+' − k.');
+ P('Check bit 2: (x >> 2) & 1 = '+((x>>2)&1)+'. Shift the bit you want into position 0, then mask with 1.',{hi:[ix(2)],ptr:{'bit 2':ix(2)}});
+ x|=1;P('Set bit 0: x |= (1 << 0). OR with a 1 forces the bit on → '+x+'.',{ok:[ix(0)],ptr:{'bit 0':ix(0)}});
+ x&=~(1<<2);P('Clear bit 2: x &= ~(1 << 2). AND with a 0 forces the bit off → '+x+'.',{ok:[ix(2)],ptr:{'bit 2':ix(2)}});
+ x^=1<<5;P('Toggle bit 5: x ^= (1 << 5). XOR with 1 flips the bit → '+x+'.',{ok:[ix(5)],ptr:{'bit 5':ix(5)}});
+ var y=x;x=x&(x-1);P('x & (x − 1) clears the LOWEST set bit: '+y+' & '+(y-1)+' = '+x+'. (Subtracting 1 flips the lowest 1 and every 0 below it.)',{ok:[ix(0)],ptr:{'cleared':ix(0)}});
+ x=y;var low=x&-x;P('x & −x isolates the lowest set bit: '+x+' & '+(-x)+' = '+low+'.',{hi:[ix(0)],ok:[ix(0)]});
+ x=8;P('Power of two? A power of two has exactly one set bit, so x & (x − 1) == 0: 8 & 7 = '+(8&7)+' → yes (x must be > 0).',{ok:[ix(3)],ptr:{'only bit':ix(3)}});return S},
+xor:function(){var a=[4,1,2,1,2],S=[],acc=0;
+ function B(v){var s=v.toString(2);while(s.length<3)s='0'+s;return s}
+ S.push({a:a,ptr:{},aux:{label:'running XOR',items:['acc = 0 (000)']},note:'Find the number that appears once while all others appear twice. XOR properties: x ^ x = 0, x ^ 0 = x, and order does not matter. So every pair cancels.'});
+ a.forEach(function(v,i){var prev=acc;acc^=v;S.push({a:a,ptr:{i:i},hi:[i],dim:rng(0,i-1),aux:{label:'running XOR',items:[prev+' ^ '+v+' = '+acc,B(prev)+' ^ '+B(v)+' = '+B(acc)]},note:'acc = '+prev+' XOR '+v+' = '+acc+'.'+((i>0&&a.slice(0,i).indexOf(v)>=0)?' '+v+' appeared before, so its two copies cancel to 0.':'')})});
+ S.push({a:a,ptr:{},ok:[0],aux:{label:'result',items:['acc = '+acc]},note:'All pairs cancelled; what is left is the single number: '+acc+'. O(n) time, O(1) space, no hash map.'});return S},
+kernighan:function(){var n=13,S=[],c=0,W=8;
+ function P(note,o){var r={a:bitsOf(n,W),ptr:{},aux:{label:'n | count',items:['n = '+n,'set bits counted = '+c]},note:note};if(o)for(var k in o)r[k]=o[k];S.push(r)}
+ P('Count the 1 bits of 13 = 00001101 (Brian Kernighan): n & (n − 1) removes exactly one set bit each time, so the loop runs once per set bit, not once per bit.');
+ while(n){var low=W-1-Math.log2(n&-n);var prev=n;n=n&(n-1);c++;S.push({a:bitsOf(prev,W),ptr:{lowest:low},hi:[low],aux:{label:'n | count',items:['n = '+prev,'n − 1 = '+(prev-1)]},note:'Lowest set bit found. '+prev+' & '+(prev-1)+' = '+n+': that bit is cleared. count = '+c+'.'});
+  P('After clearing: n = '+n+' = '+bitsOf(n,W).join('')+(n?'. Still non-zero, repeat.':'. n is 0, stop.'))}
+ P('Answer: '+c+' set bits. O(number of set bits), at most O(32).',{ok:[]});return S},
+masksubs:function(){var a=['a','b','c'],S=[];
+ S.push({a:a,ptr:{},aux:{label:'mask',items:['2³ = 8 masks: 0 .. 7']},note:'Every integer from 0 to 2ⁿ − 1 is a subset: bit i set means "element i is included". Counting from 0 to 7 enumerates all 8 subsets with no recursion.'});
+ for(var m=0;m<8;m++){var inc=[],set=[];for(var i=0;i<3;i++)if(m>>i&1){inc.push(i);set.push(a[i])}
+  var b=bitsOf(m,3).join('');S.push({a:a,ptr:{},hi:inc,ok:inc,aux:{label:'mask '+m,items:['binary '+b,'subset {'+set.join(', ')+'}']},note:'mask = '+m+' = '+b+' (bit 0 is the rightmost): include '+(set.length?set.join(', '):'nothing')+'.'})}
+ S.push({a:a,ptr:{},ok:[0,1,2],aux:{label:'tips',items:['submasks of m: for (s = m; s > 0; s = (s − 1) & m)','Gray code: i ^ (i >> 1)']},note:'8 subsets in O(2ⁿ · n). Bitmasks also encode "set of used items" as one integer, the basis of bitmask DP.'});return S},
+adder:function(){var a=5,b=3,S=[],W=8;
+ function P(n,o){var r={a:bitsOf(a,W),ptr:{},aux:{label:'a | b',items:['a = '+bitsOf(a,W).join('')+' ('+a+')','b = '+bitsOf(b,W).join('')+' ('+b+')']},note:n};if(o)for(var k in o)r[k]=o[k];S.push(r)}
+ P('Add 5 + 3 without using +. XOR adds bits without carrying; AND finds where a carry happens (shifted left by one). Repeat until no carry remains.');
+ while(b){var x=a^b,c=(a&b)<<1;S.push({a:bitsOf(x,W),ptr:{},hi:[],aux:{label:'this round',items:['a ^ b = '+bitsOf(x,W).join('')+' ('+x+') sum without carry','(a & b) << 1 = '+bitsOf(c,W).join('')+' ('+c+') carry']},note:'a = '+a+', b = '+b+': sum without carry = '+x+', carry = '+c+'. New a = '+x+', new b = '+c+'.'});a=x;b=c}
+ P('Carry is 0, so a holds the answer: '+a+' = '+bitsOf(a,W).join('')+'. Each round pushes the carry at least one position left, so at most 32 rounds.',{ok:rng(0,W-1)});return S},
+fastpow:function(){var base=3,e=13,S=[],res=1,bits=[];
+ var ee=e;while(ee){bits.push(ee&1);ee>>=1}
+ function A(b){return {label:'result | base',items:['result = '+res,'base = '+b]}}
+ S.push({a:bits.slice(),ptr:{},aux:A(base),note:'Compute 3^13 with binary exponentiation. 13 = 1101 in binary; the cells are its bits from least significant (index 0). Square the base every step; multiply it into the result when the bit is 1.'});
+ var cur=base;for(var i=0;i<bits.length;i++){var msg;if(bits[i]){res*=cur;msg='bit '+i+' = 1: multiply the result by the current base: result = '+res+'.'}else msg='bit '+i+' = 0: skip, the result is unchanged.';
+  S.push({a:bits.slice(),ptr:{bit:i},hi:[i],ok:bits[i]?[i]:[],aux:A(cur),note:msg+(i<bits.length-1?' Then square the base: '+cur+'² = '+cur*cur+'.':'')});cur=cur*cur}
+ S.push({a:bits.slice(),ptr:{},ok:rng(0,bits.length-1),aux:A('(done)'),note:'3^13 = '+res+'. Only '+bits.length+' squarings instead of 12 multiplications: O(log n). With a modulus, reduce after every multiplication.'});return S},
+sieve:function(){var N=30,nums=[],comp={},S=[],primes=[];for(var i=2;i<=N;i++)nums.push(i);
+ function idx(v){return v-2}
+ function P(n,o){var r={a:nums,cols:10,ptr:{},dim:Object.keys(comp).map(function(k){return idx(+k)}),aux:{label:'primes so far',items:primes.length?primes.slice():['none']},note:n};if(o)for(var k in o)r[k]=o[k];S.push(r)}
+ P('Sieve of Eratosthenes up to 30. Start with every number as a candidate; for each prime p, cross out its multiples starting at p².');
+ for(var p=2;p*p<=N;p++){if(comp[p])continue;primes.push(p);var ms=[];for(var j=p*p;j<=N;j+=p){if(!comp[j]){comp[j]=1}ms.push(j)}
+  P('p = '+p+' is prime. Cross out its multiples from '+p+'² = '+p*p+': '+ms.join(', ')+'. (Smaller multiples were already crossed out by smaller primes.)',{ok:[idx(p)],hi:ms.map(idx)})}
+ var rest=[];for(var v=2;v<=N;v++)if(!comp[v]){rest.push(v);if(primes.indexOf(v)<0)primes.push(v)}
+ P('Next candidate p = 7: 7² = 49 > 30, so we can stop. Every number still standing is prime: '+rest.join(', ')+'.',{ok:rest.map(idx)});
+ P('Time O(n log log n), space O(n). The loop only runs while p·p ≤ n.',{ok:rest.map(idx)});return S},
+digits:function(){var d=[1,2,3,4],S=[],rev=0,x=1234;
+ function A(){return {label:'x | rev',items:['x = '+x,'rev = '+rev]}}
+ S.push({a:d,ptr:{},aux:A(),note:'Reverse the digits of 1234. Peel digits off the right with % 10 and / 10, and push them onto rev with rev × 10 + digit.'});
+ for(var i=3;i>=0;i--){var dig=x%10;x=Math.floor(x/10);var old=rev;rev=rev*10+dig;S.push({a:d,ptr:{digit:i},hi:[i],dim:rng(i+1,3),aux:A(),note:'digit = '+dig+', x becomes '+x+'. rev = '+old+' × 10 + '+dig+' = '+rev+'.'})}
+ S.push({a:d,ptr:{},ok:[0,1,2,3],aux:A(),note:'Result 4321. In 32-bit problems check overflow BEFORE multiplying: rev > MAX/10 (or equal with digit > 7) means the answer would not fit.'});return S},
+trailing:function(){var n=125,S=[],q=n,total=0,vals=[n];
+ function A(){return {label:'zeros so far',items:['total = '+total]}}
+ S.push({a:vals.slice(),ptr:{},aux:A(),note:'Trailing zeros of 125! = number of factors of 10 = number of 5s (2s are plentiful). Count multiples of 5, then of 25, then 125, …: n/5 + n/25 + n/125 + …'});
+ while(true){q=Math.floor(q/5);if(!q)break;vals.push(q);total+=q;S.push({a:vals.slice(),ptr:{now:vals.length-1},hi:[vals.length-1],aux:A(),note:'Divide by 5 again → '+q+': that many numbers are multiples of the next power of 5 and add one more factor of 5 each. total = '+total+'.'})}
+ S.push({a:vals.slice(),ptr:{},ok:[vals.length-1],aux:A(),note:'125! ends with '+total+' zeros. O(log₅ n), not O(n) and no factorial is ever computed.'});return S}};
 
 var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}

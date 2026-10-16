@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bit Manipulation and Math — Pattern Guide</title><style>:root{--bg:#f6f7fb;--surf:#fff;--fg:#151a26;--mut:#5b6579;--line:#e2e6ef;--soft:#f0f2f8;--acc:#4f46e5;--acc-soft:#eceafe;--cool:#0e7490;--cool-soft:#e0f4f8;
+--hot:#c2410c;--hot-soft:#ffedd5;--ok:#15803d;--ok-soft:#dcfce7;--warn:#b45309;--warn-soft:#fef3c7;--bad:#b91c1c;--code:#f3f4f9;--shadow:0 1px 2px rgba(20,26,40,.06),0 4px 16px rgba(20,26,40,.05)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0c0f16;--surf:#131824;--fg:#e8ebf3;--mut:#9ba5ba;--line:#252c3c;--soft:#1a2030;--acc:#8e96ff;--acc-soft:#232855;--cool:#35c3e0;--cool-soft:#0f2f38;--hot:#fb923c;--hot-soft:#3a2312;--ok:#4ade80;--ok-soft:#12361f;--warn:#fbbf24;--warn-soft:#3a2c0b;--bad:#f87171;--code:#181e2c;--shadow:none}}
+:root[data-theme=dark]{--bg:#0c0f16;--surf:#131824;--fg:#e8ebf3;--mut:#9ba5ba;--line:#252c3c;--soft:#1a2030;--acc:#8e96ff;--acc-soft:#232855;--cool:#35c3e0;--cool-soft:#0f2f38;--hot:#fb923c;--hot-soft:#3a2312;--ok:#4ade80;--ok-soft:#12361f;--warn:#fbbf24;--warn-soft:#3a2c0b;--bad:#f87171;--code:#181e2c;--shadow:none}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:15.5px/1.65 "Inter",-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--acc)}
+code{background:var(--code);padding:1px 6px;border-radius:5px;font:0.88em ui-monospace,"Cascadia Code",Consolas,Menlo,monospace}
+.mut,.muted{color:var(--mut)}.muted{font-size:13px;font-weight:400}
+/* top bar */
+.bar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--surf) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar-in{max-width:1180px;margin:0 auto;display:flex;gap:8px;align-items:center;padding:8px 16px}
+.brand{font-weight:800;text-decoration:none;color:var(--fg);margin-right:auto;letter-spacing:-.01em}.brand b{color:var(--acc)}
+.prog{font-size:13px;color:var(--mut);white-space:nowrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{border:0;border-radius:0;background:transparent}
+.bar button,.st-ctl button,.st-ctl select{font:inherit;font-size:13px;padding:6px 12px;border:1px solid var(--line);border-radius:9px;background:var(--surf);color:var(--fg);cursor:pointer}
+.bar button:hover,.st-ctl button:hover{border-color:var(--acc);color:var(--acc)}
+.bar button.on{background:var(--acc);color:#fff}
+.pbar{height:3px;background:var(--line)}.pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--cool));transition:width .4s}
+/* layout */
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px;display:grid;grid-template-columns:240px minmax(0,1fr);gap:36px}
+nav.side{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto;padding:22px 0;font-size:13.5px}
+nav.side h4{margin:14px 0 6px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--mut)}
+nav.side a{display:flex;gap:8px;align-items:center;padding:5px 9px;border-radius:8px;text-decoration:none;color:var(--fg);border-left:3px solid transparent}
+nav.side a:hover{background:var(--soft)}nav.side a.act{background:var(--acc-soft);color:var(--acc);border-color:var(--acc);font-weight:600}
+nav.side .dot{width:8px;height:8px;border-radius:50%;flex:none}.dot.hot{background:var(--hot)}.dot.sec{background:var(--cool)}
+nav.side .cnt{margin-left:auto;font-size:11px;color:var(--mut)}
+main{min-width:0;padding:28px 0 90px}
+.chips{display:none}
+/* hero */
+.hero{background:linear-gradient(135deg,var(--acc-soft),var(--cool-soft));border:1px solid var(--line);border-radius:20px;padding:30px 28px;margin-bottom:26px}
+.eyebrow{font:700 12px ui-monospace,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--acc)}
+.hero h1{font-size:clamp(26px,4vw,38px);line-height:1.15;margin:8px 0 10px;letter-spacing:-.02em}
+.lead{font-size:16.5px;color:var(--mut);margin:0;max-width:70ch}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.stat{background:var(--surf);border:1px solid var(--line);border-radius:99px;padding:4px 13px;font-size:13px}.stat b{color:var(--acc)}
+/* headings */
+h2{font-size:23px;margin:46px 0 10px;letter-spacing:-.01em;scroll-margin-top:72px;display:flex;align-items:center;gap:10px}
+h2::before{content:"";width:5px;height:22px;border-radius:3px;background:linear-gradient(var(--acc),var(--cool))}
+h3{margin:0;font-size:20px;letter-spacing:-.01em}
+.callout{border:1px solid var(--line);border-left:4px solid var(--acc);background:var(--surf);padding:10px 16px;border-radius:10px;margin:14px 0;box-shadow:var(--shadow)}
+.callout.intu{border-left-color:var(--cool);background:var(--cool-soft)}.callout p{margin:4px 0}
+.callout .lbl{margin-bottom:2px}
+/* pattern card */
+.pat{background:var(--surf);border:1px solid var(--line);border-radius:18px;padding:22px 22px 10px;margin:26px 0;box-shadow:var(--shadow);scroll-margin-top:72px;position:relative;overflow:hidden}
+.pat::before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:var(--acc)}.pat.sec::before{background:var(--cool)}
+.pat-h{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.badge{width:34px;height:34px;border-radius:10px;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:none}.sec .badge{background:var(--cool)}
+.tier{font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;white-space:nowrap}.tier.hot{background:var(--hot-soft);color:var(--hot)}.tier.sec{background:var(--cool-soft);color:var(--cool)}
+.pp{margin-left:auto;font-size:12px;color:var(--mut)}
+.glance{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:6px 0 14px}
+.gi{background:var(--soft);border-radius:12px;padding:10px 13px;font-size:14px}
+.lbl{font:700 11px/1.2 ui-monospace,Consolas,monospace;letter-spacing:.09em;text-transform:uppercase;color:var(--acc);margin-bottom:4px;display:block}
+.blk{margin:14px 0}.blk p{margin:4px 0}
+.blk ol,.blk ul{margin:4px 0;padding-left:22px}.blk li{margin:3px 0}
+.blk.warn .lbl{color:var(--warn)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cx{background:var(--ok-soft);color:var(--ok);border-radius:10px;padding:8px 13px;font-weight:600;font-size:14px;margin:12px 0}
+/* code */
+pre{background:var(--code);border:1px solid var(--line);border-radius:12px;padding:13px 15px;overflow-x:auto;margin:8px 0;position:relative;font-size:13px;line-height:1.55}
+pre code{background:none;padding:0;font-size:inherit}
+.code-java,.code-py{display:none}body[data-lang=java] .code-java,body[data-lang=py] .code-py{display:block}
+.cp{position:absolute;top:7px;right:7px;font-size:11px;padding:2px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surf);color:var(--mut);cursor:pointer;opacity:0;transition:.15s}
+pre:hover .cp,.cp:focus{opacity:1}
+.trace{border-left:3px solid var(--warn)}
+/* tables */
+.tw{overflow-x:auto;margin:10px 0;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;background:var(--surf)}
+th,td{padding:8px 11px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:var(--soft);font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}tr:last-child td{border-bottom:0}
+.ladder td:first-child{width:34px;text-align:center}.ladder .t{white-space:nowrap}.ladder .c{white-space:nowrap;font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+input.pk{width:17px;height:17px;accent-color:var(--acc);cursor:pointer}
+.pill{font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:99px;white-space:nowrap}.dE{background:var(--ok-soft);color:var(--ok)}.dM{background:var(--warn-soft);color:var(--warn)}.dH{background:var(--hot-soft);color:var(--bad)}
+tr.done td{background:var(--ok-soft)}tr.done td:nth-child(3){text-decoration:line-through;text-decoration-color:var(--mut)}
+details{border:1px solid var(--line);border-radius:12px;padding:9px 14px;margin:8px 0;background:var(--surf)}summary{cursor:pointer;font-weight:600}details[open]{border-color:var(--acc)}details p{margin:8px 0 2px;color:var(--mut)}
+/* stepper */
+.stepper{border:1px solid var(--line);border-radius:16px;padding:14px;margin:8px 0 14px;background:linear-gradient(var(--soft),var(--surf));outline:none}
+.stepper:focus-visible{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-soft)}
+.st-prog{height:4px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:10px}.st-prog i{display:block;height:100%;background:var(--acc);width:0;transition:width .3s}
+.st-view{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;padding:6px 0 2px;margin:0 auto}
+.cellw{display:flex;flex-direction:column;align-items:center;min-width:46px}
+.ptr{min-height:22px;font:700 11px ui-monospace,Consolas,monospace;color:#fff;margin-bottom:3px;display:flex;align-items:flex-end}
+.ptr b{background:var(--acc);padding:1px 7px;border-radius:99px;white-space:nowrap;animation:drop .25s ease}
+.cell{min-width:46px;height:46px;display:flex;align-items:center;justify-content:center;border:2px solid var(--line);border-radius:11px;background:var(--surf);font:600 16px ui-monospace,Consolas,monospace;padding:0 7px;transition:background .25s,border-color .25s,transform .25s,box-shadow .25s}
+.cell.in{background:var(--acc-soft);border-color:var(--acc);transform:translateY(-2px);box-shadow:0 4px 10px rgba(79,70,229,.18)}
+.cell.ok{background:var(--ok-soft);border-color:var(--ok)}
+.cell.dim{background:var(--soft);color:var(--mut);border-style:dashed;opacity:.6}
+.cell.pop{animation:pop .35s ease}
+.edge{align-self:flex-start;margin-top:31px;min-width:20px;text-align:center;color:var(--acc);font:700 17px ui-monospace,Consolas,monospace}
+.idx{font:11px ui-monospace,Consolas,monospace;color:var(--mut);margin-top:3px}
+.st-aux{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;min-height:30px;margin-top:8px}
+.st-aux .al{font:700 11px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}
+.chip{font:600 12.5px ui-monospace,Consolas,monospace;background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:2px 9px}
+.st-note{min-height:48px;margin:8px 2px;font-size:14.5px;padding:9px 13px;background:var(--surf);border:1px solid var(--line);border-radius:10px}
+.st-ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.st-ctl input[type=range]{flex:1;min-width:90px;accent-color:var(--acc)}
+.st-count{font-size:12px;color:var(--mut);white-space:nowrap}
+@keyframes pop{0%{transform:scale(.75)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes drop{from{transform:translateY(-6px);opacity:0}to{transform:none;opacity:1}}
+.foot{margin-top:50px;padding-top:18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:14px}
+@media (max-width:1020px){.wrap{display:block}nav.side{display:none}
+ .chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0;position:sticky;top:57px;z-index:10;background:var(--bg)}
+ .chips a{white-space:nowrap;font-size:12.5px;border:1px solid var(--line);background:var(--surf);padding:4px 11px;border-radius:99px;text-decoration:none;color:var(--fg)}}
+@media (max-width:640px){body{font-size:15px}.hero{padding:22px 18px}.pat{padding:16px 14px 6px}.two{grid-template-columns:1fr}.cell{min-width:36px;height:38px;font-size:13.5px}.cellw{min-width:36px}.brand span{display:none}.pp{margin-left:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{.bar,.pbar,nav.side,.chips,.st-ctl,.cp{display:none}.wrap{display:block}.code-java,.code-py{display:block!important}.pat{box-shadow:none;break-inside:avoid-page}body{background:#fff}}
+</style></head>
+<body data-lang="java" data-file="08_bit_math.html" data-topic="bit_math">
+<div class="bar"><div class="bar-in"><a class="brand" href="../index.html"><b>DSA</b> <span>Mastery</span></a>
+<span class="prog" id="prog"></span>
+<span class="seg"><button id="b-java" class="on">Java</button><button id="b-py">Python</button></span>
+<button id="b-theme" title="Toggle light / dark" aria-label="Toggle theme">◐</button>
+<button id="b-dl" title="Save this page as a standalone HTML file">⬇ Download</button></div><div class="pbar"><i id="pbar"></i></div></div>
+<div class="wrap"><nav class="side" aria-label="On this page"><h4>Start here</h4><a href="#mindset">The mindset</a><a href="#priority">Priority</a><a href="#cues">Problem cues</a><h4>Patterns</h4><a href="#p1"><span class="dot hot"></span>1. Bit basics: the operators and the six core tricks<span class="cnt"></span></a><a href="#p2"><span class="dot hot"></span>2. XOR tricks: cancelling pairs<span class="cnt"></span></a><a href="#p3"><span class="dot hot"></span>3. Counting set bits (Kernighan and bit DP)<span class="cnt"></span></a><a href="#p4"><span class="dot hot"></span>4. Bitmasks: subsets and state compression<span class="cnt"></span></a><a href="#p5"><span class="dot sec"></span>5. Arithmetic with bits: adder, shifts and ranges<span class="cnt"></span></a><a href="#p6"><span class="dot hot"></span>6. Fast exponentiation and modular arithmetic<span class="cnt"></span></a><a href="#p7"><span class="dot hot"></span>7. GCD, primes and divisibility<span class="cnt"></span></a><a href="#p8"><span class="dot hot"></span>8. Digits and number manipulation<span class="cnt"></span></a><a href="#p9"><span class="dot sec"></span>9. Formulas and observation-based math<span class="cnt"></span></a><h4>Wrap up</h4><a href="#recall">One-line recall</a><a href="#choose">Choosing</a><a href="#selftest">Self-test</a><a href="#plan">Study plan</a></nav><main><div class="chips"><a href="#p1">1. Bit basics: the operators and the six core tricks</a><a href="#p2">2. XOR tricks: cancelling pairs</a><a href="#p3">3. Counting set bits (Kernighan and bit DP)</a><a href="#p4">4. Bitmasks: subsets and state compression</a><a href="#p5">5. Arithmetic with bits: adder, shifts and ranges</a><a href="#p6">6. Fast exponentiation and modular arithmetic</a><a href="#p7">7. GCD, primes and divisibility</a><a href="#p8">8. Digits and number manipulation</a><a href="#p9">9. Formulas and observation-based math</a></div>
+<header class="hero"><div class="eyebrow">Topic 08</div><h1>Bit Manipulation and Math — Pattern Guide</h1><p class="lead">Bits and numbers give you the shortest, fastest solutions when you know the handful of tricks. This guide covers bit operators and masks, XOR cancellation, counting set bits, bitmask subsets, arithmetic with bits, fast exponentiation with modulus, GCD and primes, digit manipulation and formula-based reasoning. Each pattern has the intuition, a step-through animation, Java and Python code, and a ladder of LeetCode problems.</p><div class="stats"><span class="stat"><b>9</b> patterns</span><span class="stat"><b>51</b> practice problems</span><span class="stat"><b>9</b> animations</span><span class="stat">Java + Python</span></div></header>
+<div class="callout"><span class="lbl">How to use this page</span><p>For each section: read <em>Detect</em> and <em>Intuition</em>, play the animation, then try to write the skeleton from memory before opening the code. Finish by solving the problem ladder in order.</p></div>
+<h2 id="mindset">The mindset</h2><p>Bit and math problems reward <strong>noticing structure</strong>: a number is a row of switches, a pair cancels under XOR, a multiple is crossed out by its prime, a huge power is a few squarings. Learn the idioms by heart (<code>x &amp; (x − 1)</code>, <code>x &amp; −x</code>, <code>a ^ b</code>, <code>base * base % mod</code>, <code>gcd(b, a % b)</code>), then spend your time on recognising which one a problem is hiding.</p><p>Ask these questions on every bit or math problem:</p><ul><li><strong>Does it ask about pairs, odd one out or parity?</strong> → XOR.</li><li><strong>Is the input a small set of choices?</strong> → bitmask (n ≤ 20).</li><li><strong>Are the numbers or exponents huge, or a modulus given?</strong> → fast power and modular arithmetic.</li><li><strong>Is divisibility, factors or primes involved?</strong> → GCD, sieve, factorisation.</li><li><strong>Could 32-bit overflow occur?</strong> → check before multiplying; use <code>long</code>; mind signs and Java vs Python division.</li></ul>
+<h2 id="priority">Priority</h2><p class="muted">Ranked by how often these show up in interviews (our judgement from the common interview lists and company question banks, not hard data).</p><h3 style='margin:14px 0 4px;font-size:16px'>🔥 Frequently asked — master these first</h3><div class="tw"><table class=""><thead><tr><th>#</th><th>Pattern</th><th>Why it matters</th><th>Signature problem</th></tr></thead><tbody><tr><td>1</td><td><strong>Bit basics: the operators and the six core tricks</strong></td><td>Every bit problem is built from these few moves</td><td>LC 191 / 231</td></tr><tr><td>2</td><td><strong>XOR tricks: cancelling pairs</strong></td><td>Gives O(1)-space answers to "find the odd one out" questions</td><td>LC 136 / 268</td></tr><tr><td>3</td><td><strong>Counting set bits (Kernighan and bit DP)</strong></td><td>Population count shows up in many easy problems and as a building block</td><td>LC 191 / 338</td></tr><tr><td>4</td><td><strong>Bitmasks: subsets and state compression</strong></td><td>The bridge from backtracking to bitmask dynamic programming</td><td>LC 78 / 89 / 1239</td></tr><tr><td>6</td><td><strong>Fast exponentiation and modular arithmetic</strong></td><td>Turns O(n) powers into O(log n) and keeps numbers from overflowing</td><td>LC 50 / 1922</td></tr><tr><td>7</td><td><strong>GCD, primes and divisibility</strong></td><td>Number-theory staples: GCD, primality, factorisation</td><td>LC 204 / 1979</td></tr><tr><td>8</td><td><strong>Digits and number manipulation</strong></td><td>Many easy-medium questions test exactly this loop and its edge cases</td><td>LC 7 / 9 / 168</td></tr></tbody></table></div><h3 style='margin:14px 0 4px;font-size:16px'>🧊 Secondary — know them</h3><div class="tw"><table class=""><thead><tr><th>#</th><th>Pattern</th><th>Why it matters</th><th>Signature problem</th></tr></thead><tbody><tr><td>5</td><td><strong>Arithmetic with bits: adder, shifts and ranges</strong></td><td>Shows you understand how addition and division work underneath</td><td>LC 371 / 201</td></tr><tr><td>9</td><td><strong>Formulas and observation-based math</strong></td><td>Many "hard-looking" problems collapse into a short formula</td><td>LC 172 / 319</td></tr></tbody></table></div>
+<h2 id="cues">Problem cues</h2><p class="muted">If the problem says this, think of that.</p><div class="tw"><table class=""><thead><tr><th>If the problem says / looks like…</th><th>Pattern</th></tr></thead><tbody><tr><td>"is the i-th bit set", "power of two", "reverse bits"</td><td><strong>P1</strong> Bit basics</td></tr><tr><td>"appears twice except one", "missing number"</td><td><strong>P2</strong> XOR cancellation</td></tr><tr><td>"number of 1 bits", "counting bits"</td><td><strong>P3</strong> Counting set bits</td></tr><tr><td>"all subsets" with n ≤ 20, "set of used items"</td><td><strong>P4</strong> Bitmask enumeration</td></tr><tr><td>"without + / − / ×", "AND of a range"</td><td><strong>P5</strong> Arithmetic with bits</td></tr><tr><td>"pow", "mod 10^9 + 7", huge exponent, sqrt</td><td><strong>P6</strong> Fast power and modular arithmetic</td></tr><tr><td>"gcd", "count primes", "ugly number", "factors"</td><td><strong>P7</strong> GCD and primes</td></tr><tr><td>"reverse integer", "palindrome number", "column title", base conversion</td><td><strong>P8</strong> Digits</td></tr><tr><td>"trailing zeroes", "bulb switcher", counting by pattern</td><td><strong>P9</strong> Formulas</td></tr></tbody></table></div>
+<h2>The patterns</h2>
+<section class="pat hot" id="p1">
+<div class="pat-h"><span class="badge">1</span><h3>Bit basics: the operators and the six core tricks</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>You need to read, set, clear or flip individual bits, or test a property of the binary form of a number.</div><div class="gi"><span class="lbl">Detect it</span>"number of 1 bits" · "power of two" · "reverse bits" · "hamming distance" · "complement" · "is the i-th bit set".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>A number is a row of light switches (bits), and the operators are ways of acting on switches. <strong>AND</strong> keeps only switches that are on in both rows, <strong>OR</strong> turns on every switch that is on in either, <strong>XOR</strong> flips switches where the rows differ, <strong>shifts</strong> slide the whole row. A mask such as <code>1 &lt;&lt; i</code> is a row with exactly one switch on: AND with it reads that switch, OR sets it, XOR toggles it.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Converting to a string of 0/1 characters and looping works but is slow and clumsy. Bit operations act on all 32 bits in one CPU instruction.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Memorise the mask idioms: read <code>(x &gt;&gt; i) &amp; 1</code>; set <code>x | (1 &lt;&lt; i)</code>; clear <code>x &amp; ~(1 &lt;&lt; i)</code>; toggle <code>x ^ (1 &lt;&lt; i)</code>; clear lowest set bit <code>x &amp; (x − 1)</code>; isolate lowest set bit <code>x &amp; −x</code>.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Pick the mask: <code>1 &lt;&lt; i</code> for one bit, <code>(1 &lt;&lt; k) − 1</code> for the lowest k bits.</li><li>Combine with <code>&amp;</code> (keep / read), <code>|</code> (set), <code>^</code> (toggle).</li><li>Use <code>x &amp; (x − 1)</code> to drop the lowest set bit, and <code>x &amp; −x</code> to isolate it.</li><li>Use <code>&gt;&gt;&gt;</code> (Java) for an unsigned right shift; Python ints are unbounded, so mask with <code>&amp; 0xFFFFFFFF</code> for 32-bit behaviour.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="bits"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p><code>x = 44 = 00101100</code></p><pre class="trace"><code>read bit 2:     (44 &gt;&gt; 2) &amp; 1            = 1
+set bit 0:      44 | 1                   = 45  (00101101)
+clear bit 2:    45 &amp; ~(1 &lt;&lt; 2)           = 41  (00101001)
+toggle bit 5:   41 ^ 32                  = 9   (00001001)
+drop low bit:   9 &amp; 8                    = 8   (00001000)
+low bit only:   9 &amp; -9                   = 1
+power of two?   8 &amp; 7 == 0               yes</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>the idioms</p><pre class="code-java"><code>boolean isSet = ((x &gt;&gt; i) &amp; 1) == 1;
+x |= (1 &lt;&lt; i);              // set bit i
+x &amp;= ~(1 &lt;&lt; i);             // clear bit i
+x ^= (1 &lt;&lt; i);              // toggle bit i
+x &amp;= (x - 1);               // clear the lowest set bit
+int low = x &amp; -x;           // isolate the lowest set bit
+boolean pow2 = x &gt; 0 &amp;&amp; (x &amp; (x - 1)) == 0;
+int unsigned = x &gt;&gt;&gt; 1;     // &gt;&gt; keeps the sign bit, &gt;&gt;&gt; fills with 0</code></pre><pre class="code-py"><code>is_set = (x &gt;&gt; i) &amp; 1 == 1
+x |= 1 &lt;&lt; i                 # set bit i
+x &amp;= ~(1 &lt;&lt; i)              # clear bit i
+x ^= 1 &lt;&lt; i                 # toggle bit i
+x &amp;= x - 1                  # clear the lowest set bit
+low = x &amp; -x                # isolate the lowest set bit
+pow2 = x &gt; 0 and x &amp; (x - 1) == 0
+# Python ints are unbounded: use &amp; 0xFFFFFFFF to emulate 32-bit unsigned</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>reverse the 32 bits of an integer</p><pre class="code-java"><code>int r = 0;
+for (int i = 0; i &lt; 32; i++) {
+    r = (r &lt;&lt; 1) | (n &amp; 1);      // take the lowest bit of n, append it to r
+    n &gt;&gt;&gt;= 1;
+}
+return r;</code></pre><pre class="code-py"><code>r = 0
+for _ in range(32):
+    r = (r &lt;&lt; 1) | (n &amp; 1)       # take the lowest bit of n, append it to r
+    n &gt;&gt;= 1
+return r</code></pre></div>
+<div class="cx">⏱ Complexity — O(1) per operation; loops over bits are O(32) = O(1) or O(log n).</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Operator precedence: in Java and C, <code>==</code> binds tighter than <code>&amp;</code>, so write <code>(x &amp; 1) == 1</code> (Python is the opposite, but parenthesise anyway).</li><li>Java <code>int</code> is 32-bit and signed: <code>1 &lt;&lt; 31</code> is negative; use <code>1L &lt;&lt; i</code> for bit 31 and above in <code>long</code>.</li><li><code>&gt;&gt;</code> is arithmetic (copies the sign bit), <code>&gt;&gt;&gt;</code> is logical; they differ for negative numbers.</li><li>Python has no fixed width: <code>~x</code> is <code>−x − 1</code>, and negative numbers behave as infinite two's complement.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Complement of a number: XOR with a mask of its bit length, <code>(1 &lt;&lt; bitLength) − 1</code>.</li><li>Hamming distance: <code>bitCount(x ^ y)</code>.</li><li>Power of four: power of two <strong>and</strong> the set bit is at an even position (<code>x &amp; 0x55555555 != 0</code>).</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When clarity matters more and speed is irrelevant; but in interviews these idioms are expected.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="bit_math-191" aria-label="Solved LC 191"></td><td class="t"><a href="https://leetcode.com/problems/number-of-1-bits/" target="_blank" rel="noopener">LC 191</a></td><td>Number of 1 Bits</td><td><span class="pill dE">Easy</span></td><td>Loop <code>n &amp;= n − 1</code> and count</td><td class="c">O(set bits) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-231" aria-label="Solved LC 231"></td><td class="t"><a href="https://leetcode.com/problems/power-of-two/" target="_blank" rel="noopener">LC 231</a></td><td>Power of Two</td><td><span class="pill dE">Easy</span></td><td>Exactly one set bit: n &gt; 0 and n &amp; (n − 1) == 0</td><td class="c">O(1) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-342" aria-label="Solved LC 342"></td><td class="t"><a href="https://leetcode.com/problems/power-of-four/" target="_blank" rel="noopener">LC 342</a></td><td>Power of Four</td><td><span class="pill dE">Easy</span></td><td>Power of two whose bit sits at an even position</td><td class="c">O(1) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-461" aria-label="Solved LC 461"></td><td class="t"><a href="https://leetcode.com/problems/hamming-distance/" target="_blank" rel="noopener">LC 461</a></td><td>Hamming Distance</td><td><span class="pill dE">Easy</span></td><td>Count the set bits of x XOR y</td><td class="c">O(1) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-476" aria-label="Solved LC 476"></td><td class="t"><a href="https://leetcode.com/problems/number-complement/" target="_blank" rel="noopener">LC 476</a></td><td>Number Complement</td><td><span class="pill dE">Easy</span></td><td>XOR with a mask of the number's length</td><td class="c">O(1) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-190" aria-label="Solved LC 190"></td><td class="t"><a href="https://leetcode.com/problems/reverse-bits/" target="_blank" rel="noopener">LC 190</a></td><td>Reverse Bits</td><td><span class="pill dE">Easy</span></td><td>Shift the lowest bit of n into r, 32 times</td><td class="c">O(32) / O(1)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p2">
+<div class="pat-h"><span class="badge">2</span><h3>XOR tricks: cancelling pairs</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>All values appear in pairs except one (or two), or a value is missing from a known range.</div><div class="gi"><span class="lbl">Detect it</span>"single number" · "missing number" · "find the difference" · "every element appears twice except" · "duplicate or missing".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>XOR is addition modulo 2 with no carry: <code>x ^ x = 0</code>, <code>x ^ 0 = x</code>, and it is commutative and associative. So XOR-ing a whole list makes every pair cancel to zero and leaves the unpaired number, no matter the order. No hash map is needed.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Count occurrences in a hash map: O(n) time and O(n) space. XOR gives the same answer in O(n) time with O(1) space.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Fold the array with XOR. For a missing number in <code>0..n</code>, XOR all indices and all values; the missing one is the only number not cancelled. For <strong>two</strong> unique numbers, XOR everything to get <code>a ^ b</code>, find any set bit of it, and split the numbers into two groups by that bit.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li><code>acc = 0</code>; for each value <code>acc ^= v</code>.</li><li>Pairs cancel; <code>acc</code> is the answer for one unique number.</li><li>Missing number: <code>acc = n</code>, then <code>acc ^= i ^ a[i]</code> for each index.</li><li>Two unique numbers: <code>d = acc &amp; −acc</code> splits them; XOR each group separately.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="xor"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p><code>[4,1,2,1,2]</code></p><pre class="trace"><code>0 ^ 4 = 4    (100)
+4 ^ 1 = 5    (101)
+5 ^ 2 = 7    (111)
+7 ^ 1 = 6    (110)   the two 1s cancelled
+6 ^ 2 = 4    (100)   the two 2s cancelled
+=&gt; 4</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>single number and missing number</p><pre class="code-java"><code>int single = 0;
+for (int x : nums) single ^= x;                        // pairs cancel
+
+int missing = nums.length;                              // numbers 0..n, one is absent
+for (int i = 0; i &lt; nums.length; i++) missing ^= i ^ nums[i];</code></pre><pre class="code-py"><code>single = 0
+for x in nums:
+    single ^= x                                        # pairs cancel
+
+missing = len(nums)                                    # numbers 0..n, one is absent
+for i, x in enumerate(nums):
+    missing ^= i ^ x</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>two numbers appear once, all others twice</p><pre class="code-java"><code>int all = 0;
+for (int x : nums) all ^= x;                           // all = a ^ b, a != b
+int bit = all &amp; -all;                                  // a bit where a and b differ
+int a = 0, b = 0;
+for (int x : nums) { if ((x &amp; bit) == 0) a ^= x; else b ^= x; }
+return new int[]{a, b};</code></pre><pre class="code-py"><code>all_xor = 0
+for x in nums:
+    all_xor ^= x                                       # a ^ b, a != b
+bit = all_xor &amp; -all_xor                               # a bit where a and b differ
+a = b = 0
+for x in nums:
+    if x &amp; bit:
+        b ^= x
+    else:
+        a ^= x
+return [a, b]</code></pre></div>
+<div class="cx">⏱ Complexity — O(n) time, O(1) space.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Only works when every other value appears an <strong>even</strong> number of times (use bit counting mod 3 for "three times").</li><li>Missing number with negatives or a range that does not start at 0 needs adjusting (use the sum formula or offset).</li><li><code>a ^ b</code> can be 0 only if <code>a == b</code>; for two uniques it is non-zero, so a differing bit exists.</li><li>Do not confuse XOR (<code>^</code>) with exponent in Python (<code>**</code>).</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Single Number II (others appear 3 times): count each bit position mod 3, or use <code>ones</code> and <code>twos</code> accumulators.</li><li>Find the difference between two strings: XOR all characters.</li><li>Prefix XOR: subarray XOR = <code>prefix[j] ^ prefix[i − 1]</code> (like prefix sums).</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>Values repeating an odd number of times, or when you must return the positions or counts of duplicates.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="bit_math-136" aria-label="Solved LC 136"></td><td class="t"><a href="https://leetcode.com/problems/single-number/" target="_blank" rel="noopener">LC 136</a></td><td>Single Number</td><td><span class="pill dE">Easy</span></td><td>XOR everything; pairs vanish</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-389" aria-label="Solved LC 389"></td><td class="t"><a href="https://leetcode.com/problems/find-the-difference/" target="_blank" rel="noopener">LC 389</a></td><td>Find the Difference</td><td><span class="pill dE">Easy</span></td><td>XOR all characters of both strings</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-268" aria-label="Solved LC 268"></td><td class="t"><a href="https://leetcode.com/problems/missing-number/" target="_blank" rel="noopener">LC 268</a></td><td>Missing Number</td><td><span class="pill dE">Easy</span></td><td>XOR indices with values, or the sum formula</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-260" aria-label="Solved LC 260"></td><td class="t"><a href="https://leetcode.com/problems/single-number-iii/" target="_blank" rel="noopener">LC 260</a></td><td>Single Number III</td><td><span class="pill dM">Medium</span></td><td>XOR all, split by the lowest differing bit</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-137" aria-label="Solved LC 137"></td><td class="t"><a href="https://leetcode.com/problems/single-number-ii/" target="_blank" rel="noopener">LC 137</a></td><td>Single Number II</td><td><span class="pill dM">Medium</span></td><td>Count each bit mod 3 (or ones/twos accumulators)</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-1442" aria-label="Solved LC 1442"></td><td class="t"><a href="https://leetcode.com/problems/count-triplets-that-can-form-two-arrays-of-equal-xor/" target="_blank" rel="noopener">LC 1442</a></td><td>Count Triplets That Can Form Two Arrays of Equal XOR</td><td><span class="pill dM">Medium</span></td><td>Prefix XOR: equal prefixes mean a zero-XOR subarray</td><td class="c">O(n²) / O(1)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p3">
+<div class="pat-h"><span class="badge">3</span><h3>Counting set bits (Kernighan and bit DP)</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Count 1 bits of one number, or of every number from 0 to n.</div><div class="gi"><span class="lbl">Detect it</span>"number of 1 bits" · "counting bits" · "sort by number of set bits" · "binary gap" · "prime number of set bits".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Checking every one of 32 bits is wasteful when only a few are set. The trick <code>n &amp; (n − 1)</code> always deletes the <strong>lowest</strong> 1: subtracting 1 turns that bit to 0 and all the zeros below it to 1, so AND-ing wipes out precisely that bit. Repeat until nothing is left; the number of repeats is the answer.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Test all 32 bits: O(32). Kernighan's loop runs once per set bit. For many numbers, reuse earlier answers: <code>bits[i] = bits[i &gt;&gt; 1] + (i &amp; 1)</code>.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Loop <code>while n != 0: n &amp;= n − 1; count++</code>. For all numbers up to n use the recurrence on the number with its last bit removed.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li><code>count = 0</code>.</li><li>While <code>n != 0</code>: <code>n &amp;= n − 1</code>; <code>count++</code>.</li><li>Return <code>count</code>.</li><li>For 0..n: <code>bits[0] = 0</code>; <code>bits[i] = bits[i &gt;&gt; 1] + (i &amp; 1)</code>.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="kernighan"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p><code>13 = 1101</code></p><pre class="trace"><code>13 (1101) &amp; 12 (1100) = 12 (1100)   count 1
+12 (1100) &amp; 11 (1011) =  8 (1000)   count 2
+ 8 (1000) &amp;  7 (0111) =  0          count 3
+=&gt; 3 set bits</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>Kernighan's algorithm</p><pre class="code-java"><code>int count = 0;
+while (n != 0) {
+    n &amp;= n - 1;              // drop the lowest set bit
+    count++;
+}
+return count;
+// built-in: Integer.bitCount(n)</code></pre><pre class="code-py"><code>count = 0
+while n:
+    n &amp;= n - 1               # drop the lowest set bit
+    count += 1
+return count
+# built-in: n.bit_count() (3.10+) or bin(n).count(&#x27;1&#x27;)</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>counting bits for 0..n with DP</p><pre class="code-java"><code>int[] bits = new int[n + 1];
+for (int i = 1; i &lt;= n; i++) bits[i] = bits[i &gt;&gt; 1] + (i &amp; 1);     // reuse the answer for i / 2</code></pre><pre class="code-py"><code>bits = [0] * (n + 1)
+for i in range(1, n + 1):
+    bits[i] = bits[i &gt;&gt; 1] + (i &amp; 1)                                # reuse the answer for i // 2</code></pre></div>
+<div class="cx">⏱ Complexity — Kernighan: O(set bits) ≤ O(32). Counting bits 0..n: O(n) time, O(n) space.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>In Java use <code>&gt;&gt;&gt;</code> or the <code>n != 0</code> loop for negative numbers (an unsigned view); <code>n &gt; 0</code> would skip them.</li><li>In Python the loop <code>n &amp;= n − 1</code> never terminates for a negative <code>n</code>; mask to 32 bits first (<code>n &amp;= 0xFFFFFFFF</code>).</li><li>The DP recurrence needs <code>i &gt;&gt; 1</code> computed <strong>before</strong> <code>i</code>, so iterate upward.</li><li>Do not forget <code>bits[0] = 0</code>.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Hamming weight of all numbers in a range with a lookup table of bytes.</li><li>Binary gap: scan positions of set bits.</li><li>Check alternating bits: <code>n ^ (n &gt;&gt; 1)</code> is all ones.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>You can call <code>Integer.bitCount</code> / <code>int.bit_count()</code> unless the interviewer asks you to implement it.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="bit_math-338" aria-label="Solved LC 338"></td><td class="t"><a href="https://leetcode.com/problems/counting-bits/" target="_blank" rel="noopener">LC 338</a></td><td>Counting Bits</td><td><span class="pill dE">Easy</span></td><td>bits[i] = bits[i &gt;&gt; 1] + (i &amp; 1)</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-693" aria-label="Solved LC 693"></td><td class="t"><a href="https://leetcode.com/problems/binary-number-with-alternating-bits/" target="_blank" rel="noopener">LC 693</a></td><td>Binary Number with Alternating Bits</td><td><span class="pill dE">Easy</span></td><td>x = n ^ (n &gt;&gt; 1) must be all ones</td><td class="c">O(1) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-868" aria-label="Solved LC 868"></td><td class="t"><a href="https://leetcode.com/problems/binary-gap/" target="_blank" rel="noopener">LC 868</a></td><td>Binary Gap</td><td><span class="pill dE">Easy</span></td><td>Track the distance between consecutive set bits</td><td class="c">O(log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-762" aria-label="Solved LC 762"></td><td class="t"><a href="https://leetcode.com/problems/prime-number-of-set-bits-in-binary-representation/" target="_blank" rel="noopener">LC 762</a></td><td>Prime Number of Set Bits in Binary Representation</td><td><span class="pill dE">Easy</span></td><td>bitCount then check against small primes</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-1356" aria-label="Solved LC 1356"></td><td class="t"><a href="https://leetcode.com/problems/sort-integers-by-the-number-of-1-bits/" target="_blank" rel="noopener">LC 1356</a></td><td>Sort Integers by The Number of 1 Bits</td><td><span class="pill dE">Easy</span></td><td>Sort by (bitCount, value)</td><td class="c">O(n log n) / O(n)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p4">
+<div class="pat-h"><span class="badge">4</span><h3>Bitmasks: subsets and state compression</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Enumerate all subsets of up to ~20 items, or remember which of a few items you have used.</div><div class="gi"><span class="lbl">Detect it</span>"all subsets" · "gray code" · "smallest sufficient team" · "visit all nodes" · small n (≤ 20) with "set of chosen items" as state.</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>A set of up to 32 yes/no items fits in one integer: bit i is 1 if item i is in the set. Counting from 0 to 2ⁿ − 1 visits every possible set exactly once. Set operations become single instructions: union <code>|</code>, intersection <code>&amp;</code>, difference <code>&amp; ~</code>, membership <code>&amp; (1 &lt;&lt; i)</code>.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Recursive subset generation uses a list and a call stack. A mask loop uses neither and is the key to <strong>bitmask DP</strong>, where the state "which items are already used" is an integer you can use as an array index.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p><code>for (mask = 0; mask &lt; (1 &lt;&lt; n); mask++)</code>: item <code>i</code> is chosen when <code>mask &gt;&gt; i &amp; 1</code>. Submasks of <code>m</code>: <code>for (s = m; s &gt; 0; s = (s − 1) &amp; m)</code>. Gray code: <code>i ^ (i &gt;&gt; 1)</code> changes one bit between neighbours.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Let <code>n</code> be the number of items; there are <code>2ⁿ</code> masks.</li><li>Loop <code>mask</code> from <code>0</code> to <code>(1 &lt;&lt; n) − 1</code>.</li><li>Inner loop over bits to read the chosen items (or use the mask as a DP state).</li><li>To iterate submasks of <code>m</code>, use <code>s = (s − 1) &amp; m</code> until <code>s</code> becomes 0.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="masksubs"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>items <code>a, b, c</code></p><pre class="trace"><code>mask 0 = 000  {}
+mask 1 = 001  {a}
+mask 2 = 010  {b}
+mask 3 = 011  {a,b}
+mask 4 = 100  {c}
+mask 5 = 101  {a,c}
+mask 6 = 110  {b,c}
+mask 7 = 111  {a,b,c}</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>enumerate subsets, submasks and gray code</p><pre class="code-java"><code>for (int mask = 0; mask &lt; (1 &lt;&lt; n); mask++) {
+    List&lt;Integer&gt; subset = new ArrayList&lt;&gt;();
+    for (int i = 0; i &lt; n; i++) if ((mask &gt;&gt; i &amp; 1) == 1) subset.add(a[i]);
+    res.add(subset);
+}
+// every non-empty submask of m
+for (int s = m; s &gt; 0; s = (s - 1) &amp; m) { /* use s */ }
+// n-bit gray code: consecutive values differ in exactly one bit
+for (int i = 0; i &lt; (1 &lt;&lt; n); i++) gray.add(i ^ (i &gt;&gt; 1));</code></pre><pre class="code-py"><code>for mask in range(1 &lt;&lt; n):
+    res.append([a[i] for i in range(n) if mask &gt;&gt; i &amp; 1])
+
+s = m                                           # every non-empty submask of m
+while s:
+    # use s
+    s = (s - 1) &amp; m
+
+gray = [i ^ (i &gt;&gt; 1) for i in range(1 &lt;&lt; n)]    # consecutive values differ in exactly one bit</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>track which letters a string uses (unique-character concatenation)</p><pre class="code-java"><code>int best = 0;
+int[] masks = new int[n]; boolean[] ok = new boolean[n];
+for (int i = 0; i &lt; n; i++) {
+    int m = 0; boolean unique = true;
+    for (char c : arr.get(i).toCharArray()) { if ((m &gt;&gt; (c - &#x27;a&#x27;) &amp; 1) == 1) { unique = false; break; } m |= 1 &lt;&lt; (c - &#x27;a&#x27;); }
+    masks[i] = m; ok[i] = unique;
+}
+// dfs(index, usedMask): add arr[i] only if ok[i] &amp;&amp; (usedMask &amp; masks[i]) == 0</code></pre><pre class="code-py"><code>def mask_of(w):
+    m = 0
+    for c in w:
+        bit = 1 &lt;&lt; (ord(c) - 97)
+        if m &amp; bit:
+            return -1                          # repeated letter: word unusable
+        m |= bit
+    return m
+# dfs(i, used): take arr[i] only if mask_of(arr[i]) != -1 and used &amp; mask == 0</code></pre></div>
+<div class="cx">⏱ Complexity — O(2ⁿ · n) to enumerate subsets; works for n up to about 20–25.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Use <code>1 &lt;&lt; i</code> as <code>int</code> only up to 31; use <code>1L &lt;&lt; i</code> for larger masks.</li><li>Operator precedence: <code>mask &gt;&gt; i &amp; 1</code> parses as <code>(mask &gt;&gt; i) &amp; 1</code>, which is what you want, but parenthesise for clarity.</li><li><code>(s − 1) &amp; m</code> stops at 0: handle the empty submask separately if needed.</li><li>If n &gt; 25, bitmask enumeration is too slow: look for DP or pruning.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Bitmask DP (travelling salesman, assignment): <code>dp[mask][last]</code>.</li><li>Subset sums in <code>2^(n/2)</code> with meet in the middle.</li><li>Smallest sufficient team: <code>dp[skillMask] = smallest team covering it</code>.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>n larger than ~25, or when the items have structure that lets you do polynomial DP.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="bit_math-78" aria-label="Solved LC 78"></td><td class="t"><a href="https://leetcode.com/problems/subsets/" target="_blank" rel="noopener">LC 78</a></td><td>Subsets</td><td><span class="pill dM">Medium</span></td><td>Every mask 0..2ⁿ−1 is one subset</td><td class="c">O(n·2ⁿ) / O(1) extra</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-89" aria-label="Solved LC 89"></td><td class="t"><a href="https://leetcode.com/problems/gray-code/" target="_blank" rel="noopener">LC 89</a></td><td>Gray Code</td><td><span class="pill dM">Medium</span></td><td>i ^ (i &gt;&gt; 1) for i in 0..2ⁿ−1</td><td class="c">O(2ⁿ) / O(1) extra</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-1239" aria-label="Solved LC 1239"></td><td class="t"><a href="https://leetcode.com/problems/maximum-length-of-a-concatenated-string-with-unique-characters/" target="_blank" rel="noopener">LC 1239</a></td><td>Maximum Length of a Concatenated String with Unique Characters</td><td><span class="pill dM">Medium</span></td><td>Letter mask per word; include if masks do not overlap</td><td class="c">O(2ⁿ) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-1125" aria-label="Solved LC 1125"></td><td class="t"><a href="https://leetcode.com/problems/smallest-sufficient-team/" target="_blank" rel="noopener">LC 1125</a></td><td>Smallest Sufficient Team</td><td><span class="pill dH">Hard</span></td><td>dp over skill masks</td><td class="c">O(2^S · P) / O(2^S)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-847" aria-label="Solved LC 847"></td><td class="t"><a href="https://leetcode.com/problems/shortest-path-visiting-all-nodes/" target="_blank" rel="noopener">LC 847</a></td><td>Shortest Path Visiting All Nodes</td><td><span class="pill dH">Hard</span></td><td>BFS over (node, visitedMask) states</td><td class="c">O(2ⁿ·n) / O(2ⁿ·n)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat sec" id="p5">
+<div class="pat-h"><span class="badge">5</span><h3>Arithmetic with bits: adder, shifts and ranges</h3><span class="tier sec">🧊 Secondary</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Arithmetic is forbidden or must be done at bit level, or a range operation has a bitwise pattern.</div><div class="gi"><span class="lbl">Detect it</span>"sum of two integers without + or −" · "divide without /" · "bitwise AND of a range" · "multiply by powers of two" · "minimum flips".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Adding two bits: the sum bit is their XOR; a carry is produced only when both are 1 (AND), and it belongs one position to the left. So <code>a + b = (a ^ b) + ((a &amp; b) &lt;&lt; 1)</code>. Apply it again to the right-hand pair until no carry remains. For the range AND of <code>[l, r]</code>, only the common binary prefix of <code>l</code> and <code>r</code> survives; every lower bit varies somewhere in the range and ANDs to 0.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Looping <code>b</code> times with <code>a++</code> is O(b). The XOR/carry loop is O(32). The range AND by looping from <code>l</code> to <code>r</code> is O(r − l); shifting until <code>l == r</code> is O(32).</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Adder: <code>while (b != 0) { carry = (a &amp; b) &lt;&lt; 1; a ^= b; b = carry; }</code>. Range AND: shift both right until equal, then shift back. Multiplying by 2ᵏ is <code>&lt;&lt; k</code>; dividing is <code>&gt;&gt; k</code> (floor for non-negatives).</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Adder: compute <code>sum = a ^ b</code> and <code>carry = (a &amp; b) &lt;&lt; 1</code>.</li><li>Set <code>a = sum</code>, <code>b = carry</code>; repeat until <code>b == 0</code>.</li><li>Range AND: <code>shift = 0</code>; while <code>l != r</code>: <code>l &gt;&gt;= 1</code>, <code>r &gt;&gt;= 1</code>, <code>shift++</code>.</li><li>Return <code>l &lt;&lt; shift</code>.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="adder"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p><code>5 + 3</code> (0101 + 0011)</p><pre class="trace"><code>a=0101 b=0011  xor 0110  carry 0010
+a=0110 b=0010  xor 0100  carry 0100
+a=0100 b=0100  xor 0000  carry 1000
+a=0000 b=1000  xor 1000  carry 0000  -&gt; 8</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>add two integers without +</p><pre class="code-java"><code>while (b != 0) {
+    int carry = (a &amp; b) &lt;&lt; 1;     // positions where both bits are 1 carry to the left
+    a = a ^ b;                    // sum without the carry
+    b = carry;
+}
+return a;                          // works for negatives too: Java ints wrap in two&#x27;s complement</code></pre><pre class="code-py"><code>MASK, MAX = 0xFFFFFFFF, 0x7FFFFFFF           # Python ints are unbounded: emulate 32 bits
+while b:
+    a, b = (a ^ b) &amp; MASK, ((a &amp; b) &lt;&lt; 1) &amp; MASK
+return a if a &lt;= MAX else ~(a ^ MASK)           # convert back to a signed value</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>bitwise AND of a range [l, r]</p><pre class="code-java"><code>int shift = 0;
+while (l != r) { l &gt;&gt;= 1; r &gt;&gt;= 1; shift++; }      // keep only the common prefix
+return l &lt;&lt; shift;</code></pre><pre class="code-py"><code>shift = 0
+while l != r:
+    l &gt;&gt;= 1
+    r &gt;&gt;= 1
+    shift += 1                                      # keep only the common prefix
+return l &lt;&lt; shift</code></pre></div>
+<div class="cx">⏱ Complexity — O(32) = O(1) for the adder and range AND.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>In Python the carry loop never ends for negative numbers unless you mask to 32 bits.</li><li>Shifting by ≥ 32 in Java uses the shift count mod 32.</li><li>Divide two integers: handle <code>Integer.MIN_VALUE / −1</code> overflow and use <code>long</code> for the subtraction loop.</li><li><code>x &lt;&lt; 1</code> overflows silently in Java; use <code>long</code> when needed.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Divide without <code>/</code>: subtract the largest <code>divisor &lt;&lt; k</code> that fits, accumulate <code>1 &lt;&lt; k</code>.</li><li>Minimum flips to make <code>a | b == c</code>: compare bit by bit.</li><li>Swap two variables without a temp: <code>a ^= b; b ^= a; a ^= b</code>.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>Normal arithmetic: use <code>+</code>; this is for interviews that explicitly forbid it.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="bit_math-371" aria-label="Solved LC 371"></td><td class="t"><a href="https://leetcode.com/problems/sum-of-two-integers/" target="_blank" rel="noopener">LC 371</a></td><td>Sum of Two Integers</td><td><span class="pill dM">Medium</span></td><td>XOR for the sum, AND &lt;&lt; 1 for the carry, repeat</td><td class="c">O(1) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-201" aria-label="Solved LC 201"></td><td class="t"><a href="https://leetcode.com/problems/bitwise-and-of-numbers-range/" target="_blank" rel="noopener">LC 201</a></td><td>Bitwise AND of Numbers Range</td><td><span class="pill dM">Medium</span></td><td>Common binary prefix of l and r</td><td class="c">O(1) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-1318" aria-label="Solved LC 1318"></td><td class="t"><a href="https://leetcode.com/problems/minimum-flips-to-make-a-or-b-equal-to-c/" target="_blank" rel="noopener">LC 1318</a></td><td>Minimum Flips to Make a OR b Equal to c</td><td><span class="pill dM">Medium</span></td><td>Check each bit position against c</td><td class="c">O(1) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-29" aria-label="Solved LC 29"></td><td class="t"><a href="https://leetcode.com/problems/divide-two-integers/" target="_blank" rel="noopener">LC 29</a></td><td>Divide Two Integers</td><td><span class="pill dM">Medium</span></td><td>Subtract shifted divisors; guard the overflow case</td><td class="c">O(log² n) / O(1)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p6">
+<div class="pat-h"><span class="badge">6</span><h3>Fast exponentiation and modular arithmetic</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Raise to huge powers, compute results "modulo 10⁹ + 7", or search for a square root.</div><div class="gi"><span class="lbl">Detect it</span>"pow(x, n)" · "count good numbers" · "modulo 10^9 + 7" · "super pow" · "square root" · exponents up to 10⁹ or more.</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p><code>3^13 = 3^8 · 3^4 · 3^1</code> because 13 in binary is <code>1101</code>. You only need the squares <code>3, 9, 81, 6561, …</code> (each is the previous squared) and multiply together those that correspond to 1 bits. That is log₂(13) ≈ 4 squarings instead of 12 multiplications. When the answer must be modulo <code>M</code>, reduce after every multiplication; the rules <code>(a·b) mod M = ((a mod M)(b mod M)) mod M</code> make this safe.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Multiply n times: O(n), impossible for n = 10⁹. Repeated squaring: O(log n).</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Walk the exponent's bits from the least significant: <code>if (e &amp; 1) result *= base</code>; <code>base *= base</code>; <code>e &gt;&gt;= 1</code>. For division modulo a prime <code>p</code>, use the inverse <code>a^(p − 2) mod p</code> (Fermat).</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li><code>result = 1</code>, <code>base %= M</code>.</li><li>While <code>e &gt; 0</code>: if <code>e</code> is odd, <code>result = result · base mod M</code>.</li><li><code>base = base · base mod M</code>; <code>e &gt;&gt;= 1</code>.</li><li>Return <code>result</code>. For negative exponents, invert the base and negate <code>e</code>.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="fastpow"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p><code>3^13</code> (13 = 1101)</p><pre class="trace"><code>bit0 = 1  result = 3          base 3 -&gt; 9
+bit1 = 0  skip                base 9 -&gt; 81
+bit2 = 1  result = 3*81 = 243 base 81 -&gt; 6561
+bit3 = 1  result = 243*6561 = 1594323
+=&gt; 3^13 = 1594323</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>binary exponentiation with a modulus</p><pre class="code-java"><code>long power(long base, long exp, long mod) {
+    long result = 1;
+    base %= mod;
+    while (exp &gt; 0) {
+        if ((exp &amp; 1) == 1) result = result * base % mod;
+        base = base * base % mod;                 // base^(2^k)
+        exp &gt;&gt;= 1;
+    }
+    return result;
+}
+// modular inverse for prime mod: power(a, mod - 2, mod)</code></pre><pre class="code-py"><code>def power(base, exp, mod):
+    result, base = 1, base % mod
+    while exp &gt; 0:
+        if exp &amp; 1:
+            result = result * base % mod
+        base = base * base % mod                  # base^(2^k)
+        exp &gt;&gt;= 1
+    return result
+# built-in: pow(base, exp, mod); modular inverse for prime mod: pow(a, mod - 2, mod)</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>integer square root by binary search</p><pre class="code-java"><code>int lo = 1, hi = x, ans = 0;
+while (lo &lt;= hi) {
+    int mid = lo + (hi - lo) / 2;
+    if (mid &lt;= x / mid) { ans = mid; lo = mid + 1; }     // x / mid avoids overflow of mid * mid
+    else hi = mid - 1;
+}
+return ans;</code></pre><pre class="code-py"><code>lo, hi, ans = 1, x, 0
+while lo &lt;= hi:
+    mid = (lo + hi) // 2
+    if mid * mid &lt;= x:
+        ans, lo = mid, mid + 1
+    else:
+        hi = mid - 1
+return ans                                          # or math.isqrt(x)</code></pre></div>
+<div class="cx">⏱ Complexity — O(log exp) multiplications; sqrt by binary search O(log x).</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Multiplying two numbers below 10⁹ + 7 needs <code>long</code> (they overflow <code>int</code>).</li><li>Take the modulo after <strong>each</strong> multiplication.</li><li>Negative exponent: compute <code>1 / base</code> once, or <code>power(1/base, −exp)</code>; beware <code>−Integer.MIN_VALUE</code>.</li><li>Division mod p is <strong>not</strong> <code>a / b % p</code>: multiply by the modular inverse.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Count good numbers: <code>5^ceil(n/2) · 4^floor(n/2) mod M</code> with fast power.</li><li>Super pow: exponent given as an array of digits; use <code>a^(10k + d) = (a^k)^10 · a^d</code>.</li><li>Matrix exponentiation for Fibonacci in O(log n).</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>Small exponents (a simple loop), or floating-point powers where the language provides <code>Math.pow</code>.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="bit_math-69" aria-label="Solved LC 69"></td><td class="t"><a href="https://leetcode.com/problems/sqrtx/" target="_blank" rel="noopener">LC 69</a></td><td>Sqrt(x)</td><td><span class="pill dE">Easy</span></td><td>Binary search the largest m with m·m ≤ x</td><td class="c">O(log x) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-367" aria-label="Solved LC 367"></td><td class="t"><a href="https://leetcode.com/problems/valid-perfect-square/" target="_blank" rel="noopener">LC 367</a></td><td>Valid Perfect Square</td><td><span class="pill dE">Easy</span></td><td>Binary search m·m == x</td><td class="c">O(log x) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-50" aria-label="Solved LC 50"></td><td class="t"><a href="https://leetcode.com/problems/powx-n/" target="_blank" rel="noopener">LC 50</a></td><td>Pow(x, n)</td><td><span class="pill dM">Medium</span></td><td>Repeated squaring; handle negative n</td><td class="c">O(log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-1922" aria-label="Solved LC 1922"></td><td class="t"><a href="https://leetcode.com/problems/count-good-numbers/" target="_blank" rel="noopener">LC 1922</a></td><td>Count Good Numbers</td><td><span class="pill dM">Medium</span></td><td>5^(even positions) · 4^(odd positions) mod 10⁹+7</td><td class="c">O(log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-372" aria-label="Solved LC 372"></td><td class="t"><a href="https://leetcode.com/problems/super-pow/" target="_blank" rel="noopener">LC 372</a></td><td>Super Pow</td><td><span class="pill dM">Medium</span></td><td>Exponent as digits: fold with pow(a, 10) · pow(a, d)</td><td class="c">O(n log 10) / O(1)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p7">
+<div class="pat-h"><span class="badge">7</span><h3>GCD, primes and divisibility</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Divisibility, common factors, counting or generating primes, or simplifying fractions and ratios.</div><div class="gi"><span class="lbl">Detect it</span>"greatest common divisor" · "count primes" · "ugly numbers" · "water and jug" · "smallest multiple" · "prime factors".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Euclid: any number that divides both <code>a</code> and <code>b</code> also divides <code>a mod b</code>, so <code>gcd(a, b) = gcd(b, a mod b)</code>, and the numbers shrink very fast. The sieve flips primality testing around: instead of testing every number, a prime <strong>crosses out all its multiples</strong>, so what is never crossed out is prime. Starting at <code>p²</code> is enough because smaller multiples have a smaller prime factor and were already crossed out.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Test each number up to n by trial division: O(n√n). The sieve is O(n log log n). GCD by listing divisors is O(n); Euclid is O(log min(a, b)).</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p><code>gcd(a, b) = b == 0 ? a : gcd(b, a % b)</code>; <code>lcm(a, b) = a / gcd(a, b) * b</code>. Sieve: <code>for p from 2 while p·p ≤ n: if prime[p]: mark p·p, p·p + p, …</code>. Factorise by trial division up to √n, dividing out each prime completely.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>GCD: repeat <code>(a, b) = (b, a mod b)</code> until <code>b == 0</code>.</li><li>Sieve: boolean array <code>composite[0..n]</code>.</li><li>For <code>p = 2</code> while <code>p·p ≤ n</code>: if not composite, mark <code>p·p, p·p + p, …</code>.</li><li>Primes are the unmarked numbers ≥ 2.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="sieve"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p><code>gcd(48, 18)</code> and the sieve up to 30</p><pre class="trace"><code>gcd(48,18) -&gt; gcd(18,12) -&gt; gcd(12,6) -&gt; gcd(6,0) = 6
+sieve: p=2 crosses 4 6 8 ... 30
+       p=3 crosses 9 15 21 27 (6,12,... already crossed)
+       p=5 crosses 25
+       p=7: 49 &gt; 30 stop
+primes: 2 3 5 7 11 13 17 19 23 29</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>gcd, lcm and the sieve</p><pre class="code-java"><code>int gcd(int a, int b) { return b == 0 ? a : gcd(b, a % b); }
+long lcm(int a, int b) { return (long) a / gcd(a, b) * b; }     // divide first to avoid overflow
+
+int countPrimes(int n) {                                          // primes &lt; n
+    boolean[] comp = new boolean[Math.max(n, 2)];
+    int count = 0;
+    for (int i = 2; i &lt; n; i++) {
+        if (comp[i]) continue;
+        count++;
+        for (long j = (long) i * i; j &lt; n; j += i) comp[(int) j] = true;
+    }
+    return count;
+}</code></pre><pre class="code-py"><code>from math import gcd
+def lcm(a, b):
+    return a // gcd(a, b) * b                                    # divide first
+
+def count_primes(n):                                             # primes &lt; n
+    if n &lt; 3:
+        return 0
+    sieve = [True] * n
+    sieve[0] = sieve[1] = False
+    for i in range(2, int(n ** 0.5) + 1):
+        if sieve[i]:
+            sieve[i * i::i] = [False] * len(range(i * i, n, i))
+    return sum(sieve)</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>prime factorisation by trial division</p><pre class="code-java"><code>Map&lt;Integer, Integer&gt; factors = new TreeMap&lt;&gt;();
+for (int p = 2; (long) p * p &lt;= n; p++) {
+    while (n % p == 0) { factors.merge(p, 1, Integer::sum); n /= p; }
+}
+if (n &gt; 1) factors.merge(n, 1, Integer::sum);       // what remains is a single prime</code></pre><pre class="code-py"><code>factors = {}
+p = 2
+while p * p &lt;= n:
+    while n % p == 0:
+        factors[p] = factors.get(p, 0) + 1
+        n //= p
+    p += 1
+if n &gt; 1:
+    factors[n] = factors.get(n, 0) + 1              # what remains is a single prime</code></pre></div>
+<div class="cx">⏱ Complexity — GCD O(log min(a, b)). Sieve O(n log log n) time, O(n) space. Factorisation O(√n).</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Start inner marking at <code>i·i</code> and use <code>long</code> for <code>i·i</code> to avoid overflow.</li><li><code>lcm</code> as <code>a * b / gcd</code> can overflow: divide first.</li><li>Primes strictly less than <code>n</code> for LC 204; <code>n &lt; 3</code> has no primes.</li><li>Water and Jug: reachable amounts are multiples of <code>gcd(x, y)</code> up to <code>x + y</code>.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Ugly numbers: divide out 2, 3 and 5 and test for 1; Ugly Number II uses three pointers.</li><li>GCD of an array: fold <code>gcd</code> over the elements.</li><li>GCD of strings: the answer has length <code>gcd(len1, len2)</code> if <code>s1 + s2 == s2 + s1</code>.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>Very large n (use segmented sieve) or one-off primality of a huge number (use Miller–Rabin).</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="bit_math-263" aria-label="Solved LC 263"></td><td class="t"><a href="https://leetcode.com/problems/ugly-number/" target="_blank" rel="noopener">LC 263</a></td><td>Ugly Number</td><td><span class="pill dE">Easy</span></td><td>Divide by 2, 3, 5 while possible; result must be 1</td><td class="c">O(log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-1979" aria-label="Solved LC 1979"></td><td class="t"><a href="https://leetcode.com/problems/find-greatest-common-divisor-of-array/" target="_blank" rel="noopener">LC 1979</a></td><td>Find Greatest Common Divisor of Array</td><td><span class="pill dE">Easy</span></td><td>gcd(min, max)</td><td class="c">O(n + log max) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-1071" aria-label="Solved LC 1071"></td><td class="t"><a href="https://leetcode.com/problems/greatest-common-divisor-of-strings/" target="_blank" rel="noopener">LC 1071</a></td><td>Greatest Common Divisor of Strings</td><td><span class="pill dE">Easy</span></td><td>Check s1+s2 == s2+s1; answer length = gcd of lengths</td><td class="c">O(n + m) / O(n + m)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-204" aria-label="Solved LC 204"></td><td class="t"><a href="https://leetcode.com/problems/count-primes/" target="_blank" rel="noopener">LC 204</a></td><td>Count Primes</td><td><span class="pill dM">Medium</span></td><td>Sieve of Eratosthenes starting at i²</td><td class="c">O(n log log n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-365" aria-label="Solved LC 365"></td><td class="t"><a href="https://leetcode.com/problems/water-and-jug-problem/" target="_blank" rel="noopener">LC 365</a></td><td>Water and Jug Problem</td><td><span class="pill dM">Medium</span></td><td>Target reachable iff target % gcd(x, y) == 0 and target ≤ x + y</td><td class="c">O(log) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-264" aria-label="Solved LC 264"></td><td class="t"><a href="https://leetcode.com/problems/ugly-number-ii/" target="_blank" rel="noopener">LC 264</a></td><td>Ugly Number II</td><td><span class="pill dM">Medium</span></td><td>Three pointers multiplying by 2, 3, 5 and taking the min</td><td class="c">O(n) / O(n)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p8">
+<div class="pat-h"><span class="badge">8</span><h3>Digits and number manipulation</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Reverse, compare, add or convert the digits of a number, or work in another base.</div><div class="gi"><span class="lbl">Detect it</span>"reverse integer" · "palindrome number" · "plus one" · "add digits" · "excel column title" · "convert to base k" · "roman numerals".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p><code>x % 10</code> is the last digit and <code>x / 10</code> removes it; <code>rev * 10 + d</code> appends a digit. These two moves are all you need to take a number apart and put it back together in any order. The same idea in base 26 (letters) or base 2 gives column titles and binary conversion. In fixed-width integers the danger is overflow, so check <strong>before</strong> multiplying.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Converting to a string and back is simple but may be disallowed, uses extra memory and hides overflow behaviour. The arithmetic loop is O(log₁₀ n) with O(1) space.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p><code>while x != 0: d = x % 10; x /= 10; rev = rev * 10 + d</code>. For base <code>b</code>, use <code>% b</code> and <code>/ b</code>. For a base with no zero digit (Excel columns), subtract 1 before each step (bijective numeration).</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Take the last digit <code>d = x % 10</code>; drop it with <code>x /= 10</code>.</li><li>Before <code>rev = rev · 10 + d</code>, check <code>rev &gt; MAX / 10</code> (or equal and <code>d &gt; 7</code>).</li><li>Repeat until <code>x == 0</code>.</li><li>Excel column: <code>n−−; ch = 'A' + n % 26; n /= 26</code>; reverse the result.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="digits"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>reverse <code>1234</code></p><pre class="trace"><code>d=4  rev = 0*10+4 = 4     x=123
+d=3  rev = 4*10+3 = 43    x=12
+d=2  rev = 43*10+2 = 432  x=1
+d=1  rev = 432*10+1 = 4321 x=0</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>reverse integer (32-bit overflow check)</p><pre class="code-java"><code>int rev = 0;
+while (x != 0) {
+    int d = x % 10;                                   // negative x gives negative digits in Java
+    x /= 10;
+    if (rev &gt; Integer.MAX_VALUE / 10 || (rev == Integer.MAX_VALUE / 10 &amp;&amp; d &gt; 7)) return 0;
+    if (rev &lt; Integer.MIN_VALUE / 10 || (rev == Integer.MIN_VALUE / 10 &amp;&amp; d &lt; -8)) return 0;
+    rev = rev * 10 + d;
+}
+return rev;</code></pre><pre class="code-py"><code>sign = -1 if x &lt; 0 else 1
+x, rev = abs(x), 0
+while x:
+    rev = rev * 10 + x % 10
+    x //= 10
+rev *= sign
+return rev if -2**31 &lt;= rev &lt;= 2**31 - 1 else 0       # Python ints do not overflow: check at the end</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>Excel column title (base 26 with no zero digit)</p><pre class="code-java"><code>StringBuilder sb = new StringBuilder();
+while (n &gt; 0) {
+    n--;                                              // shift to 0-based: A = 0 .. Z = 25
+    sb.append((char) (&#x27;A&#x27; + n % 26));
+    n /= 26;
+}
+return sb.reverse().toString();</code></pre><pre class="code-py"><code>out = []
+while n &gt; 0:
+    n -= 1                                            # shift to 0-based: A = 0 .. Z = 25
+    out.append(chr(65 + n % 26))
+    n //= 26
+return &#x27;&#x27;.join(reversed(out))</code></pre></div>
+<div class="cx">⏱ Complexity — O(number of digits) = O(log n) time, O(1) space.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Java <code>%</code> and <code>/</code> truncate toward zero: <code>-12 % 10 == -2</code>. Python <code>//</code> floors: <code>-12 // 10 == -2</code>. Use <code>abs</code> or handle the sign explicitly.</li><li>Check overflow <strong>before</strong> <code>rev * 10 + d</code>, not after.</li><li>Palindrome number: negatives and numbers ending in 0 (except 0) are not palindromes; reverse only half to avoid overflow.</li><li>Plus one: carry through 9s and prepend a 1 if every digit was 9.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Convert to base k: collect <code>n % k</code> then reverse.</li><li>Roman numerals: greedy over a value table.</li><li>Add digits (digital root): <code>1 + (n − 1) % 9</code> for n &gt; 0.</li><li>Happy number: repeat the digit-square sum with cycle detection.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>Numbers beyond 64-bit: operate on digit strings or arrays (big integers).</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="bit_math-9" aria-label="Solved LC 9"></td><td class="t"><a href="https://leetcode.com/problems/palindrome-number/" target="_blank" rel="noopener">LC 9</a></td><td>Palindrome Number</td><td><span class="pill dE">Easy</span></td><td>Reverse half of the digits; no overflow</td><td class="c">O(log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-66" aria-label="Solved LC 66"></td><td class="t"><a href="https://leetcode.com/problems/plus-one/" target="_blank" rel="noopener">LC 66</a></td><td>Plus One</td><td><span class="pill dE">Easy</span></td><td>Carry from the right; all 9s adds a leading 1</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-258" aria-label="Solved LC 258"></td><td class="t"><a href="https://leetcode.com/problems/add-digits/" target="_blank" rel="noopener">LC 258</a></td><td>Add Digits</td><td><span class="pill dE">Easy</span></td><td>Digital root formula 1 + (n − 1) % 9</td><td class="c">O(1) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-504" aria-label="Solved LC 504"></td><td class="t"><a href="https://leetcode.com/problems/base-7/" target="_blank" rel="noopener">LC 504</a></td><td>Base 7</td><td><span class="pill dE">Easy</span></td><td>Repeated % 7 and / 7; mind the sign</td><td class="c">O(log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-168" aria-label="Solved LC 168"></td><td class="t"><a href="https://leetcode.com/problems/excel-sheet-column-title/" target="_blank" rel="noopener">LC 168</a></td><td>Excel Sheet Column Title</td><td><span class="pill dE">Easy</span></td><td>Bijective base 26: decrement before each step</td><td class="c">O(log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-13" aria-label="Solved LC 13"></td><td class="t"><a href="https://leetcode.com/problems/roman-to-integer/" target="_blank" rel="noopener">LC 13</a></td><td>Roman to Integer</td><td><span class="pill dE">Easy</span></td><td>Subtract when a smaller value precedes a larger one</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-7" aria-label="Solved LC 7"></td><td class="t"><a href="https://leetcode.com/problems/reverse-integer/" target="_blank" rel="noopener">LC 7</a></td><td>Reverse Integer</td><td><span class="pill dM">Medium</span></td><td>Pop and push digits; guard overflow first</td><td class="c">O(log n) / O(1)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat sec" id="p9">
+<div class="pat-h"><span class="badge">9</span><h3>Formulas and observation-based math</h3><span class="tier sec">🧊 Secondary</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Brute-force simulation is too slow but the answer has a counting or mathematical structure.</div><div class="gi"><span class="lbl">Detect it</span>"trailing zeroes of n!" · "bulb switcher" · "number of odd numbers in a range" · "minimum moves to make elements equal" · "power of three" · sum or product patterns.</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Ask what is actually being counted. Trailing zeros of <code>n!</code> come from factors of 10 = 2 × 5, and 2s are far more common than 5s, so count 5s: one for each multiple of 5, one more for each multiple of 25, and so on: <code>n/5 + n/25 + n/125 + …</code>. A bulb is toggled once for each divisor of its number, so it ends on only if it has an odd number of divisors, which happens exactly for perfect squares: the answer is <code>⌊√n⌋</code>.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Computing 125! and counting zeros (or simulating n rounds of toggles) is huge or O(n²). Reasoning about factors gives O(log n) or O(1).</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Reduce the problem to a quantity you can count with a formula: divisors, factors of a prime, sums of arithmetic series <code>n(n + 1)/2</code>, medians for minimising absolute differences, parity (even/odd counts).</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Write a tiny example by hand and look for the pattern.</li><li>Identify what is being counted (factors, divisors, parity, differences).</li><li>Derive the formula; verify on 3–4 small cases.</li><li>Watch overflow: use <code>long</code> for sums like <code>n(n + 1)/2</code>.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="trailing"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>trailing zeros of <code>125!</code></p><pre class="trace"><code>125 / 5   = 25   (multiples of 5)
+125 / 25  = 5    (multiples of 25: extra 5)
+125 / 125 = 1    (multiples of 125: extra 5)
+total = 25 + 5 + 1 = 31 zeros</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>trailing zeroes and bulb switcher</p><pre class="code-java"><code>int trailingZeroes(int n) {
+    int count = 0;
+    while (n &gt; 0) { n /= 5; count += n; }          // n/5 + n/25 + n/125 + ...
+    return count;
+}
+int bulbSwitch(int n) { return (int) Math.sqrt(n); }   // bulbs with an odd number of divisors = perfect squares</code></pre><pre class="code-py"><code>def trailing_zeroes(n):
+    count = 0
+    while n &gt; 0:
+        n //= 5
+        count += n                                  # n/5 + n/25 + n/125 + ...
+    return count
+
+def bulb_switch(n):
+    from math import isqrt
+    return isqrt(n)                                 # bulbs with an odd number of divisors = perfect squares</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>minimum moves to equalise (moves of ±1): move everything to the median</p><pre class="code-java"><code>Arrays.sort(a);
+int median = a[a.length / 2], moves = 0;
+for (int x : a) moves += Math.abs(x - median);       // the median minimises the sum of absolute differences
+return moves;</code></pre><pre class="code-py"><code>a.sort()
+median = a[len(a) // 2]
+return sum(abs(x - median) for x in a)              # the median minimises the sum of absolute differences</code></pre></div>
+<div class="cx">⏱ Complexity — Usually O(1) or O(log n), or O(n log n) with a sort.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Verify formulas on small cases; an off-by-one in the pattern is the usual failure.</li><li>Use <code>long</code> for <code>n·(n + 1)/2</code> and large products.</li><li>Integer vs floating-point square roots: <code>(int) Math.sqrt</code> can be off for huge n; check neighbours or use <code>isqrt</code>.</li><li>Minimum moves to equal elements with +1 on <strong>n−1</strong> elements (LC 453) is <code>sum − n · min</code>, a different rule from ±1 on one element (LC 462, median).</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Power of three: <code>n &gt; 0 &amp;&amp; 1162261467 % n == 0</code> (largest power of 3 in int).</li><li>Fizz Buzz: modulo checks in the right order (15 first).</li><li>Count odd numbers in [low, high]: <code>(high + 1) / 2 − low / 2</code>.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When no pattern emerges after small cases: fall back to DP or simulation with a good complexity estimate.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="bit_math-412" aria-label="Solved LC 412"></td><td class="t"><a href="https://leetcode.com/problems/fizz-buzz/" target="_blank" rel="noopener">LC 412</a></td><td>Fizz Buzz</td><td><span class="pill dE">Easy</span></td><td>Check divisibility by 15 first, then 3, then 5</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-1523" aria-label="Solved LC 1523"></td><td class="t"><a href="https://leetcode.com/problems/count-odd-numbers-in-an-interval-range/" target="_blank" rel="noopener">LC 1523</a></td><td>Count Odd Numbers in an Interval Range</td><td><span class="pill dE">Easy</span></td><td>(high + 1) / 2 − low / 2</td><td class="c">O(1) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-326" aria-label="Solved LC 326"></td><td class="t"><a href="https://leetcode.com/problems/power-of-three/" target="_blank" rel="noopener">LC 326</a></td><td>Power of Three</td><td><span class="pill dE">Easy</span></td><td>Loop divide by 3, or 3^19 % n == 0</td><td class="c">O(log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-172" aria-label="Solved LC 172"></td><td class="t"><a href="https://leetcode.com/problems/factorial-trailing-zeroes/" target="_blank" rel="noopener">LC 172</a></td><td>Factorial Trailing Zeroes</td><td><span class="pill dM">Medium</span></td><td>Count factors of 5: n/5 + n/25 + …</td><td class="c">O(log n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-319" aria-label="Solved LC 319"></td><td class="t"><a href="https://leetcode.com/problems/bulb-switcher/" target="_blank" rel="noopener">LC 319</a></td><td>Bulb Switcher</td><td><span class="pill dM">Medium</span></td><td>Perfect squares have an odd number of divisors: floor(sqrt n)</td><td class="c">O(1) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-453" aria-label="Solved LC 453"></td><td class="t"><a href="https://leetcode.com/problems/minimum-moves-to-equal-array-elements/" target="_blank" rel="noopener">LC 453</a></td><td>Minimum Moves to Equal Array Elements</td><td><span class="pill dM">Medium</span></td><td>Incrementing n−1 equals decrementing one: sum − n·min</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="bit_math-462" aria-label="Solved LC 462"></td><td class="t"><a href="https://leetcode.com/problems/minimum-moves-to-equal-array-elements-ii/" target="_blank" rel="noopener">LC 462</a></td><td>Minimum Moves to Equal Array Elements II</td><td><span class="pill dM">Medium</span></td><td>Move everything to the median</td><td class="c">O(n log n) / O(1)</td></tr></tbody></table></div></div>
+</section>
+<h2 id="recall">One-line recall</h2><div class="tw"><table class=""><thead><tr><th>#</th><th>Pattern</th><th>Tier</th><th>Core idea in one line</th></tr></thead><tbody><tr><td>1</td><td>Bit basics: the operators and the six core tricks</td><td>🔥</td><td>shift to reach a bit, mask to read or change it</td></tr><tr><td>2</td><td>XOR tricks: cancelling pairs</td><td>🔥</td><td>x ^ x = 0, so equal pairs vanish</td></tr><tr><td>3</td><td>Counting set bits (Kernighan and bit DP)</td><td>🔥</td><td>n &amp; (n − 1) removes one set bit per step</td></tr><tr><td>4</td><td>Bitmasks: subsets and state compression</td><td>🔥</td><td>an integer is a set; bit i means "item i is in"</td></tr><tr><td>5</td><td>Arithmetic with bits: adder, shifts and ranges</td><td>🧊</td><td>XOR is add without carry; AND shifted is the carry</td></tr><tr><td>6</td><td>Fast exponentiation and modular arithmetic</td><td>🔥</td><td>square the base, multiply when the exponent bit is 1</td></tr><tr><td>7</td><td>GCD, primes and divisibility</td><td>🔥</td><td>Euclid for GCD; cross out multiples for primes</td></tr><tr><td>8</td><td>Digits and number manipulation</td><td>🔥</td><td>peel with % 10, build with × 10 + d, guard overflow first</td></tr><tr><td>9</td><td>Formulas and observation-based math</td><td>🧊</td><td>find the pattern, count instead of simulate</td></tr></tbody></table></div>
+<h2 id="choose">Choosing between them</h2><div class="tw"><table class=""><thead><tr><th>Need</th><th>Use</th></tr></thead><tbody><tr><td>Read or change a specific bit</td><td>Masks (P1)</td></tr><tr><td>Find the unpaired value in O(1) space</td><td>XOR (P2)</td></tr><tr><td>Count 1 bits</td><td>Kernighan or bit DP (P3)</td></tr><tr><td>Try every subset of ≤ 20 items</td><td>Mask loop (P4)</td></tr><tr><td>Add / divide without the operator</td><td>XOR + carry, shifts (P5)</td></tr><tr><td>Large power or answer modulo M</td><td>Repeated squaring (P6)</td></tr><tr><td>Common factors, primes</td><td>Euclid, sieve (P7)</td></tr><tr><td>Digit by digit work</td><td><code>% 10</code>, <code>/ 10</code> (P8)</td></tr><tr><td>Looks like a simulation but has structure</td><td>Derive the formula (P9)</td></tr></tbody></table></div><div class="callout"><span class="lbl">Rule of thumb</span><p>if a <strong>pair cancels</strong>, think XOR; if the <strong>state is a small set</strong>, think bitmask; if the <strong>exponent is huge</strong>, think repeated squaring; if <strong>divisibility</strong> appears, think GCD / primes; if the brute force is a simulation, search for the <strong>counting formula</strong>.</p></div>
+<h2 id="selftest">Self-test</h2><p class="muted">Answer in your head first, then click to reveal.</p><details><summary>What does <code>x &amp; (x − 1)</code> do and why?</summary><p>It clears the lowest set bit. Subtracting 1 flips the lowest 1 to 0 and every 0 below it to 1, so AND-ing keeps everything above and zeroes that bit and everything below.</p></details><details><summary>Why does XOR-ing all elements find the single number when others appear twice?</summary><p><code>x ^ x = 0</code>, XOR is commutative and associative, and <code>x ^ 0 = x</code>, so every pair cancels and only the unpaired value remains.</p></details><details><summary>How many masks are there for n items, and what does bit i mean?</summary><p>There are 2ⁿ masks; bit i being 1 means item i is included in the subset.</p></details><details><summary>Why does the sieve start crossing out at p²?</summary><p>Smaller multiples <code>p·k</code> with <code>k &lt; p</code> have a smaller prime factor and were already crossed out by that smaller prime.</p></details><details><summary>Why is binary exponentiation O(log n)?</summary><p>The exponent is halved each step (<code>e &gt;&gt;= 1</code>), so there are about log₂ e iterations, each with at most two multiplications.</p></details><details><summary>Why check overflow <strong>before</strong> <code>rev * 10 + d</code>?</summary><p>Once the multiplication overflows, the value has already wrapped and cannot be reliably compared afterwards.</p></details><details><summary>Why does <code>n! </code> have more factors of 2 than 5, and what does that mean for trailing zeros?</summary><p>Even numbers are more frequent than multiples of 5, so the number of 10 = 2 × 5 pairs is limited by the 5s: count <code>n/5 + n/25 + …</code>.</p></details><details><summary>Java <code>-7 / 2</code> versus Python <code>-7 // 2</code>?</summary><p>Java truncates toward zero giving −3; Python floors giving −4. Convert carefully when porting division and modulo logic.</p></details>
+<h2 id="plan">Study plan</h2><ol><li><strong>Day 1:</strong> operators and the six mask idioms; reverse bits and power-of-two problems.</li><li><strong>Day 2:</strong> XOR problems (single number I–III, missing number) and counting bits.</li><li><strong>Day 3:</strong> bitmask subsets, gray code and the unique-characters concatenation problem.</li><li><strong>Day 4:</strong> bit arithmetic (add without +, range AND) and fast power with a modulus.</li><li><strong>Day 5:</strong> GCD, the sieve and factorisation; write each from memory.</li><li><strong>Day 6:</strong> digit problems with overflow handling, then formula problems (trailing zeroes, bulb switcher).</li></ol>
+<div class="foot"><span><a href="07_recursion_backtracking.html">← Recursion and Backtracking</a></span><span></span></div>
+</main></div>
+<script>(function(){
+function rng(x,y){var r=[];for(var i=x;i<=y;i++)r.push(i);return r}
+function mapStr(m){var k=Object.keys(m);return '{'+k.map(function(x){return x+':'+m[x]}).join(', ')+'}'}
+function bitsOf(x,n){var s=(x>>>0).toString(2);while(s.length<n)s='0'+s;return s.split('')}
+var SIM={
+two:function(){var a=[1,3,4,6,8,11],t=10,S=[],l=0,r=a.length-1;
+ while(l<r){var s=a[l]+a[r];
+  if(s===t){S.push({a:a,ptr:{l:l,r:r},ok:[l,r],note:a[l]+' + '+a[r]+' = '+s+' equals the target '+t+'. Found the pair at indices '+l+' and '+r+'.'});break}
+  if(s<t){S.push({a:a,ptr:{l:l,r:r},note:a[l]+' + '+a[r]+' = '+s+' is smaller than '+t+'. The sum must grow, so move l right (a[l] can never pair with anything smaller than a[r]).'});l++}
+  else{S.push({a:a,ptr:{l:l,r:r},note:a[l]+' + '+a[r]+' = '+s+' is bigger than '+t+'. The sum must shrink, so move r left (a[r] is too large for every remaining partner).'});r--}}
+ S.unshift({a:a,ptr:{l:0,r:a.length-1},note:'Sorted array, target '+t+'. Put one pointer at each end.'});return S},
+fixed:function(){var a=[2,1,5,1,3,2],k=3,S=[],sum=0;for(var i=0;i<k;i++)sum+=a[i];var best=sum;
+ S.push({a:a,ptr:{},hi:rng(0,k-1),note:'First window of size '+k+': sum = '+sum+'. Best so far = '+best+'.'});
+ for(i=k;i<a.length;i++){sum+=a[i]-a[i-k];best=Math.max(best,sum);S.push({a:a,ptr:{i:i},hi:rng(i-k+1,i),note:'Slide: add '+a[i]+', drop '+a[i-k]+' → sum = '+sum+'. Best so far = '+best+'. (One add and one subtract, not a re-sum.)'})}
+ S.push({a:a,ptr:{},ok:[2,3,4],note:'Maximum window sum of size '+k+' is '+best+'.'});return S},
+variable:function(){var s='abcabcbb'.split(''),S=[],l=0,c={},best=0,bl=0;
+ for(var r=0;r<s.length;r++){var ch=s[r];c[ch]=(c[ch]||0)+1;
+  S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),note:"Expand: add '"+ch+"' at r="+r+'.'+(c[ch]>1?" '"+ch+"' now appears twice, so the window is invalid.":' Window "'+s.slice(l,r+1).join('')+'" is valid.')});
+  while(c[ch]>1){c[s[l]]--;l++;S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),note:'Shrink: drop the left character, l becomes '+l+'. Window "'+s.slice(l,r+1).join('')+'".'})}
+  if(r-l+1>best){best=r-l+1;bl=l}}
+ S.push({a:s,ptr:{},ok:rng(bl,bl+best-1),note:'Longest substring without repeats has length '+best+'. Each index entered and left the window once, so O(n).'});return S},
+prefix:function(){var a=[3,4,7,2,-3,1,4,2],k=7,S=[],m={0:1},sum=0,cnt=0;
+ S.push({a:a,ptr:{},note:'Count subarrays with sum = '+k+'. Seed the map with {0:1} (the empty prefix).'});
+ for(var i=0;i<a.length;i++){sum+=a[i];var need=sum-k,add=m[need]||0;cnt+=add;m[sum]=(m[sum]||0)+1;
+  S.push({a:a,ptr:{i:i},ok:add?[i]:[],note:'Prefix sum = '+sum+'. Need an earlier prefix of '+sum+' − '+k+' = '+need+': seen '+add+' time(s), so '+add+' subarray(s) end here. Total = '+cnt+'. Map = '+mapStr(m)})}
+ return S},
+kadane:function(){var a=[-2,1,-3,4,-1,2,1,-5,4],S=[],cur=a[0],st=0,best=a[0],bs=0,be=0;
+ S.push({a:a,ptr:{i:0},hi:[0],ok:[0],note:'Start: cur = '+cur+', best = '+best+'.'});
+ for(var i=1;i<a.length;i++){var restart=a[i]>cur+a[i];
+  if(restart){cur=a[i];st=i}else{cur+=a[i]}
+  if(cur>best){best=cur;bs=st;be=i}
+  S.push({a:a,ptr:{i:i},hi:rng(st,i),ok:rng(bs,be),note:(restart?'The running sum was negative, so restart at index '+i+': cur = '+cur+'.':'Extend the run: cur = '+cur+'.')+' best = '+best+' (green).'})}
+ return S},
+hash:function(){var a=[5,1,9,3,7],t=12,S=[],m={};S.push({a:a,ptr:{},note:'Find two numbers that sum to '+t+'. Keep a map value → index of what we have already seen.'});
+ for(var i=0;i<a.length;i++){var need=t-a[i];
+  if(need in m){S.push({a:a,ptr:{i:i},ok:[m[need],i],note:'Need '+need+' for '+a[i]+': it is in the map at index '+m[need]+'. Answer = ['+m[need]+', '+i+'].'});break}
+  m[a[i]]=i;S.push({a:a,ptr:{i:i},note:'At '+a[i]+': need '+need+', not seen yet. Store '+a[i]+' → '+i+'. Map = '+mapStr(m)})}
+ return S},
+dutch:function(){var a=[2,0,2,1,1,0],S=[],lo=0,mid=0,hi=a.length-1;
+ function p(n,ok){S.push({a:a.slice(),ptr:{lo:lo,mid:mid,hi:hi},ok:ok||[],note:n})}
+ p('lo marks the end of the 0s, hi the start of the 2s, mid scans the unknown middle.');
+ while(mid<=hi){var v=a[mid];
+  if(v===0){a[mid]=a[lo];a[lo]=0;lo++;mid++;p('a[mid] was 0: swap into the 0-zone, advance lo and mid.')}
+  else if(v===2){a[mid]=a[hi];a[hi]=2;hi--;p('a[mid] was 2: swap with a[hi], shrink hi. Do NOT advance mid; the swapped-in value is unexamined.')}
+  else{mid++;p('a[mid] is 1: it already belongs in the middle zone, advance mid.')}}
+ S.push({a:a.slice(),ptr:{},ok:rng(0,a.length-1),note:'mid passed hi: sorted in one pass, O(n), O(1) space.'});return S},
+binary:function(){var a=[1,3,5,7,7,7,9,11],t=7,S=[],lo=0,hi=a.length-1;
+ S.push({a:a,ptr:{lo:lo,hi:hi},note:'Find the FIRST index with a[i] ≥ '+t+' (lower bound). Invariant: the answer is always inside [lo, hi].'});
+ while(lo<hi){var mid=lo+((hi-lo)>>1);
+  if(a[mid]>=t){S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(lo,hi),note:'mid = '+mid+', a[mid] = '+a[mid]+' ≥ '+t+'. mid could be the answer, so keep it: hi = mid.'});hi=mid}
+  else{S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(lo,hi),note:'mid = '+mid+', a[mid] = '+a[mid]+' < '+t+'. Everything up to mid is too small: lo = mid + 1.'});lo=mid+1}}
+ S.push({a:a,ptr:{lo:lo},ok:[lo],note:'lo = hi = '+lo+'. First occurrence of '+t+' is at index '+lo+'. Each step halved the range: O(log n).'});return S},
+rotated:function(){var a=[4,5,6,7,0,1,2],t=0,S=[],lo=0,hi=a.length-1;
+ S.push({a:a,ptr:{lo:lo,hi:hi},note:'Sorted array rotated at an unknown point. Search for '+t+'. One half around mid is always sorted.'});
+ while(lo<=hi){var mid=lo+((hi-lo)>>1);
+  if(a[mid]===t){S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},ok:[mid],note:'a[mid] = '+t+'. Found at index '+mid+'.'});break}
+  if(a[lo]<=a[mid]){var go=a[lo]<=t&&t<a[mid];S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(lo,mid),note:'Left half ['+lo+'..'+mid+'] is sorted ('+a[lo]+' ≤ '+a[mid]+'). '+t+(go?' lies inside it: hi = mid − 1.':' is not inside it: search the right, lo = mid + 1.')});if(go)hi=mid-1;else lo=mid+1}
+  else{var go2=a[mid]<t&&t<=a[hi];S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(mid,hi),note:'Right half ['+mid+'..'+hi+'] is sorted. '+t+(go2?' lies inside it: lo = mid + 1.':' is not inside it: search the left, hi = mid − 1.')});if(go2)lo=mid+1;else hi=mid-1}}
+ return S},
+quick:function(){var a=[3,2,1,5,6,4],S=[],target=a.length-2,lo=0,hi=a.length-1;
+ function dim(){var d=[];for(var x=0;x<a.length;x++)if(x<lo||x>hi)d.push(x);return d}
+ S.push({a:a.slice(),ptr:{},note:'2nd largest = element at sorted index n − k = '+target+'. Partition around a pivot; recurse into ONE side only.'});
+ while(lo<=hi){var pv=a[hi],i=lo;
+  S.push({a:a.slice(),ptr:{lo:lo,pivot:hi},dim:dim(),hi:[hi],note:'Partition ['+lo+'..'+hi+'] with pivot '+pv+' (last element). i marks where the next smaller element goes.'});
+  for(var j=lo;j<hi;j++){if(a[j]<pv){var tm=a[i];a[i]=a[j];a[j]=tm;i++;S.push({a:a.slice(),ptr:{i:i,j:j,pivot:hi},dim:dim(),note:a[i-1]+' < '+pv+': swap into the "smaller" zone, i = '+i+'.'})}
+   else S.push({a:a.slice(),ptr:{i:i,j:j,pivot:hi},dim:dim(),note:a[j]+' ≥ '+pv+': leave it, move j on.'})}
+  var t2=a[i];a[i]=a[hi];a[hi]=t2;
+  if(i===target){S.push({a:a.slice(),ptr:{p:i},ok:[i],dim:dim(),note:'Pivot lands at index '+i+' = target index. Answer: '+a[i]+'.'});break}
+  S.push({a:a.slice(),ptr:{p:i},ok:[i],dim:dim(),note:'Pivot '+pv+' is now at its final sorted index '+i+(i<target?' < target '+target+': only the right side can contain it.':' > target '+target+': only the left side can contain it.')});
+  if(i<target)lo=i+1;else hi=i-1}
+ return S},
+amort:function(){var S=[],cap=1,n=0,a=[''],cost=0;
+ S.push({a:a.slice(),ptr:{},note:'A dynamic array starts with capacity 1. Append 1..8. When it is full, allocate double the space and copy everything over.'});
+ for(var v=1;v<=8;v++){
+  if(n===cap){var c=n;cap*=2;var b=[];for(var i=0;i<cap;i++)b.push(i<n?a[i]:'');cost+=c;a=b;S.push({a:a.slice(),ptr:{},hi:rng(0,n-1),note:'Full. Resize to capacity '+cap+': copy '+c+' element(s). Total copy cost so far = '+cost+'.'})}
+  a[n]=v;n++;S.push({a:a.slice(),ptr:{i:n-1},ok:[n-1],note:'Append '+v+' (cost 1). Length '+n+', capacity '+cap+'.'})}
+ S.push({a:a.slice(),ptr:{},note:'8 appends cost 8 writes + '+cost+' copies = '+(8+cost)+' units, under 2 per append. Rare expensive steps are paid for by many cheap ones: amortised O(1).'});return S},
+pairs:function(){var a=['a','b','c','d','e'],S=[],k=0;
+ S.push({a:a,ptr:{},note:'Nested loop: for every i, for every j > i. Count how many (i, j) pairs get visited.'});
+ for(var i=0;i<a.length;i++)for(var j=i+1;j<a.length;j++){k++;S.push({a:a,ptr:{i:i,j:j},hi:[i,j],note:'Pair #'+k+': ('+a[i]+', '+a[j]+').'})}
+ S.push({a:a,ptr:{},ok:rng(0,a.length-1),note:'n = 5 gave '+k+' pairs = n(n−1)/2. Double n and the work roughly quadruples: O(n²).'});return S},
+anagram:function(){var s='listen',t='silent',a=s.split('').concat(t.split('')),S=[],c={};
+ function A(){return {label:'counts',items:Object.keys(c).map(function(k){return k+': '+c[k]})}}
+ S.push({a:a,ptr:{},note:'Are "listen" and "silent" anagrams? Count the letters of the first word UP and the second word DOWN.'});
+ for(var i=0;i<s.length;i++){c[s[i]]=(c[s[i]]||0)+1;S.push({a:a,ptr:{i:i},hi:[i],aux:A(),note:"First word: +1 for '"+s[i]+"'."})}
+ for(var j=0;j<t.length;j++){var k=s.length+j;c[t[j]]=(c[t[j]]||0)-1;S.push({a:a,ptr:{j:k},hi:[k],aux:A(),note:"Second word: −1 for '"+t[j]+"'."+(c[t[j]]<0?' The count went negative, so it is not an anagram.':'')})}
+ S.push({a:a,ptr:{},ok:rng(0,a.length-1),aux:A(),note:'Every count is back to 0, so they are anagrams. O(n) time and O(1) space (26 letters).'});return S},
+palin:function(){var s='a.b,.B.a'.split(''),S=[],l=0,r=s.length-1;
+ function al(c){return /[a-z0-9]/i.test(c)}
+ S.push({a:s,ptr:{l:l,r:r},note:'Valid palindrome, ignoring case and punctuation. One pointer at each end.'});
+ while(l<r){
+  if(!al(s[l])){S.push({a:s,ptr:{l:l,r:r},dim:[l],note:"'"+s[l]+"' is not a letter or digit: skip it (l++)."});l++;continue}
+  if(!al(s[r])){S.push({a:s,ptr:{l:l,r:r},dim:[r],note:"'"+s[r]+"' is not a letter or digit: skip it (r--)."});r--;continue}
+  var eq=s[l].toLowerCase()===s[r].toLowerCase();
+  S.push({a:s,ptr:{l:l,r:r},hi:[l,r],ok:eq?[l,r]:[],note:"Compare '"+s[l]+"' and '"+s[r]+"' ignoring case: "+(eq?'match, move both inward.':'mismatch, so it is NOT a palindrome.')});
+  if(!eq)return S;l++;r--}
+ S.push({a:s,ptr:{},ok:rng(0,s.length-1),note:'The pointers met without a mismatch: palindrome. O(n) time, O(1) space.'});return S},
+center:function(){var s='babad'.split(''),S=[],bl=0,bestLen=0;
+ function tryC(l,r,kind){var any=false;
+  while(l>=0&&r<s.length&&s[l]===s[r]){any=true;var len=r-l+1;if(len>bestLen){bestLen=len;bl=l}
+   S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),ok:bestLen?rng(bl,bl+bestLen-1):[],note:kind+' centre: "'+s.slice(l,r+1).join('')+'" is a palindrome (length '+len+'). Best so far: '+bestLen+'. Expand outward.'});l--;r++}
+  S.push({a:s,ptr:{},ok:bestLen?rng(bl,bl+bestLen-1):[],note:kind+' centre: '+(any?'cannot expand further (mismatch or edge).':'the two sides differ immediately, nothing to expand.')})}
+ S.push({a:s,ptr:{},note:'Every palindrome mirrors around a centre: a letter (odd length) or a gap (even length). Try all 2n−1 centres and expand while both sides match.'});
+ for(var i=0;i<s.length;i++){tryC(i,i,'Odd (index '+i+')');if(i<s.length-1)tryC(i,i+1,'Even (gap after '+i+')')}
+ S.push({a:s,ptr:{},ok:rng(bl,bl+bestLen-1),note:'Longest palindromic substring: "'+s.slice(bl,bl+bestLen).join('')+'" (length '+bestLen+'; "aba" ties). 2n−1 centres × O(n) expansion = O(n²) time, O(1) space.'});return S},
+minwin:function(){var s='ADOBECODEBANC'.split(''),S=[],need={A:1,B:1,C:1},have={},formed=0,req=3,l=0,best=1e9,bl=0;
+ function A(){return {label:'covered '+formed+' / '+req,items:['A','B','C'].map(function(k){return k+' '+(have[k]||0)+'/1'})}}
+ S.push({a:s,ptr:{l:0,r:0},aux:A(),note:'Smallest window of the string that contains A, B and C. Expand r; once the window covers everything, shrink l as far as possible.'});
+ for(var r=0;r<s.length;r++){var c=s[r];if(need[c]){have[c]=(have[c]||0)+1;if(have[c]===need[c])formed++}
+  S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),aux:A(),note:"Expand: add '"+c+"'. "+(formed===req?'The window now covers A, B and C.':'Still missing some required letters.')});
+  while(formed===req){if(r-l+1<best){best=r-l+1;bl=l}var d=s[l];
+   S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),ok:rng(bl,bl+best-1),aux:A(),note:'Valid window "'+s.slice(l,r+1).join('')+'" (length '+(r-l+1)+'); shortest so far = '+best+'. Try to shrink: drop \''+d+'\' from the left.'});
+   if(need[d]){have[d]--;if(have[d]<need[d])formed--}l++}}
+ S.push({a:s,ptr:{},ok:rng(bl,bl+best-1),note:'Minimum window: "'+s.slice(bl,bl+best).join('')+'". l and r only move forward, so O(n).'});return S},
+kmp:function(){var p='ababaca'.split(''),lps=[0],S=[],len=0,i=1;
+ function A(){return {label:'lps (longest border)',items:lps.map(function(v,k){return k+': '+v})}}
+ S.push({a:p,ptr:{},aux:A(),note:'lps[i] = length of the longest proper prefix of p[0..i] that is also a suffix of it. lps[0] = 0. KMP uses it to never re-read text.'});
+ while(i<p.length){var ii=i,ll=len;
+  if(p[i]===p[len]){len++;lps[i]=len;i++;S.push({a:p,ptr:{i:ii,len:ll},hi:[ii,ll],ok:[ii],aux:A(),note:'p['+ii+'] = p['+ll+'] = \''+p[ii]+'\': the border grows, lps['+ii+'] = '+len+'.'})}
+  else if(len>0){len=lps[len-1];S.push({a:p,ptr:{i:ii,len:ll},hi:[ii,ll],aux:A(),note:'p['+ii+'] \''+p[ii]+'\' ≠ p['+ll+'] \''+p[ll]+'\'. Fall back to len = lps['+(ll-1)+'] = '+len+' (try a shorter border; never restart from scratch).'})}
+  else{lps[i]=0;i++;S.push({a:p,ptr:{i:ii,len:0},hi:[ii],aux:A(),note:'\''+p[ii]+'\' ≠ \''+p[0]+'\' and there is no shorter border: lps['+ii+'] = 0.'})}}
+ S.push({a:p,ptr:{},ok:rng(0,p.length-1),aux:A(),note:'lps = ['+lps.join(', ')+']. Built in O(m): len only falls back as far as it has climbed.'});return S},
+decode:function(){var s='3[a2[c]]'.split(''),S=[],stack=[],cur='',num=0;
+ function A(){return {label:'stack (count, text before)',items:(stack.length?stack.map(function(x){return '('+x[0]+', "'+x[1]+'")'}):['empty']).concat(['cur = "'+cur+'"'])}}
+ S.push({a:s,ptr:{},aux:A(),note:'Decode k[text]. Keep a stack: on "[" save (count, text so far); on "]" pop and repeat the inner text.'});
+ for(var i=0;i<s.length;i++){var c=s[i],n;
+  if(/\d/.test(c)){num=num*10+(+c);n='Digit: repeat count is now '+num+'.'}
+  else if(c==='['){stack.push([num,cur]);n='"[": push ('+num+', "'+cur+'") and start a fresh inner string.';num=0;cur=''}
+  else if(c===']'){var t=stack.pop();n='"]": pop ('+t[0]+', "'+t[1]+'"). New text = "'+t[1]+'" + "'+cur+'" × '+t[0]+'.';cur=t[1]+cur.repeat(t[0])}
+  else{cur+=c;n="Letter '"+c+"': append to the current text."}
+  S.push({a:s,ptr:{i:i},hi:[i],aux:A(),note:n})}
+ S.push({a:s,ptr:{},ok:rng(0,s.length-1),aux:A(),note:'Result: "'+cur+'". Each character is handled once: O(n + output length).'});return S},
+compress:function(){var a='aabbccc'.split(''),S=[],w=0,r=0;
+ S.push({a:a.slice(),ptr:{w:0,r:0},note:'Compress runs in place: "aabbccc" → "a2b2c3". r reads groups, w writes the result at the front. w never passes r, so no extra array.'});
+ while(r<a.length){var ch=a[r],st=r;while(r<a.length&&a[r]===ch)r++;var cnt=r-st;
+  S.push({a:a.slice(),ptr:{w:w,r:st},hi:rng(st,r-1),note:"Group found: '"+ch+"' × "+cnt+'.'});
+  a[w++]=ch;if(cnt>1)String(cnt).split('').forEach(function(d){a[w++]=d});
+  S.push({a:a.slice(),ptr:{w:w},ok:rng(0,w-1),note:"Write '"+ch+"'"+(cnt>1?' and the count '+cnt:'')+' at the front. Compressed so far: "'+a.slice(0,w).join('')+'".'})}
+ S.push({a:a.slice(),ptr:{},ok:rng(0,w-1),dim:rng(w,a.length-1),note:'New length = '+w+' ("'+a.slice(0,w).join('')+'"). Anything after w is ignored. O(n) time, O(1) space.'});return S},
+unique:function(){var s='loveleetcode'.split(''),S=[],c={};
+ function A(){return {label:'counts',items:Object.keys(c).map(function(k){return k+': '+c[k]})}}
+ S.push({a:s,ptr:{},note:'First non-repeating character. Pass 1 counts every letter; pass 2 finds the first letter whose count is 1.'});
+ for(var i=0;i<s.length;i++){c[s[i]]=(c[s[i]]||0)+1;S.push({a:s,ptr:{i:i},hi:[i],aux:A(),note:"Pass 1: count '"+s[i]+"'."})}
+ for(i=0;i<s.length;i++){if(c[s[i]]===1){S.push({a:s,ptr:{i:i},ok:[i],aux:A(),note:"Pass 2: '"+s[i]+"' has count 1: answer is index "+i+'.'});return S}
+  S.push({a:s,ptr:{i:i},dim:[i],aux:A(),note:"Pass 2: '"+s[i]+"' appears "+c[s[i]]+' times, skip it.'})}
+ return S},
+delete:function(){var vals=['D',1,6,3,6,'null'],nxt=[1,2,3,4,5,-1],removed=[],S=[],prev=0,val=6;
+ function E(){var e=[];for(var k=0;k<5;k++)e.push(removed.indexOf(k)>=0?'':(nxt[k]===k+1?'→':'⇢'));return e}
+ function P(p,c,n,ok){S.push({a:vals,ptr:c===undefined?{prev:p}:{prev:p,cur:c},edges:E(),dim:removed.slice(),ok:ok||[],note:n})}
+ P(0,undefined,'Remove every node with value 6. D is a dummy node placed before the head, so deleting the first real node needs no special case.');
+ while(nxt[prev]!==5){var cur=nxt[prev];
+  if(vals[cur]===val){removed.push(cur);nxt[prev]=nxt[cur];P(prev,cur,'cur.val = '+val+': unlink it with prev.next = prev.next.next. prev stays where it is, because the new next node has not been checked yet.')}
+  else{P(prev,cur,'cur.val = '+vals[cur]+' is kept: advance prev to cur.');prev=cur}}
+ P(prev,undefined,'prev.next is null: done. Result D → 1 → 3 → null. Return dummy.next.',[0,1,3,5]);return S},
+reverse:function(){var vals=[1,2,3,4,'null'],nxt=[1,2,3,4,-1],S=[],prev=4,cur=0;
+ function E(){var e=[];for(var k=0;k<4;k++)e.push(nxt[k]===k+1?'→':(nxt[k+1]===k?'←':''));return e}
+ function A(){var it=[];for(var k=0;k<4;k++)it.push(vals[k]+' → '+(nxt[k]===4||nxt[k]===-1?'null':vals[nxt[k]]));return {label:'next pointers',items:it}}
+ S.push({a:vals,ptr:{prev:4,cur:0},edges:E(),aux:A(),link:true,note:'Reverse 1→2→3→4. prev starts as null, cur at the head. Each step re-points one arrow backwards.'});
+ while(cur!==4){var n=nxt[cur];nxt[cur]=prev;S.push({a:vals,ptr:{prev:cur,cur:n},edges:E(),aux:A(),ok:[cur],note:'Save nxt = cur.next ('+(n===4?'null':vals[n])+'), set cur.next = prev, then move prev to '+vals[cur]+' and cur to '+(n===4?'null':vals[n])+'.'});prev=cur;cur=n}
+ S.push({a:vals,ptr:{head:prev},edges:E(),aux:A(),ok:[3,2,1,0],note:'cur is null, so prev is the new head: 4 → 3 → 2 → 1 → null. One pass, O(n) time, O(1) space.'});return S},
+floyd:function(){var vals=[3,2,0,-4],nxt=[1,2,3,1],S=[],s=0,f=0;
+ var E=['→','→','→'],A={label:'link',items:['−4 points back to 2 (the cycle start)']};
+ S.push({a:vals,ptr:{slow:0,fast:0},edges:E,aux:A,note:'Does the list loop? Slow moves 1 step, fast moves 2. In a loop the fast runner must eventually lap the slow one.'});
+ do{s=nxt[s];f=nxt[nxt[f]];S.push({a:vals,ptr:{slow:s,fast:f},hi:[s,f],edges:E,aux:A,ok:s===f?[s]:[],note:'slow → '+vals[s]+', fast → '+vals[f]+'.'+(s===f?' They meet: there is a cycle.':'')})}while(s!==f);
+ S.push({a:vals,ptr:{slow:0,fast:f},edges:E,aux:A,note:'Phase 2: put slow back at the head and keep fast at the meeting point. Move both one step at a time.'});
+ s=0;while(s!==f){s=nxt[s];f=nxt[f];S.push({a:vals,ptr:{slow:s,fast:f},hi:[s,f],edges:E,aux:A,ok:s===f?[s]:[],note:'slow → '+vals[s]+', fast → '+vals[f]+'.'+(s===f?' They meet exactly at the node where the cycle starts.':'')})}
+ S.push({a:vals,ptr:{start:s},edges:E,aux:A,ok:[s],note:'Cycle starts at the node with value '+vals[s]+'. Why: the distance from the head to the cycle start equals the distance from the meeting point onward to it (mod cycle length). O(n) time, O(1) space.'});return S},
+merge:function(){var A1=[1,2,4],B1=[1,3,4],all=A1.concat(B1),p=0,q=0,out=[],used=[],S=[];
+ function E(){return ['→','→','','→','→']}
+ function AX(){return {label:'merged',items:[out.length?out.join(' → '):'(empty)']}}
+ S.push({a:all,ptr:{p:0,q:3},edges:E(),aux:AX(),note:'Merge two sorted lists. A dummy tail node collects the result; p and q point at the smaller candidates.'});
+ while(p<3&&q<3){var x=A1[p],y=B1[q];
+  if(x<=y){S.push({a:all,ptr:{p:p,q:3+q},dim:used.slice(),hi:[p,3+q],edges:E(),aux:AX(),note:'Compare '+x+' and '+y+': '+x+' ≤ '+y+', so link the node from list 1 and advance p.'});used.push(p);out.push(x);p++}
+  else{S.push({a:all,ptr:{p:p,q:3+q},dim:used.slice(),hi:[p,3+q],edges:E(),aux:AX(),note:'Compare '+x+' and '+y+': '+y+' is smaller, so link the node from list 2 and advance q.'});used.push(3+q);out.push(y);q++}}
+ var rest=p<3?A1.slice(p):B1.slice(q);var idx=p<3?rng(p,2):rng(3+q,5);
+ S.push({a:all,ptr:{},dim:used.slice(),ok:idx,edges:E(),aux:AX(),note:'One list is empty. Attach the rest of the other list in one step: tail.next = remaining ('+rest.join(', ')+'). No copying.'});
+ rest.forEach(function(v){out.push(v)});
+ S.push({a:all,ptr:{},ok:rng(0,5),edges:E(),aux:AX(),note:'Merged list: '+out.join(' → ')+'. O(n + m) time, O(1) extra space (nodes are reused).'});return S},
+nth:function(){var vals=['D',1,2,3,4,5,'null'],S=[],slow=0,fast=0,n=2;
+ function E(){return ['→','→','→','→','→','→']}
+ S.push({a:vals,ptr:{slow:0,fast:0},edges:E(),note:'Remove the 2nd node from the end. Start slow and fast at the dummy D. Give fast a head start of n = 2 nodes.'});
+ for(var i=0;i<n;i++){fast++;S.push({a:vals,ptr:{slow:slow,fast:fast},edges:E(),note:'Head start: move fast ahead ('+(i+1)+' of '+n+').'})}
+ while(fast+1<6){fast++;slow++;S.push({a:vals,ptr:{slow:slow,fast:fast},hi:[slow,fast],edges:E(),note:'Move both one step. The gap between them stays n = '+n+'.'})}
+ S.push({a:vals,ptr:{slow:slow,fast:fast},hi:[slow,fast],edges:E(),note:'fast is on the last node (fast.next is null), so slow is exactly the node BEFORE the one to delete.'});
+ S.push({a:vals,ptr:{slow:slow},dim:[4],ok:[3],edges:['→','→','→','⇢','','→'],note:'slow.next = slow.next.next removes node 4. One pass, O(n) time, O(1) space. The dummy makes deleting the head work too.'});return S},
+palilist:function(){var vals=[1,2,3,2,1],S=[];
+ var full=['→','→','→','→'];
+ S.push({a:vals,ptr:{},edges:full,note:'Palindrome list in O(1) space: (1) find the middle, (2) reverse the second half, (3) compare the two halves.'});
+ S.push({a:vals,ptr:{slow:0,fast:0},edges:full,note:'Step 1: slow moves 1, fast moves 2.'});
+ S.push({a:vals,ptr:{slow:1,fast:2},edges:full,note:'slow = 1, fast = 2.'});
+ S.push({a:vals,ptr:{slow:2,fast:4},hi:[2],edges:full,note:'fast.next is null: stop. slow is the middle node (value 3).'});
+ S.push({a:vals,ptr:{mid:2},hi:[3,4],edges:['→','→','','→'],note:'Step 2: the second half starts after the middle: 2 → 1. Reverse it...'});
+ S.push({a:vals,ptr:{mid:2,head2:4},hi:[3,4],edges:['→','→','','←'],note:'...so it reads 1 → 2 (the arrow between the last two nodes flips).'});
+ S.push({a:vals,ptr:{p:0,q:4},hi:[0,4],ok:[0,4],edges:['→','→','','←'],note:'Step 3: compare p = 1 with q = 1. Equal: advance both.'});
+ S.push({a:vals,ptr:{p:1,q:3},hi:[1,3],ok:[0,1,3,4],edges:['→','→','','←'],note:'Compare p = 2 with q = 2. Equal. q reaches null, so every pair matched.'});
+ S.push({a:vals,ptr:{},ok:rng(0,4),edges:full,note:'Palindrome. (Optionally reverse the second half back to restore the list.) O(n) time, O(1) space.'});return S},
+addnum:function(){var A1=[2,4,3],B1=[5,6,4],all=A1.concat(B1),S=[],carry=0,out=[];
+ function E(){return ['→','→','','→','→']}
+ function AX(){return {label:'carry '+carry+'  |  result',items:[out.length?out.join(' → '):'(empty)']}}
+ S.push({a:all,ptr:{a:0,b:3},edges:E(),aux:AX(),note:'Digits are stored in reverse: 342 + 465. Add digit by digit from the head with a carry, exactly like paper arithmetic.'});
+ for(var i=0;i<3;i++){var s=A1[i]+B1[i]+carry,d=s%10,c=Math.floor(s/10);
+  S.push({a:all,ptr:{a:i,b:3+i},hi:[i,3+i],edges:E(),aux:AX(),note:A1[i]+' + '+B1[i]+' + carry '+carry+' = '+s+': write digit '+d+', new carry '+c+'.'});out.push(d);carry=c}
+ S.push({a:all,ptr:{},ok:rng(0,5),edges:E(),aux:AX(),note:'Result 7 → 0 → 8 (= 807). Keep looping while either list has nodes OR carry > 0; a final carry becomes a new node. O(max(n, m)) time.'});return S},
+lru:function(){var S=[],L=[],cap=3;
+ function E(){var e=[];for(var k=0;k<L.length-1;k++)e.push('↔');return e}
+ function P(n,extra){var o={a:L.map(function(x){return x[0]+':'+x[1]}),ptr:L.length?{MRU:0}:{},edges:E(),aux:{label:'hash map keys',items:L.length?L.map(function(x){return x[0]}):['(empty)']},note:n};if(L.length>1)o.ptr[''+'LRU']=L.length-1;if(extra)for(var k in extra)o[k]=extra[k];S.push(o)}
+ function find(k){for(var i=0;i<L.length;i++)if(L[i][0]===k)return i;return -1}
+ P('LRU cache, capacity 3. A hash map finds a node in O(1); a doubly linked list keeps recency order: front = most recent (MRU), back = least recent (LRU).');
+ L.unshift([1,'A']);P('put(1, A): new node goes to the front.',{ok:[0]});
+ L.unshift([2,'B']);P('put(2, B): new node goes to the front.',{ok:[0]});
+ L.unshift([3,'C']);P('put(3, C): list is now full (3 of 3).',{ok:[0]});
+ var i=find(1),n=L.splice(i,1)[0];L.unshift(n);P('get(1): map finds the node in O(1); unlink it (prev.next, next.prev) and move it to the front. Returns A.',{ok:[0]});
+ P('put(4, D): the cache is full, so evict the node at the back (key 2).',{dim:[2]});
+ L.pop();P('Unlink the tail node and delete key 2 from the map.');
+ L.unshift([4,'D']);P('Insert key 4 at the front. Both get and put are O(1).',{ok:[0]});
+ P('get(2): not in the map, so return −1 immediately. Dummy head and tail nodes make every unlink and insert free of null checks.');return S},
+minstack:function(){var st=[],mins=[],S=[];
+ function P(n,ok){S.push({a:st.slice(),ptr:st.length?{top:st.length-1}:{},ok:ok||[],aux:{label:'min so far, per entry',items:mins.length?mins.slice():['(empty)']},note:n})}
+ function push(x){var m=mins.length?Math.min(x,mins[mins.length-1]):x;st.push(x);mins.push(m);P('push('+x+'): store the value and the minimum of everything below and including it → '+m+'.',[st.length-1])}
+ function pop(){var v=st.pop();mins.pop();P('pop() removes '+v+' and its stored minimum together, so the previous minimum is back instantly.')}
+ function gm(){P('getMin() = '+mins[mins.length-1]+' (just read the top of the min column: O(1)).',[st.length-1])}
+ P('Min Stack: every entry remembers the minimum of the stack up to itself, so getMin is O(1).');
+ push(5);push(3);push(7);push(3);gm();pop();gm();pop();pop();gm();return S},
+nge:function(){var t=[73,74,75,71,69,72,76,73],S=[],st=[],ans=t.map(function(){return 0});
+ function A(){return {label:'stack (index:temp)',items:(st.length?st.map(function(j){return j+':'+t[j]}):['empty']).concat(['answers = ['+ans.join(',')+']'])}}
+ S.push({a:t,ptr:{},aux:A(),note:'Days until a warmer temperature. The stack holds indices still waiting for a warmer day; temperatures on it are decreasing.'});
+ for(var i=0;i<t.length;i++){
+  while(st.length&&t[i]>t[st[st.length-1]]){var j=st.pop();ans[j]=i-j;S.push({a:t,ptr:{i:i,popped:j},hi:[i],ok:[j],aux:A(),note:t[i]+' > '+t[j]+': day '+j+' found its warmer day. answer['+j+'] = '+i+' − '+j+' = '+ans[j]+'.'})}
+  st.push(i);S.push({a:t,ptr:{i:i},hi:[i],aux:A(),note:'Push index '+i+' ('+t[i]+'): it now waits for something warmer.'})}
+ S.push({a:t,ptr:{},ok:rng(0,t.length-1),aux:A(),note:'Anything left on the stack never found a warmer day (answer 0). Each index is pushed once and popped once: O(n).'});return S},
+hist:function(){var h=[2,1,5,6,2,3],a=h.concat([0]),S=[],st=[],best=0,bl=0,br=-1;
+ function A(){return {label:'stack (index:height)',items:(st.length?st.map(function(j){return j+':'+a[j]}):['empty']).concat(['best area = '+best])}}
+ S.push({a:a,ptr:{},aux:A(),note:'Largest rectangle in a histogram (a sentinel 0 is added at the end to flush the stack). The stack keeps heights increasing; a smaller bar closes every taller bar before it.'});
+ for(var i=0;i<a.length;i++){var cur=a[i];
+  while(st.length&&cur<a[st[st.length-1]]){var top=st.pop(),ht=a[top],left=st.length?st[st.length-1]:-1,w=i-left-1,ar=ht*w;if(ar>best){best=ar;bl=left+1;br=i-1}
+   S.push({a:a,ptr:{i:i,bar:top},hi:rng(left+1,i-1),ok:br>=0?rng(bl,br):[],aux:A(),note:'Bar '+top+' (height '+ht+') ends here: it is taller than '+cur+'. Its rectangle spans indices '+(left+1)+'..'+(i-1)+', width '+w+' × height '+ht+' = '+ar+'.'})}
+  st.push(i);S.push({a:a,ptr:{i:i},hi:[i],ok:br>=0?rng(bl,br):[],aux:A(),note:'Push index '+i+' (height '+cur+').'})}
+ S.push({a:a,ptr:{},ok:rng(bl,br),aux:A(),note:'Largest rectangle = '+best+' (bars '+bl+'..'+br+'). Each bar is pushed and popped once: O(n).'});return S},
+twostack:function(){var inn=[],out=[],S=[];
+ function P(n,hl){S.push({a:inn.concat(out),ptr:{},hi:inn.map(function(_,i){return i}),ok:out.map(function(_,i){return inn.length+i}),aux:{label:'in-stack (push) | out-stack (pop, top at right)',items:['in: ['+inn.join(',')+']','out: ['+out.join(',')+']']},note:n})}
+ function enq(x){inn.push(x);P('enqueue('+x+'): push onto the in-stack.')}
+ function deq(){if(!out.length){var m=inn.length;while(inn.length)out.push(inn.pop());P('out-stack is empty: pour the in-stack into it (reverses the order, moved '+m+' element(s)). Each element is moved at most once.')}
+  var v=out.pop();P('dequeue() pops '+v+' from the out-stack: the oldest element.')}
+ P('Queue (FIFO) from two stacks. Blue = in-stack (new items), green = out-stack (items ready to leave).');
+ enq(1);enq(2);enq(3);deq();enq(4);deq();deq();deq();
+ S.push({a:[],ptr:{},aux:{label:'cost',items:['4 enqueues + 4 dequeues','8 pushes, 8 pops, 4 moves']},note:'Each element moves between stacks at most once, so dequeue is O(1) amortised.'});return S},
+bfs:function(){var adj={0:[1,2],1:[3],2:[3,4],3:[5],4:[5],5:[6],6:[]},nodes=[0,1,2,3,4,5,6],S=[],q=[0],dist={0:0},done=[];
+ function A(){return {label:'queue → front',items:[q.length?q.join(', '):'empty','dist: '+Object.keys(dist).map(function(k){return k+'='+dist[k]}).join(' ')]}}
+ S.push({a:nodes,ptr:{start:0},hi:[0],aux:A(),note:'Shortest path from 0 to every node (edges: 0→1,2  1→3  2→3,4  3→5  4→5  5→6). Queue = nodes discovered but not processed; BFS reaches nodes in order of distance.'});
+ while(q.length){var u=q.shift();var found=[];adj[u].forEach(function(v){if(!(v in dist)){dist[v]=dist[u]+1;q.push(v);found.push(v)}});done.push(u);
+  S.push({a:nodes,ptr:{cur:u},hi:q.slice(),ok:[u],dim:done.filter(function(x){return x!==u}),aux:A(),note:'Dequeue '+u+' (distance '+dist[u]+'). '+(found.length?'Enqueue unseen neighbours '+found.join(', ')+' with distance '+(dist[u]+1)+'.':'No unseen neighbours.')})}
+ S.push({a:nodes,ptr:{},ok:rng(0,6),aux:A(),note:'Shortest distance to node 6 is '+dist[6]+'. Mark nodes as seen when you ENQUEUE them so none enters the queue twice. O(V + E).'});return S},
+dequemax:function(){var a=[1,3,-1,-3,5,3,6,7],k=3,S=[],dq=[],res=[];
+ function A(){return {label:'deque (index:value), front = max',items:(dq.length?dq.map(function(j){return j+':'+a[j]}):['empty']).concat(['result = ['+res.join(',')+']'])}}
+ S.push({a:a,ptr:{},aux:A(),note:'Maximum of every window of size 3. The deque keeps indices whose values are decreasing, so the front is always the window maximum.'});
+ for(var i=0;i<a.length;i++){var msg=[];
+  if(dq.length&&dq[0]<=i-k){msg.push('drop front '+dq[0]+' (left the window)');dq.shift()}
+  var rem=[];while(dq.length&&a[dq[dq.length-1]]<=a[i]){rem.push(dq.pop())}
+  if(rem.length)msg.push('pop back '+rem.join(', ')+' (smaller than '+a[i]+', they can never be a max again)');
+  dq.push(i);msg.push('push '+i);
+  if(i>=k-1){res.push(a[dq[0]]);msg.push('window max = '+a[dq[0]])}
+  S.push({a:a,ptr:{i:i},hi:rng(Math.max(0,i-k+1),i),ok:i>=k-1?[dq[0]]:[],aux:A(),note:'i = '+i+': '+msg.join('; ')+'.'})}
+ S.push({a:a,ptr:{},ok:rng(0,a.length-1),aux:A(),note:'Result = ['+res.join(', ')+']. Every index is pushed and popped once: O(n).'});return S},
+calc:function(){var s='3+2*2'.split(''),S=[],st=[],num=0,sign='+';
+ function A(){return {label:'number stack',items:[st.length?'['+st.join(', ')+']':'empty','sign = '+sign,'num = '+num]}}
+ S.push({a:s,ptr:{},aux:A(),note:'Evaluate 3+2*2 without parentheses. Push numbers on a stack; * and / are applied immediately to the top, + and − are deferred (negate for −). Sum the stack at the end.'});
+ for(var i=0;i<s.length;i++){var c=s[i],isd=/\d/.test(c),n;
+  if(isd){num=num*10+(+c);n='Digit '+c+': number so far = '+num+'.'}
+  if(!isd||i===s.length-1){n=(isd?n+' End of input: ':'Operator \''+c+'\' ends the number '+num+'. ')+'Apply the PREVIOUS sign \''+sign+'\': ';
+   if(sign==='+'){st.push(num);n+='push '+num+'.'}else if(sign==='-'){st.push(-num);n+='push '+(-num)+'.'}else if(sign==='*'){var t=st.pop();st.push(t*num);n+='top '+t+' × '+num+' = '+(t*num)+'.'}else{var t2=st.pop();st.push(Math.trunc(t2/num));n+='top '+t2+' ÷ '+num+'.'}
+   sign=isd?sign:c;num=0}
+  S.push({a:s,ptr:{i:i},hi:[i],aux:A(),note:n})}
+ var total=st.reduce(function(x,y){return x+y},0);
+ S.push({a:s,ptr:{},ok:rng(0,s.length-1),aux:A(),note:'Sum of the stack = '+total+'. O(n) time, O(n) space.'});return S},
+removek:function(){var d='1432219'.split(''),k=3,S=[],st=[];
+ function A(){return {label:'stack (digits kept)',items:[st.length?st.join(' '):'empty','k left = '+k]}}
+ S.push({a:d,ptr:{},aux:A(),note:'Remove 3 digits to make the smallest number. Greedy: if a digit is larger than the one after it, deleting it helps. A stack keeps the digits increasing.'});
+ for(var i=0;i<d.length;i++){var c=d[i],rm=[];while(k>0&&st.length&&st[st.length-1]>c){rm.push(st.pop());k--}
+  st.push(c);S.push({a:d,ptr:{i:i},hi:[i],aux:A(),note:'Digit '+c+': '+(rm.length?'pop '+rm.join(', ')+' (larger and earlier, so removing helps), then push.':'nothing larger on top, push.')})}
+ S.push({a:d,ptr:{},ok:rng(0,d.length-1),aux:A(),note:'k reached 0, so the result is "'+st.join('')+'". (If k is left over, trim digits from the end; then strip leading zeros.) O(n).'});return S},
+circular:function(){var buf=['','','',''],head=0,tail=0,size=0,S=[];
+ function P(n,ok){S.push({a:buf.slice(),ptr:{head:head,tail:tail},ok:ok||[],aux:{label:'state',items:['size = '+size,'capacity = 4','head = '+head,'tail = '+tail]},note:n})}
+ function enq(x){if(size===4){P('enqueue('+x+') fails: the queue is full (size == capacity). Note head == tail here, so a separate size counter tells full from empty.');return}
+  buf[tail]=x;var w=tail;tail=(tail+1)%4;size++;P('enqueue('+x+'): write at tail, then tail = (tail + 1) % 4'+(w===3?' (wraps to 0)':'')+'.',[w])}
+ function deq(){if(!size){P('dequeue on empty queue fails.');return}var v=buf[head];buf[head]='';head=(head+1)%4;size--;P('dequeue() returns '+v+': read at head, head = (head + 1) % 4.')}
+ P('Circular queue in a fixed array of 4 slots: head = next to remove, tail = next free slot. Indices wrap around with % capacity, so no shifting is ever needed.');
+ enq('A');enq('B');enq('C');enq('D');enq('E');deq();enq('E');deq();deq();return S},
+mergesort:function(){var a=[5,2,4,7,1,3,2,6],S=[];
+ S.push({a:a.slice(),ptr:{},note:'Merge sort: split in half until single elements (already sorted), then merge sorted halves back together. Each level of merging does n work and there are log n levels.'});
+ function ms(l,r){if(l>=r)return;var m=(l+r)>>1;ms(l,m);ms(m+1,r);
+  var L=a.slice(l,m+1),R=a.slice(m+1,r+1),i=0,j=0,k=l;
+  while(i<L.length&&j<R.length){a[k++]=L[i]<=R[j]?L[i++]:R[j++]}
+  while(i<L.length)a[k++]=L[i++];while(j<R.length)a[k++]=R[j++];
+  S.push({a:a.slice(),ptr:{lo:l,hi:r},hi:rng(l,r),ok:rng(l,r),dim:a.map(function(_,x){return x}).filter(function(x){return x<l||x>r}),note:'Merge ['+L.join(',')+'] and ['+R.join(',')+'] → ['+a.slice(l,r+1).join(',')+'] (take the smaller front element each time; ≤ keeps equal items in order = stable).'})}
+ ms(0,a.length-1);
+ S.push({a:a.slice(),ptr:{},ok:rng(0,a.length-1),note:'Sorted: '+a.join(', ')+'. O(n log n) in every case, O(n) extra space, stable.'});return S},
+largestnum:function(){var a=['3','30','34','5','9'],S=[];
+ S.push({a:a.slice(),ptr:{},note:'Arrange the numbers to form the largest value. The rule: x comes before y if the string x+y is bigger than y+x. Insertion sort with that comparator.'});
+ for(var i=1;i<a.length;i++){for(var j=i-1;j>=0;j--){var x=a[j],y=a[j+1],sw=y+x>x+y;
+   S.push({a:a.slice(),ptr:{j:j,next:j+1},hi:[j,j+1],note:'Compare "'+y+'" before "'+x+'": "'+y+x+'" vs "'+x+y+'". '+(sw?'"'+y+x+'" is larger, so '+y+' moves ahead of '+x+'.':'"'+x+y+'" is larger or equal, so the order is already right. Stop.')});
+   if(sw){a[j]=y;a[j+1]=x}else break}}
+ S.push({a:a.slice(),ptr:{},ok:rng(0,a.length-1),note:'Order: '+a.join(' ')+' → "'+a.join('')+'". Sorting with a custom comparator is O(n log n) comparisons × O(length) per comparison.'});return S},
+bucket:function(){var nums=[1,1,1,2,2,3],k=2,S=[],cnt={},b=['','','','','','',''];
+ function A(){return {label:'counts',items:Object.keys(cnt).map(function(x){return x+': '+cnt[x]})}}
+ S.push({a:b.slice(),ptr:{},note:'Top-2 frequent in [1,1,1,2,2,3]. Count each value, then drop it into a bucket indexed by its frequency (1..n). No sorting needed.'});
+ nums.forEach(function(x){cnt[x]=(cnt[x]||0)+1});
+ S.push({a:b.slice(),ptr:{},aux:A(),note:'Counting pass: value → how many times it appears.'});
+ Object.keys(cnt).sort(function(x,y){return cnt[x]-cnt[y]}).forEach(function(x){var f=cnt[x];b[f]=b[f]?b[f]+','+x:x;S.push({a:b.slice(),ptr:{freq:f},ok:[f],aux:A(),note:'Value '+x+' appears '+f+' time(s): put it in bucket['+f+'].'})});
+ var res=[];for(var f=b.length-1;f>=1&&res.length<k;f--){if(b[f]){b[f].split(',').forEach(function(x){if(res.length<k)res.push(+x)});S.push({a:b.slice(),ptr:{scan:f},ok:[f],aux:{label:'result',items:['['+res.join(', ')+']']},note:'Scan buckets from the highest frequency down; take '+b[f]+' → result so far ['+res.join(', ')+'].'})}}
+ S.push({a:b.slice(),ptr:{},aux:{label:'result',items:['['+res.join(', ')+']']},note:'Top '+k+' frequent: ['+res.join(', ')+']. O(n) time, O(n) space, better than the O(n log n) of sorting counts.'});return S},
+mergeiv:function(){var raw=[[8,10],[1,3],[15,18],[2,6]],iv=raw.slice().sort(function(x,y){return x[0]-y[0]}),S=[],out=[];
+ function f(arr){return arr.map(function(p){return '['+p[0]+','+p[1]+']'})}
+ function A(){return {label:'merged',items:out.length?f(out):['(empty)']}}
+ S.push({a:f(raw),ptr:{},aux:A(),note:'Merge overlapping intervals. Step 1: sort by start, so any overlap can only be with the previous merged interval.'});
+ S.push({a:f(iv),ptr:{},aux:A(),note:'Sorted by start: '+f(iv).join(' ')+'.'});
+ iv.forEach(function(p,i){var last=out[out.length-1],n;
+  if(!last||last[1]<p[0]){out.push([p[0],p[1]]);n=last?'['+p[0]+','+p[1]+'] starts after '+last[1]+' (gap): start a new merged interval.':'First interval: start the merged list.'}
+  else{var old=last[1];last[1]=Math.max(last[1],p[1]);n='['+p[0]+','+p[1]+'] starts at '+p[0]+' ≤ '+old+' (overlap): extend the end to max('+old+', '+p[1]+') = '+last[1]+'.'}
+  S.push({a:f(iv),ptr:{i:i},hi:[i],ok:rng(0,i),aux:A(),note:n})});
+ S.push({a:f(iv),ptr:{},ok:rng(0,iv.length-1),aux:A(),note:'Result: '+f(out).join(' ')+'. Sorting dominates: O(n log n) time.'});return S},
+insertiv:function(){var iv=[[1,2],[3,5],[6,7],[8,10],[12,16]],ni=[4,8],S=[],res=[];
+ function f(arr){return arr.map(function(p){return '['+p[0]+','+p[1]+']'})}
+ function A(ph){return {label:'phase | new interval | result',items:[ph,'new = ['+ni[0]+','+ni[1]+']','result: '+(res.length?f(res).join(' '):'(empty)')]}}
+ var cells=f(iv);
+ S.push({a:cells,ptr:{},aux:A('start'),note:'Insert [4,8] into a sorted, non-overlapping list in one pass: (1) copy intervals that end before it starts, (2) merge the ones that overlap it, (3) copy the rest.'});
+ var i=0;while(i<iv.length&&iv[i][1]<ni[0]){res.push(iv[i]);S.push({a:cells,ptr:{i:i},hi:[i],aux:A('1 · before'),note:'['+iv[i]+'] ends at '+iv[i][1]+' < '+ni[0]+': completely before the new interval, copy it.'});i++}
+ while(i<iv.length&&iv[i][0]<=ni[1]){var o=ni.slice();ni[0]=Math.min(ni[0],iv[i][0]);ni[1]=Math.max(ni[1],iv[i][1]);S.push({a:cells,ptr:{i:i},hi:[i],aux:A('2 · overlap'),note:'['+iv[i]+'] starts at '+iv[i][0]+' ≤ '+o[1]+': overlaps. Absorb it: new becomes ['+ni[0]+','+ni[1]+'].'});i++}
+ res.push(ni.slice());S.push({a:cells,ptr:{},aux:A('2 · overlap'),note:'No more overlaps: add the merged new interval ['+ni[0]+','+ni[1]+'].'});
+ while(i<iv.length){res.push(iv[i]);S.push({a:cells,ptr:{i:i},hi:[i],aux:A('3 · after'),note:'['+iv[i]+'] starts after the new interval: copy it unchanged.'});i++}
+ S.push({a:f(res),ptr:{},ok:rng(0,res.length-1),aux:A('done'),note:'Result: '+f(res).join(' ')+'. One pass, O(n).'});return S},
+sweep:function(){var iv=[[0,30],[5,10],[15,20]],ev=[],S=[];
+ iv.forEach(function(p){ev.push([p[0],1]);ev.push([p[1],-1])});ev.sort(function(x,y){return x[0]-y[0]||x[1]-y[1]});
+ var cells=ev.map(function(e){return e[0]+(e[1]>0?' ▲':' ▼')}),act=0,mx=0;
+ function A(){return {label:'now | peak',items:['active meetings = '+act,'rooms needed (peak) = '+mx]}}
+ S.push({a:cells,ptr:{},aux:A(),note:'Minimum rooms for meetings [0,30] [5,10] [15,20]. Turn each meeting into two events (▲ start +1, ▼ end −1), sort by time (ends before starts on ties), sweep and track the running count.'});
+ ev.forEach(function(e,i){act+=e[1];mx=Math.max(mx,act);S.push({a:cells,ptr:{t:i},hi:[i],ok:act===mx&&e[1]>0?[i]:[],aux:A(),note:'Time '+e[0]+': a meeting '+(e[1]>0?'starts (+1)':'ends (−1)')+'. Active = '+act+'. Peak so far = '+mx+'.'})});
+ S.push({a:cells,ptr:{},ok:rng(0,cells.length-1),aux:A(),note:'Maximum overlap = '+mx+' room(s). Sorting the events costs O(n log n); the sweep itself is O(n).'});return S},
+greedyiv:function(){var raw=[[1,2],[2,3],[3,4],[1,3]],iv=raw.slice().sort(function(x,y){return x[1]-y[1]}),S=[],end=-1e9,removed=0,kept=[],dim=[];
+ function f(arr){return arr.map(function(p){return '['+p[0]+','+p[1]+']'})}
+ function A(){return {label:'greedy state',items:['last kept end = '+(end<-1e8?'none':end),'removed = '+removed]}}
+ S.push({a:f(raw),ptr:{},aux:A(),note:'Fewest intervals to remove so that the rest do not overlap = keep as many as possible. Greedy: sort by END time and always keep the interval that finishes first.'});
+ S.push({a:f(iv),ptr:{},aux:A(),note:'Sorted by end: '+f(iv).join(' ')+'.'});
+ iv.forEach(function(p,i){var n;if(p[0]>=end){end=p[1];kept.push(i);n='['+p[0]+','+p[1]+'] starts at '+p[0]+' ≥ last end: keep it. New last end = '+end+'.'}else{removed++;dim.push(i);n='['+p[0]+','+p[1]+'] starts at '+p[0]+' < last end '+end+': it overlaps, remove it (it ends later than the one we kept).'}
+  S.push({a:f(iv),ptr:{i:i},hi:[i],ok:kept.slice(),dim:dim.slice(),aux:A(),note:n})});
+ S.push({a:f(iv),ptr:{},ok:kept.slice(),dim:dim.slice(),aux:A(),note:'Remove '+removed+' interval(s). Finishing earliest leaves the most room for later intervals: that is the exchange argument. O(n log n).'});return S},
+boats:function(){var p=[1,2,2,3],limit=3,S=[],l=0,r=3,boats=0,dim=[];
+ S.push({a:p,ptr:{l:0,r:3},aux:{label:'limit | boats',items:['limit = '+limit,'boats = 0']},note:'Each boat carries at most 2 people and weighs at most '+limit+'. Sort the weights; pair the lightest with the heaviest if they fit.'});
+ while(l<=r){var fits=l<r&&p[l]+p[r]<=limit,n;
+  if(fits){n=p[l]+' + '+p[r]+' = '+(p[l]+p[r])+' ≤ '+limit+': they share a boat.';dim.push(l);dim.push(r);l++;r--}else{n=(l<r?p[l]+' + '+p[r]+' = '+(p[l]+p[r])+' > '+limit+': the heaviest ('+p[r]+') goes alone; ':'Last person ')+(l<r?'':'goes alone. ');dim.push(r);r--}
+  boats++;S.push({a:p,ptr:{l:l,r:r},ok:dim.slice(),aux:{label:'limit | boats',items:['limit = '+limit,'boats = '+boats]},note:n+' Boats used: '+boats+'.'})}
+ S.push({a:p,ptr:{},ok:rng(0,3),aux:{label:'limit | boats',items:['boats = '+boats]},note:'Minimum boats = '+boats+'. The heaviest person needs a boat anyway; pairing them with the lightest is always the best use of it. O(n log n).'});return S},
+cyclic:function(){var a=[3,4,-1,1],S=[],n=a.length;
+ S.push({a:a.slice(),ptr:{},note:'First missing positive. Idea: the sorted answer for 1..n would be [1,2,3,4]. Put each value x in 1..n at index x−1 by swapping; then the first index i with a[i] ≠ i+1 reveals the missing number i+1.'});
+ var i=0;while(i<n){var x=a[i];
+  if(x>=1&&x<=n&&a[x-1]!==x){var t=a[x-1];a[x-1]=x;a[i]=t;S.push({a:a.slice(),ptr:{i:i,home:x-1},hi:[i,x-1],note:'a['+i+'] = '+x+' belongs at index '+(x-1)+'. Swap it home. a['+i+'] is now '+t+' (check again).'})}
+  else{S.push({a:a.slice(),ptr:{i:i},ok:(x>=1&&x<=n&&a[x-1]===x)?[i]:[],dim:(x<1||x>n)?[i]:[],note:'a['+i+'] = '+x+': '+((x>=1&&x<=n)?'already at its home index (or its home holds the same value). Move on.':'out of range 1..'+n+', ignore it. Move on.')});i++}}
+ var miss=n+1;for(var k=0;k<n;k++){if(a[k]!==k+1){miss=k+1;break}}
+ S.push({a:a.slice(),ptr:{},ok:a.map(function(v,j){return j}).filter(function(j){return a[j]===j+1}),note:'Scan: index '+(miss-1)+' holds '+a[miss-1]+' instead of '+miss+'. The first missing positive is '+miss+'. O(n) time, O(1) space: every swap puts one value home for good.'});return S},
+callstack:function(){var S=[],fr=[];
+ function P(n,ok,x){S.push({a:fr.slice(),ptr:fr.length?{top:fr.length-1}:{},ok:ok||[],aux:x||{label:'call stack (bottom → top)',items:fr.length?fr.slice():['empty']},note:n})}
+ S.push({a:[],ptr:{},aux:{label:'call stack',items:['empty']},note:'factorial(4): n! = n × (n−1)!. Every call that has not returned waits on the call stack. Watch it grow down to the base case, then unwind.'});
+ for(var n=4;n>=1;n--){fr.push('f('+n+')');P(n>1?'Call f('+n+'): not the base case, so it calls f('+(n-1)+') and waits for the answer.':'Call f(1): BASE CASE. It returns 1 immediately without calling anything. The stack is as deep as it gets.',n===1?[fr.length-1]:[])}
+ var val=1;P('f(1) returns 1 and its frame is popped.',[],null);fr.pop();
+ for(var m=2;m<=4;m++){val*=m;fr[fr.length-1]='f('+m+') = '+val;S.push({a:fr.slice(),ptr:{top:fr.length-1},ok:[fr.length-1],aux:{label:'returning',items:[m+' × f('+(m-1)+') = '+val]},note:'f('+m+') receives the answer from below and computes '+m+' × '+(val/m)+' = '+val+'.'});fr.pop();if(fr.length)S.push({a:fr.slice(),ptr:{top:fr.length-1},aux:{label:'returning',items:['value passed up: '+val]},note:'f('+m+') returns '+val+' and its frame is popped.'})}
+ S.push({a:[],ptr:{},aux:{label:'answer',items:['4! = '+val]},note:'Stack empty: factorial(4) = '+val+'. Depth was 4, so the call stack used O(n) space. Without a base case the stack grows until it overflows.'});return S},
+subsets:function(){var a=[1,2,3],S=[],path=[],res=[];
+ function A(){return {label:'subsets found ('+res.length+')',items:res.map(function(r){return '['+r.join(',')+']'})}}
+ function P(n,hl){S.push({a:path.slice(),ptr:path.length?{top:path.length-1}:{},ok:hl?[path.length-1]:[],aux:A(),note:n})}
+ function dfs(start){res.push(path.slice());P('Record the current path as a subset: ['+path.join(', ')+'].',false);
+  for(var i=start;i<a.length;i++){path.push(a[i]);P('Choose '+a[i]+' → path ['+path.join(', ')+']. Recurse on the elements after it.',true);dfs(i+1);var r=path.pop();P('Un-choose '+r+' (backtrack) → path ['+path.join(', ')+']. Try the next candidate at this level.',false)}}
+ S.push({a:[],ptr:{},aux:A(),note:'All subsets of [1,2,3]. Every path from the root of the decision tree IS a subset: record it on entry, then try adding each later element, and undo after returning.'});
+ dfs(0);S.push({a:[],ptr:{},aux:A(),note:'2³ = 8 subsets. Work is O(n · 2ⁿ) (each subset is copied once).'});return S},
+combsum:function(){var c=[2,3,5],target=5,S=[],path=[],res=[];
+ function A(rem){return {label:'remaining | results',items:['remaining = '+rem].concat(res.length?res.map(function(r){return '['+r.join(',')+']'}):['(none yet)'])}}
+ function P(n,rem,ok){S.push({a:path.slice(),ptr:path.length?{top:path.length-1}:{},ok:ok?rng(0,path.length-1):[],aux:A(rem),note:n})}
+ function dfs(start,rem){if(rem===0){res.push(path.slice());P('Remaining = 0: found a combination ['+path.join(', ')+']. Record it.',rem,true);return}
+  for(var i=start;i<c.length;i++){if(c[i]>rem){P('Candidate '+c[i]+' > remaining '+rem+': prune. The array is sorted, so every later candidate is too big as well: break.',rem,false);break}
+   path.push(c[i]);P('Choose '+c[i]+' → path ['+path.join(', ')+'], remaining '+(rem-c[i])+'. Recurse from index '+i+' (the same number may be reused).',rem-c[i],false);
+   dfs(i,rem-c[i]);var r=path.pop();P('Backtrack: remove '+r+'.',rem,false)}}
+ S.push({a:[],ptr:{},aux:A(target),note:'Combination sum: candidates [2,3,5] (sorted), target 5, numbers reusable. Recurse with a start index so order never repeats ([2,3] and [3,2] are the same combination).'});
+ dfs(0,target);S.push({a:[],ptr:{},aux:A(0),note:'Combinations: '+res.map(function(r){return '['+r.join(',')+']'}).join(' ')+'. Sorting plus the early break prunes whole subtrees.'});return S},
+perm:function(){var a=[1,2,3],S=[],path=[],used=[false,false,false],res=[];
+ function A(){return {label:'used | results',items:['used: ['+used.map(function(u,i){return u?a[i]:'·'}).join(' ')+']'].concat(res.map(function(r){return r.join('')}))}}
+ function dfs(){if(path.length===a.length){res.push(path.slice());S.push({a:path.slice(),ptr:{},ok:rng(0,a.length-1),aux:A(),note:'Path is full: record the permutation '+path.join('')+'.'});return}
+  for(var i=0;i<a.length;i++){if(used[i])continue;used[i]=true;path.push(a[i]);S.push({a:path.slice(),ptr:{top:path.length-1},hi:[path.length-1],aux:A(),note:'Position '+(path.length)+': choose '+a[i]+' (not used yet). Path ['+path.join(', ')+'].'});dfs();path.pop();used[i]=false}}
+ S.push({a:[],ptr:{},aux:A(),note:'Permutations of [1,2,3]. At each position choose any element not yet used; mark it used, recurse, then unmark it (backtrack).'});
+ dfs();S.push({a:[],ptr:{},aux:A(),note:'3! = 6 permutations. Time O(n · n!). The "used" array is what makes this different from subsets.'});return S},
+dedupe:function(){var a=[1,2,2],S=[],path=[],res=[];
+ function A(){return {label:'subsets found ('+res.length+')',items:res.map(function(r){return '['+r.join(',')+']'})}}
+ function dfs(start){res.push(path.slice());S.push({a:path.slice(),ptr:path.length?{top:path.length-1}:{},ok:path.length?[path.length-1]:[],aux:A(),note:'Record ['+path.join(', ')+'].'});
+  for(var i=start;i<a.length;i++){if(i>start&&a[i]===a[i-1]){S.push({a:path.slice(),ptr:{},dim:[],aux:A(),note:'SKIP: a['+i+'] = '+a[i]+' equals a['+(i-1)+'] and is not the first choice at this level (i > start). Choosing it would repeat a subset already produced.'});continue}
+   path.push(a[i]);S.push({a:path.slice(),ptr:{top:path.length-1},hi:[path.length-1],aux:A(),note:'Choose a['+i+'] = '+a[i]+'.'});dfs(i+1);path.pop()}}
+ S.push({a:[],ptr:{},aux:A(),note:'Subsets of [1,2,2] WITHOUT duplicate subsets. Sort first so equal values are adjacent; then at each level never pick the same value twice as the FIRST element of a choice.'});
+ dfs(0);S.push({a:[],ptr:{},aux:A(),note:'6 distinct subsets instead of 8. Rule: sort, then skip when i > start and a[i] == a[i−1].'});return S},
+partition:function(){var s='aab',ch=s.split(''),S=[],path=[],res=[];
+ function A(){return {label:'path | results',items:['path: '+(path.length?path.join(' | '):'(empty)')].concat(res.map(function(r){return r.join('|')}))}}
+ function pal(x){return x===x.split('').reverse().join('')}
+ function dfs(st){if(st===ch.length){res.push(path.slice());S.push({a:ch,ptr:{},ok:rng(0,ch.length-1),aux:A(),note:'Reached the end of the string: record the partition '+path.join(' | ')+'.'});return}
+  for(var e=st;e<ch.length;e++){var sub=s.slice(st,e+1);
+   if(pal(sub)){path.push(sub);S.push({a:ch,ptr:{start:st,end:e},hi:rng(st,e),aux:A(),note:'"'+sub+'" is a palindrome: cut here, then partition the rest starting at index '+(e+1)+'.'});dfs(e+1);path.pop()}
+   else S.push({a:ch,ptr:{start:st,end:e},dim:rng(st,e),aux:A(),note:'"'+sub+'" is not a palindrome: skip this cut (prune).'})}}
+ S.push({a:ch,ptr:{},aux:A(),note:'Split "aab" so every piece is a palindrome. At each start index try every end; if the piece is a palindrome, take it and recurse on the remainder.'});
+ dfs(0);S.push({a:ch,ptr:{},aux:A(),note:'Partitions: '+res.map(function(r){return r.join('|')}).join('  ')+'. Worst case O(n · 2ⁿ); the palindrome check prunes invalid branches.'});return S},
+wordgrid:function(){var g='ABCESFCSADEE'.split(''),R=3,C=4,word='ABCCED',S=[],path=[];
+ var dirs=[[0,1,'right'],[1,0,'down'],[0,-1,'left'],[-1,0,'up']],found=false;
+ function P(n,o){var x={a:g,cols:C,ptr:path.length?{head:path[path.length-1]}:{},hi:path.slice(),aux:{label:'matched so far',items:[word.slice(0,path.length)||'(none)']},note:n};if(o)for(var k in o)x[k]=o[k];S.push(x)}
+ function dfs(r,c,k){if(k===word.length){found=true;return true}
+  if(r<0||c<0||r>=R||c>=C||path.indexOf(r*C+c)>=0)return false;var idx=r*C+c;
+  if(g[idx]!==word[k]){P('('+r+','+c+') holds '+g[idx]+' but we need '+word[k]+': dead end, backtrack.',{dim:[idx],ptr:{try:idx}});return false}
+  path.push(idx);P('('+r+','+c+') = '+g[idx]+' matches word['+k+']. Mark it visited and look at the neighbours for '+(k+1<word.length?'"'+word[k+1]+'"':'the end of the word')+'.',{ok:path.slice()});
+  for(var d=0;d<4;d++){if(dfs(r+dirs[d][0],c+dirs[d][1],k+1))return true}
+  path.pop();P('All neighbours failed from ('+r+','+c+'): unmark it and backtrack.');return false}
+ P('Does the word ABCCED exist in the board as a path of adjacent cells, each cell used once? DFS from a matching first letter; mark visited, un-mark on backtrack.');
+ outer:for(var r=0;r<R;r++)for(var c=0;c<C;c++){if(dfs(r,c,0))break outer}
+ S.push({a:g,cols:C,ptr:{},ok:path.slice(),aux:{label:'result',items:[found?'found: '+word:'not found']},note:'Found ABCCED. Visited marks prevent reusing a cell; undoing them on the way back lets other paths use it. O(m·n·3^L).'});return S},
+nqueens:function(){var n=4,S=[],q=[],found=false;
+ function cells(){var a=[];for(var i=0;i<n*n;i++)a.push('');q.forEach(function(c,r){a[r*n+c]='♛'});return a}
+ function safe(r,c){for(var i=0;i<r;i++){if(q[i]===c||Math.abs(q[i]-c)===r-i)return false}return true}
+ function P(note,x){var o={a:cells(),cols:n,ptr:{},aux:{label:'queens by row',items:[q.length?q.map(function(c,r){return 'r'+r+'→c'+c}).join('  '):'(none)']},note:note};if(x)for(var k in x)o[k]=x[k];S.push(o)}
+ function dfs(r){if(r===n){found=true;return true}
+  for(var c=0;c<n;c++){if(!safe(r,c))continue;q.push(c);P('Row '+r+': column '+c+' is safe (no queen shares its column or diagonals). Place a queen.',{ok:[r*n+c]});
+   if(dfs(r+1))return true;q.pop();P('Row '+(r+1)+' has no safe column, so undo the queen at row '+r+', column '+c+' and try the next column.',{dim:[r*n+c]})}
+  return false}
+ P('Place 4 queens on a 4×4 board so none attack each other. Row by row: try each column, keep it if safe, recurse; if a later row is stuck, undo and try the next column.');
+ dfs(0);P('Solution: columns '+q.join(', ')+' (one queen per row, column and diagonal). Checking safety with three boolean arrays is O(1).',{ok:q.map(function(c,r){return r*n+c})});return S},
+parens:function(){var n=2,S=[],cur=[],res=[];
+ function A(o,c){return {label:'open | close | results',items:['open = '+o,'close = '+c].concat(res)}}
+ function dfs(o,c){if(cur.length===2*n){res.push(cur.join(''));S.push({a:cur.slice(),ptr:{},ok:rng(0,cur.length-1),aux:A(o,c),note:'Length '+(2*n)+' reached: record "'+cur.join('')+'".'});return}
+  if(o<n){cur.push('(');S.push({a:cur.slice(),ptr:{top:cur.length-1},hi:[cur.length-1],aux:A(o+1,c),note:'open ('+o+') < n ('+n+'): we may add "(". String "'+cur.join('')+'".'});dfs(o+1,c);cur.pop()}
+  if(c<o){cur.push(')');S.push({a:cur.slice(),ptr:{top:cur.length-1},hi:[cur.length-1],aux:A(o,c+1),note:'close ('+c+') < open ('+o+'): we may add ")". String "'+cur.join('')+'".'});dfs(o,c+1);cur.pop()}}
+ S.push({a:[],ptr:{},aux:A(0,0),note:'Generate all valid strings with 2 pairs of parentheses. Prune instead of filtering: add "(" only while open < n, add ")" only while close < open. Invalid strings are never built.'});
+ dfs(0,0);S.push({a:[],ptr:{},aux:A(n,n),note:'Valid strings: '+res.join(', ')+'. The count is the Catalan number (2 for n = 2, 5 for n = 3, 14 for n = 4); pruning avoids the 2^(2n) raw strings.'});return S},
+bits:function(){var x=44,S=[],W=8;
+ function P(n,o){var r={a:bitsOf(x,W),ptr:{},aux:{label:'value',items:['x = '+x,'binary '+bitsOf(x,W).join('')]},note:n};if(o)for(var k in o)r[k]=o[k];S.push(r)}
+ function ix(b){return W-1-b}
+ P('x = 44 = 00101100. Bit 0 is the rightmost (least significant) bit. The index under each cell is its position from the left; bit k sits at position '+(W-1)+' − k.');
+ P('Check bit 2: (x >> 2) & 1 = '+((x>>2)&1)+'. Shift the bit you want into position 0, then mask with 1.',{hi:[ix(2)],ptr:{'bit 2':ix(2)}});
+ x|=1;P('Set bit 0: x |= (1 << 0). OR with a 1 forces the bit on → '+x+'.',{ok:[ix(0)],ptr:{'bit 0':ix(0)}});
+ x&=~(1<<2);P('Clear bit 2: x &= ~(1 << 2). AND with a 0 forces the bit off → '+x+'.',{ok:[ix(2)],ptr:{'bit 2':ix(2)}});
+ x^=1<<5;P('Toggle bit 5: x ^= (1 << 5). XOR with 1 flips the bit → '+x+'.',{ok:[ix(5)],ptr:{'bit 5':ix(5)}});
+ var y=x;x=x&(x-1);P('x & (x − 1) clears the LOWEST set bit: '+y+' & '+(y-1)+' = '+x+'. (Subtracting 1 flips the lowest 1 and every 0 below it.)',{ok:[ix(0)],ptr:{'cleared':ix(0)}});
+ x=y;var low=x&-x;P('x & −x isolates the lowest set bit: '+x+' & '+(-x)+' = '+low+'.',{hi:[ix(0)],ok:[ix(0)]});
+ x=8;P('Power of two? A power of two has exactly one set bit, so x & (x − 1) == 0: 8 & 7 = '+(8&7)+' → yes (x must be > 0).',{ok:[ix(3)],ptr:{'only bit':ix(3)}});return S},
+xor:function(){var a=[4,1,2,1,2],S=[],acc=0;
+ function B(v){var s=v.toString(2);while(s.length<3)s='0'+s;return s}
+ S.push({a:a,ptr:{},aux:{label:'running XOR',items:['acc = 0 (000)']},note:'Find the number that appears once while all others appear twice. XOR properties: x ^ x = 0, x ^ 0 = x, and order does not matter. So every pair cancels.'});
+ a.forEach(function(v,i){var prev=acc;acc^=v;S.push({a:a,ptr:{i:i},hi:[i],dim:rng(0,i-1),aux:{label:'running XOR',items:[prev+' ^ '+v+' = '+acc,B(prev)+' ^ '+B(v)+' = '+B(acc)]},note:'acc = '+prev+' XOR '+v+' = '+acc+'.'+((i>0&&a.slice(0,i).indexOf(v)>=0)?' '+v+' appeared before, so its two copies cancel to 0.':'')})});
+ S.push({a:a,ptr:{},ok:[0],aux:{label:'result',items:['acc = '+acc]},note:'All pairs cancelled; what is left is the single number: '+acc+'. O(n) time, O(1) space, no hash map.'});return S},
+kernighan:function(){var n=13,S=[],c=0,W=8;
+ function P(note,o){var r={a:bitsOf(n,W),ptr:{},aux:{label:'n | count',items:['n = '+n,'set bits counted = '+c]},note:note};if(o)for(var k in o)r[k]=o[k];S.push(r)}
+ P('Count the 1 bits of 13 = 00001101 (Brian Kernighan): n & (n − 1) removes exactly one set bit each time, so the loop runs once per set bit, not once per bit.');
+ while(n){var low=W-1-Math.log2(n&-n);var prev=n;n=n&(n-1);c++;S.push({a:bitsOf(prev,W),ptr:{lowest:low},hi:[low],aux:{label:'n | count',items:['n = '+prev,'n − 1 = '+(prev-1)]},note:'Lowest set bit found. '+prev+' & '+(prev-1)+' = '+n+': that bit is cleared. count = '+c+'.'});
+  P('After clearing: n = '+n+' = '+bitsOf(n,W).join('')+(n?'. Still non-zero, repeat.':'. n is 0, stop.'))}
+ P('Answer: '+c+' set bits. O(number of set bits), at most O(32).',{ok:[]});return S},
+masksubs:function(){var a=['a','b','c'],S=[];
+ S.push({a:a,ptr:{},aux:{label:'mask',items:['2³ = 8 masks: 0 .. 7']},note:'Every integer from 0 to 2ⁿ − 1 is a subset: bit i set means "element i is included". Counting from 0 to 7 enumerates all 8 subsets with no recursion.'});
+ for(var m=0;m<8;m++){var inc=[],set=[];for(var i=0;i<3;i++)if(m>>i&1){inc.push(i);set.push(a[i])}
+  var b=bitsOf(m,3).join('');S.push({a:a,ptr:{},hi:inc,ok:inc,aux:{label:'mask '+m,items:['binary '+b,'subset {'+set.join(', ')+'}']},note:'mask = '+m+' = '+b+' (bit 0 is the rightmost): include '+(set.length?set.join(', '):'nothing')+'.'})}
+ S.push({a:a,ptr:{},ok:[0,1,2],aux:{label:'tips',items:['submasks of m: for (s = m; s > 0; s = (s − 1) & m)','Gray code: i ^ (i >> 1)']},note:'8 subsets in O(2ⁿ · n). Bitmasks also encode "set of used items" as one integer, the basis of bitmask DP.'});return S},
+adder:function(){var a=5,b=3,S=[],W=8;
+ function P(n,o){var r={a:bitsOf(a,W),ptr:{},aux:{label:'a | b',items:['a = '+bitsOf(a,W).join('')+' ('+a+')','b = '+bitsOf(b,W).join('')+' ('+b+')']},note:n};if(o)for(var k in o)r[k]=o[k];S.push(r)}
+ P('Add 5 + 3 without using +. XOR adds bits without carrying; AND finds where a carry happens (shifted left by one). Repeat until no carry remains.');
+ while(b){var x=a^b,c=(a&b)<<1;S.push({a:bitsOf(x,W),ptr:{},hi:[],aux:{label:'this round',items:['a ^ b = '+bitsOf(x,W).join('')+' ('+x+') sum without carry','(a & b) << 1 = '+bitsOf(c,W).join('')+' ('+c+') carry']},note:'a = '+a+', b = '+b+': sum without carry = '+x+', carry = '+c+'. New a = '+x+', new b = '+c+'.'});a=x;b=c}
+ P('Carry is 0, so a holds the answer: '+a+' = '+bitsOf(a,W).join('')+'. Each round pushes the carry at least one position left, so at most 32 rounds.',{ok:rng(0,W-1)});return S},
+fastpow:function(){var base=3,e=13,S=[],res=1,bits=[];
+ var ee=e;while(ee){bits.push(ee&1);ee>>=1}
+ function A(b){return {label:'result | base',items:['result = '+res,'base = '+b]}}
+ S.push({a:bits.slice(),ptr:{},aux:A(base),note:'Compute 3^13 with binary exponentiation. 13 = 1101 in binary; the cells are its bits from least significant (index 0). Square the base every step; multiply it into the result when the bit is 1.'});
+ var cur=base;for(var i=0;i<bits.length;i++){var msg;if(bits[i]){res*=cur;msg='bit '+i+' = 1: multiply the result by the current base: result = '+res+'.'}else msg='bit '+i+' = 0: skip, the result is unchanged.';
+  S.push({a:bits.slice(),ptr:{bit:i},hi:[i],ok:bits[i]?[i]:[],aux:A(cur),note:msg+(i<bits.length-1?' Then square the base: '+cur+'² = '+cur*cur+'.':'')});cur=cur*cur}
+ S.push({a:bits.slice(),ptr:{},ok:rng(0,bits.length-1),aux:A('(done)'),note:'3^13 = '+res+'. Only '+bits.length+' squarings instead of 12 multiplications: O(log n). With a modulus, reduce after every multiplication.'});return S},
+sieve:function(){var N=30,nums=[],comp={},S=[],primes=[];for(var i=2;i<=N;i++)nums.push(i);
+ function idx(v){return v-2}
+ function P(n,o){var r={a:nums,cols:10,ptr:{},dim:Object.keys(comp).map(function(k){return idx(+k)}),aux:{label:'primes so far',items:primes.length?primes.slice():['none']},note:n};if(o)for(var k in o)r[k]=o[k];S.push(r)}
+ P('Sieve of Eratosthenes up to 30. Start with every number as a candidate; for each prime p, cross out its multiples starting at p².');
+ for(var p=2;p*p<=N;p++){if(comp[p])continue;primes.push(p);var ms=[];for(var j=p*p;j<=N;j+=p){if(!comp[j]){comp[j]=1}ms.push(j)}
+  P('p = '+p+' is prime. Cross out its multiples from '+p+'² = '+p*p+': '+ms.join(', ')+'. (Smaller multiples were already crossed out by smaller primes.)',{ok:[idx(p)],hi:ms.map(idx)})}
+ var rest=[];for(var v=2;v<=N;v++)if(!comp[v]){rest.push(v);if(primes.indexOf(v)<0)primes.push(v)}
+ P('Next candidate p = 7: 7² = 49 > 30, so we can stop. Every number still standing is prime: '+rest.join(', ')+'.',{ok:rest.map(idx)});
+ P('Time O(n log log n), space O(n). The loop only runs while p·p ≤ n.',{ok:rest.map(idx)});return S},
+digits:function(){var d=[1,2,3,4],S=[],rev=0,x=1234;
+ function A(){return {label:'x | rev',items:['x = '+x,'rev = '+rev]}}
+ S.push({a:d,ptr:{},aux:A(),note:'Reverse the digits of 1234. Peel digits off the right with % 10 and / 10, and push them onto rev with rev × 10 + digit.'});
+ for(var i=3;i>=0;i--){var dig=x%10;x=Math.floor(x/10);var old=rev;rev=rev*10+dig;S.push({a:d,ptr:{digit:i},hi:[i],dim:rng(i+1,3),aux:A(),note:'digit = '+dig+', x becomes '+x+'. rev = '+old+' × 10 + '+dig+' = '+rev+'.'})}
+ S.push({a:d,ptr:{},ok:[0,1,2,3],aux:A(),note:'Result 4321. In 32-bit problems check overflow BEFORE multiplying: rev > MAX/10 (or equal with digit > 7) means the answer would not fit.'});return S},
+trailing:function(){var n=125,S=[],q=n,total=0,vals=[n];
+ function A(){return {label:'zeros so far',items:['total = '+total]}}
+ S.push({a:vals.slice(),ptr:{},aux:A(),note:'Trailing zeros of 125! = number of factors of 10 = number of 5s (2s are plentiful). Count multiples of 5, then of 25, then 125, …: n/5 + n/25 + n/125 + …'});
+ while(true){q=Math.floor(q/5);if(!q)break;vals.push(q);total+=q;S.push({a:vals.slice(),ptr:{now:vals.length-1},hi:[vals.length-1],aux:A(),note:'Divide by 5 again → '+q+': that many numbers are multiples of the next power of 5 and add one more factor of 5 each. total = '+total+'.'})}
+ S.push({a:vals.slice(),ptr:{},ok:[vals.length-1],aux:A(),note:'125! ends with '+total+' zeros. O(log₅ n), not O(n) and no factorial is ever computed.'});return S}};
+
+var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+var body=document.body;
+/* language + theme */
+function setLang(l){body.dataset.lang=l;$('#b-java').classList.toggle('on',l==='java');$('#b-py').classList.toggle('on',l==='py');ls('dsa-lang',l)}
+setLang(ls('dsa-lang')||'java');
+$('#b-java').onclick=function(){setLang('java')};$('#b-py').onclick=function(){setLang('py')};
+var th=ls('dsa-theme');if(th)document.documentElement.dataset.theme=th;
+$('#b-theme').onclick=function(){var d=document.documentElement,dark=d.dataset.theme?d.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;d.dataset.theme=dark?'light':'dark';ls('dsa-theme',d.dataset.theme)};
+/* progress (saved in this browser only) */
+function load(){try{return JSON.parse(ls('dsa-progress')||'{}')}catch(e){return {}}}
+var prog=load();
+function refresh(){var boxes=$$('.pk'),n=0;
+ boxes.forEach(function(b){var on=!!prog[b.dataset.k];b.checked=on;b.closest('tr').classList.toggle('done',on);if(on)n++});
+ $('#prog').textContent=n+' / '+boxes.length+' solved';$('#pbar').style.width=(boxes.length?100*n/boxes.length:0)+'%';
+ $$('.pat').forEach(function(p){var bx=$$('.pk',p),d=bx.filter(function(c){return c.checked}).length,e=$('.pp',p),s=$('nav.side a[href="#'+p.id+'"] .cnt');
+  if(e)e.textContent=d+' / '+bx.length+' solved';if(s)s.textContent=d+'/'+bx.length})}
+$$('.pk').forEach(function(b){b.onchange=function(){if(b.checked)prog[b.dataset.k]=1;else delete prog[b.dataset.k];ls('dsa-progress',JSON.stringify(prog));refresh()}});
+refresh();
+/* copy buttons */
+$$('.cp').forEach(function(e){e.remove()});
+$$('pre').forEach(function(p){var b=document.createElement('button');b.className='cp';b.textContent='Copy';b.onclick=function(){var t=p.querySelector('code').textContent;try{navigator.clipboard.writeText(t);b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1200)}catch(e){}};p.appendChild(b)});
+/* scroll spy */
+var links=$$('nav.side a');
+if('IntersectionObserver' in window&&links.length){var map={};links.forEach(function(a){map[a.getAttribute('href').slice(1)]=a});
+ var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(a){a.classList.remove('act')});var a=map[e.target.id];if(a)a.classList.add('act')}})},{rootMargin:'-70px 0px -70% 0px'});
+ Object.keys(map).forEach(function(id){var t=document.getElementById(id);if(t)io.observe(t)})}
+/* download */
+$('#b-dl').onclick=function(){
+ var clone=document.documentElement.cloneNode(true);
+ $$('.stepper',clone).forEach(function(e){e.innerHTML=''});$$('.cp',clone).forEach(function(e){e.remove()});
+ $$('.pk',clone).forEach(function(e){e.removeAttribute('checked')});$$('tr.done',clone).forEach(function(e){e.classList.remove('done')});
+ $$('a.act',clone).forEach(function(e){e.classList.remove('act')});
+ var h='<!DOCTYPE html>\n'+clone.outerHTML,blob=new Blob([h],{type:'text/html'}),a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);a.download=body.dataset.file||'topic.html';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)};
+/* animated stepper */
+function stepper(el){
+ var steps=SIM[el.dataset.sim](),i=0,timer=null,speed=1300,max=0;
+ steps.forEach(function(s){max=Math.max(max,s.a.length)});
+ el.setAttribute('tabindex','0');el.setAttribute('aria-label','Step-by-step animation');
+ el.innerHTML='<div class="st-prog"><i></i></div><div class="st-view"></div><div class="st-aux"></div><div class="st-note" aria-live="polite"></div>'+
+  '<div class="st-ctl"><button data-a="prev" title="Previous (←)">◀</button><button data-a="play" title="Play / pause (space)">▶ Play</button><button data-a="next" title="Next (→)">▶|</button><button data-a="reset" title="Restart">↺</button>'+
+  '<input type="range" min="0" max="'+(steps.length-1)+'" value="0" aria-label="Step"><select aria-label="Speed"><option value="2200">Slow</option><option value="1300" selected>Normal</option><option value="600">Fast</option></select><span class="st-count"></span></div>';
+ var view=$('.st-view',el),aux=$('.st-aux',el),note=$('.st-note',el),cnt=$('.st-count',el),play=$('[data-a=play]',el),bar=$('.st-prog i',el),rg=$('input',el),sel=$('select',el);
+ var cells=[],h='';for(var k=0;k<max;k++)h+='<div class="cellw"><div class="ptr"></div><div class="cell"></div><div class="idx">'+k+'</div></div>'+(k<max-1?'<div class="edge"></div>':'');
+ view.innerHTML=h;$$('.cellw',view).forEach(function(w){cells.push({w:w,p:$('.ptr',w),c:$('.cell',w),v:null})});var edges=$$('.edge',view);
+ function draw(){var s=steps[i],lab={};Object.keys(s.ptr||{}).forEach(function(k){var ix=s.ptr[k];(lab[ix]=lab[ix]||[]).push(k)});
+  cells.forEach(function(o,ix){if(ix>=s.a.length){o.w.style.display='none';return}o.w.style.display='';
+   var v=String(s.a[ix]);if(o.v!==null&&o.v!==v){o.c.classList.remove('pop');void o.c.offsetWidth;o.c.classList.add('pop')}
+   o.v=v;o.c.textContent=v;
+   o.c.className='cell'+((s.hi||[]).indexOf(ix)>=0?' in':'')+((s.ok||[]).indexOf(ix)>=0?' ok':'')+((s.dim||[]).indexOf(ix)>=0?' dim':'')+(o.c.classList.contains('pop')?' pop':'');
+   o.p.innerHTML=lab[ix]?'<b>'+lab[ix].join(', ')+'</b>':''});
+  view.style.maxWidth=s.cols?(s.cols*53)+'px':'';
+  edges.forEach(function(g,k){var t=k<s.a.length-1?(s.edges?(s.edges[k]||''):(s.link?'→':'')):'';g.textContent=t;g.style.display=t?'':'none'});
+  if(s.aux){aux.innerHTML='<span class="al">'+s.aux.label+'</span>'+s.aux.items.map(function(t){return '<span class="chip">'+String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span>'}).join('')}else aux.innerHTML='';
+  note.textContent=s.note;cnt.textContent=(i+1)+' / '+steps.length;bar.style.width=(100*(i+1)/steps.length)+'%';rg.value=i}
+ function stop(){if(timer){clearInterval(timer);timer=null;play.textContent='▶ Play'}}
+ function go(n){i=Math.max(0,Math.min(steps.length-1,n));draw()}
+ function start(){if(i>=steps.length-1)i=0;play.textContent='❚❚ Pause';draw();timer=setInterval(function(){if(i<steps.length-1){i++;draw()}else stop()},speed)}
+ $('[data-a=prev]',el).onclick=function(){stop();go(i-1)};$('[data-a=next]',el).onclick=function(){stop();go(i+1)};
+ $('[data-a=reset]',el).onclick=function(){stop();go(0)};play.onclick=function(){timer?stop():start()};
+ rg.oninput=function(){stop();go(+rg.value)};sel.onchange=function(){speed=+sel.value;if(timer){stop();start()}};
+ el.onkeydown=function(e){if(e.target!==el)return;if(e.key==='ArrowRight'){stop();go(i+1);e.preventDefault()}else if(e.key==='ArrowLeft'){stop();go(i-1);e.preventDefault()}else if(e.key===' '){timer?stop():start();e.preventDefault()}};
+ draw()}
+$$('.stepper').forEach(stepper);
+
+})();</script>
+</body></html>
