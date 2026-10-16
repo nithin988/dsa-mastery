@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stacks, Queues and Deques — Pattern Guide</title><style>:root{--bg:#f6f7fb;--surf:#fff;--fg:#151a26;--mut:#5b6579;--line:#e2e6ef;--soft:#f0f2f8;--acc:#4f46e5;--acc-soft:#eceafe;--cool:#0e7490;--cool-soft:#e0f4f8;
+--hot:#c2410c;--hot-soft:#ffedd5;--ok:#15803d;--ok-soft:#dcfce7;--warn:#b45309;--warn-soft:#fef3c7;--bad:#b91c1c;--code:#f3f4f9;--shadow:0 1px 2px rgba(20,26,40,.06),0 4px 16px rgba(20,26,40,.05)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0c0f16;--surf:#131824;--fg:#e8ebf3;--mut:#9ba5ba;--line:#252c3c;--soft:#1a2030;--acc:#8e96ff;--acc-soft:#232855;--cool:#35c3e0;--cool-soft:#0f2f38;--hot:#fb923c;--hot-soft:#3a2312;--ok:#4ade80;--ok-soft:#12361f;--warn:#fbbf24;--warn-soft:#3a2c0b;--bad:#f87171;--code:#181e2c;--shadow:none}}
+:root[data-theme=dark]{--bg:#0c0f16;--surf:#131824;--fg:#e8ebf3;--mut:#9ba5ba;--line:#252c3c;--soft:#1a2030;--acc:#8e96ff;--acc-soft:#232855;--cool:#35c3e0;--cool-soft:#0f2f38;--hot:#fb923c;--hot-soft:#3a2312;--ok:#4ade80;--ok-soft:#12361f;--warn:#fbbf24;--warn-soft:#3a2c0b;--bad:#f87171;--code:#181e2c;--shadow:none}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:15.5px/1.65 "Inter",-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--acc)}
+code{background:var(--code);padding:1px 6px;border-radius:5px;font:0.88em ui-monospace,"Cascadia Code",Consolas,Menlo,monospace}
+.mut,.muted{color:var(--mut)}.muted{font-size:13px;font-weight:400}
+/* top bar */
+.bar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--surf) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar-in{max-width:1180px;margin:0 auto;display:flex;gap:8px;align-items:center;padding:8px 16px}
+.brand{font-weight:800;text-decoration:none;color:var(--fg);margin-right:auto;letter-spacing:-.01em}.brand b{color:var(--acc)}
+.prog{font-size:13px;color:var(--mut);white-space:nowrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{border:0;border-radius:0;background:transparent}
+.bar button,.st-ctl button,.st-ctl select{font:inherit;font-size:13px;padding:6px 12px;border:1px solid var(--line);border-radius:9px;background:var(--surf);color:var(--fg);cursor:pointer}
+.bar button:hover,.st-ctl button:hover{border-color:var(--acc);color:var(--acc)}
+.bar button.on{background:var(--acc);color:#fff}
+.pbar{height:3px;background:var(--line)}.pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--cool));transition:width .4s}
+/* layout */
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px;display:grid;grid-template-columns:240px minmax(0,1fr);gap:36px}
+nav.side{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto;padding:22px 0;font-size:13.5px}
+nav.side h4{margin:14px 0 6px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--mut)}
+nav.side a{display:flex;gap:8px;align-items:center;padding:5px 9px;border-radius:8px;text-decoration:none;color:var(--fg);border-left:3px solid transparent}
+nav.side a:hover{background:var(--soft)}nav.side a.act{background:var(--acc-soft);color:var(--acc);border-color:var(--acc);font-weight:600}
+nav.side .dot{width:8px;height:8px;border-radius:50%;flex:none}.dot.hot{background:var(--hot)}.dot.sec{background:var(--cool)}
+nav.side .cnt{margin-left:auto;font-size:11px;color:var(--mut)}
+main{min-width:0;padding:28px 0 90px}
+.chips{display:none}
+/* hero */
+.hero{background:linear-gradient(135deg,var(--acc-soft),var(--cool-soft));border:1px solid var(--line);border-radius:20px;padding:30px 28px;margin-bottom:26px}
+.eyebrow{font:700 12px ui-monospace,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--acc)}
+.hero h1{font-size:clamp(26px,4vw,38px);line-height:1.15;margin:8px 0 10px;letter-spacing:-.02em}
+.lead{font-size:16.5px;color:var(--mut);margin:0;max-width:70ch}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.stat{background:var(--surf);border:1px solid var(--line);border-radius:99px;padding:4px 13px;font-size:13px}.stat b{color:var(--acc)}
+/* headings */
+h2{font-size:23px;margin:46px 0 10px;letter-spacing:-.01em;scroll-margin-top:72px;display:flex;align-items:center;gap:10px}
+h2::before{content:"";width:5px;height:22px;border-radius:3px;background:linear-gradient(var(--acc),var(--cool))}
+h3{margin:0;font-size:20px;letter-spacing:-.01em}
+.callout{border:1px solid var(--line);border-left:4px solid var(--acc);background:var(--surf);padding:10px 16px;border-radius:10px;margin:14px 0;box-shadow:var(--shadow)}
+.callout.intu{border-left-color:var(--cool);background:var(--cool-soft)}.callout p{margin:4px 0}
+.callout .lbl{margin-bottom:2px}
+/* pattern card */
+.pat{background:var(--surf);border:1px solid var(--line);border-radius:18px;padding:22px 22px 10px;margin:26px 0;box-shadow:var(--shadow);scroll-margin-top:72px;position:relative;overflow:hidden}
+.pat::before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:var(--acc)}.pat.sec::before{background:var(--cool)}
+.pat-h{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.badge{width:34px;height:34px;border-radius:10px;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:none}.sec .badge{background:var(--cool)}
+.tier{font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;white-space:nowrap}.tier.hot{background:var(--hot-soft);color:var(--hot)}.tier.sec{background:var(--cool-soft);color:var(--cool)}
+.pp{margin-left:auto;font-size:12px;color:var(--mut)}
+.glance{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:6px 0 14px}
+.gi{background:var(--soft);border-radius:12px;padding:10px 13px;font-size:14px}
+.lbl{font:700 11px/1.2 ui-monospace,Consolas,monospace;letter-spacing:.09em;text-transform:uppercase;color:var(--acc);margin-bottom:4px;display:block}
+.blk{margin:14px 0}.blk p{margin:4px 0}
+.blk ol,.blk ul{margin:4px 0;padding-left:22px}.blk li{margin:3px 0}
+.blk.warn .lbl{color:var(--warn)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cx{background:var(--ok-soft);color:var(--ok);border-radius:10px;padding:8px 13px;font-weight:600;font-size:14px;margin:12px 0}
+/* code */
+pre{background:var(--code);border:1px solid var(--line);border-radius:12px;padding:13px 15px;overflow-x:auto;margin:8px 0;position:relative;font-size:13px;line-height:1.55}
+pre code{background:none;padding:0;font-size:inherit}
+.code-java,.code-py{display:none}body[data-lang=java] .code-java,body[data-lang=py] .code-py{display:block}
+.cp{position:absolute;top:7px;right:7px;font-size:11px;padding:2px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surf);color:var(--mut);cursor:pointer;opacity:0;transition:.15s}
+pre:hover .cp,.cp:focus{opacity:1}
+.trace{border-left:3px solid var(--warn)}
+/* tables */
+.tw{overflow-x:auto;margin:10px 0;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;background:var(--surf)}
+th,td{padding:8px 11px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:var(--soft);font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}tr:last-child td{border-bottom:0}
+.ladder td:first-child{width:34px;text-align:center}.ladder .t{white-space:nowrap}.ladder .c{white-space:nowrap;font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+input.pk{width:17px;height:17px;accent-color:var(--acc);cursor:pointer}
+.pill{font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:99px;white-space:nowrap}.dE{background:var(--ok-soft);color:var(--ok)}.dM{background:var(--warn-soft);color:var(--warn)}.dH{background:var(--hot-soft);color:var(--bad)}
+tr.done td{background:var(--ok-soft)}tr.done td:nth-child(3){text-decoration:line-through;text-decoration-color:var(--mut)}
+details{border:1px solid var(--line);border-radius:12px;padding:9px 14px;margin:8px 0;background:var(--surf)}summary{cursor:pointer;font-weight:600}details[open]{border-color:var(--acc)}details p{margin:8px 0 2px;color:var(--mut)}
+/* stepper */
+.stepper{border:1px solid var(--line);border-radius:16px;padding:14px;margin:8px 0 14px;background:linear-gradient(var(--soft),var(--surf));outline:none}
+.stepper:focus-visible{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-soft)}
+.st-prog{height:4px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:10px}.st-prog i{display:block;height:100%;background:var(--acc);width:0;transition:width .3s}
+.st-view{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;padding:6px 0 2px}
+.cellw{display:flex;flex-direction:column;align-items:center;min-width:46px}
+.ptr{min-height:22px;font:700 11px ui-monospace,Consolas,monospace;color:#fff;margin-bottom:3px;display:flex;align-items:flex-end}
+.ptr b{background:var(--acc);padding:1px 7px;border-radius:99px;white-space:nowrap;animation:drop .25s ease}
+.cell{min-width:46px;height:46px;display:flex;align-items:center;justify-content:center;border:2px solid var(--line);border-radius:11px;background:var(--surf);font:600 16px ui-monospace,Consolas,monospace;padding:0 7px;transition:background .25s,border-color .25s,transform .25s,box-shadow .25s}
+.cell.in{background:var(--acc-soft);border-color:var(--acc);transform:translateY(-2px);box-shadow:0 4px 10px rgba(79,70,229,.18)}
+.cell.ok{background:var(--ok-soft);border-color:var(--ok)}
+.cell.dim{background:var(--soft);color:var(--mut);border-style:dashed;opacity:.6}
+.cell.pop{animation:pop .35s ease}
+.edge{align-self:flex-start;margin-top:31px;min-width:20px;text-align:center;color:var(--acc);font:700 17px ui-monospace,Consolas,monospace}
+.idx{font:11px ui-monospace,Consolas,monospace;color:var(--mut);margin-top:3px}
+.st-aux{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;min-height:30px;margin-top:8px}
+.st-aux .al{font:700 11px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}
+.chip{font:600 12.5px ui-monospace,Consolas,monospace;background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:2px 9px}
+.st-note{min-height:48px;margin:8px 2px;font-size:14.5px;padding:9px 13px;background:var(--surf);border:1px solid var(--line);border-radius:10px}
+.st-ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.st-ctl input[type=range]{flex:1;min-width:90px;accent-color:var(--acc)}
+.st-count{font-size:12px;color:var(--mut);white-space:nowrap}
+@keyframes pop{0%{transform:scale(.75)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes drop{from{transform:translateY(-6px);opacity:0}to{transform:none;opacity:1}}
+.foot{margin-top:50px;padding-top:18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:14px}
+@media (max-width:1020px){.wrap{display:block}nav.side{display:none}
+ .chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0;position:sticky;top:57px;z-index:10;background:var(--bg)}
+ .chips a{white-space:nowrap;font-size:12.5px;border:1px solid var(--line);background:var(--surf);padding:4px 11px;border-radius:99px;text-decoration:none;color:var(--fg)}}
+@media (max-width:640px){body{font-size:15px}.hero{padding:22px 18px}.pat{padding:16px 14px 6px}.two{grid-template-columns:1fr}.cell{min-width:36px;height:38px;font-size:13.5px}.cellw{min-width:36px}.brand span{display:none}.pp{margin-left:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{.bar,.pbar,nav.side,.chips,.st-ctl,.cp{display:none}.wrap{display:block}.code-java,.code-py{display:block!important}.pat{box-shadow:none;break-inside:avoid-page}body{background:#fff}}
+</style></head>
+<body data-lang="java" data-file="05_stack_queue.html" data-topic="stack_queue">
+<div class="bar"><div class="bar-in"><a class="brand" href="../index.html"><b>DSA</b> <span>Mastery</span></a>
+<span class="prog" id="prog"></span>
+<span class="seg"><button id="b-java" class="on">Java</button><button id="b-py">Python</button></span>
+<button id="b-theme" title="Toggle light / dark" aria-label="Toggle theme">◐</button>
+<button id="b-dl" title="Save this page as a standalone HTML file">⬇ Download</button></div><div class="pbar"><i id="pbar"></i></div></div>
+<div class="wrap"><nav class="side" aria-label="On this page"><h4>Start here</h4><a href="#mindset">The mindset</a><a href="#priority">Priority</a><a href="#cues">Problem cues</a><h4>Patterns</h4><a href="#p1"><span class="dot hot"></span>1. Stack basics: undo, matching and bookkeeping<span class="cnt"></span></a><a href="#p2"><span class="dot hot"></span>2. Monotonic stack: next greater / smaller element<span class="cnt"></span></a><a href="#p3"><span class="dot hot"></span>3. Monotonic stack for ranges: rectangles and contributions<span class="cnt"></span></a><a href="#p4"><span class="dot sec"></span>4. Queues, and stacks and queues from each other<span class="cnt"></span></a><a href="#p5"><span class="dot hot"></span>5. BFS with a queue: levels and shortest paths<span class="cnt"></span></a><a href="#p6"><span class="dot hot"></span>6. Monotonic deque: sliding-window extremes<span class="cnt"></span></a><a href="#p7"><span class="dot sec"></span>7. Expression evaluation with stacks<span class="cnt"></span></a><a href="#p8"><span class="dot hot"></span>8. Greedy stack: remove to make smallest<span class="cnt"></span></a><a href="#p9"><span class="dot sec"></span>9. Circular buffers and queue simulation<span class="cnt"></span></a><h4>Wrap up</h4><a href="#recall">One-line recall</a><a href="#choose">Choosing</a><a href="#selftest">Self-test</a><a href="#plan">Study plan</a></nav><main><div class="chips"><a href="#p1">1. Stack basics: undo, matching and bookkeeping</a><a href="#p2">2. Monotonic stack: next greater / smaller element</a><a href="#p3">3. Monotonic stack for ranges: rectangles and contributions</a><a href="#p4">4. Queues, and stacks and queues from each other</a><a href="#p5">5. BFS with a queue: levels and shortest paths</a><a href="#p6">6. Monotonic deque: sliding-window extremes</a><a href="#p7">7. Expression evaluation with stacks</a><a href="#p8">8. Greedy stack: remove to make smallest</a><a href="#p9">9. Circular buffers and queue simulation</a></div>
+<header class="hero"><div class="eyebrow">Topic 05</div><h1>Stacks, Queues and Deques — Pattern Guide</h1><p class="lead">Stacks, queues and deques are the simplest structures with the biggest payoff. This guide covers stack bookkeeping, monotonic stacks, two-stack queues, BFS, monotonic deques, expression evaluation, greedy stacks and circular buffers, each with the intuition, a step-through animation that shows the structure changing, Java and Python code, and a ladder of LeetCode problems.</p><div class="stats"><span class="stat"><b>9</b> patterns</span><span class="stat"><b>47</b> practice problems</span><span class="stat"><b>9</b> animations</span><span class="stat">Java + Python</span></div></header>
+<div class="callout"><span class="lbl">How to use this page</span><p>For each section: read <em>Detect</em> and <em>Intuition</em>, play the animation, then try to write the skeleton from memory before opening the code. Finish by solving the problem ladder in order.</p></div>
+<h2 id="mindset">The mindset</h2><p>A <strong>stack</strong> answers "what is the most recent unfinished thing?"; a <strong>queue</strong> answers "what has waited longest?"; a <strong>deque</strong> lets you drop candidates from both ends. Most interview questions are one of three moves: <strong>match</strong> (openers and closers), <strong>wait for a better element</strong> (monotonic stack or deque), or <strong>spread level by level</strong> (BFS). Recognise which, and the code is short.</p><p>Ask these questions on every problem:</p><ul><li><strong>Is there nesting, undo, or "most recent first"?</strong> → stack.</li><li><strong>For each element, do I need the nearest bigger or smaller one?</strong> → monotonic stack.</li><li><strong>Do I need minimum steps or level order?</strong> → BFS with a queue.</li><li><strong>Do I need the max or min of a sliding window?</strong> → monotonic deque.</li><li><strong>Can I delete items greedily to make the result smaller?</strong> → stack with pops.</li></ul>
+<h2 id="priority">Priority</h2><p class="muted">Ranked by how often these show up in interviews (our judgement from the common interview lists and company question banks, not hard data).</p><h3 style='margin:14px 0 4px;font-size:16px'>🔥 Frequently asked — master these first</h3><div class="tw"><table class=""><thead><tr><th>#</th><th>Pattern</th><th>Why it matters</th><th>Signature problem</th></tr></thead><tbody><tr><td>1</td><td><strong>Stack basics: undo, matching and bookkeeping</strong></td><td>Stacks model "most recent unfinished thing" and appear everywhere</td><td>LC 20 / 155</td></tr><tr><td>2</td><td><strong>Monotonic stack: next greater / smaller element</strong></td><td>Turns "for each element find the next bigger/smaller" from O(n²) to O(n)</td><td>LC 739 / 496</td></tr><tr><td>3</td><td><strong>Monotonic stack for ranges: rectangles and contributions</strong></td><td>Unlocks the hardest stack problems: histogram, maximal rectangle, subarray minimums</td><td>LC 84 / 907</td></tr><tr><td>5</td><td><strong>BFS with a queue: levels and shortest paths</strong></td><td>The default tool for shortest path on unweighted graphs, grids and trees</td><td>LC 102 / 994 / 127</td></tr><tr><td>6</td><td><strong>Monotonic deque: sliding-window extremes</strong></td><td>Gives O(n) window max/min, where a heap would be O(n log n)</td><td>LC 239 / 1438</td></tr><tr><td>8</td><td><strong>Greedy stack: remove to make smallest</strong></td><td>Powerful greedy template behind several medium problems</td><td>LC 402 / 316 / 735</td></tr></tbody></table></div><h3 style='margin:14px 0 4px;font-size:16px'>🧊 Secondary — know them</h3><div class="tw"><table class=""><thead><tr><th>#</th><th>Pattern</th><th>Why it matters</th><th>Signature problem</th></tr></thead><tbody><tr><td>4</td><td><strong>Queues, and stacks and queues from each other</strong></td><td>Classic design question that tests amortised thinking</td><td>LC 232 / 225</td></tr><tr><td>7</td><td><strong>Expression evaluation with stacks</strong></td><td>Calculator questions test careful parsing plus stack discipline</td><td>LC 227 / 224</td></tr><tr><td>9</td><td><strong>Circular buffers and queue simulation</strong></td><td>Design questions and Josephus-style simulations use it</td><td>LC 622 / 1823</td></tr></tbody></table></div>
+<h2 id="cues">Problem cues</h2><p class="muted">If the problem says this, think of that.</p><div class="tw"><table class=""><thead><tr><th>If the problem says / looks like…</th><th>Pattern</th></tr></thead><tbody><tr><td>brackets, undo, backspace, postfix, "min in O(1)"</td><td><strong>P1</strong> Stack basics</td></tr><tr><td>"next greater / warmer / smaller", "stock span"</td><td><strong>P2</strong> Monotonic stack</td></tr><tr><td>"largest rectangle", "sum of subarray minimums", "trapping water"</td><td><strong>P3</strong> Monotonic stack for ranges</td></tr><tr><td>"queue using stacks", "stack using queues"</td><td><strong>P4</strong> Queues and conversions</td></tr><tr><td>"minimum steps", "level order", "spreading", "shortest path in a grid"</td><td><strong>P5</strong> BFS</td></tr><tr><td>"sliding window maximum", "max − min ≤ limit"</td><td><strong>P6</strong> Monotonic deque</td></tr><tr><td>"calculator", "evaluate expression"</td><td><strong>P7</strong> Expression evaluation</td></tr><tr><td>"remove k digits", "remove duplicates", "asteroid collision"</td><td><strong>P8</strong> Greedy stack</td></tr><tr><td>"circular queue / deque", "eliminate every kth"</td><td><strong>P9</strong> Circular buffers</td></tr></tbody></table></div>
+<h2>The patterns</h2>
+<section class="pat hot" id="p1">
+<div class="pat-h"><span class="badge">1</span><h3>Stack basics: undo, matching and bookkeeping</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>You must process things in reverse order of arrival, undo, match openers with closers, or keep extra info alongside each item.</div><div class="gi"><span class="lbl">Detect it</span>"valid parentheses" · "undo / backspace" · "evaluate postfix" · "min / max in O(1)" · "validate a push-pop sequence".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>A stack of plates: you can only touch the top one. That is exactly what you need when the <strong>most recent</strong> unfinished item must be resolved first: the innermost open bracket, the last typed character, the latest operand. If each plate also carries a sticky note (for example the minimum so far), you get extra facts for free.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Scanning the whole collection each time you need the minimum is O(n). Storing the running minimum with each entry makes <code>getMin</code> O(1) with O(n) space.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Push when you start something; pop when you finish or cancel it. Store <strong>pairs</strong> <code>(value, extra)</code> so every entry carries the aggregate (min, max, count, previous state) that popping must restore.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Decide what you push: a value, an index, or a <code>(value, aggregate)</code> pair.</li><li>Decide when you pop: on a closer, on a backspace, on an operator.</li><li>On pop, use the popped item to update the answer.</li><li>At the end, the stack must be empty (balanced) or hold the unresolved items.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="minstack"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>Min Stack: push 5, 3, 7, 3 then pop twice</p><pre class="trace"><code>push 5   stack [5]          mins [5]
+push 3   stack [5,3]        mins [5,3]
+push 7   stack [5,3,7]      mins [5,3,3]
+push 3   stack [5,3,7,3]    mins [5,3,3,3]    getMin = 3
+pop      stack [5,3,7]      mins [5,3,3]      getMin = 3
+pop      stack [5,3]        mins [5,3]        getMin = 3</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>min stack: each entry stores the min so far</p><pre class="code-java"><code>class MinStack {
+    Deque&lt;int[]&gt; st = new ArrayDeque&lt;&gt;();                 // {value, minSoFar}
+    void push(int x) { int m = st.isEmpty() ? x : Math.min(x, st.peek()[1]); st.push(new int[]{x, m}); }
+    void pop() { st.pop(); }
+    int top() { return st.peek()[0]; }
+    int getMin() { return st.peek()[1]; }
+}</code></pre><pre class="code-py"><code>class MinStack:
+    def __init__(self):
+        self.s = []                                       # (value, min_so_far)
+    def push(self, x):
+        m = min(x, self.s[-1][1]) if self.s else x
+        self.s.append((x, m))
+    def pop(self):
+        self.s.pop()
+    def top(self):
+        return self.s[-1][0]
+    def get_min(self):
+        return self.s[-1][1]</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>evaluate reverse Polish notation</p><pre class="code-java"><code>Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();
+for (String t : tokens) {
+    switch (t) {
+        case &quot;+&quot;: st.push(st.pop() + st.pop()); break;
+        case &quot;*&quot;: st.push(st.pop() * st.pop()); break;
+        case &quot;-&quot;: { int b = st.pop(), a = st.pop(); st.push(a - b); break; }   // order matters
+        case &quot;/&quot;: { int b = st.pop(), a = st.pop(); st.push(a / b); break; }   // truncates toward zero
+        default: st.push(Integer.parseInt(t));
+    }
+}
+return st.pop();</code></pre><pre class="code-py"><code>st = []
+for t in tokens:
+    if t in &quot;+-*/&quot; and len(t) == 1:
+        b, a = st.pop(), st.pop()                      # b is the right operand
+        st.append(a + b if t == &#x27;+&#x27; else a - b if t == &#x27;-&#x27; else a * b if t == &#x27;*&#x27; else int(a / b))
+    else:
+        st.append(int(t))
+return st.pop()</code></pre></div>
+<div class="cx">⏱ Complexity — O(1) per push/pop, O(n) space.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Pop the <strong>right operand first</strong>: <code>b = pop(); a = pop(); a − b</code>.</li><li>Division truncates toward zero: use <code>int(a / b)</code> in Python, not <code>//</code>.</li><li>Check the stack is non-empty before <code>pop</code> / <code>peek</code> (use <code>isEmpty</code> or a guard).</li><li>Java: prefer <code>ArrayDeque</code> over the legacy synchronised <code>Stack</code> class.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Backspace string compare: process each string with a stack (or two pointers from the end for O(1) space).</li><li>Max stack with <code>popMax</code>: add a second structure.</li><li>Validate stack sequences: simulate pushes and greedily pop when the top matches the next popped value.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When you need random access in the middle, or both ends (use a deque).</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="stack_queue-20" aria-label="Solved LC 20"></td><td class="t"><a href="https://leetcode.com/problems/valid-parentheses/" target="_blank" rel="noopener">LC 20</a></td><td>Valid Parentheses</td><td><span class="pill dE">Easy</span></td><td>Push openers; each closer must match the top</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-844" aria-label="Solved LC 844"></td><td class="t"><a href="https://leetcode.com/problems/backspace-string-compare/" target="_blank" rel="noopener">LC 844</a></td><td>Backspace String Compare</td><td><span class="pill dE">Easy</span></td><td>Stack per string where # pops; compare the results</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-155" aria-label="Solved LC 155"></td><td class="t"><a href="https://leetcode.com/problems/min-stack/" target="_blank" rel="noopener">LC 155</a></td><td>Min Stack</td><td><span class="pill dM">Medium</span></td><td>Store (value, minSoFar) per entry</td><td class="c">O(1) per op / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-150" aria-label="Solved LC 150"></td><td class="t"><a href="https://leetcode.com/problems/evaluate-reverse-polish-notation/" target="_blank" rel="noopener">LC 150</a></td><td>Evaluate Reverse Polish Notation</td><td><span class="pill dM">Medium</span></td><td>Push numbers; operators pop two operands</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-946" aria-label="Solved LC 946"></td><td class="t"><a href="https://leetcode.com/problems/validate-stack-sequences/" target="_blank" rel="noopener">LC 946</a></td><td>Validate Stack Sequences</td><td><span class="pill dM">Medium</span></td><td>Simulate: push, then pop while top equals the next popped</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-71" aria-label="Solved LC 71"></td><td class="t"><a href="https://leetcode.com/problems/simplify-path/" target="_blank" rel="noopener">LC 71</a></td><td>Simplify Path</td><td><span class="pill dM">Medium</span></td><td>Split on '/', push names, pop on '..'</td><td class="c">O(n) / O(n)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p2">
+<div class="pat-h"><span class="badge">2</span><h3>Monotonic stack: next greater / smaller element</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>For every element you need the nearest element to the left or right that is greater (or smaller).</div><div class="gi"><span class="lbl">Detect it</span>"next greater element" · "days until a warmer temperature" · "stock span" · "previous smaller" · "final price with a discount".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>People queueing in a ticket line, each waiting to see someone taller than themselves. When a taller person arrives, every shorter waiting person behind them finally gets their answer and leaves the line. People still in line are waiting; and because anyone shorter than a taller newcomer was just resolved, the people still waiting are always in decreasing height order: a monotonic stack.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>For each element scan right until something bigger appears: O(n²). With a monotonic stack each index is pushed once and popped once: O(n).</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Keep a stack of <strong>indices</strong> whose answers are still unknown, with values in decreasing order (for next greater). For each new element, while it is greater than the value at the stack top, pop and record the answer for the popped index; then push the new index.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Empty stack of indices; answers default to 0 / −1.</li><li>For each <code>i</code>: <code>while stack and a[i] &gt; a[stack.top]</code>: pop <code>j</code>, set <code>ans[j] = i − j</code> (or <code>a[i]</code>).</li><li>Push <code>i</code>.</li><li>Indices left at the end have no next greater element.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="nge"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>temperatures <code>[73,74,75,71,69,72,76,73]</code></p><pre class="trace"><code>i=0 73 push 0                     stack [0]
+i=1 74 &gt; 73 pop 0 -&gt; ans[0]=1     stack [1]
+i=2 75 &gt; 74 pop 1 -&gt; ans[1]=1     stack [2]
+i=3 71 push                       stack [2,3]
+i=4 69 push                       stack [2,3,4]
+i=5 72 pops 4 (ans 1), 3 (ans 2)  stack [2,5]
+i=6 76 pops 5 (ans 1), 2 (ans 4)  stack [6]
+i=7 73 push                       stack [6,7]
+=&gt; [1,1,4,2,1,1,0,0]</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>next greater element: days until warmer</p><pre class="code-java"><code>int[] ans = new int[n];
+Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();                 // indices, values decreasing
+for (int i = 0; i &lt; n; i++) {
+    while (!st.isEmpty() &amp;&amp; t[i] &gt; t[st.peek()]) {
+        int j = st.pop();
+        ans[j] = i - j;
+    }
+    st.push(i);
+}
+return ans;</code></pre><pre class="code-py"><code>ans = [0] * len(t)
+st = []                                                  # indices, values decreasing
+for i, x in enumerate(t):
+    while st and x &gt; t[st[-1]]:
+        j = st.pop()
+        ans[j] = i - j
+    st.append(i)
+return ans</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>circular array: loop twice over the indices</p><pre class="code-java"><code>int[] res = new int[n];
+Arrays.fill(res, -1);
+Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();
+for (int i = 0; i &lt; 2 * n; i++) {
+    int idx = i % n;
+    while (!st.isEmpty() &amp;&amp; a[st.peek()] &lt; a[idx]) res[st.pop()] = a[idx];
+    if (i &lt; n) st.push(idx);                              // only push during the first lap
+}</code></pre><pre class="code-py"><code>res = [-1] * n
+st = []
+for i in range(2 * n):
+    idx = i % n
+    while st and a[st[-1]] &lt; a[idx]:
+        res[st.pop()] = a[idx]
+    if i &lt; n:
+        st.append(idx)                                    # only push during the first lap</code></pre></div>
+<div class="cx">⏱ Complexity — O(n) time (each index pushed and popped once), O(n) space.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Store <strong>indices</strong>, not values, when you need distances or positions.</li><li>Strict vs non-strict comparison decides how ties behave: <code>&gt;</code> finds strictly greater.</li><li>Direction: scan right-to-left to build "next greater" with the stack holding candidates, or left-to-right and resolve on arrival (shown here).</li><li>Circular arrays: iterate <code>2n</code> times with <code>i % n</code> and push only during the first lap.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Previous greater / smaller: scan left to right and read the stack top before pushing.</li><li>Online stock span: stack of <code>(price, span)</code> pairs.</li><li>132 pattern: monotonic stack plus a tracked "third" value.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When you need the k-th greater element or a range query (use a heap, sparse table or segment tree).</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="stack_queue-496" aria-label="Solved LC 496"></td><td class="t"><a href="https://leetcode.com/problems/next-greater-element-i/" target="_blank" rel="noopener">LC 496</a></td><td>Next Greater Element I</td><td><span class="pill dE">Easy</span></td><td>Monotonic stack over nums2, map value → next greater</td><td class="c">O(n + m) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-1475" aria-label="Solved LC 1475"></td><td class="t"><a href="https://leetcode.com/problems/final-prices-with-a-special-discount-in-a-shop/" target="_blank" rel="noopener">LC 1475</a></td><td>Final Prices With a Special Discount in a Shop</td><td><span class="pill dE">Easy</span></td><td>Next smaller-or-equal price via a monotonic stack</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-739" aria-label="Solved LC 739"></td><td class="t"><a href="https://leetcode.com/problems/daily-temperatures/" target="_blank" rel="noopener">LC 739</a></td><td>Daily Temperatures</td><td><span class="pill dM">Medium</span></td><td>Pop indices when a warmer day arrives; answer = i − j</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-503" aria-label="Solved LC 503"></td><td class="t"><a href="https://leetcode.com/problems/next-greater-element-ii/" target="_blank" rel="noopener">LC 503</a></td><td>Next Greater Element II</td><td><span class="pill dM">Medium</span></td><td>Circular: iterate 2n with i % n</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-901" aria-label="Solved LC 901"></td><td class="t"><a href="https://leetcode.com/problems/online-stock-span/" target="_blank" rel="noopener">LC 901</a></td><td>Online Stock Span</td><td><span class="pill dM">Medium</span></td><td>Stack of (price, span); merge spans of smaller prices</td><td class="c">O(1) amortised / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-456" aria-label="Solved LC 456"></td><td class="t"><a href="https://leetcode.com/problems/132-pattern/" target="_blank" rel="noopener">LC 456</a></td><td>132 Pattern</td><td><span class="pill dM">Medium</span></td><td>Scan right to left, stack plus the best 'third' value</td><td class="c">O(n) / O(n)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p3">
+<div class="pat-h"><span class="badge">3</span><h3>Monotonic stack for ranges: rectangles and contributions</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Each element is the minimum (or maximum) of some range and you need that range's width.</div><div class="gi"><span class="lbl">Detect it</span>"largest rectangle in a histogram" · "sum of subarray minimums" · "maximal rectangle" · "trapping rain water" · "maximum subarray min-product".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Each bar wants to stretch left and right as far as it can before hitting a shorter bar. A stack of increasing heights tells you both walls at the moment a bar is popped: the new top of the stack is its left wall (the previous shorter bar) and the arriving bar is its right wall (the next shorter bar).</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>For each bar expand left and right until a shorter bar: O(n²). The stack finds both boundaries for every bar in one pass: O(n).</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Keep indices with increasing heights. When bar <code>i</code> is shorter than the top, pop <code>top</code>: its height is <code>a[top]</code>, its width is <code>i − newTop − 1</code> (or <code>i</code> if the stack is empty). Append a sentinel <code>0</code> to flush everything.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Stack of indices with increasing heights; add a <code>0</code> sentinel at the end.</li><li>While <code>a[i] &lt; a[stack.top]</code>: pop <code>top</code>; <code>left = stack.top</code> or <code>−1</code> if empty.</li><li>Width = <code>i − left − 1</code>; area = <code>a[top] × width</code>; update the best.</li><li>Push <code>i</code>.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="hist"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>heights <code>[2,1,5,6,2,3]</code></p><pre class="trace"><code>push 0(2); i=1 h=1 &lt; 2 pop 0: width 1 -&gt; area 2
+push 1(1); push 2(5); push 3(6)
+i=4 h=2 &lt; 6 pop 3: width 1 -&gt; 6
+        &lt; 5 pop 2: width 2 -&gt; 10   best
+push 4(2); push 5(3)
+sentinel 0: pop 5 area 3, pop 4 area 8, pop 1 area 6
+=&gt; 10</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>largest rectangle in a histogram</p><pre class="code-java"><code>int best = 0;
+Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();                        // indices, heights increasing
+for (int i = 0; i &lt;= n; i++) {
+    int h = (i == n) ? 0 : heights[i];                         // sentinel flushes the stack
+    while (!st.isEmpty() &amp;&amp; h &lt; heights[st.peek()]) {
+        int height = heights[st.pop()];
+        int left = st.isEmpty() ? -1 : st.peek();
+        best = Math.max(best, height * (i - left - 1));
+    }
+    st.push(i);
+}
+return best;</code></pre><pre class="code-py"><code>best = 0
+st = []                                                        # indices, heights increasing
+for i, h in enumerate(heights + [0]):                          # sentinel flushes the stack
+    while st and h &lt; heights[st[-1]]:
+        height = heights[st.pop()]
+        left = st[-1] if st else -1
+        best = max(best, height * (i - left - 1))
+    st.append(i)
+return best</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>sum of subarray minimums (contribution of each element)</p><pre class="code-java"><code>int[] left = new int[n], right = new int[n];
+Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();
+for (int i = 0; i &lt; n; i++) {                                  // distance to previous STRICTLY smaller
+    while (!st.isEmpty() &amp;&amp; a[st.peek()] &gt;= a[i]) st.pop();
+    left[i] = st.isEmpty() ? i + 1 : i - st.peek();
+    st.push(i);
+}
+st.clear();
+for (int i = n - 1; i &gt;= 0; i--) {                             // distance to next smaller-or-equal
+    while (!st.isEmpty() &amp;&amp; a[st.peek()] &gt; a[i]) st.pop();
+    right[i] = st.isEmpty() ? n - i : st.peek() - i;
+    st.push(i);
+}
+long sum = 0;
+for (int i = 0; i &lt; n; i++) sum = (sum + (long) a[i] * left[i] * right[i]) % 1_000_000_007L;</code></pre><pre class="code-py"><code>n = len(a)
+left, right, st = [0] * n, [0] * n, []
+for i in range(n):                                             # distance to previous STRICTLY smaller
+    while st and a[st[-1]] &gt;= a[i]:
+        st.pop()
+    left[i] = i + 1 if not st else i - st[-1]
+    st.append(i)
+st = []
+for i in range(n - 1, -1, -1):                                 # distance to next smaller-or-equal
+    while st and a[st[-1]] &gt; a[i]:
+        st.pop()
+    right[i] = n - i if not st else st[-1] - i
+    st.append(i)
+total = sum(a[i] * left[i] * right[i] for i in range(n)) % (10**9 + 7)</code></pre></div>
+<div class="cx">⏱ Complexity — O(n) time, O(n) space.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Without the <code>0</code> sentinel, bars left on the stack are never evaluated.</li><li>Width when the stack is empty is <code>i</code> (the bar extends to the very left), i.e. <code>i − (−1) − 1</code>.</li><li>Tie-breaking for contribution counting: make one side strict and the other non-strict so each subarray is counted exactly once.</li><li>Maximal Rectangle: run the histogram algorithm on each row, building heights row by row.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Maximal rectangle of 1s: histogram per row.</li><li>Trapping rain water: stack of bars; each pop closes a basin whose depth is <code>min(left, right) − popped</code>.</li><li>Maximum subarray min-product: prefix sums plus boundaries from this pattern.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When elements are processed one by one with removals from the middle (use a heap with lazy deletion or a tree).</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="stack_queue-907" aria-label="Solved LC 907"></td><td class="t"><a href="https://leetcode.com/problems/sum-of-subarray-minimums/" target="_blank" rel="noopener">LC 907</a></td><td>Sum of Subarray Minimums</td><td><span class="pill dM">Medium</span></td><td>Each element's left × right reach × value</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-1856" aria-label="Solved LC 1856"></td><td class="t"><a href="https://leetcode.com/problems/maximum-subarray-min-product/" target="_blank" rel="noopener">LC 1856</a></td><td>Maximum Subarray Min-Product</td><td><span class="pill dM">Medium</span></td><td>For each element as the min: prefix sum over its reach</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-84" aria-label="Solved LC 84"></td><td class="t"><a href="https://leetcode.com/problems/largest-rectangle-in-histogram/" target="_blank" rel="noopener">LC 84</a></td><td>Largest Rectangle in Histogram</td><td><span class="pill dH">Hard</span></td><td>Pop taller bars; width from the new top to the arrival</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-42" aria-label="Solved LC 42"></td><td class="t"><a href="https://leetcode.com/problems/trapping-rain-water/" target="_blank" rel="noopener">LC 42</a></td><td>Trapping Rain Water</td><td><span class="pill dH">Hard</span></td><td>Stack of decreasing bars; each pop fills a basin</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-85" aria-label="Solved LC 85"></td><td class="t"><a href="https://leetcode.com/problems/maximal-rectangle/" target="_blank" rel="noopener">LC 85</a></td><td>Maximal Rectangle</td><td><span class="pill dH">Hard</span></td><td>Histogram of consecutive 1s per row, largest rectangle each time</td><td class="c">O(m·n) / O(n)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat sec" id="p4">
+<div class="pat-h"><span class="badge">4</span><h3>Queues, and stacks and queues from each other</h3><span class="tier sec">🧊 Secondary</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>You must implement one structure with another, or process items in arrival order (FIFO).</div><div class="gi"><span class="lbl">Detect it</span>"implement queue using stacks" · "implement stack using queues" · "number of recent calls" · "first in, first out".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>A stack reverses order; a second stack reverses it <strong>again</strong>, restoring the original order. Pour a full stack into an empty one and the oldest item ends up on top. Pour only when the second stack is empty, and each item is poured at most once: every dequeue is cheap on average.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Move all elements to the other stack on every dequeue: O(n) each. Moving only when the out-stack is empty makes each element move once: O(1) amortised.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p><code>in</code> receives pushes; <code>out</code> serves pops and peeks. If <code>out</code> is empty, pour <code>in</code> into it. A stack from one queue: after pushing, rotate the earlier elements behind the new one.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li><code>push(x)</code>: push onto <code>in</code>.</li><li><code>pop()</code> / <code>peek()</code>: if <code>out</code> is empty, pop everything from <code>in</code> onto <code>out</code>; then pop/peek <code>out</code>.</li><li><code>empty()</code>: both stacks empty.</li><li>Stack from a queue: <code>q.add(x)</code>, then rotate <code>size − 1</code> elements to the back.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="twostack"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>enqueue 1,2,3 then dequeue</p><pre class="trace"><code>enqueue 1,2,3          in [1,2,3]  out []
+dequeue: out empty -&gt; pour  in []  out [3,2,1]  pop -&gt; 1
+enqueue 4              in [4]      out [3,2]
+dequeue                out [3] -&gt; 2
+dequeue                out [] -&gt; 3   (in untouched)
+dequeue: pour [4] -&gt; out [4] -&gt; 4</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>queue using two stacks</p><pre class="code-java"><code>class MyQueue {
+    Deque&lt;Integer&gt; in = new ArrayDeque&lt;&gt;(), out = new ArrayDeque&lt;&gt;();
+    void push(int x) { in.push(x); }
+    int pop()  { shift(); return out.pop(); }
+    int peek() { shift(); return out.peek(); }
+    boolean empty() { return in.isEmpty() &amp;&amp; out.isEmpty(); }
+    private void shift() { if (out.isEmpty()) while (!in.isEmpty()) out.push(in.pop()); }
+}</code></pre><pre class="code-py"><code>class MyQueue:
+    def __init__(self):
+        self.inn, self.out = [], []
+    def push(self, x):
+        self.inn.append(x)
+    def _shift(self):
+        if not self.out:
+            while self.inn:
+                self.out.append(self.inn.pop())
+    def pop(self):
+        self._shift()
+        return self.out.pop()
+    def peek(self):
+        self._shift()
+        return self.out[-1]
+    def empty(self):
+        return not self.inn and not self.out</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>stack using one queue (rotate after each push)</p><pre class="code-java"><code>Queue&lt;Integer&gt; q = new LinkedList&lt;&gt;();
+void push(int x) {
+    q.add(x);
+    for (int i = 0; i &lt; q.size() - 1; i++) q.add(q.poll());   // new element to the front
+}
+int pop() { return q.poll(); }
+int top() { return q.peek(); }</code></pre><pre class="code-py"><code>from collections import deque
+q = deque()
+def push(x):
+    q.append(x)
+    for _ in range(len(q) - 1):
+        q.append(q.popleft())                                  # new element to the front
+def pop():
+    return q.popleft()
+def top():
+    return q[0]</code></pre></div>
+<div class="cx">⏱ Complexity — Queue from stacks: O(1) amortised per operation. Stack from one queue: O(n) push, O(1) pop.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Only pour when <code>out</code> is <strong>empty</strong>; pouring earlier breaks the order.</li><li><code>peek</code> must also pour, like <code>pop</code>.</li><li>Java: use <code>ArrayDeque</code>, not <code>Stack</code>, and <code>offer/poll/peek</code> for queues.</li><li>Python lists make <code>pop(0)</code> O(n): use <code>collections.deque</code> as a queue.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Number of recent calls: a queue where old timestamps are popped from the front.</li><li>Moving average from a data stream: queue plus running sum.</li><li>Circular queue (pattern 9) for fixed capacity.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When you simply need a queue and your language has one (<code>ArrayDeque</code>, <code>deque</code>).</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="stack_queue-232" aria-label="Solved LC 232"></td><td class="t"><a href="https://leetcode.com/problems/implement-queue-using-stacks/" target="_blank" rel="noopener">LC 232</a></td><td>Implement Queue using Stacks</td><td><span class="pill dE">Easy</span></td><td>In/out stacks; pour only when out is empty</td><td class="c">O(1) amortised / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-225" aria-label="Solved LC 225"></td><td class="t"><a href="https://leetcode.com/problems/implement-stack-using-queues/" target="_blank" rel="noopener">LC 225</a></td><td>Implement Stack using Queues</td><td><span class="pill dE">Easy</span></td><td>Rotate the queue after each push</td><td class="c">O(n) push / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-933" aria-label="Solved LC 933"></td><td class="t"><a href="https://leetcode.com/problems/number-of-recent-calls/" target="_blank" rel="noopener">LC 933</a></td><td>Number of Recent Calls</td><td><span class="pill dE">Easy</span></td><td>Queue of timestamps; pop those older than t − 3000</td><td class="c">O(1) amortised / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-1700" aria-label="Solved LC 1700"></td><td class="t"><a href="https://leetcode.com/problems/number-of-students-unable-to-eat-lunch/" target="_blank" rel="noopener">LC 1700</a></td><td>Number of Students Unable to Eat Lunch</td><td><span class="pill dE">Easy</span></td><td>Count preferences; stop when the top sandwich has no taker</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-2073" aria-label="Solved LC 2073"></td><td class="t"><a href="https://leetcode.com/problems/time-needed-to-buy-tickets/" target="_blank" rel="noopener">LC 2073</a></td><td>Time Needed to Buy Tickets</td><td><span class="pill dE">Easy</span></td><td>Queue simulation, or sum of min(tickets[i], tickets[k]) with order tweak</td><td class="c">O(n) / O(1)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p5">
+<div class="pat-h"><span class="badge">5</span><h3>BFS with a queue: levels and shortest paths</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Fewest steps in an unweighted graph or grid, level-by-level processing, or spreading from one or many sources.</div><div class="gi"><span class="lbl">Detect it</span>"minimum number of steps / moves / mutations" · "level order" · "shortest path in a grid" · "rotting oranges" · "word ladder".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Drop a stone in a pond: ripples spread outward one ring at a time. A queue gives the same behaviour: everything at distance 1 is enqueued before anything at distance 2, so the first time you reach a node is by the shortest path.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Trying all paths with DFS is exponential. BFS visits each node and edge once: O(V + E), and the first arrival is guaranteed shortest.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Enqueue the start (mark seen). Repeatedly dequeue a node, enqueue its unseen neighbours with <code>dist + 1</code>. For levels, process exactly <code>size</code> nodes per round. For many sources (rotting oranges), enqueue them all first.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li><code>queue = [start]</code>, <code>seen = {start}</code>.</li><li>Round-by-round: <code>size = queue.size()</code>; process <code>size</code> nodes, enqueue unseen neighbours, mark them seen <strong>when enqueued</strong>.</li><li>Increase <code>steps</code> after each round.</li><li>Return the step count when the goal is dequeued; −1 if the queue empties.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="bfs"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>shortest distance from 0 in the graph 0→1,2  1→3  2→3,4  3→5  4→5  5→6</p><pre class="trace"><code>queue [0]            dist 0
+pop 0 -&gt; add 1,2     dist 1
+pop 1 -&gt; add 3       dist 2
+pop 2 -&gt; add 4 (3 already seen)
+pop 3 -&gt; add 5       dist 3
+pop 4 -&gt; 5 already seen
+pop 5 -&gt; add 6       dist 4
+=&gt; shortest 0..6 = 4 edges</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>BFS template on a grid (shortest steps)</p><pre class="code-java"><code>int[][] DIRS = {{1,0},{-1,0},{0,1},{0,-1}};
+Queue&lt;int[]&gt; q = new ArrayDeque&lt;&gt;();
+boolean[][] seen = new boolean[m][n];
+q.add(new int[]{sr, sc}); seen[sr][sc] = true;
+int steps = 0;
+while (!q.isEmpty()) {
+    for (int s = q.size(); s &gt; 0; s--) {                  // one full level
+        int[] cur = q.poll();
+        if (cur[0] == tr &amp;&amp; cur[1] == tc) return steps;
+        for (int[] d : DIRS) {
+            int r = cur[0] + d[0], c = cur[1] + d[1];
+            if (r &gt;= 0 &amp;&amp; r &lt; m &amp;&amp; c &gt;= 0 &amp;&amp; c &lt; n &amp;&amp; !seen[r][c] &amp;&amp; grid[r][c] == 0) {
+                seen[r][c] = true;                         // mark when enqueued
+                q.add(new int[]{r, c});
+            }
+        }
+    }
+    steps++;
+}
+return -1;</code></pre><pre class="code-py"><code>from collections import deque
+q = deque([(sr, sc)])
+seen = {(sr, sc)}
+steps = 0
+while q:
+    for _ in range(len(q)):                                # one full level
+        r, c = q.popleft()
+        if (r, c) == (tr, tc):
+            return steps
+        for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nr, nc = r + dr, c + dc
+            if 0 &lt;= nr &lt; m and 0 &lt;= nc &lt; n and (nr, nc) not in seen and grid[nr][nc] == 0:
+                seen.add((nr, nc))                         # mark when enqueued
+                q.append((nr, nc))
+    steps += 1
+return -1</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>multi-source BFS (rotting oranges)</p><pre class="code-java"><code>int fresh = 0;
+Queue&lt;int[]&gt; q = new ArrayDeque&lt;&gt;();
+for (int r = 0; r &lt; m; r++) for (int c = 0; c &lt; n; c++) {
+    if (g[r][c] == 2) q.add(new int[]{r, c});            // ALL sources start in the queue
+    else if (g[r][c] == 1) fresh++;
+}
+int minutes = 0;
+while (!q.isEmpty() &amp;&amp; fresh &gt; 0) {
+    minutes++;
+    for (int s = q.size(); s &gt; 0; s--) {
+        int[] p = q.poll();
+        for (int[] d : new int[][]{{1,0},{-1,0},{0,1},{0,-1}}) {
+            int r = p[0] + d[0], c = p[1] + d[1];
+            if (r &gt;= 0 &amp;&amp; r &lt; m &amp;&amp; c &gt;= 0 &amp;&amp; c &lt; n &amp;&amp; g[r][c] == 1) { g[r][c] = 2; fresh--; q.add(new int[]{r, c}); }
+        }
+    }
+}
+return fresh == 0 ? minutes : -1;</code></pre><pre class="code-py"><code>fresh, q = 0, deque()
+for r in range(m):
+    for c in range(n):
+        if g[r][c] == 2:
+            q.append((r, c))                                # ALL sources start in the queue
+        elif g[r][c] == 1:
+            fresh += 1
+minutes = 0
+while q and fresh:
+    minutes += 1
+    for _ in range(len(q)):
+        r, c = q.popleft()
+        for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nr, nc = r + dr, c + dc
+            if 0 &lt;= nr &lt; m and 0 &lt;= nc &lt; n and g[nr][nc] == 1:
+                g[nr][nc] = 2
+                fresh -= 1
+                q.append((nr, nc))
+return minutes if fresh == 0 else -1</code></pre></div>
+<div class="cx">⏱ Complexity — O(V + E) time (grid: O(m·n)), O(V) space.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Mark nodes <strong>seen when you enqueue</strong> them, not when you dequeue, or the same node enters the queue many times.</li><li>Use <code>size = q.size()</code> captured <strong>before</strong> the inner loop to separate levels.</li><li>Weighted edges break BFS: use Dijkstra (0/1 weights: 0-1 BFS with a deque).</li><li>For word ladder, generate neighbours by changing one letter at a time and use a set of unseen words.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Bidirectional BFS: search from both ends for large branching factors.</li><li>0-1 BFS: deque where 0-weight edges push front and 1-weight edges push back.</li><li>Level order on trees: same loop without a seen set.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>Weighted shortest paths (Dijkstra), or when you must enumerate every path (DFS / backtracking).</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="stack_queue-102" aria-label="Solved LC 102"></td><td class="t"><a href="https://leetcode.com/problems/binary-tree-level-order-traversal/" target="_blank" rel="noopener">LC 102</a></td><td>Binary Tree Level Order Traversal</td><td><span class="pill dM">Medium</span></td><td>Process exactly queue.size() nodes per level</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-994" aria-label="Solved LC 994"></td><td class="t"><a href="https://leetcode.com/problems/rotting-oranges/" target="_blank" rel="noopener">LC 994</a></td><td>Rotting Oranges</td><td><span class="pill dM">Medium</span></td><td>Multi-source BFS, one minute per level</td><td class="c">O(m·n) / O(m·n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-1091" aria-label="Solved LC 1091"></td><td class="t"><a href="https://leetcode.com/problems/shortest-path-in-binary-matrix/" target="_blank" rel="noopener">LC 1091</a></td><td>Shortest Path in Binary Matrix</td><td><span class="pill dM">Medium</span></td><td>BFS with 8 directions</td><td class="c">O(n²) / O(n²)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-542" aria-label="Solved LC 542"></td><td class="t"><a href="https://leetcode.com/problems/01-matrix/" target="_blank" rel="noopener">LC 542</a></td><td>01 Matrix</td><td><span class="pill dM">Medium</span></td><td>Multi-source BFS from every 0</td><td class="c">O(m·n) / O(m·n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-752" aria-label="Solved LC 752"></td><td class="t"><a href="https://leetcode.com/problems/open-the-lock/" target="_blank" rel="noopener">LC 752</a></td><td>Open the Lock</td><td><span class="pill dM">Medium</span></td><td>BFS over 4-digit states, skip deadends</td><td class="c">O(10⁴) / O(10⁴)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-127" aria-label="Solved LC 127"></td><td class="t"><a href="https://leetcode.com/problems/word-ladder/" target="_blank" rel="noopener">LC 127</a></td><td>Word Ladder</td><td><span class="pill dH">Hard</span></td><td>BFS changing one letter at a time</td><td class="c">O(N·L²) / O(N·L)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p6">
+<div class="pat-h"><span class="badge">6</span><h3>Monotonic deque: sliding-window extremes</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Maximum or minimum of every window, or a window constrained by max − min.</div><div class="gi"><span class="lbl">Detect it</span>"sliding window maximum" · "longest subarray with |max − min| ≤ limit" · "shortest subarray with sum ≥ K" · DP where <code>dp[i]</code> depends on the best of the last k values.</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Imagine a queue of candidates for "tallest person in the window". When a new tall person arrives, everyone shorter standing behind them can <strong>never</strong> be the tallest again (the newcomer is both taller and stays longer). So kick them out from the back. And people who walk out of the window leave from the front. The front is always the champion.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Scan each window for its maximum: O(n·k). A heap gives O(n log n). The monotonic deque gives O(n) because each index enters and leaves once.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Deque of indices with <strong>decreasing</strong> values (for max). For each <code>i</code>: pop front if it left the window; pop back while <code>a[back] ≤ a[i]</code>; push <code>i</code>; the front is the window maximum.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Pop the front if <code>front ≤ i − k</code>.</li><li>Pop from the back while <code>a[back] ≤ a[i]</code>.</li><li>Push <code>i</code> at the back.</li><li>If <code>i ≥ k − 1</code>, record <code>a[front]</code>.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="dequemax"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p><code>[1,3,-1,-3,5,3,6,7]</code>, k = 3</p><pre class="trace"><code>i=0  dq [0]
+i=1  3 beats 1 -&gt; pop 0     dq [1]
+i=2  push                   dq [1,2]          max 3
+i=3  push                   dq [1,2,3]        max 3
+i=4  5 beats all; front 1 left window -&gt; dq [4]   max 5
+i=5  push                   dq [4,5]          max 5
+i=6  6 beats 3, 5           dq [6]            max 6
+i=7  7 beats 6              dq [7]            max 7
+=&gt; [3,3,5,5,6,7]</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>sliding window maximum</p><pre class="code-java"><code>Deque&lt;Integer&gt; dq = new ArrayDeque&lt;&gt;();                     // indices, values decreasing
+int[] res = new int[n - k + 1];
+for (int i = 0; i &lt; n; i++) {
+    if (!dq.isEmpty() &amp;&amp; dq.peekFirst() &lt;= i - k) dq.pollFirst();   // left the window
+    while (!dq.isEmpty() &amp;&amp; a[dq.peekLast()] &lt;= a[i]) dq.pollLast();  // can never be max again
+    dq.offerLast(i);
+    if (i &gt;= k - 1) res[i - k + 1] = a[dq.peekFirst()];
+}
+return res;</code></pre><pre class="code-py"><code>from collections import deque
+dq, res = deque(), []                                      # indices, values decreasing
+for i, x in enumerate(a):
+    if dq and dq[0] &lt;= i - k:
+        dq.popleft()                                       # left the window
+    while dq and a[dq[-1]] &lt;= x:
+        dq.pop()                                           # can never be max again
+    dq.append(i)
+    if i &gt;= k - 1:
+        res.append(a[dq[0]])
+return res</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>longest subarray with max − min ≤ limit (two deques)</p><pre class="code-java"><code>Deque&lt;Integer&gt; mx = new ArrayDeque&lt;&gt;(), mn = new ArrayDeque&lt;&gt;();
+int l = 0, best = 0;
+for (int r = 0; r &lt; n; r++) {
+    while (!mx.isEmpty() &amp;&amp; mx.peekLast() &lt; a[r]) mx.pollLast();
+    mx.offerLast(a[r]);
+    while (!mn.isEmpty() &amp;&amp; mn.peekLast() &gt; a[r]) mn.pollLast();
+    mn.offerLast(a[r]);
+    while (mx.peekFirst() - mn.peekFirst() &gt; limit) {          // shrink until valid
+        if (mx.peekFirst() == a[l]) mx.pollFirst();
+        if (mn.peekFirst() == a[l]) mn.pollFirst();
+        l++;
+    }
+    best = Math.max(best, r - l + 1);
+}</code></pre><pre class="code-py"><code>mx, mn = deque(), deque()
+l = best = 0
+for r, x in enumerate(a):
+    while mx and mx[-1] &lt; x:
+        mx.pop()
+    mx.append(x)
+    while mn and mn[-1] &gt; x:
+        mn.pop()
+    mn.append(x)
+    while mx[0] - mn[0] &gt; limit:                           # shrink until valid
+        if mx[0] == a[l]:
+            mx.popleft()
+        if mn[0] == a[l]:
+            mn.popleft()
+        l += 1
+    best = max(best, r - l + 1)</code></pre></div>
+<div class="cx">⏱ Complexity — O(n) time, O(k) space.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Store <strong>indices</strong> in the deque (to know when the front leaves the window), except in the value-based variant above.</li><li>Use <code>&lt;=</code> when popping the back so equal elements do not pile up (or use <code>&lt;</code> to keep duplicates, consistently).</li><li>Pop the front <strong>before</strong> reading the maximum.</li><li>For minimum, flip the comparison.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Shortest subarray with sum ≥ K (with negatives): monotonic deque over prefix sums.</li><li>Jump Game VI: DP where the best previous score in the last k positions comes from a deque.</li><li>Constrained subsequence sum: same DP idea.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>Window sizes that vary independently (use a heap with lazy deletion or a balanced tree), or when you need the k-th largest rather than the max.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="stack_queue-1438" aria-label="Solved LC 1438"></td><td class="t"><a href="https://leetcode.com/problems/longest-continuous-subarray-with-absolute-diff-less-than-or-equal-to-limit/" target="_blank" rel="noopener">LC 1438</a></td><td>Longest Continuous Subarray With Absolute Diff ≤ Limit</td><td><span class="pill dM">Medium</span></td><td>Two monotonic deques for max and min; shrink while spread &gt; limit</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-1696" aria-label="Solved LC 1696"></td><td class="t"><a href="https://leetcode.com/problems/jump-game-vi/" target="_blank" rel="noopener">LC 1696</a></td><td>Jump Game VI</td><td><span class="pill dM">Medium</span></td><td>dp[i] = a[i] + max(dp[i−k..i−1]) via a deque</td><td class="c">O(n) / O(k)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-239" aria-label="Solved LC 239"></td><td class="t"><a href="https://leetcode.com/problems/sliding-window-maximum/" target="_blank" rel="noopener">LC 239</a></td><td>Sliding Window Maximum</td><td><span class="pill dH">Hard</span></td><td>Deque of decreasing values, front is the max</td><td class="c">O(n) / O(k)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-862" aria-label="Solved LC 862"></td><td class="t"><a href="https://leetcode.com/problems/shortest-subarray-with-sum-at-least-k/" target="_blank" rel="noopener">LC 862</a></td><td>Shortest Subarray with Sum at Least K</td><td><span class="pill dH">Hard</span></td><td>Increasing deque over prefix sums</td><td class="c">O(n) / O(n)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat sec" id="p7">
+<div class="pat-h"><span class="badge">7</span><h3>Expression evaluation with stacks</h3><span class="tier sec">🧊 Secondary</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Evaluate arithmetic strings with operator precedence or parentheses.</div><div class="gi"><span class="lbl">Detect it</span>"basic calculator" · "evaluate expression" · "postfix" · "parse and compute".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Precedence means multiplication binds tighter than addition. So when you see <code>+ 2 * 2</code>, you cannot add <code>2</code> yet because the <code>*</code> is about to claim it. Delay additions by pushing terms on a stack, but settle <code>*</code> and <code>/</code> on the spot against the top of the stack. At the end every item on the stack is a term to add. Parentheses are a fresh calculation: save the running result and sign, compute inside, then combine.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Repeatedly find the highest-precedence operator and rewrite the string: O(n²). One left-to-right pass with a stack is O(n).</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Track <code>num</code> (current number) and <code>sign</code> (the <strong>previous</strong> operator). When you reach an operator or the end, apply <code>sign</code> to <code>num</code>: <code>+</code> push, <code>−</code> push negative, <code>*</code>/<code>/</code> combine with the top. For parentheses, push <code>(result, sign)</code> on <code>(</code> and restore on <code>)</code>.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li><code>num = 0</code>, <code>sign = '+'</code>, empty stack.</li><li>Digit: <code>num = num × 10 + d</code>.</li><li>At an operator (or the last character): apply the previous <code>sign</code> to <code>num</code>; set <code>sign</code> to this operator; <code>num = 0</code>.</li><li>Return the sum of the stack.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="calc"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p><code>3+2*2</code></p><pre class="trace"><code>&#x27;3&#x27; num=3
+&#x27;+&#x27;  sign was &#x27;+&#x27; -&gt; push 3         sign=&#x27;+&#x27;
+&#x27;2&#x27; num=2
+&#x27;*&#x27;  sign was &#x27;+&#x27; -&gt; push 2         sign=&#x27;*&#x27;
+&#x27;2&#x27; num=2 (end)  sign &#x27;*&#x27; -&gt; top 2*2=4   stack [3,4]
+sum = 7</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>Basic Calculator II (+ - * /, no parentheses)</p><pre class="code-java"><code>Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();
+int num = 0; char sign = &#x27;+&#x27;;
+for (int i = 0; i &lt; s.length(); i++) {
+    char c = s.charAt(i);
+    if (Character.isDigit(c)) num = num * 10 + (c - &#x27;0&#x27;);
+    if ((!Character.isDigit(c) &amp;&amp; c != &#x27; &#x27;) || i == s.length() - 1) {
+        if (sign == &#x27;+&#x27;) st.push(num);
+        else if (sign == &#x27;-&#x27;) st.push(-num);
+        else if (sign == &#x27;*&#x27;) st.push(st.pop() * num);
+        else st.push(st.pop() / num);                       // truncates toward zero
+        sign = c; num = 0;
+    }
+}
+int sum = 0;
+for (int x : st) sum += x;
+return sum;</code></pre><pre class="code-py"><code>st, num, sign = [], 0, &#x27;+&#x27;
+for i, c in enumerate(s):
+    if c.isdigit():
+        num = num * 10 + int(c)
+    if (not c.isdigit() and c != &#x27; &#x27;) or i == len(s) - 1:
+        if sign == &#x27;+&#x27;:
+            st.append(num)
+        elif sign == &#x27;-&#x27;:
+            st.append(-num)
+        elif sign == &#x27;*&#x27;:
+            st.append(st.pop() * num)
+        else:
+            st.append(int(st.pop() / num))                  # truncate toward zero
+        sign, num = c, 0
+return sum(st)</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>Basic Calculator (+ - and parentheses)</p><pre class="code-java"><code>Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();
+int res = 0, num = 0, sign = 1;
+for (char c : s.toCharArray()) {
+    if (Character.isDigit(c)) num = num * 10 + (c - &#x27;0&#x27;);
+    else if (c == &#x27;+&#x27; || c == &#x27;-&#x27;) { res += sign * num; num = 0; sign = (c == &#x27;+&#x27;) ? 1 : -1; }
+    else if (c == &#x27;(&#x27;) { st.push(res); st.push(sign); res = 0; sign = 1; }
+    else if (c == &#x27;)&#x27;) { res += sign * num; num = 0; res *= st.pop(); res += st.pop(); }
+}
+return res + sign * num;</code></pre><pre class="code-py"><code>st, res, num, sign = [], 0, 0, 1
+for c in s:
+    if c.isdigit():
+        num = num * 10 + int(c)
+    elif c in &#x27;+-&#x27;:
+        res += sign * num
+        num, sign = 0, 1 if c == &#x27;+&#x27; else -1
+    elif c == &#x27;(&#x27;:
+        st.append(res)
+        st.append(sign)
+        res, sign = 0, 1
+    elif c == &#x27;)&#x27;:
+        res += sign * num
+        num = 0
+        res = res * st.pop() + st.pop()
+return res + sign * num</code></pre></div>
+<div class="cx">⏱ Complexity — O(n) time, O(n) space.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Apply the <strong>previous</strong> operator when you hit the next one; the last number needs the end-of-input check.</li><li>Division truncates toward zero: negative operands differ between Java <code>/</code> and Python <code>//</code>.</li><li>Skip spaces but still treat the last character as an end marker.</li><li>Unary minus at the start or after <code>(</code> is covered by starting with <code>sign = 1</code> and <code>res = 0</code>.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Infix to postfix (shunting-yard): operator stack with precedence.</li><li>Number of atoms: stack of maps for nested formulas.</li><li>Decode string (strings topic) uses the same save-and-restore idea.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When the grammar needs functions, variables, or exponents with associativity rules (write a proper recursive-descent parser).</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="stack_queue-150" aria-label="Solved LC 150"></td><td class="t"><a href="https://leetcode.com/problems/evaluate-reverse-polish-notation/" target="_blank" rel="noopener">LC 150</a></td><td>Evaluate Reverse Polish Notation</td><td><span class="pill dM">Medium</span></td><td>Operands on a stack; operators pop two</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-227" aria-label="Solved LC 227"></td><td class="t"><a href="https://leetcode.com/problems/basic-calculator-ii/" target="_blank" rel="noopener">LC 227</a></td><td>Basic Calculator II</td><td><span class="pill dM">Medium</span></td><td>Resolve * and / immediately; sum the stack</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-224" aria-label="Solved LC 224"></td><td class="t"><a href="https://leetcode.com/problems/basic-calculator/" target="_blank" rel="noopener">LC 224</a></td><td>Basic Calculator</td><td><span class="pill dH">Hard</span></td><td>Push (result, sign) at '(' and restore at ')'</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-726" aria-label="Solved LC 726"></td><td class="t"><a href="https://leetcode.com/problems/number-of-atoms/" target="_blank" rel="noopener">LC 726</a></td><td>Number of Atoms</td><td><span class="pill dH">Hard</span></td><td>Stack of count maps; multiply on ')'</td><td class="c">O(n²) / O(n)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p8">
+<div class="pat-h"><span class="badge">8</span><h3>Greedy stack: remove to make smallest</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>You may delete up to k items, or merge neighbours, to make a result smallest, largest or conflict-free.</div><div class="gi"><span class="lbl">Detect it</span>"remove k digits" · "remove duplicate letters" · "asteroid collision" · "car fleet" · "remove adjacent duplicates (k)".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>To make a number as small as possible, you want small digits at the front. If a digit is <strong>bigger than the one that follows it</strong>, deleting it improves the number more than deleting anything later. A stack lets you look back at the most recent kept digit and cancel it the moment a smaller digit arrives.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Try every set of k deletions: exponential. The greedy stack decides each deletion locally and is correct, in O(n).</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Scan left to right; while you still may remove and the stack top is worse than the incoming item, pop it. Then push the incoming item. At the end, remove leftovers from the top.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Empty stack, <code>k</code> removals left.</li><li>For each digit: <code>while k &gt; 0 and stack and top &gt; digit</code>: pop, <code>k--</code>.</li><li>Push the digit.</li><li>If <code>k &gt; 0</code> still, drop <code>k</code> items from the end; strip leading zeros; return <code>"0"</code> if empty.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="removek"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>remove 3 digits from <code>"1432219"</code></p><pre class="trace"><code>1  push            [1]
+4  push            [1,4]
+3  4&gt;3 pop (k=2)   [1,3]
+2  3&gt;2 pop (k=1)   [1,2]
+2  push            [1,2,2]
+1  2&gt;1 pop (k=0)   [1,2,1]
+9  push            [1,2,1,9]  -&gt; &quot;1219&quot;</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>remove k digits</p><pre class="code-java"><code>StringBuilder sb = new StringBuilder();                    // used as the stack
+for (char c : num.toCharArray()) {
+    while (k &gt; 0 &amp;&amp; sb.length() &gt; 0 &amp;&amp; sb.charAt(sb.length() - 1) &gt; c) {
+        sb.deleteCharAt(sb.length() - 1);
+        k--;
+    }
+    sb.append(c);
+}
+while (k-- &gt; 0 &amp;&amp; sb.length() &gt; 0) sb.deleteCharAt(sb.length() - 1);   // leftover removals
+String r = sb.toString().replaceFirst(&quot;^0+&quot;, &quot;&quot;);
+return r.isEmpty() ? &quot;0&quot; : r;</code></pre><pre class="code-py"><code>st = []
+for c in num:
+    while k and st and st[-1] &gt; c:
+        st.pop()
+        k -= 1
+    st.append(c)
+if k:
+    st = st[:-k]                                           # leftover removals
+return &#x27;&#x27;.join(st).lstrip(&#x27;0&#x27;) or &#x27;0&#x27;</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>remove duplicate letters (smallest, each letter once)</p><pre class="code-java"><code>int[] last = new int[26];
+for (int i = 0; i &lt; s.length(); i++) last[s.charAt(i) - &#x27;a&#x27;] = i;
+boolean[] in = new boolean[26];
+StringBuilder st = new StringBuilder();
+for (int i = 0; i &lt; s.length(); i++) {
+    char c = s.charAt(i);
+    if (in[c - &#x27;a&#x27;]) continue;
+    while (st.length() &gt; 0 &amp;&amp; st.charAt(st.length() - 1) &gt; c &amp;&amp; last[st.charAt(st.length() - 1) - &#x27;a&#x27;] &gt; i) {
+        in[st.charAt(st.length() - 1) - &#x27;a&#x27;] = false;       // it will appear again later: safe to remove
+        st.deleteCharAt(st.length() - 1);
+    }
+    st.append(c); in[c - &#x27;a&#x27;] = true;
+}
+return st.toString();</code></pre><pre class="code-py"><code>last = {c: i for i, c in enumerate(s)}
+st, seen = [], set()
+for i, c in enumerate(s):
+    if c in seen:
+        continue
+    while st and st[-1] &gt; c and last[st[-1]] &gt; i:          # it will appear again later: safe to remove
+        seen.discard(st.pop())
+    st.append(c)
+    seen.add(c)
+return &#x27;&#x27;.join(st)</code></pre></div>
+<div class="cx">⏱ Complexity — O(n) time, O(n) space.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Leading zeros: strip them, and return <code>"0"</code> for an empty result.</li><li>Leftover <code>k</code> removals come off the <strong>end</strong> (the stack is already non-decreasing).</li><li>Remove-duplicate-letters: only pop a letter if it occurs <strong>again later</strong> (<code>last[x] &gt; i</code>), or you lose it forever.</li><li>Asteroid collision: loop while the top moves right and the new one moves left; compare sizes.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Asteroid collision: stack of surviving asteroids; collisions only when top &gt; 0 and new &lt; 0.</li><li>Car fleet: sort by position, stack of arrival times.</li><li>Remove all adjacent duplicates II: stack of <code>(char, count)</code>.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When removals are not local (global optimisation, use DP) or the order of survivors can change.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="stack_queue-1047" aria-label="Solved LC 1047"></td><td class="t"><a href="https://leetcode.com/problems/remove-all-adjacent-duplicates-in-string/" target="_blank" rel="noopener">LC 1047</a></td><td>Remove All Adjacent Duplicates In String</td><td><span class="pill dE">Easy</span></td><td>Push unless the top equals the current character</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-1209" aria-label="Solved LC 1209"></td><td class="t"><a href="https://leetcode.com/problems/remove-all-adjacent-duplicates-in-string-ii/" target="_blank" rel="noopener">LC 1209</a></td><td>Remove All Adjacent Duplicates in String II</td><td><span class="pill dM">Medium</span></td><td>Stack of (char, count); pop when count reaches k</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-735" aria-label="Solved LC 735"></td><td class="t"><a href="https://leetcode.com/problems/asteroid-collision/" target="_blank" rel="noopener">LC 735</a></td><td>Asteroid Collision</td><td><span class="pill dM">Medium</span></td><td>Stack of survivors; resolve right-moving vs left-moving</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-853" aria-label="Solved LC 853"></td><td class="t"><a href="https://leetcode.com/problems/car-fleet/" target="_blank" rel="noopener">LC 853</a></td><td>Car Fleet</td><td><span class="pill dM">Medium</span></td><td>Sort by position, stack arrival times, merge fleets</td><td class="c">O(n log n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-402" aria-label="Solved LC 402"></td><td class="t"><a href="https://leetcode.com/problems/remove-k-digits/" target="_blank" rel="noopener">LC 402</a></td><td>Remove K Digits</td><td><span class="pill dM">Medium</span></td><td>Pop larger digits while k &gt; 0</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-316" aria-label="Solved LC 316"></td><td class="t"><a href="https://leetcode.com/problems/remove-duplicate-letters/" target="_blank" rel="noopener">LC 316</a></td><td>Remove Duplicate Letters</td><td><span class="pill dM">Medium</span></td><td>Pop larger letters that appear again later</td><td class="c">O(n) / O(1)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat sec" id="p9">
+<div class="pat-h"><span class="badge">9</span><h3>Circular buffers and queue simulation</h3><span class="tier sec">🧊 Secondary</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>A fixed-size queue or deque, or items that cycle round and round.</div><div class="gi"><span class="lbl">Detect it</span>"design circular queue / deque" · "circular game, eliminate every kth" · "ring buffer" · "rotate items in a loop".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>A clock face: after 12 comes 1 again. Use a fixed array as the clock; <code>head</code> is where the next item leaves, <code>tail</code> is where the next one arrives, and both move clockwise with <code>% capacity</code>. No element is ever shifted, so every operation is O(1).</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Shifting all elements on each dequeue is O(n). Wrapping <code>head</code> and <code>tail</code> indices keeps enqueue and dequeue O(1).</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Fixed array <code>buf</code>, <code>head</code>, and <code>size</code>. Write position = <code>(head + size) % cap</code>. A separate <code>size</code> counter distinguishes full from empty (both have <code>head == tail</code>).</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li><code>enqueue(x)</code>: if full return false; <code>buf[(head + size) % cap] = x</code>; <code>size++</code>.</li><li><code>dequeue()</code>: if empty return false; <code>head = (head + 1) % cap</code>; <code>size--</code>.</li><li>Front: <code>buf[head]</code>; rear: <code>buf[(head + size − 1) % cap]</code>.</li><li>Simulation problems: use a queue and rotate: move <code>k − 1</code> items to the back, remove one.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="circular"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>capacity 4</p><pre class="trace"><code>enqueue A,B,C,D   buf [A,B,C,D] head 0 tail 0 size 4 (full)
+enqueue E         fails (full)
+dequeue -&gt; A      head 1 size 3
+enqueue E         written at slot 0 (wrap): [E,B,C,D]
+dequeue -&gt; B, C   head 3</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>circular queue</p><pre class="code-java"><code>class MyCircularQueue {
+    int[] buf; int head = 0, size = 0;
+    MyCircularQueue(int k) { buf = new int[k]; }
+    boolean enQueue(int v) { if (isFull()) return false; buf[(head + size) % buf.length] = v; size++; return true; }
+    boolean deQueue() { if (isEmpty()) return false; head = (head + 1) % buf.length; size--; return true; }
+    int Front() { return isEmpty() ? -1 : buf[head]; }
+    int Rear()  { return isEmpty() ? -1 : buf[(head + size - 1) % buf.length]; }
+    boolean isEmpty() { return size == 0; }
+    boolean isFull() { return size == buf.length; }
+}</code></pre><pre class="code-py"><code>class MyCircularQueue:
+    def __init__(self, k):
+        self.buf, self.head, self.size = [0] * k, 0, 0
+    def enQueue(self, v):
+        if self.isFull():
+            return False
+        self.buf[(self.head + self.size) % len(self.buf)] = v
+        self.size += 1
+        return True
+    def deQueue(self):
+        if self.isEmpty():
+            return False
+        self.head = (self.head + 1) % len(self.buf)
+        self.size -= 1
+        return True
+    def Front(self):
+        return -1 if self.isEmpty() else self.buf[self.head]
+    def Rear(self):
+        return -1 if self.isEmpty() else self.buf[(self.head + self.size - 1) % len(self.buf)]
+    def isEmpty(self):
+        return self.size == 0
+    def isFull(self):
+        return self.size == len(self.buf)</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>circular elimination game (queue rotation)</p><pre class="code-java"><code>Queue&lt;Integer&gt; q = new ArrayDeque&lt;&gt;();
+for (int i = 1; i &lt;= n; i++) q.add(i);
+while (q.size() &gt; 1) {
+    for (int i = 0; i &lt; k - 1; i++) q.add(q.poll());       // skip k-1 friends
+    q.poll();                                              // eliminate the kth
+}
+return q.peek();</code></pre><pre class="code-py"><code>from collections import deque
+q = deque(range(1, n + 1))
+while len(q) &gt; 1:
+    q.rotate(-(k - 1))                                     # skip k-1 friends
+    q.popleft()                                            # eliminate the kth
+return q[0]</code></pre></div>
+<div class="cx">⏱ Complexity — O(1) per operation, O(capacity) space. Josephus by simulation: O(n·k).</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li><code>head == tail</code> is ambiguous (full or empty): keep a <code>size</code> counter or leave one slot empty.</li><li>Negative modulo: <code>(x − 1) % n</code> is negative in Java for <code>x = 0</code>; use <code>(x + n − 1) % n</code>.</li><li>Rear index is <code>(head + size − 1) % cap</code>.</li><li>A circular deque also needs <code>front = (front − 1 + cap) % cap</code> for insert-front.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Circular deque: add insert-front and delete-last.</li><li>Josephus problem has an O(n) recurrence: <code>f(n, k) = (f(n − 1, k) + k) % n</code>.</li><li>Moving average with a fixed-size ring buffer and a running sum.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When capacity is unbounded (use a dynamic <code>ArrayDeque</code>) or when you need random insertion in the middle.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="stack_queue-1700" aria-label="Solved LC 1700"></td><td class="t"><a href="https://leetcode.com/problems/number-of-students-unable-to-eat-lunch/" target="_blank" rel="noopener">LC 1700</a></td><td>Number of Students Unable to Eat Lunch</td><td><span class="pill dE">Easy</span></td><td>Rotate the student queue until no one wants the top sandwich</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-622" aria-label="Solved LC 622"></td><td class="t"><a href="https://leetcode.com/problems/design-circular-queue/" target="_blank" rel="noopener">LC 622</a></td><td>Design Circular Queue</td><td><span class="pill dM">Medium</span></td><td>Array with head and size, wrap with %</td><td class="c">O(1) per op / O(k)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-641" aria-label="Solved LC 641"></td><td class="t"><a href="https://leetcode.com/problems/design-circular-deque/" target="_blank" rel="noopener">LC 641</a></td><td>Design Circular Deque</td><td><span class="pill dM">Medium</span></td><td>Ring buffer with front and rear wrap-around</td><td class="c">O(1) per op / O(k)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-1823" aria-label="Solved LC 1823"></td><td class="t"><a href="https://leetcode.com/problems/find-the-winner-of-the-circular-game/" target="_blank" rel="noopener">LC 1823</a></td><td>Find the Winner of the Circular Game</td><td><span class="pill dM">Medium</span></td><td>Queue rotation, or the Josephus recurrence</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="stack_queue-503" aria-label="Solved LC 503"></td><td class="t"><a href="https://leetcode.com/problems/next-greater-element-ii/" target="_blank" rel="noopener">LC 503</a></td><td>Next Greater Element II</td><td><span class="pill dM">Medium</span></td><td>Circular scan: 2n steps with i % n</td><td class="c">O(n) / O(n)</td></tr></tbody></table></div></div>
+</section>
+<h2 id="recall">One-line recall</h2><div class="tw"><table class=""><thead><tr><th>#</th><th>Pattern</th><th>Tier</th><th>Core idea in one line</th></tr></thead><tbody><tr><td>1</td><td>Stack basics: undo, matching and bookkeeping</td><td>🔥</td><td>last in, first out: remember what to come back to</td></tr><tr><td>2</td><td>Monotonic stack: next greater / smaller element</td><td>🔥</td><td>keep a stack sorted; a bigger arrival resolves smaller waiting items</td></tr><tr><td>3</td><td>Monotonic stack for ranges: rectangles and contributions</td><td>🔥</td><td>a popped bar's reach is bounded by its neighbours on the stack</td></tr><tr><td>4</td><td>Queues, and stacks and queues from each other</td><td>🧊</td><td>two stacks make a queue; each item moves at most once</td></tr><tr><td>5</td><td>BFS with a queue: levels and shortest paths</td><td>🔥</td><td>a queue explores in rings of equal distance</td></tr><tr><td>6</td><td>Monotonic deque: sliding-window extremes</td><td>🔥</td><td>a deque of candidates, best at the front</td></tr><tr><td>7</td><td>Expression evaluation with stacks</td><td>🧊</td><td>defer + and −, resolve * and / immediately</td></tr><tr><td>8</td><td>Greedy stack: remove to make smallest</td><td>🔥</td><td>pop larger earlier items while you still may remove</td></tr><tr><td>9</td><td>Circular buffers and queue simulation</td><td>🧊</td><td>wrap indices with % capacity</td></tr></tbody></table></div>
+<h2 id="choose">Choosing between them</h2><div class="tw"><table class=""><thead><tr><th>Need</th><th>Use</th></tr></thead><tbody><tr><td>Match or undo the most recent thing</td><td>Stack (P1)</td></tr><tr><td>Nearest greater or smaller to the left/right</td><td>Monotonic stack (P2, P3)</td></tr><tr><td>Fewest steps, equal-cost moves</td><td>BFS queue (P5)</td></tr><tr><td>Max/min of every window</td><td>Monotonic deque (P6)</td></tr><tr><td>Parse an expression</td><td>Stack with deferred operators (P7)</td></tr><tr><td>Delete to minimise or maximise a sequence</td><td>Greedy stack (P8)</td></tr><tr><td>Fixed-size FIFO</td><td>Circular buffer (P9)</td></tr></tbody></table></div><div class="callout"><span class="lbl">Rule of thumb</span><p>if you catch yourself writing a nested loop that scans to the right (or left) for the next bigger or smaller value, it is a <strong>monotonic stack</strong>; if it scans a window for its max, it is a <strong>monotonic deque</strong>.</p></div>
+<h2 id="selftest">Self-test</h2><p class="muted">Answer in your head first, then click to reveal.</p><details><summary>Why does the monotonic stack run in O(n) even with a <code>while</code> inside a <code>for</code>?</summary><p>Each index is pushed once and popped at most once, so the total number of pops across the whole loop is at most n.</p></details><details><summary>In the histogram algorithm, why add a sentinel height of 0 at the end?</summary><p>It forces every remaining bar to be popped and evaluated; without it, bars still on the stack are never counted.</p></details><details><summary>Why is <code>dequeue</code> on a two-stack queue O(1) <strong>amortised</strong> even though pouring is O(n)?</summary><p>Every element is poured from <code>in</code> to <code>out</code> at most once, so across m operations the total pouring work is at most m.</p></details><details><summary>In BFS, why mark a node as seen when you enqueue it rather than when you dequeue it?</summary><p>Otherwise the same node can be enqueued by several neighbours before it is processed, growing the queue and wasting work (or breaking distances).</p></details><details><summary>Why does BFS give shortest paths only on unweighted graphs?</summary><p>It reaches nodes in order of the number of edges. With weights, a path with more edges can be cheaper, so you need Dijkstra.</p></details><details><summary>When does the monotonic deque pop from the front?</summary><p>When the index at the front is outside the current window (<code>front ≤ i − k</code>).</p></details><details><summary>In Basic Calculator II, why do we apply the <strong>previous</strong> sign when reading an operator?</summary><p>The number just read belongs to the operator that came before it; the new operator will apply to the next number.</p></details><details><summary>A circular queue has <code>head == tail</code>. Is it full or empty?</summary><p>Ambiguous: keep a separate <code>size</code> counter (or leave one slot unused) to tell them apart.</p></details>
+<h2 id="plan">Study plan</h2><ol><li><strong>Day 1:</strong> stack basics and expression evaluation (RPN, min stack, calculator II).</li><li><strong>Day 2:</strong> monotonic stack: next greater element, daily temperatures, circular variant.</li><li><strong>Day 3:</strong> monotonic stack for ranges: histogram first, then subarray minimums; redo without notes.</li><li><strong>Day 4:</strong> BFS: level order, rotting oranges, word ladder; write the template from memory.</li><li><strong>Day 5:</strong> monotonic deque: sliding window maximum, then the two-deque variant.</li><li><strong>Day 6:</strong> greedy stack (remove k digits, asteroid collision) and the design problems (queue from stacks, circular queue).</li></ol>
+<div class="foot"><span><a href="04_linked_list.html">← Linked Lists</a></span><span></span></div>
+</main></div>
+<script>(function(){
+function rng(x,y){var r=[];for(var i=x;i<=y;i++)r.push(i);return r}
+function mapStr(m){var k=Object.keys(m);return '{'+k.map(function(x){return x+':'+m[x]}).join(', ')+'}'}
+var SIM={
+two:function(){var a=[1,3,4,6,8,11],t=10,S=[],l=0,r=a.length-1;
+ while(l<r){var s=a[l]+a[r];
+  if(s===t){S.push({a:a,ptr:{l:l,r:r},ok:[l,r],note:a[l]+' + '+a[r]+' = '+s+' equals the target '+t+'. Found the pair at indices '+l+' and '+r+'.'});break}
+  if(s<t){S.push({a:a,ptr:{l:l,r:r},note:a[l]+' + '+a[r]+' = '+s+' is smaller than '+t+'. The sum must grow, so move l right (a[l] can never pair with anything smaller than a[r]).'});l++}
+  else{S.push({a:a,ptr:{l:l,r:r},note:a[l]+' + '+a[r]+' = '+s+' is bigger than '+t+'. The sum must shrink, so move r left (a[r] is too large for every remaining partner).'});r--}}
+ S.unshift({a:a,ptr:{l:0,r:a.length-1},note:'Sorted array, target '+t+'. Put one pointer at each end.'});return S},
+fixed:function(){var a=[2,1,5,1,3,2],k=3,S=[],sum=0;for(var i=0;i<k;i++)sum+=a[i];var best=sum;
+ S.push({a:a,ptr:{},hi:rng(0,k-1),note:'First window of size '+k+': sum = '+sum+'. Best so far = '+best+'.'});
+ for(i=k;i<a.length;i++){sum+=a[i]-a[i-k];best=Math.max(best,sum);S.push({a:a,ptr:{i:i},hi:rng(i-k+1,i),note:'Slide: add '+a[i]+', drop '+a[i-k]+' → sum = '+sum+'. Best so far = '+best+'. (One add and one subtract, not a re-sum.)'})}
+ S.push({a:a,ptr:{},ok:[2,3,4],note:'Maximum window sum of size '+k+' is '+best+'.'});return S},
+variable:function(){var s='abcabcbb'.split(''),S=[],l=0,c={},best=0,bl=0;
+ for(var r=0;r<s.length;r++){var ch=s[r];c[ch]=(c[ch]||0)+1;
+  S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),note:"Expand: add '"+ch+"' at r="+r+'.'+(c[ch]>1?" '"+ch+"' now appears twice, so the window is invalid.":' Window "'+s.slice(l,r+1).join('')+'" is valid.')});
+  while(c[ch]>1){c[s[l]]--;l++;S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),note:'Shrink: drop the left character, l becomes '+l+'. Window "'+s.slice(l,r+1).join('')+'".'})}
+  if(r-l+1>best){best=r-l+1;bl=l}}
+ S.push({a:s,ptr:{},ok:rng(bl,bl+best-1),note:'Longest substring without repeats has length '+best+'. Each index entered and left the window once, so O(n).'});return S},
+prefix:function(){var a=[3,4,7,2,-3,1,4,2],k=7,S=[],m={0:1},sum=0,cnt=0;
+ S.push({a:a,ptr:{},note:'Count subarrays with sum = '+k+'. Seed the map with {0:1} (the empty prefix).'});
+ for(var i=0;i<a.length;i++){sum+=a[i];var need=sum-k,add=m[need]||0;cnt+=add;m[sum]=(m[sum]||0)+1;
+  S.push({a:a,ptr:{i:i},ok:add?[i]:[],note:'Prefix sum = '+sum+'. Need an earlier prefix of '+sum+' − '+k+' = '+need+': seen '+add+' time(s), so '+add+' subarray(s) end here. Total = '+cnt+'. Map = '+mapStr(m)})}
+ return S},
+kadane:function(){var a=[-2,1,-3,4,-1,2,1,-5,4],S=[],cur=a[0],st=0,best=a[0],bs=0,be=0;
+ S.push({a:a,ptr:{i:0},hi:[0],ok:[0],note:'Start: cur = '+cur+', best = '+best+'.'});
+ for(var i=1;i<a.length;i++){var restart=a[i]>cur+a[i];
+  if(restart){cur=a[i];st=i}else{cur+=a[i]}
+  if(cur>best){best=cur;bs=st;be=i}
+  S.push({a:a,ptr:{i:i},hi:rng(st,i),ok:rng(bs,be),note:(restart?'The running sum was negative, so restart at index '+i+': cur = '+cur+'.':'Extend the run: cur = '+cur+'.')+' best = '+best+' (green).'})}
+ return S},
+hash:function(){var a=[5,1,9,3,7],t=12,S=[],m={};S.push({a:a,ptr:{},note:'Find two numbers that sum to '+t+'. Keep a map value → index of what we have already seen.'});
+ for(var i=0;i<a.length;i++){var need=t-a[i];
+  if(need in m){S.push({a:a,ptr:{i:i},ok:[m[need],i],note:'Need '+need+' for '+a[i]+': it is in the map at index '+m[need]+'. Answer = ['+m[need]+', '+i+'].'});break}
+  m[a[i]]=i;S.push({a:a,ptr:{i:i},note:'At '+a[i]+': need '+need+', not seen yet. Store '+a[i]+' → '+i+'. Map = '+mapStr(m)})}
+ return S},
+dutch:function(){var a=[2,0,2,1,1,0],S=[],lo=0,mid=0,hi=a.length-1;
+ function p(n,ok){S.push({a:a.slice(),ptr:{lo:lo,mid:mid,hi:hi},ok:ok||[],note:n})}
+ p('lo marks the end of the 0s, hi the start of the 2s, mid scans the unknown middle.');
+ while(mid<=hi){var v=a[mid];
+  if(v===0){a[mid]=a[lo];a[lo]=0;lo++;mid++;p('a[mid] was 0: swap into the 0-zone, advance lo and mid.')}
+  else if(v===2){a[mid]=a[hi];a[hi]=2;hi--;p('a[mid] was 2: swap with a[hi], shrink hi. Do NOT advance mid; the swapped-in value is unexamined.')}
+  else{mid++;p('a[mid] is 1: it already belongs in the middle zone, advance mid.')}}
+ S.push({a:a.slice(),ptr:{},ok:rng(0,a.length-1),note:'mid passed hi: sorted in one pass, O(n), O(1) space.'});return S},
+binary:function(){var a=[1,3,5,7,7,7,9,11],t=7,S=[],lo=0,hi=a.length-1;
+ S.push({a:a,ptr:{lo:lo,hi:hi},note:'Find the FIRST index with a[i] ≥ '+t+' (lower bound). Invariant: the answer is always inside [lo, hi].'});
+ while(lo<hi){var mid=lo+((hi-lo)>>1);
+  if(a[mid]>=t){S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(lo,hi),note:'mid = '+mid+', a[mid] = '+a[mid]+' ≥ '+t+'. mid could be the answer, so keep it: hi = mid.'});hi=mid}
+  else{S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(lo,hi),note:'mid = '+mid+', a[mid] = '+a[mid]+' < '+t+'. Everything up to mid is too small: lo = mid + 1.'});lo=mid+1}}
+ S.push({a:a,ptr:{lo:lo},ok:[lo],note:'lo = hi = '+lo+'. First occurrence of '+t+' is at index '+lo+'. Each step halved the range: O(log n).'});return S},
+rotated:function(){var a=[4,5,6,7,0,1,2],t=0,S=[],lo=0,hi=a.length-1;
+ S.push({a:a,ptr:{lo:lo,hi:hi},note:'Sorted array rotated at an unknown point. Search for '+t+'. One half around mid is always sorted.'});
+ while(lo<=hi){var mid=lo+((hi-lo)>>1);
+  if(a[mid]===t){S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},ok:[mid],note:'a[mid] = '+t+'. Found at index '+mid+'.'});break}
+  if(a[lo]<=a[mid]){var go=a[lo]<=t&&t<a[mid];S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(lo,mid),note:'Left half ['+lo+'..'+mid+'] is sorted ('+a[lo]+' ≤ '+a[mid]+'). '+t+(go?' lies inside it: hi = mid − 1.':' is not inside it: search the right, lo = mid + 1.')});if(go)hi=mid-1;else lo=mid+1}
+  else{var go2=a[mid]<t&&t<=a[hi];S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(mid,hi),note:'Right half ['+mid+'..'+hi+'] is sorted. '+t+(go2?' lies inside it: lo = mid + 1.':' is not inside it: search the left, hi = mid − 1.')});if(go2)lo=mid+1;else hi=mid-1}}
+ return S},
+quick:function(){var a=[3,2,1,5,6,4],S=[],target=a.length-2,lo=0,hi=a.length-1;
+ function dim(){var d=[];for(var x=0;x<a.length;x++)if(x<lo||x>hi)d.push(x);return d}
+ S.push({a:a.slice(),ptr:{},note:'2nd largest = element at sorted index n − k = '+target+'. Partition around a pivot; recurse into ONE side only.'});
+ while(lo<=hi){var pv=a[hi],i=lo;
+  S.push({a:a.slice(),ptr:{lo:lo,pivot:hi},dim:dim(),hi:[hi],note:'Partition ['+lo+'..'+hi+'] with pivot '+pv+' (last element). i marks where the next smaller element goes.'});
+  for(var j=lo;j<hi;j++){if(a[j]<pv){var tm=a[i];a[i]=a[j];a[j]=tm;i++;S.push({a:a.slice(),ptr:{i:i,j:j,pivot:hi},dim:dim(),note:a[i-1]+' < '+pv+': swap into the "smaller" zone, i = '+i+'.'})}
+   else S.push({a:a.slice(),ptr:{i:i,j:j,pivot:hi},dim:dim(),note:a[j]+' ≥ '+pv+': leave it, move j on.'})}
+  var t2=a[i];a[i]=a[hi];a[hi]=t2;
+  if(i===target){S.push({a:a.slice(),ptr:{p:i},ok:[i],dim:dim(),note:'Pivot lands at index '+i+' = target index. Answer: '+a[i]+'.'});break}
+  S.push({a:a.slice(),ptr:{p:i},ok:[i],dim:dim(),note:'Pivot '+pv+' is now at its final sorted index '+i+(i<target?' < target '+target+': only the right side can contain it.':' > target '+target+': only the left side can contain it.')});
+  if(i<target)lo=i+1;else hi=i-1}
+ return S},
+amort:function(){var S=[],cap=1,n=0,a=[''],cost=0;
+ S.push({a:a.slice(),ptr:{},note:'A dynamic array starts with capacity 1. Append 1..8. When it is full, allocate double the space and copy everything over.'});
+ for(var v=1;v<=8;v++){
+  if(n===cap){var c=n;cap*=2;var b=[];for(var i=0;i<cap;i++)b.push(i<n?a[i]:'');cost+=c;a=b;S.push({a:a.slice(),ptr:{},hi:rng(0,n-1),note:'Full. Resize to capacity '+cap+': copy '+c+' element(s). Total copy cost so far = '+cost+'.'})}
+  a[n]=v;n++;S.push({a:a.slice(),ptr:{i:n-1},ok:[n-1],note:'Append '+v+' (cost 1). Length '+n+', capacity '+cap+'.'})}
+ S.push({a:a.slice(),ptr:{},note:'8 appends cost 8 writes + '+cost+' copies = '+(8+cost)+' units, under 2 per append. Rare expensive steps are paid for by many cheap ones: amortised O(1).'});return S},
+pairs:function(){var a=['a','b','c','d','e'],S=[],k=0;
+ S.push({a:a,ptr:{},note:'Nested loop: for every i, for every j > i. Count how many (i, j) pairs get visited.'});
+ for(var i=0;i<a.length;i++)for(var j=i+1;j<a.length;j++){k++;S.push({a:a,ptr:{i:i,j:j},hi:[i,j],note:'Pair #'+k+': ('+a[i]+', '+a[j]+').'})}
+ S.push({a:a,ptr:{},ok:rng(0,a.length-1),note:'n = 5 gave '+k+' pairs = n(n−1)/2. Double n and the work roughly quadruples: O(n²).'});return S},
+anagram:function(){var s='listen',t='silent',a=s.split('').concat(t.split('')),S=[],c={};
+ function A(){return {label:'counts',items:Object.keys(c).map(function(k){return k+': '+c[k]})}}
+ S.push({a:a,ptr:{},note:'Are "listen" and "silent" anagrams? Count the letters of the first word UP and the second word DOWN.'});
+ for(var i=0;i<s.length;i++){c[s[i]]=(c[s[i]]||0)+1;S.push({a:a,ptr:{i:i},hi:[i],aux:A(),note:"First word: +1 for '"+s[i]+"'."})}
+ for(var j=0;j<t.length;j++){var k=s.length+j;c[t[j]]=(c[t[j]]||0)-1;S.push({a:a,ptr:{j:k},hi:[k],aux:A(),note:"Second word: −1 for '"+t[j]+"'."+(c[t[j]]<0?' The count went negative, so it is not an anagram.':'')})}
+ S.push({a:a,ptr:{},ok:rng(0,a.length-1),aux:A(),note:'Every count is back to 0, so they are anagrams. O(n) time and O(1) space (26 letters).'});return S},
+palin:function(){var s='a.b,.B.a'.split(''),S=[],l=0,r=s.length-1;
+ function al(c){return /[a-z0-9]/i.test(c)}
+ S.push({a:s,ptr:{l:l,r:r},note:'Valid palindrome, ignoring case and punctuation. One pointer at each end.'});
+ while(l<r){
+  if(!al(s[l])){S.push({a:s,ptr:{l:l,r:r},dim:[l],note:"'"+s[l]+"' is not a letter or digit: skip it (l++)."});l++;continue}
+  if(!al(s[r])){S.push({a:s,ptr:{l:l,r:r},dim:[r],note:"'"+s[r]+"' is not a letter or digit: skip it (r--)."});r--;continue}
+  var eq=s[l].toLowerCase()===s[r].toLowerCase();
+  S.push({a:s,ptr:{l:l,r:r},hi:[l,r],ok:eq?[l,r]:[],note:"Compare '"+s[l]+"' and '"+s[r]+"' ignoring case: "+(eq?'match, move both inward.':'mismatch, so it is NOT a palindrome.')});
+  if(!eq)return S;l++;r--}
+ S.push({a:s,ptr:{},ok:rng(0,s.length-1),note:'The pointers met without a mismatch: palindrome. O(n) time, O(1) space.'});return S},
+center:function(){var s='babad'.split(''),S=[],bl=0,bestLen=0;
+ function tryC(l,r,kind){var any=false;
+  while(l>=0&&r<s.length&&s[l]===s[r]){any=true;var len=r-l+1;if(len>bestLen){bestLen=len;bl=l}
+   S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),ok:bestLen?rng(bl,bl+bestLen-1):[],note:kind+' centre: "'+s.slice(l,r+1).join('')+'" is a palindrome (length '+len+'). Best so far: '+bestLen+'. Expand outward.'});l--;r++}
+  S.push({a:s,ptr:{},ok:bestLen?rng(bl,bl+bestLen-1):[],note:kind+' centre: '+(any?'cannot expand further (mismatch or edge).':'the two sides differ immediately, nothing to expand.')})}
+ S.push({a:s,ptr:{},note:'Every palindrome mirrors around a centre: a letter (odd length) or a gap (even length). Try all 2n−1 centres and expand while both sides match.'});
+ for(var i=0;i<s.length;i++){tryC(i,i,'Odd (index '+i+')');if(i<s.length-1)tryC(i,i+1,'Even (gap after '+i+')')}
+ S.push({a:s,ptr:{},ok:rng(bl,bl+bestLen-1),note:'Longest palindromic substring: "'+s.slice(bl,bl+bestLen).join('')+'" (length '+bestLen+'; "aba" ties). 2n−1 centres × O(n) expansion = O(n²) time, O(1) space.'});return S},
+minwin:function(){var s='ADOBECODEBANC'.split(''),S=[],need={A:1,B:1,C:1},have={},formed=0,req=3,l=0,best=1e9,bl=0;
+ function A(){return {label:'covered '+formed+' / '+req,items:['A','B','C'].map(function(k){return k+' '+(have[k]||0)+'/1'})}}
+ S.push({a:s,ptr:{l:0,r:0},aux:A(),note:'Smallest window of the string that contains A, B and C. Expand r; once the window covers everything, shrink l as far as possible.'});
+ for(var r=0;r<s.length;r++){var c=s[r];if(need[c]){have[c]=(have[c]||0)+1;if(have[c]===need[c])formed++}
+  S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),aux:A(),note:"Expand: add '"+c+"'. "+(formed===req?'The window now covers A, B and C.':'Still missing some required letters.')});
+  while(formed===req){if(r-l+1<best){best=r-l+1;bl=l}var d=s[l];
+   S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),ok:rng(bl,bl+best-1),aux:A(),note:'Valid window "'+s.slice(l,r+1).join('')+'" (length '+(r-l+1)+'); shortest so far = '+best+'. Try to shrink: drop \''+d+'\' from the left.'});
+   if(need[d]){have[d]--;if(have[d]<need[d])formed--}l++}}
+ S.push({a:s,ptr:{},ok:rng(bl,bl+best-1),note:'Minimum window: "'+s.slice(bl,bl+best).join('')+'". l and r only move forward, so O(n).'});return S},
+kmp:function(){var p='ababaca'.split(''),lps=[0],S=[],len=0,i=1;
+ function A(){return {label:'lps (longest border)',items:lps.map(function(v,k){return k+': '+v})}}
+ S.push({a:p,ptr:{},aux:A(),note:'lps[i] = length of the longest proper prefix of p[0..i] that is also a suffix of it. lps[0] = 0. KMP uses it to never re-read text.'});
+ while(i<p.length){var ii=i,ll=len;
+  if(p[i]===p[len]){len++;lps[i]=len;i++;S.push({a:p,ptr:{i:ii,len:ll},hi:[ii,ll],ok:[ii],aux:A(),note:'p['+ii+'] = p['+ll+'] = \''+p[ii]+'\': the border grows, lps['+ii+'] = '+len+'.'})}
+  else if(len>0){len=lps[len-1];S.push({a:p,ptr:{i:ii,len:ll},hi:[ii,ll],aux:A(),note:'p['+ii+'] \''+p[ii]+'\' ≠ p['+ll+'] \''+p[ll]+'\'. Fall back to len = lps['+(ll-1)+'] = '+len+' (try a shorter border; never restart from scratch).'})}
+  else{lps[i]=0;i++;S.push({a:p,ptr:{i:ii,len:0},hi:[ii],aux:A(),note:'\''+p[ii]+'\' ≠ \''+p[0]+'\' and there is no shorter border: lps['+ii+'] = 0.'})}}
+ S.push({a:p,ptr:{},ok:rng(0,p.length-1),aux:A(),note:'lps = ['+lps.join(', ')+']. Built in O(m): len only falls back as far as it has climbed.'});return S},
+decode:function(){var s='3[a2[c]]'.split(''),S=[],stack=[],cur='',num=0;
+ function A(){return {label:'stack (count, text before)',items:(stack.length?stack.map(function(x){return '('+x[0]+', "'+x[1]+'")'}):['empty']).concat(['cur = "'+cur+'"'])}}
+ S.push({a:s,ptr:{},aux:A(),note:'Decode k[text]. Keep a stack: on "[" save (count, text so far); on "]" pop and repeat the inner text.'});
+ for(var i=0;i<s.length;i++){var c=s[i],n;
+  if(/\d/.test(c)){num=num*10+(+c);n='Digit: repeat count is now '+num+'.'}
+  else if(c==='['){stack.push([num,cur]);n='"[": push ('+num+', "'+cur+'") and start a fresh inner string.';num=0;cur=''}
+  else if(c===']'){var t=stack.pop();n='"]": pop ('+t[0]+', "'+t[1]+'"). New text = "'+t[1]+'" + "'+cur+'" × '+t[0]+'.';cur=t[1]+cur.repeat(t[0])}
+  else{cur+=c;n="Letter '"+c+"': append to the current text."}
+  S.push({a:s,ptr:{i:i},hi:[i],aux:A(),note:n})}
+ S.push({a:s,ptr:{},ok:rng(0,s.length-1),aux:A(),note:'Result: "'+cur+'". Each character is handled once: O(n + output length).'});return S},
+compress:function(){var a='aabbccc'.split(''),S=[],w=0,r=0;
+ S.push({a:a.slice(),ptr:{w:0,r:0},note:'Compress runs in place: "aabbccc" → "a2b2c3". r reads groups, w writes the result at the front. w never passes r, so no extra array.'});
+ while(r<a.length){var ch=a[r],st=r;while(r<a.length&&a[r]===ch)r++;var cnt=r-st;
+  S.push({a:a.slice(),ptr:{w:w,r:st},hi:rng(st,r-1),note:"Group found: '"+ch+"' × "+cnt+'.'});
+  a[w++]=ch;if(cnt>1)String(cnt).split('').forEach(function(d){a[w++]=d});
+  S.push({a:a.slice(),ptr:{w:w},ok:rng(0,w-1),note:"Write '"+ch+"'"+(cnt>1?' and the count '+cnt:'')+' at the front. Compressed so far: "'+a.slice(0,w).join('')+'".'})}
+ S.push({a:a.slice(),ptr:{},ok:rng(0,w-1),dim:rng(w,a.length-1),note:'New length = '+w+' ("'+a.slice(0,w).join('')+'"). Anything after w is ignored. O(n) time, O(1) space.'});return S},
+unique:function(){var s='loveleetcode'.split(''),S=[],c={};
+ function A(){return {label:'counts',items:Object.keys(c).map(function(k){return k+': '+c[k]})}}
+ S.push({a:s,ptr:{},note:'First non-repeating character. Pass 1 counts every letter; pass 2 finds the first letter whose count is 1.'});
+ for(var i=0;i<s.length;i++){c[s[i]]=(c[s[i]]||0)+1;S.push({a:s,ptr:{i:i},hi:[i],aux:A(),note:"Pass 1: count '"+s[i]+"'."})}
+ for(i=0;i<s.length;i++){if(c[s[i]]===1){S.push({a:s,ptr:{i:i},ok:[i],aux:A(),note:"Pass 2: '"+s[i]+"' has count 1: answer is index "+i+'.'});return S}
+  S.push({a:s,ptr:{i:i},dim:[i],aux:A(),note:"Pass 2: '"+s[i]+"' appears "+c[s[i]]+' times, skip it.'})}
+ return S},
+delete:function(){var vals=['D',1,6,3,6,'null'],nxt=[1,2,3,4,5,-1],removed=[],S=[],prev=0,val=6;
+ function E(){var e=[];for(var k=0;k<5;k++)e.push(removed.indexOf(k)>=0?'':(nxt[k]===k+1?'→':'⇢'));return e}
+ function P(p,c,n,ok){S.push({a:vals,ptr:c===undefined?{prev:p}:{prev:p,cur:c},edges:E(),dim:removed.slice(),ok:ok||[],note:n})}
+ P(0,undefined,'Remove every node with value 6. D is a dummy node placed before the head, so deleting the first real node needs no special case.');
+ while(nxt[prev]!==5){var cur=nxt[prev];
+  if(vals[cur]===val){removed.push(cur);nxt[prev]=nxt[cur];P(prev,cur,'cur.val = '+val+': unlink it with prev.next = prev.next.next. prev stays where it is, because the new next node has not been checked yet.')}
+  else{P(prev,cur,'cur.val = '+vals[cur]+' is kept: advance prev to cur.');prev=cur}}
+ P(prev,undefined,'prev.next is null: done. Result D → 1 → 3 → null. Return dummy.next.',[0,1,3,5]);return S},
+reverse:function(){var vals=[1,2,3,4,'null'],nxt=[1,2,3,4,-1],S=[],prev=4,cur=0;
+ function E(){var e=[];for(var k=0;k<4;k++)e.push(nxt[k]===k+1?'→':(nxt[k+1]===k?'←':''));return e}
+ function A(){var it=[];for(var k=0;k<4;k++)it.push(vals[k]+' → '+(nxt[k]===4||nxt[k]===-1?'null':vals[nxt[k]]));return {label:'next pointers',items:it}}
+ S.push({a:vals,ptr:{prev:4,cur:0},edges:E(),aux:A(),link:true,note:'Reverse 1→2→3→4. prev starts as null, cur at the head. Each step re-points one arrow backwards.'});
+ while(cur!==4){var n=nxt[cur];nxt[cur]=prev;S.push({a:vals,ptr:{prev:cur,cur:n},edges:E(),aux:A(),ok:[cur],note:'Save nxt = cur.next ('+(n===4?'null':vals[n])+'), set cur.next = prev, then move prev to '+vals[cur]+' and cur to '+(n===4?'null':vals[n])+'.'});prev=cur;cur=n}
+ S.push({a:vals,ptr:{head:prev},edges:E(),aux:A(),ok:[3,2,1,0],note:'cur is null, so prev is the new head: 4 → 3 → 2 → 1 → null. One pass, O(n) time, O(1) space.'});return S},
+floyd:function(){var vals=[3,2,0,-4],nxt=[1,2,3,1],S=[],s=0,f=0;
+ var E=['→','→','→'],A={label:'link',items:['−4 points back to 2 (the cycle start)']};
+ S.push({a:vals,ptr:{slow:0,fast:0},edges:E,aux:A,note:'Does the list loop? Slow moves 1 step, fast moves 2. In a loop the fast runner must eventually lap the slow one.'});
+ do{s=nxt[s];f=nxt[nxt[f]];S.push({a:vals,ptr:{slow:s,fast:f},hi:[s,f],edges:E,aux:A,ok:s===f?[s]:[],note:'slow → '+vals[s]+', fast → '+vals[f]+'.'+(s===f?' They meet: there is a cycle.':'')})}while(s!==f);
+ S.push({a:vals,ptr:{slow:0,fast:f},edges:E,aux:A,note:'Phase 2: put slow back at the head and keep fast at the meeting point. Move both one step at a time.'});
+ s=0;while(s!==f){s=nxt[s];f=nxt[f];S.push({a:vals,ptr:{slow:s,fast:f},hi:[s,f],edges:E,aux:A,ok:s===f?[s]:[],note:'slow → '+vals[s]+', fast → '+vals[f]+'.'+(s===f?' They meet exactly at the node where the cycle starts.':'')})}
+ S.push({a:vals,ptr:{start:s},edges:E,aux:A,ok:[s],note:'Cycle starts at the node with value '+vals[s]+'. Why: the distance from the head to the cycle start equals the distance from the meeting point onward to it (mod cycle length). O(n) time, O(1) space.'});return S},
+merge:function(){var A1=[1,2,4],B1=[1,3,4],all=A1.concat(B1),p=0,q=0,out=[],used=[],S=[];
+ function E(){return ['→','→','','→','→']}
+ function AX(){return {label:'merged',items:[out.length?out.join(' → '):'(empty)']}}
+ S.push({a:all,ptr:{p:0,q:3},edges:E(),aux:AX(),note:'Merge two sorted lists. A dummy tail node collects the result; p and q point at the smaller candidates.'});
+ while(p<3&&q<3){var x=A1[p],y=B1[q];
+  if(x<=y){S.push({a:all,ptr:{p:p,q:3+q},dim:used.slice(),hi:[p,3+q],edges:E(),aux:AX(),note:'Compare '+x+' and '+y+': '+x+' ≤ '+y+', so link the node from list 1 and advance p.'});used.push(p);out.push(x);p++}
+  else{S.push({a:all,ptr:{p:p,q:3+q},dim:used.slice(),hi:[p,3+q],edges:E(),aux:AX(),note:'Compare '+x+' and '+y+': '+y+' is smaller, so link the node from list 2 and advance q.'});used.push(3+q);out.push(y);q++}}
+ var rest=p<3?A1.slice(p):B1.slice(q);var idx=p<3?rng(p,2):rng(3+q,5);
+ S.push({a:all,ptr:{},dim:used.slice(),ok:idx,edges:E(),aux:AX(),note:'One list is empty. Attach the rest of the other list in one step: tail.next = remaining ('+rest.join(', ')+'). No copying.'});
+ rest.forEach(function(v){out.push(v)});
+ S.push({a:all,ptr:{},ok:rng(0,5),edges:E(),aux:AX(),note:'Merged list: '+out.join(' → ')+'. O(n + m) time, O(1) extra space (nodes are reused).'});return S},
+nth:function(){var vals=['D',1,2,3,4,5,'null'],S=[],slow=0,fast=0,n=2;
+ function E(){return ['→','→','→','→','→','→']}
+ S.push({a:vals,ptr:{slow:0,fast:0},edges:E(),note:'Remove the 2nd node from the end. Start slow and fast at the dummy D. Give fast a head start of n = 2 nodes.'});
+ for(var i=0;i<n;i++){fast++;S.push({a:vals,ptr:{slow:slow,fast:fast},edges:E(),note:'Head start: move fast ahead ('+(i+1)+' of '+n+').'})}
+ while(fast+1<6){fast++;slow++;S.push({a:vals,ptr:{slow:slow,fast:fast},hi:[slow,fast],edges:E(),note:'Move both one step. The gap between them stays n = '+n+'.'})}
+ S.push({a:vals,ptr:{slow:slow,fast:fast},hi:[slow,fast],edges:E(),note:'fast is on the last node (fast.next is null), so slow is exactly the node BEFORE the one to delete.'});
+ S.push({a:vals,ptr:{slow:slow},dim:[4],ok:[3],edges:['→','→','→','⇢','','→'],note:'slow.next = slow.next.next removes node 4. One pass, O(n) time, O(1) space. The dummy makes deleting the head work too.'});return S},
+palilist:function(){var vals=[1,2,3,2,1],S=[];
+ var full=['→','→','→','→'];
+ S.push({a:vals,ptr:{},edges:full,note:'Palindrome list in O(1) space: (1) find the middle, (2) reverse the second half, (3) compare the two halves.'});
+ S.push({a:vals,ptr:{slow:0,fast:0},edges:full,note:'Step 1: slow moves 1, fast moves 2.'});
+ S.push({a:vals,ptr:{slow:1,fast:2},edges:full,note:'slow = 1, fast = 2.'});
+ S.push({a:vals,ptr:{slow:2,fast:4},hi:[2],edges:full,note:'fast.next is null: stop. slow is the middle node (value 3).'});
+ S.push({a:vals,ptr:{mid:2},hi:[3,4],edges:['→','→','','→'],note:'Step 2: the second half starts after the middle: 2 → 1. Reverse it...'});
+ S.push({a:vals,ptr:{mid:2,head2:4},hi:[3,4],edges:['→','→','','←'],note:'...so it reads 1 → 2 (the arrow between the last two nodes flips).'});
+ S.push({a:vals,ptr:{p:0,q:4},hi:[0,4],ok:[0,4],edges:['→','→','','←'],note:'Step 3: compare p = 1 with q = 1. Equal: advance both.'});
+ S.push({a:vals,ptr:{p:1,q:3},hi:[1,3],ok:[0,1,3,4],edges:['→','→','','←'],note:'Compare p = 2 with q = 2. Equal. q reaches null, so every pair matched.'});
+ S.push({a:vals,ptr:{},ok:rng(0,4),edges:full,note:'Palindrome. (Optionally reverse the second half back to restore the list.) O(n) time, O(1) space.'});return S},
+addnum:function(){var A1=[2,4,3],B1=[5,6,4],all=A1.concat(B1),S=[],carry=0,out=[];
+ function E(){return ['→','→','','→','→']}
+ function AX(){return {label:'carry '+carry+'  |  result',items:[out.length?out.join(' → '):'(empty)']}}
+ S.push({a:all,ptr:{a:0,b:3},edges:E(),aux:AX(),note:'Digits are stored in reverse: 342 + 465. Add digit by digit from the head with a carry, exactly like paper arithmetic.'});
+ for(var i=0;i<3;i++){var s=A1[i]+B1[i]+carry,d=s%10,c=Math.floor(s/10);
+  S.push({a:all,ptr:{a:i,b:3+i},hi:[i,3+i],edges:E(),aux:AX(),note:A1[i]+' + '+B1[i]+' + carry '+carry+' = '+s+': write digit '+d+', new carry '+c+'.'});out.push(d);carry=c}
+ S.push({a:all,ptr:{},ok:rng(0,5),edges:E(),aux:AX(),note:'Result 7 → 0 → 8 (= 807). Keep looping while either list has nodes OR carry > 0; a final carry becomes a new node. O(max(n, m)) time.'});return S},
+lru:function(){var S=[],L=[],cap=3;
+ function E(){var e=[];for(var k=0;k<L.length-1;k++)e.push('↔');return e}
+ function P(n,extra){var o={a:L.map(function(x){return x[0]+':'+x[1]}),ptr:L.length?{MRU:0}:{},edges:E(),aux:{label:'hash map keys',items:L.length?L.map(function(x){return x[0]}):['(empty)']},note:n};if(L.length>1)o.ptr[''+'LRU']=L.length-1;if(extra)for(var k in extra)o[k]=extra[k];S.push(o)}
+ function find(k){for(var i=0;i<L.length;i++)if(L[i][0]===k)return i;return -1}
+ P('LRU cache, capacity 3. A hash map finds a node in O(1); a doubly linked list keeps recency order: front = most recent (MRU), back = least recent (LRU).');
+ L.unshift([1,'A']);P('put(1, A): new node goes to the front.',{ok:[0]});
+ L.unshift([2,'B']);P('put(2, B): new node goes to the front.',{ok:[0]});
+ L.unshift([3,'C']);P('put(3, C): list is now full (3 of 3).',{ok:[0]});
+ var i=find(1),n=L.splice(i,1)[0];L.unshift(n);P('get(1): map finds the node in O(1); unlink it (prev.next, next.prev) and move it to the front. Returns A.',{ok:[0]});
+ P('put(4, D): the cache is full, so evict the node at the back (key 2).',{dim:[2]});
+ L.pop();P('Unlink the tail node and delete key 2 from the map.');
+ L.unshift([4,'D']);P('Insert key 4 at the front. Both get and put are O(1).',{ok:[0]});
+ P('get(2): not in the map, so return −1 immediately. Dummy head and tail nodes make every unlink and insert free of null checks.');return S},
+minstack:function(){var st=[],mins=[],S=[];
+ function P(n,ok){S.push({a:st.slice(),ptr:st.length?{top:st.length-1}:{},ok:ok||[],aux:{label:'min so far, per entry',items:mins.length?mins.slice():['(empty)']},note:n})}
+ function push(x){var m=mins.length?Math.min(x,mins[mins.length-1]):x;st.push(x);mins.push(m);P('push('+x+'): store the value and the minimum of everything below and including it → '+m+'.',[st.length-1])}
+ function pop(){var v=st.pop();mins.pop();P('pop() removes '+v+' and its stored minimum together, so the previous minimum is back instantly.')}
+ function gm(){P('getMin() = '+mins[mins.length-1]+' (just read the top of the min column: O(1)).',[st.length-1])}
+ P('Min Stack: every entry remembers the minimum of the stack up to itself, so getMin is O(1).');
+ push(5);push(3);push(7);push(3);gm();pop();gm();pop();pop();gm();return S},
+nge:function(){var t=[73,74,75,71,69,72,76,73],S=[],st=[],ans=t.map(function(){return 0});
+ function A(){return {label:'stack (index:temp)',items:(st.length?st.map(function(j){return j+':'+t[j]}):['empty']).concat(['answers = ['+ans.join(',')+']'])}}
+ S.push({a:t,ptr:{},aux:A(),note:'Days until a warmer temperature. The stack holds indices still waiting for a warmer day; temperatures on it are decreasing.'});
+ for(var i=0;i<t.length;i++){
+  while(st.length&&t[i]>t[st[st.length-1]]){var j=st.pop();ans[j]=i-j;S.push({a:t,ptr:{i:i,popped:j},hi:[i],ok:[j],aux:A(),note:t[i]+' > '+t[j]+': day '+j+' found its warmer day. answer['+j+'] = '+i+' − '+j+' = '+ans[j]+'.'})}
+  st.push(i);S.push({a:t,ptr:{i:i},hi:[i],aux:A(),note:'Push index '+i+' ('+t[i]+'): it now waits for something warmer.'})}
+ S.push({a:t,ptr:{},ok:rng(0,t.length-1),aux:A(),note:'Anything left on the stack never found a warmer day (answer 0). Each index is pushed once and popped once: O(n).'});return S},
+hist:function(){var h=[2,1,5,6,2,3],a=h.concat([0]),S=[],st=[],best=0,bl=0,br=-1;
+ function A(){return {label:'stack (index:height)',items:(st.length?st.map(function(j){return j+':'+a[j]}):['empty']).concat(['best area = '+best])}}
+ S.push({a:a,ptr:{},aux:A(),note:'Largest rectangle in a histogram (a sentinel 0 is added at the end to flush the stack). The stack keeps heights increasing; a smaller bar closes every taller bar before it.'});
+ for(var i=0;i<a.length;i++){var cur=a[i];
+  while(st.length&&cur<a[st[st.length-1]]){var top=st.pop(),ht=a[top],left=st.length?st[st.length-1]:-1,w=i-left-1,ar=ht*w;if(ar>best){best=ar;bl=left+1;br=i-1}
+   S.push({a:a,ptr:{i:i,bar:top},hi:rng(left+1,i-1),ok:br>=0?rng(bl,br):[],aux:A(),note:'Bar '+top+' (height '+ht+') ends here: it is taller than '+cur+'. Its rectangle spans indices '+(left+1)+'..'+(i-1)+', width '+w+' × height '+ht+' = '+ar+'.'})}
+  st.push(i);S.push({a:a,ptr:{i:i},hi:[i],ok:br>=0?rng(bl,br):[],aux:A(),note:'Push index '+i+' (height '+cur+').'})}
+ S.push({a:a,ptr:{},ok:rng(bl,br),aux:A(),note:'Largest rectangle = '+best+' (bars '+bl+'..'+br+'). Each bar is pushed and popped once: O(n).'});return S},
+twostack:function(){var inn=[],out=[],S=[];
+ function P(n,hl){S.push({a:inn.concat(out),ptr:{},hi:inn.map(function(_,i){return i}),ok:out.map(function(_,i){return inn.length+i}),aux:{label:'in-stack (push) | out-stack (pop, top at right)',items:['in: ['+inn.join(',')+']','out: ['+out.join(',')+']']},note:n})}
+ function enq(x){inn.push(x);P('enqueue('+x+'): push onto the in-stack.')}
+ function deq(){if(!out.length){var m=inn.length;while(inn.length)out.push(inn.pop());P('out-stack is empty: pour the in-stack into it (reverses the order, moved '+m+' element(s)). Each element is moved at most once.')}
+  var v=out.pop();P('dequeue() pops '+v+' from the out-stack: the oldest element.')}
+ P('Queue (FIFO) from two stacks. Blue = in-stack (new items), green = out-stack (items ready to leave).');
+ enq(1);enq(2);enq(3);deq();enq(4);deq();deq();deq();
+ S.push({a:[],ptr:{},aux:{label:'cost',items:['4 enqueues + 4 dequeues','8 pushes, 8 pops, 4 moves']},note:'Each element moves between stacks at most once, so dequeue is O(1) amortised.'});return S},
+bfs:function(){var adj={0:[1,2],1:[3],2:[3,4],3:[5],4:[5],5:[6],6:[]},nodes=[0,1,2,3,4,5,6],S=[],q=[0],dist={0:0},done=[];
+ function A(){return {label:'queue → front',items:[q.length?q.join(', '):'empty','dist: '+Object.keys(dist).map(function(k){return k+'='+dist[k]}).join(' ')]}}
+ S.push({a:nodes,ptr:{start:0},hi:[0],aux:A(),note:'Shortest path from 0 to every node (edges: 0→1,2  1→3  2→3,4  3→5  4→5  5→6). Queue = nodes discovered but not processed; BFS reaches nodes in order of distance.'});
+ while(q.length){var u=q.shift();var found=[];adj[u].forEach(function(v){if(!(v in dist)){dist[v]=dist[u]+1;q.push(v);found.push(v)}});done.push(u);
+  S.push({a:nodes,ptr:{cur:u},hi:q.slice(),ok:[u],dim:done.filter(function(x){return x!==u}),aux:A(),note:'Dequeue '+u+' (distance '+dist[u]+'). '+(found.length?'Enqueue unseen neighbours '+found.join(', ')+' with distance '+(dist[u]+1)+'.':'No unseen neighbours.')})}
+ S.push({a:nodes,ptr:{},ok:rng(0,6),aux:A(),note:'Shortest distance to node 6 is '+dist[6]+'. Mark nodes as seen when you ENQUEUE them so none enters the queue twice. O(V + E).'});return S},
+dequemax:function(){var a=[1,3,-1,-3,5,3,6,7],k=3,S=[],dq=[],res=[];
+ function A(){return {label:'deque (index:value), front = max',items:(dq.length?dq.map(function(j){return j+':'+a[j]}):['empty']).concat(['result = ['+res.join(',')+']'])}}
+ S.push({a:a,ptr:{},aux:A(),note:'Maximum of every window of size 3. The deque keeps indices whose values are decreasing, so the front is always the window maximum.'});
+ for(var i=0;i<a.length;i++){var msg=[];
+  if(dq.length&&dq[0]<=i-k){msg.push('drop front '+dq[0]+' (left the window)');dq.shift()}
+  var rem=[];while(dq.length&&a[dq[dq.length-1]]<=a[i]){rem.push(dq.pop())}
+  if(rem.length)msg.push('pop back '+rem.join(', ')+' (smaller than '+a[i]+', they can never be a max again)');
+  dq.push(i);msg.push('push '+i);
+  if(i>=k-1){res.push(a[dq[0]]);msg.push('window max = '+a[dq[0]])}
+  S.push({a:a,ptr:{i:i},hi:rng(Math.max(0,i-k+1),i),ok:i>=k-1?[dq[0]]:[],aux:A(),note:'i = '+i+': '+msg.join('; ')+'.'})}
+ S.push({a:a,ptr:{},ok:rng(0,a.length-1),aux:A(),note:'Result = ['+res.join(', ')+']. Every index is pushed and popped once: O(n).'});return S},
+calc:function(){var s='3+2*2'.split(''),S=[],st=[],num=0,sign='+';
+ function A(){return {label:'number stack',items:[st.length?'['+st.join(', ')+']':'empty','sign = '+sign,'num = '+num]}}
+ S.push({a:s,ptr:{},aux:A(),note:'Evaluate 3+2*2 without parentheses. Push numbers on a stack; * and / are applied immediately to the top, + and − are deferred (negate for −). Sum the stack at the end.'});
+ for(var i=0;i<s.length;i++){var c=s[i],isd=/\d/.test(c),n;
+  if(isd){num=num*10+(+c);n='Digit '+c+': number so far = '+num+'.'}
+  if(!isd||i===s.length-1){n=(isd?n+' End of input: ':'Operator \''+c+'\' ends the number '+num+'. ')+'Apply the PREVIOUS sign \''+sign+'\': ';
+   if(sign==='+'){st.push(num);n+='push '+num+'.'}else if(sign==='-'){st.push(-num);n+='push '+(-num)+'.'}else if(sign==='*'){var t=st.pop();st.push(t*num);n+='top '+t+' × '+num+' = '+(t*num)+'.'}else{var t2=st.pop();st.push(Math.trunc(t2/num));n+='top '+t2+' ÷ '+num+'.'}
+   sign=isd?sign:c;num=0}
+  S.push({a:s,ptr:{i:i},hi:[i],aux:A(),note:n})}
+ var total=st.reduce(function(x,y){return x+y},0);
+ S.push({a:s,ptr:{},ok:rng(0,s.length-1),aux:A(),note:'Sum of the stack = '+total+'. O(n) time, O(n) space.'});return S},
+removek:function(){var d='1432219'.split(''),k=3,S=[],st=[];
+ function A(){return {label:'stack (digits kept)',items:[st.length?st.join(' '):'empty','k left = '+k]}}
+ S.push({a:d,ptr:{},aux:A(),note:'Remove 3 digits to make the smallest number. Greedy: if a digit is larger than the one after it, deleting it helps. A stack keeps the digits increasing.'});
+ for(var i=0;i<d.length;i++){var c=d[i],rm=[];while(k>0&&st.length&&st[st.length-1]>c){rm.push(st.pop());k--}
+  st.push(c);S.push({a:d,ptr:{i:i},hi:[i],aux:A(),note:'Digit '+c+': '+(rm.length?'pop '+rm.join(', ')+' (larger and earlier, so removing helps), then push.':'nothing larger on top, push.')})}
+ S.push({a:d,ptr:{},ok:rng(0,d.length-1),aux:A(),note:'k reached 0, so the result is "'+st.join('')+'". (If k is left over, trim digits from the end; then strip leading zeros.) O(n).'});return S},
+circular:function(){var buf=['','','',''],head=0,tail=0,size=0,S=[];
+ function P(n,ok){S.push({a:buf.slice(),ptr:{head:head,tail:tail},ok:ok||[],aux:{label:'state',items:['size = '+size,'capacity = 4','head = '+head,'tail = '+tail]},note:n})}
+ function enq(x){if(size===4){P('enqueue('+x+') fails: the queue is full (size == capacity). Note head == tail here, so a separate size counter tells full from empty.');return}
+  buf[tail]=x;var w=tail;tail=(tail+1)%4;size++;P('enqueue('+x+'): write at tail, then tail = (tail + 1) % 4'+(w===3?' (wraps to 0)':'')+'.',[w])}
+ function deq(){if(!size){P('dequeue on empty queue fails.');return}var v=buf[head];buf[head]='';head=(head+1)%4;size--;P('dequeue() returns '+v+': read at head, head = (head + 1) % 4.')}
+ P('Circular queue in a fixed array of 4 slots: head = next to remove, tail = next free slot. Indices wrap around with % capacity, so no shifting is ever needed.');
+ enq('A');enq('B');enq('C');enq('D');enq('E');deq();enq('E');deq();deq();return S}};
+
+var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+var body=document.body;
+/* language + theme */
+function setLang(l){body.dataset.lang=l;$('#b-java').classList.toggle('on',l==='java');$('#b-py').classList.toggle('on',l==='py');ls('dsa-lang',l)}
+setLang(ls('dsa-lang')||'java');
+$('#b-java').onclick=function(){setLang('java')};$('#b-py').onclick=function(){setLang('py')};
+var th=ls('dsa-theme');if(th)document.documentElement.dataset.theme=th;
+$('#b-theme').onclick=function(){var d=document.documentElement,dark=d.dataset.theme?d.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;d.dataset.theme=dark?'light':'dark';ls('dsa-theme',d.dataset.theme)};
+/* progress (saved in this browser only) */
+function load(){try{return JSON.parse(ls('dsa-progress')||'{}')}catch(e){return {}}}
+var prog=load();
+function refresh(){var boxes=$$('.pk'),n=0;
+ boxes.forEach(function(b){var on=!!prog[b.dataset.k];b.checked=on;b.closest('tr').classList.toggle('done',on);if(on)n++});
+ $('#prog').textContent=n+' / '+boxes.length+' solved';$('#pbar').style.width=(boxes.length?100*n/boxes.length:0)+'%';
+ $$('.pat').forEach(function(p){var bx=$$('.pk',p),d=bx.filter(function(c){return c.checked}).length,e=$('.pp',p),s=$('nav.side a[href="#'+p.id+'"] .cnt');
+  if(e)e.textContent=d+' / '+bx.length+' solved';if(s)s.textContent=d+'/'+bx.length})}
+$$('.pk').forEach(function(b){b.onchange=function(){if(b.checked)prog[b.dataset.k]=1;else delete prog[b.dataset.k];ls('dsa-progress',JSON.stringify(prog));refresh()}});
+refresh();
+/* copy buttons */
+$$('.cp').forEach(function(e){e.remove()});
+$$('pre').forEach(function(p){var b=document.createElement('button');b.className='cp';b.textContent='Copy';b.onclick=function(){var t=p.querySelector('code').textContent;try{navigator.clipboard.writeText(t);b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1200)}catch(e){}};p.appendChild(b)});
+/* scroll spy */
+var links=$$('nav.side a');
+if('IntersectionObserver' in window&&links.length){var map={};links.forEach(function(a){map[a.getAttribute('href').slice(1)]=a});
+ var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(a){a.classList.remove('act')});var a=map[e.target.id];if(a)a.classList.add('act')}})},{rootMargin:'-70px 0px -70% 0px'});
+ Object.keys(map).forEach(function(id){var t=document.getElementById(id);if(t)io.observe(t)})}
+/* download */
+$('#b-dl').onclick=function(){
+ var clone=document.documentElement.cloneNode(true);
+ $$('.stepper',clone).forEach(function(e){e.innerHTML=''});$$('.cp',clone).forEach(function(e){e.remove()});
+ $$('.pk',clone).forEach(function(e){e.removeAttribute('checked')});$$('tr.done',clone).forEach(function(e){e.classList.remove('done')});
+ $$('a.act',clone).forEach(function(e){e.classList.remove('act')});
+ var h='<!DOCTYPE html>\n'+clone.outerHTML,blob=new Blob([h],{type:'text/html'}),a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);a.download=body.dataset.file||'topic.html';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)};
+/* animated stepper */
+function stepper(el){
+ var steps=SIM[el.dataset.sim](),i=0,timer=null,speed=1300,max=0;
+ steps.forEach(function(s){max=Math.max(max,s.a.length)});
+ el.setAttribute('tabindex','0');el.setAttribute('aria-label','Step-by-step animation');
+ el.innerHTML='<div class="st-prog"><i></i></div><div class="st-view"></div><div class="st-aux"></div><div class="st-note" aria-live="polite"></div>'+
+  '<div class="st-ctl"><button data-a="prev" title="Previous (←)">◀</button><button data-a="play" title="Play / pause (space)">▶ Play</button><button data-a="next" title="Next (→)">▶|</button><button data-a="reset" title="Restart">↺</button>'+
+  '<input type="range" min="0" max="'+(steps.length-1)+'" value="0" aria-label="Step"><select aria-label="Speed"><option value="2200">Slow</option><option value="1300" selected>Normal</option><option value="600">Fast</option></select><span class="st-count"></span></div>';
+ var view=$('.st-view',el),aux=$('.st-aux',el),note=$('.st-note',el),cnt=$('.st-count',el),play=$('[data-a=play]',el),bar=$('.st-prog i',el),rg=$('input',el),sel=$('select',el);
+ var cells=[],h='';for(var k=0;k<max;k++)h+='<div class="cellw"><div class="ptr"></div><div class="cell"></div><div class="idx">'+k+'</div></div>'+(k<max-1?'<div class="edge"></div>':'');
+ view.innerHTML=h;$$('.cellw',view).forEach(function(w){cells.push({w:w,p:$('.ptr',w),c:$('.cell',w),v:null})});var edges=$$('.edge',view);
+ function draw(){var s=steps[i],lab={};Object.keys(s.ptr||{}).forEach(function(k){var ix=s.ptr[k];(lab[ix]=lab[ix]||[]).push(k)});
+  cells.forEach(function(o,ix){if(ix>=s.a.length){o.w.style.display='none';return}o.w.style.display='';
+   var v=String(s.a[ix]);if(o.v!==null&&o.v!==v){o.c.classList.remove('pop');void o.c.offsetWidth;o.c.classList.add('pop')}
+   o.v=v;o.c.textContent=v;
+   o.c.className='cell'+((s.hi||[]).indexOf(ix)>=0?' in':'')+((s.ok||[]).indexOf(ix)>=0?' ok':'')+((s.dim||[]).indexOf(ix)>=0?' dim':'')+(o.c.classList.contains('pop')?' pop':'');
+   o.p.innerHTML=lab[ix]?'<b>'+lab[ix].join(', ')+'</b>':''});
+  edges.forEach(function(g,k){var t=k<s.a.length-1?(s.edges?(s.edges[k]||''):(s.link?'→':'')):'';g.textContent=t;g.style.display=t?'':'none'});
+  if(s.aux){aux.innerHTML='<span class="al">'+s.aux.label+'</span>'+s.aux.items.map(function(t){return '<span class="chip">'+String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span>'}).join('')}else aux.innerHTML='';
+  note.textContent=s.note;cnt.textContent=(i+1)+' / '+steps.length;bar.style.width=(100*(i+1)/steps.length)+'%';rg.value=i}
+ function stop(){if(timer){clearInterval(timer);timer=null;play.textContent='▶ Play'}}
+ function go(n){i=Math.max(0,Math.min(steps.length-1,n));draw()}
+ function start(){if(i>=steps.length-1)i=0;play.textContent='❚❚ Pause';draw();timer=setInterval(function(){if(i<steps.length-1){i++;draw()}else stop()},speed)}
+ $('[data-a=prev]',el).onclick=function(){stop();go(i-1)};$('[data-a=next]',el).onclick=function(){stop();go(i+1)};
+ $('[data-a=reset]',el).onclick=function(){stop();go(0)};play.onclick=function(){timer?stop():start()};
+ rg.oninput=function(){stop();go(+rg.value)};sel.onchange=function(){speed=+sel.value;if(timer){stop();start()}};
+ el.onkeydown=function(e){if(e.target!==el)return;if(e.key==='ArrowRight'){stop();go(i+1);e.preventDefault()}else if(e.key==='ArrowLeft'){stop();go(i-1);e.preventDefault()}else if(e.key===' '){timer?stop():start();e.preventDefault()}};
+ draw()}
+$$('.stepper').forEach(stepper);
+
+})();</script>
+</body></html>

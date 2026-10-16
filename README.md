@@ -14,7 +14,8 @@ Every page has a **Download** button (and the index has one per topic), so frien
 | 02 | [Arrays, Hashing and Searching](topics/02_arrays.html) | done |
 | 03 | [Strings](topics/03_strings.html) | done |
 | 04 | [Linked Lists](topics/04_linked_list.html) | done |
-| 05-19 | see [ROADMAP.md](ROADMAP.md) | planned |
+| 05 | [Stacks, Queues and Deques](topics/05_stack_queue.html) | done |
+| 06-19 | see [ROADMAP.md](ROADMAP.md) | planned |
 
 ## For contributors
 
@@ -25,5 +26,5 @@ python build/build.py      # writes index.html and topics/*.html
 ```
 
 - `build/lib.py`: page renderer; `build/style.css`: design; `build/engine.js`: page behaviour and the animated stepper; `build/sims.js`: the animations
-- `build/arrays.py`, `build/foundations.py`, `build/strings.py`, `build/linked_list.py`: topic content (copy one as the starting point for a new topic)
+- `build/arrays.py`, `build/foundations.py`, `build/strings.py`, `build/linked_list.py`, `build/stack_queue.py`: topic content (copy one as the starting point for a new topic)
 - `build/build.py`: the topic catalogue and landing page

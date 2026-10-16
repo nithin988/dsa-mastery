@@ -12,7 +12,7 @@ Each topic is one self-contained HTML file (`topics/NN_name.html`) with a built-
 | 02 | `02_arrays` | Arrays, hashing, searching | Two pointers, sliding window (fixed/variable), prefix sum, Kadane, hashing, Dutch flag, binary search (basic, on answer, rotated), quick select/merge sort, specialised tricks | **done** (11 patterns, 77 problems) |
 | 03 | `03_strings` | Strings | Frequency counting, two pointers, expand around centre, sliding window, KMP / Z / rolling hash, stack parsing, in-place edits, character arithmetic | **done** (8 patterns, 53 problems) |
 | 04 | `04_linked_list` | Linked lists | Dummy node, reversal, fast/slow (Floyd), merge and sort, runner gap, split-reverse-merge, two chains and carry, LRU design | **done** (8 patterns, 36 problems) |
-| 05 | `05_stack_queue` | Stacks, queues, deques | Monotonic stack/queue, expression parsing, min-stack, BFS queue, sliding-window maximum | planned |
+| 05 | `05_stack_queue` | Stacks, queues, deques | Stack bookkeeping, monotonic stack (next greater, ranges), two-stack queue, BFS, monotonic deque, expression evaluation, greedy stack, circular buffers | **done** (9 patterns, 47 problems) |
 | 06 | `06_sorting_intervals` | Sorting and intervals | Merge/quick/counting sort, custom comparators, merge intervals, sweep line, meeting rooms | planned |
 | 07 | `07_recursion_backtracking` | Recursion and backtracking | Subsets, permutations, combinations, constraint search (N-Queens, Sudoku), pruning, dedupe | planned |
 | 08 | `08_bit_math` | Bit manipulation and math | XOR tricks, masks, counting bits, gcd/sieve, modular arithmetic, fast power | planned |

@@ -12,6 +12,7 @@ import arrays  # noqa: E402
 import foundations  # noqa: E402
 import strings  # noqa: E402
 import linked_list  # noqa: E402
+import stack_queue  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -21,7 +22,7 @@ CATALOG = [
     ("02_arrays", "Arrays, Hashing and Searching", "Two pointers, sliding window, prefix sum, Kadane, hashing, binary search, quick select", arrays.TOPIC),
     ("03_strings", "Strings", "Counting, palindromes, windows, KMP, stack parsing, in-place edits", strings.TOPIC),
     ("04_linked_list", "Linked Lists", "Dummy node, reversal, fast/slow, merge, runner gap, LRU design", linked_list.TOPIC),
-    ("05_stack_queue", "Stacks, Queues and Deques", "Monotonic stack/queue, parsing, min-stack", None),
+    ("05_stack_queue", "Stacks, Queues and Deques", "Monotonic stack and deque, BFS, expression evaluation, greedy stack, circular buffers", stack_queue.TOPIC),
     ("06_sorting_intervals", "Sorting and Intervals", "Custom sorts, merge intervals, sweep line", None),
     ("07_recursion_backtracking", "Recursion and Backtracking", "Subsets, permutations, N-Queens, pruning", None),
     ("08_bit_math", "Bit Manipulation and Math", "XOR tricks, masks, gcd, sieve, fast power", None),

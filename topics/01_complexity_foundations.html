@@ -657,7 +657,78 @@ lru:function(){var S=[],L=[],cap=3;
  P('put(4, D): the cache is full, so evict the node at the back (key 2).',{dim:[2]});
  L.pop();P('Unlink the tail node and delete key 2 from the map.');
  L.unshift([4,'D']);P('Insert key 4 at the front. Both get and put are O(1).',{ok:[0]});
- P('get(2): not in the map, so return −1 immediately. Dummy head and tail nodes make every unlink and insert free of null checks.');return S}};
+ P('get(2): not in the map, so return −1 immediately. Dummy head and tail nodes make every unlink and insert free of null checks.');return S},
+minstack:function(){var st=[],mins=[],S=[];
+ function P(n,ok){S.push({a:st.slice(),ptr:st.length?{top:st.length-1}:{},ok:ok||[],aux:{label:'min so far, per entry',items:mins.length?mins.slice():['(empty)']},note:n})}
+ function push(x){var m=mins.length?Math.min(x,mins[mins.length-1]):x;st.push(x);mins.push(m);P('push('+x+'): store the value and the minimum of everything below and including it → '+m+'.',[st.length-1])}
+ function pop(){var v=st.pop();mins.pop();P('pop() removes '+v+' and its stored minimum together, so the previous minimum is back instantly.')}
+ function gm(){P('getMin() = '+mins[mins.length-1]+' (just read the top of the min column: O(1)).',[st.length-1])}
+ P('Min Stack: every entry remembers the minimum of the stack up to itself, so getMin is O(1).');
+ push(5);push(3);push(7);push(3);gm();pop();gm();pop();pop();gm();return S},
+nge:function(){var t=[73,74,75,71,69,72,76,73],S=[],st=[],ans=t.map(function(){return 0});
+ function A(){return {label:'stack (index:temp)',items:(st.length?st.map(function(j){return j+':'+t[j]}):['empty']).concat(['answers = ['+ans.join(',')+']'])}}
+ S.push({a:t,ptr:{},aux:A(),note:'Days until a warmer temperature. The stack holds indices still waiting for a warmer day; temperatures on it are decreasing.'});
+ for(var i=0;i<t.length;i++){
+  while(st.length&&t[i]>t[st[st.length-1]]){var j=st.pop();ans[j]=i-j;S.push({a:t,ptr:{i:i,popped:j},hi:[i],ok:[j],aux:A(),note:t[i]+' > '+t[j]+': day '+j+' found its warmer day. answer['+j+'] = '+i+' − '+j+' = '+ans[j]+'.'})}
+  st.push(i);S.push({a:t,ptr:{i:i},hi:[i],aux:A(),note:'Push index '+i+' ('+t[i]+'): it now waits for something warmer.'})}
+ S.push({a:t,ptr:{},ok:rng(0,t.length-1),aux:A(),note:'Anything left on the stack never found a warmer day (answer 0). Each index is pushed once and popped once: O(n).'});return S},
+hist:function(){var h=[2,1,5,6,2,3],a=h.concat([0]),S=[],st=[],best=0,bl=0,br=-1;
+ function A(){return {label:'stack (index:height)',items:(st.length?st.map(function(j){return j+':'+a[j]}):['empty']).concat(['best area = '+best])}}
+ S.push({a:a,ptr:{},aux:A(),note:'Largest rectangle in a histogram (a sentinel 0 is added at the end to flush the stack). The stack keeps heights increasing; a smaller bar closes every taller bar before it.'});
+ for(var i=0;i<a.length;i++){var cur=a[i];
+  while(st.length&&cur<a[st[st.length-1]]){var top=st.pop(),ht=a[top],left=st.length?st[st.length-1]:-1,w=i-left-1,ar=ht*w;if(ar>best){best=ar;bl=left+1;br=i-1}
+   S.push({a:a,ptr:{i:i,bar:top},hi:rng(left+1,i-1),ok:br>=0?rng(bl,br):[],aux:A(),note:'Bar '+top+' (height '+ht+') ends here: it is taller than '+cur+'. Its rectangle spans indices '+(left+1)+'..'+(i-1)+', width '+w+' × height '+ht+' = '+ar+'.'})}
+  st.push(i);S.push({a:a,ptr:{i:i},hi:[i],ok:br>=0?rng(bl,br):[],aux:A(),note:'Push index '+i+' (height '+cur+').'})}
+ S.push({a:a,ptr:{},ok:rng(bl,br),aux:A(),note:'Largest rectangle = '+best+' (bars '+bl+'..'+br+'). Each bar is pushed and popped once: O(n).'});return S},
+twostack:function(){var inn=[],out=[],S=[];
+ function P(n,hl){S.push({a:inn.concat(out),ptr:{},hi:inn.map(function(_,i){return i}),ok:out.map(function(_,i){return inn.length+i}),aux:{label:'in-stack (push) | out-stack (pop, top at right)',items:['in: ['+inn.join(',')+']','out: ['+out.join(',')+']']},note:n})}
+ function enq(x){inn.push(x);P('enqueue('+x+'): push onto the in-stack.')}
+ function deq(){if(!out.length){var m=inn.length;while(inn.length)out.push(inn.pop());P('out-stack is empty: pour the in-stack into it (reverses the order, moved '+m+' element(s)). Each element is moved at most once.')}
+  var v=out.pop();P('dequeue() pops '+v+' from the out-stack: the oldest element.')}
+ P('Queue (FIFO) from two stacks. Blue = in-stack (new items), green = out-stack (items ready to leave).');
+ enq(1);enq(2);enq(3);deq();enq(4);deq();deq();deq();
+ S.push({a:[],ptr:{},aux:{label:'cost',items:['4 enqueues + 4 dequeues','8 pushes, 8 pops, 4 moves']},note:'Each element moves between stacks at most once, so dequeue is O(1) amortised.'});return S},
+bfs:function(){var adj={0:[1,2],1:[3],2:[3,4],3:[5],4:[5],5:[6],6:[]},nodes=[0,1,2,3,4,5,6],S=[],q=[0],dist={0:0},done=[];
+ function A(){return {label:'queue → front',items:[q.length?q.join(', '):'empty','dist: '+Object.keys(dist).map(function(k){return k+'='+dist[k]}).join(' ')]}}
+ S.push({a:nodes,ptr:{start:0},hi:[0],aux:A(),note:'Shortest path from 0 to every node (edges: 0→1,2  1→3  2→3,4  3→5  4→5  5→6). Queue = nodes discovered but not processed; BFS reaches nodes in order of distance.'});
+ while(q.length){var u=q.shift();var found=[];adj[u].forEach(function(v){if(!(v in dist)){dist[v]=dist[u]+1;q.push(v);found.push(v)}});done.push(u);
+  S.push({a:nodes,ptr:{cur:u},hi:q.slice(),ok:[u],dim:done.filter(function(x){return x!==u}),aux:A(),note:'Dequeue '+u+' (distance '+dist[u]+'). '+(found.length?'Enqueue unseen neighbours '+found.join(', ')+' with distance '+(dist[u]+1)+'.':'No unseen neighbours.')})}
+ S.push({a:nodes,ptr:{},ok:rng(0,6),aux:A(),note:'Shortest distance to node 6 is '+dist[6]+'. Mark nodes as seen when you ENQUEUE them so none enters the queue twice. O(V + E).'});return S},
+dequemax:function(){var a=[1,3,-1,-3,5,3,6,7],k=3,S=[],dq=[],res=[];
+ function A(){return {label:'deque (index:value), front = max',items:(dq.length?dq.map(function(j){return j+':'+a[j]}):['empty']).concat(['result = ['+res.join(',')+']'])}}
+ S.push({a:a,ptr:{},aux:A(),note:'Maximum of every window of size 3. The deque keeps indices whose values are decreasing, so the front is always the window maximum.'});
+ for(var i=0;i<a.length;i++){var msg=[];
+  if(dq.length&&dq[0]<=i-k){msg.push('drop front '+dq[0]+' (left the window)');dq.shift()}
+  var rem=[];while(dq.length&&a[dq[dq.length-1]]<=a[i]){rem.push(dq.pop())}
+  if(rem.length)msg.push('pop back '+rem.join(', ')+' (smaller than '+a[i]+', they can never be a max again)');
+  dq.push(i);msg.push('push '+i);
+  if(i>=k-1){res.push(a[dq[0]]);msg.push('window max = '+a[dq[0]])}
+  S.push({a:a,ptr:{i:i},hi:rng(Math.max(0,i-k+1),i),ok:i>=k-1?[dq[0]]:[],aux:A(),note:'i = '+i+': '+msg.join('; ')+'.'})}
+ S.push({a:a,ptr:{},ok:rng(0,a.length-1),aux:A(),note:'Result = ['+res.join(', ')+']. Every index is pushed and popped once: O(n).'});return S},
+calc:function(){var s='3+2*2'.split(''),S=[],st=[],num=0,sign='+';
+ function A(){return {label:'number stack',items:[st.length?'['+st.join(', ')+']':'empty','sign = '+sign,'num = '+num]}}
+ S.push({a:s,ptr:{},aux:A(),note:'Evaluate 3+2*2 without parentheses. Push numbers on a stack; * and / are applied immediately to the top, + and − are deferred (negate for −). Sum the stack at the end.'});
+ for(var i=0;i<s.length;i++){var c=s[i],isd=/\d/.test(c),n;
+  if(isd){num=num*10+(+c);n='Digit '+c+': number so far = '+num+'.'}
+  if(!isd||i===s.length-1){n=(isd?n+' End of input: ':'Operator \''+c+'\' ends the number '+num+'. ')+'Apply the PREVIOUS sign \''+sign+'\': ';
+   if(sign==='+'){st.push(num);n+='push '+num+'.'}else if(sign==='-'){st.push(-num);n+='push '+(-num)+'.'}else if(sign==='*'){var t=st.pop();st.push(t*num);n+='top '+t+' × '+num+' = '+(t*num)+'.'}else{var t2=st.pop();st.push(Math.trunc(t2/num));n+='top '+t2+' ÷ '+num+'.'}
+   sign=isd?sign:c;num=0}
+  S.push({a:s,ptr:{i:i},hi:[i],aux:A(),note:n})}
+ var total=st.reduce(function(x,y){return x+y},0);
+ S.push({a:s,ptr:{},ok:rng(0,s.length-1),aux:A(),note:'Sum of the stack = '+total+'. O(n) time, O(n) space.'});return S},
+removek:function(){var d='1432219'.split(''),k=3,S=[],st=[];
+ function A(){return {label:'stack (digits kept)',items:[st.length?st.join(' '):'empty','k left = '+k]}}
+ S.push({a:d,ptr:{},aux:A(),note:'Remove 3 digits to make the smallest number. Greedy: if a digit is larger than the one after it, deleting it helps. A stack keeps the digits increasing.'});
+ for(var i=0;i<d.length;i++){var c=d[i],rm=[];while(k>0&&st.length&&st[st.length-1]>c){rm.push(st.pop());k--}
+  st.push(c);S.push({a:d,ptr:{i:i},hi:[i],aux:A(),note:'Digit '+c+': '+(rm.length?'pop '+rm.join(', ')+' (larger and earlier, so removing helps), then push.':'nothing larger on top, push.')})}
+ S.push({a:d,ptr:{},ok:rng(0,d.length-1),aux:A(),note:'k reached 0, so the result is "'+st.join('')+'". (If k is left over, trim digits from the end; then strip leading zeros.) O(n).'});return S},
+circular:function(){var buf=['','','',''],head=0,tail=0,size=0,S=[];
+ function P(n,ok){S.push({a:buf.slice(),ptr:{head:head,tail:tail},ok:ok||[],aux:{label:'state',items:['size = '+size,'capacity = 4','head = '+head,'tail = '+tail]},note:n})}
+ function enq(x){if(size===4){P('enqueue('+x+') fails: the queue is full (size == capacity). Note head == tail here, so a separate size counter tells full from empty.');return}
+  buf[tail]=x;var w=tail;tail=(tail+1)%4;size++;P('enqueue('+x+'): write at tail, then tail = (tail + 1) % 4'+(w===3?' (wraps to 0)':'')+'.',[w])}
+ function deq(){if(!size){P('dequeue on empty queue fails.');return}var v=buf[head];buf[head]='';head=(head+1)%4;size--;P('dequeue() returns '+v+': read at head, head = (head + 1) % 4.')}
+ P('Circular queue in a fixed array of 4 slots: head = next to remove, tail = next free slot. Indices wrap around with % capacity, so no shifting is ever needed.');
+ enq('A');enq('B');enq('C');enq('D');enq('E');deq();enq('E');deq();deq();return S}};
 
 var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
