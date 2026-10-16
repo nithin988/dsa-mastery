@@ -1,0 +1,88 @@
+# DSA Mastery Roadmap
+
+Goal: a person who finishes this series can recognise the pattern behind a new problem, derive the solution, state its complexity, and clear product-company interviews.
+
+Each topic is one self-contained HTML file (`topics/NN_name.html`) with a built-in **Download** button, so it works offline and can be shared on its own.
+
+## Phases and topics
+
+| # | File | Topic | Patterns covered | Status |
+|---|------|-------|------------------|--------|
+| 01 | `01_complexity_foundations` | Complexity and problem-solving method | Big-O, amortised cost, constraints-to-complexity table, how to read a problem, dry-running | planned |
+| 02 | `02_arrays` | Arrays, hashing, searching | Two pointers, sliding window (fixed/variable), prefix sum, Kadane, hashing, Dutch flag, binary search (basic, on answer, rotated), quick select | to upgrade (sample) |
+| 03 | `03_strings` | Strings | Palindromes, anagram/frequency windows, KMP / Z / Rabin-Karp, parsing, string DP hooks | planned |
+| 04 | `04_linked_list` | Linked lists | Fast/slow pointers, reversal, merge, dummy node, cycle (Floyd), LRU design | planned |
+| 05 | `05_stack_queue` | Stacks, queues, deques | Monotonic stack/queue, expression parsing, min-stack, BFS queue, sliding-window maximum | planned |
+| 06 | `06_sorting_intervals` | Sorting and intervals | Merge/quick/counting sort, custom comparators, merge intervals, sweep line, meeting rooms | planned |
+| 07 | `07_recursion_backtracking` | Recursion and backtracking | Subsets, permutations, combinations, constraint search (N-Queens, Sudoku), pruning, dedupe | planned |
+| 08 | `08_bit_math` | Bit manipulation and math | XOR tricks, masks, counting bits, gcd/sieve, modular arithmetic, fast power | planned |
+| 09 | `09_trees` | Binary trees and BST | DFS (pre/in/post), BFS levels, path sums, LCA, serialize, BST invariants, tree DP | planned |
+| 10 | `10_heap_priority_queue` | Heaps | Top-K, two heaps (median), k-way merge, scheduling, lazy deletion | planned |
+| 11 | `11_trie` | Tries | Prefix search, word dictionary, XOR trie, board search | planned |
+| 12 | `12_graphs_traversal` | Graph traversal | BFS, DFS, grid problems, connected components, multi-source BFS, cycle detection | planned |
+| 13 | `13_graphs_advanced` | Advanced graphs | Topological sort, union-find, Dijkstra, Bellman-Ford, MST, bridges/SCC | planned |
+| 14 | `14_greedy` | Greedy | Exchange argument, interval scheduling, jump game, task scheduling, proof sketches | planned |
+| 15 | `15_dp_1d_2d` | Dynamic programming I | Fibonacci-style, grid paths, house robber, coin change, LIS, state definition method | planned |
+| 16 | `16_dp_advanced` | Dynamic programming II | Knapsack family, string DP (LCS, edit distance), interval DP, bitmask DP, tree DP, digit DP | planned |
+| 17 | `17_advanced_ds` | Advanced data structures | Segment tree, Fenwick (BIT), sparse table, monotonic deque optimisations | planned |
+| 18 | `18_design_problems` | Design-style problems | LRU/LFU, iterators, rate limiter, Twitter feed, time-based key-value | planned |
+| 19 | `19_interview_playbook` | Interview playbook | Pattern selector across all topics, communication script, edge-case checklist, company-wise lists, 12-week plan | planned |
+
+Suggested build order: 02 (upgrade, sets the template) -> 03 -> 04 -> 05 -> 09 -> 12 -> 15 -> remaining.
+
+## Sources to cross-check each topic against
+
+- NeetCode 150 / Blind 75 (pattern grouping and frequency)
+- Grind 75 (ordering by difficulty)
+- Striver's A2Z sheet and Love Babbar 450 (coverage for Indian product-company interviews)
+- Sean Prashad's LeetCode patterns (pattern-to-problem mapping)
+- CP-Algorithms and CLRS (correctness and complexity)
+- Company-tagged LeetCode lists (frequency)
+
+Every problem entry states the source list it belongs to, so frequency claims stay honest.
+
+## Page template (what every topic file contains)
+
+The sample `02_arrays.html` is a good base. What we keep, and what we add:
+
+| Section | In sample | Plan |
+|---------|-----------|------|
+| Mindset + 3 questions to ask | yes | keep |
+| Pattern priority index (frequency tiers) | yes | keep, add source list per row |
+| Problem-cue selector | yes | keep |
+| Per pattern: when / detect / core idea / how it works / trace / skeleton / complexity / traps / when not | yes | keep |
+| **Intuition** (a real-world analogy plus "why does this work") | no | add to every pattern |
+| **Brute force -> optimised** story | no | add, with the complexity drop shown |
+| **Visual step-through** (small animated or step-by-step diagram per pattern) | no | add, so friends can watch the algorithm run |
+| **Problem ladder** per pattern: Easy -> Medium -> Hard, each with LC number, link, one-line logic, time/space | partial (names only) | add |
+| Code in Java only | Java | Java plus Python tabs (C++ later if wanted) |
+| Variants and follow-ups ("what if sorted / streaming / negatives") | no | add |
+| Common mistakes seen in interviews | partial (Traps) | keep, expand |
+| Self-test (5 quick questions with hidden answers) | no | add |
+| Progress checklist (tick problems, saved in the browser) | no | add |
+| Working table of contents and anchors | links were broken in the sample | fix |
+| Dark/light mode, print styles, mobile layout | print only | add |
+| **Download button** (saves the page as a standalone `.html`) | no | add to every page |
+
+Fixes noticed in the sample: the contents list shows raw `[text](#anchor)` because the Markdown links were not converted; the 3-pointer "Dutch flag" and "variable window" traces are vague (`bca...`, `swap/scan`) and should be full step-by-step traces.
+
+## Repo structure
+
+```
+dsa-mastery/
+  README.md              landing page: topic list, how to study, download links
+  ROADMAP.md             this file
+  index.html             GitHub Pages landing page (cards for every topic)
+  topics/NN_name.html    one self-contained file per topic
+  docs/                  template spec, contribution notes
+```
+
+Sharing: enable GitHub Pages so friends open `https://nithin988.github.io/dsa-mastery/` and read online; each page has a Download button, and the README links to the raw files as well.
+
+## Definition of done for a topic
+
+1. Every pattern has intuition, trace, skeleton, complexity and traps.
+2. Each pattern has a 6-10 problem ladder (Easy to Hard) with LC links and one-line logic.
+3. Cross-checked against at least two of the source lists above.
+4. Code in Java and Python is run against the example inputs.
+5. Opens correctly offline, in dark mode, on mobile, and prints cleanly.
