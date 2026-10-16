@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from lib import render_topic, CSS  # noqa: E402
 import arrays  # noqa: E402
 import foundations  # noqa: E402
+import strings  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -17,7 +18,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CATALOG = [
     ("01_complexity_foundations", "Complexity and Problem-Solving Method", "Big-O, constraints to complexity, brute force to optimal, interview method", foundations.TOPIC),
     ("02_arrays", "Arrays, Hashing and Searching", "Two pointers, sliding window, prefix sum, Kadane, hashing, binary search, quick select", arrays.TOPIC),
-    ("03_strings", "Strings", "Palindromes, frequency windows, KMP / Z / Rabin-Karp", None),
+    ("03_strings", "Strings", "Counting, palindromes, windows, KMP, stack parsing, in-place edits", strings.TOPIC),
     ("04_linked_list", "Linked Lists", "Fast/slow pointers, reversal, merge, cycle detection, LRU", None),
     ("05_stack_queue", "Stacks, Queues and Deques", "Monotonic stack/queue, parsing, min-stack", None),
     ("06_sorting_intervals", "Sorting and Intervals", "Custom sorts, merge intervals, sweep line", None),
@@ -66,7 +67,7 @@ def index_html():
     extra = """
 .hero{padding:34px 0 8px}.hero h1{font-size:32px;margin:0 0 8px;border:0}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin:18px 0}
-.card{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--card);display:flex;flex-direction:column;opacity:.65}
+.card{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--surf);display:flex;flex-direction:column;opacity:.65}
 .card.live{opacity:1;border-color:var(--acc)}
 .card h3{margin:2px 0 4px}.card p{margin:0 0 8px;color:var(--mut);font-size:13.5px;flex:1}
 .num{font:700 12px Consolas,monospace;color:var(--acc)}.meta{font-size:12px;color:var(--mut);margin-bottom:8px}
@@ -76,7 +77,7 @@ def index_html():
     return f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DSA Mastery</title><style>{CSS}{extra}</style></head>
-<body><main>
+<body><main style="max-width:1000px;margin:0 auto;padding:24px 16px 80px">
 <div class="hero"><h1>DSA Mastery</h1>
 <p class="lead">Pattern-based revision sheets to build real problem-solving skill for product-company interviews. Each topic has the intuition, a step-through animation, code in Java and Python, complexity, common traps and a ladder of LeetCode problems. Every page works offline: use <strong>Download</strong> to keep a copy.</p></div>
 <div class="grid">{''.join(cards)}</div>
@@ -86,6 +87,10 @@ def index_html():
 
 
 def main():
+    built = [(f, t, topic) for f, t, _b, topic in CATALOG if topic]
+    for k, (f, t, topic) in enumerate(built):
+        topic["prev"] = (built[k - 1][0], built[k - 1][1]) if k else None
+        topic["next"] = (built[k + 1][0], built[k + 1][1]) if k + 1 < len(built) else None
     for f, _t, _b, topic in CATALOG:
         if topic:
             write(os.path.join(ROOT, "topics", f + ".html"), render_topic(topic))

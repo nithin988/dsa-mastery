@@ -10,7 +10,7 @@ Each topic is one self-contained HTML file (`topics/NN_name.html`) with a built-
 |---|------|-------|------------------|--------|
 | 01 | `01_complexity_foundations` | Complexity and problem-solving method | Big-O, constraints to complexity, amortised cost, space and recursion stack, recurrences, brute force to optimal, interview method, edge cases, hidden library costs | **done** (9 concepts, 54 problems) |
 | 02 | `02_arrays` | Arrays, hashing, searching | Two pointers, sliding window (fixed/variable), prefix sum, Kadane, hashing, Dutch flag, binary search (basic, on answer, rotated), quick select/merge sort, specialised tricks | **done** (11 patterns, 77 problems) |
-| 03 | `03_strings` | Strings | Palindromes, anagram/frequency windows, KMP / Z / Rabin-Karp, parsing, string DP hooks | planned |
+| 03 | `03_strings` | Strings | Frequency counting, two pointers, expand around centre, sliding window, KMP / Z / rolling hash, stack parsing, in-place edits, character arithmetic | **done** (8 patterns, 53 problems) |
 | 04 | `04_linked_list` | Linked lists | Fast/slow pointers, reversal, merge, dummy node, cycle (Floyd), LRU design | planned |
 | 05 | `05_stack_queue` | Stacks, queues, deques | Monotonic stack/queue, expression parsing, min-stack, BFS queue, sliding-window maximum | planned |
 | 06 | `06_sorting_intervals` | Sorting and intervals | Merge/quick/counting sort, custom comparators, merge intervals, sweep line, meeting rooms | planned |

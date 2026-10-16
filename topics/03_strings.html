@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Strings — Pattern Guide</title><style>:root{--bg:#f6f7fb;--surf:#fff;--fg:#151a26;--mut:#5b6579;--line:#e2e6ef;--soft:#f0f2f8;--acc:#4f46e5;--acc-soft:#eceafe;--cool:#0e7490;--cool-soft:#e0f4f8;
+--hot:#c2410c;--hot-soft:#ffedd5;--ok:#15803d;--ok-soft:#dcfce7;--warn:#b45309;--warn-soft:#fef3c7;--bad:#b91c1c;--code:#f3f4f9;--shadow:0 1px 2px rgba(20,26,40,.06),0 4px 16px rgba(20,26,40,.05)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0c0f16;--surf:#131824;--fg:#e8ebf3;--mut:#9ba5ba;--line:#252c3c;--soft:#1a2030;--acc:#8e96ff;--acc-soft:#232855;--cool:#35c3e0;--cool-soft:#0f2f38;--hot:#fb923c;--hot-soft:#3a2312;--ok:#4ade80;--ok-soft:#12361f;--warn:#fbbf24;--warn-soft:#3a2c0b;--bad:#f87171;--code:#181e2c;--shadow:none}}
+:root[data-theme=dark]{--bg:#0c0f16;--surf:#131824;--fg:#e8ebf3;--mut:#9ba5ba;--line:#252c3c;--soft:#1a2030;--acc:#8e96ff;--acc-soft:#232855;--cool:#35c3e0;--cool-soft:#0f2f38;--hot:#fb923c;--hot-soft:#3a2312;--ok:#4ade80;--ok-soft:#12361f;--warn:#fbbf24;--warn-soft:#3a2c0b;--bad:#f87171;--code:#181e2c;--shadow:none}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:15.5px/1.65 "Inter",-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--acc)}
+code{background:var(--code);padding:1px 6px;border-radius:5px;font:0.88em ui-monospace,"Cascadia Code",Consolas,Menlo,monospace}
+.mut,.muted{color:var(--mut)}.muted{font-size:13px;font-weight:400}
+/* top bar */
+.bar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--surf) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar-in{max-width:1180px;margin:0 auto;display:flex;gap:8px;align-items:center;padding:8px 16px}
+.brand{font-weight:800;text-decoration:none;color:var(--fg);margin-right:auto;letter-spacing:-.01em}.brand b{color:var(--acc)}
+.prog{font-size:13px;color:var(--mut);white-space:nowrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{border:0;border-radius:0;background:transparent}
+.bar button,.st-ctl button,.st-ctl select{font:inherit;font-size:13px;padding:6px 12px;border:1px solid var(--line);border-radius:9px;background:var(--surf);color:var(--fg);cursor:pointer}
+.bar button:hover,.st-ctl button:hover{border-color:var(--acc);color:var(--acc)}
+.bar button.on{background:var(--acc);color:#fff}
+.pbar{height:3px;background:var(--line)}.pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--cool));transition:width .4s}
+/* layout */
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px;display:grid;grid-template-columns:240px minmax(0,1fr);gap:36px}
+nav.side{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto;padding:22px 0;font-size:13.5px}
+nav.side h4{margin:14px 0 6px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--mut)}
+nav.side a{display:flex;gap:8px;align-items:center;padding:5px 9px;border-radius:8px;text-decoration:none;color:var(--fg);border-left:3px solid transparent}
+nav.side a:hover{background:var(--soft)}nav.side a.act{background:var(--acc-soft);color:var(--acc);border-color:var(--acc);font-weight:600}
+nav.side .dot{width:8px;height:8px;border-radius:50%;flex:none}.dot.hot{background:var(--hot)}.dot.sec{background:var(--cool)}
+nav.side .cnt{margin-left:auto;font-size:11px;color:var(--mut)}
+main{min-width:0;padding:28px 0 90px}
+.chips{display:none}
+/* hero */
+.hero{background:linear-gradient(135deg,var(--acc-soft),var(--cool-soft));border:1px solid var(--line);border-radius:20px;padding:30px 28px;margin-bottom:26px}
+.eyebrow{font:700 12px ui-monospace,Consolas,monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--acc)}
+.hero h1{font-size:clamp(26px,4vw,38px);line-height:1.15;margin:8px 0 10px;letter-spacing:-.02em}
+.lead{font-size:16.5px;color:var(--mut);margin:0;max-width:70ch}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.stat{background:var(--surf);border:1px solid var(--line);border-radius:99px;padding:4px 13px;font-size:13px}.stat b{color:var(--acc)}
+/* headings */
+h2{font-size:23px;margin:46px 0 10px;letter-spacing:-.01em;scroll-margin-top:72px;display:flex;align-items:center;gap:10px}
+h2::before{content:"";width:5px;height:22px;border-radius:3px;background:linear-gradient(var(--acc),var(--cool))}
+h3{margin:0;font-size:20px;letter-spacing:-.01em}
+.callout{border:1px solid var(--line);border-left:4px solid var(--acc);background:var(--surf);padding:10px 16px;border-radius:10px;margin:14px 0;box-shadow:var(--shadow)}
+.callout.intu{border-left-color:var(--cool);background:var(--cool-soft)}.callout p{margin:4px 0}
+.callout .lbl{margin-bottom:2px}
+/* pattern card */
+.pat{background:var(--surf);border:1px solid var(--line);border-radius:18px;padding:22px 22px 10px;margin:26px 0;box-shadow:var(--shadow);scroll-margin-top:72px;position:relative;overflow:hidden}
+.pat::before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:var(--acc)}.pat.sec::before{background:var(--cool)}
+.pat-h{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.badge{width:34px;height:34px;border-radius:10px;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:none}.sec .badge{background:var(--cool)}
+.tier{font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;white-space:nowrap}.tier.hot{background:var(--hot-soft);color:var(--hot)}.tier.sec{background:var(--cool-soft);color:var(--cool)}
+.pp{margin-left:auto;font-size:12px;color:var(--mut)}
+.glance{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:6px 0 14px}
+.gi{background:var(--soft);border-radius:12px;padding:10px 13px;font-size:14px}
+.lbl{font:700 11px/1.2 ui-monospace,Consolas,monospace;letter-spacing:.09em;text-transform:uppercase;color:var(--acc);margin-bottom:4px;display:block}
+.blk{margin:14px 0}.blk p{margin:4px 0}
+.blk ol,.blk ul{margin:4px 0;padding-left:22px}.blk li{margin:3px 0}
+.blk.warn .lbl{color:var(--warn)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cx{background:var(--ok-soft);color:var(--ok);border-radius:10px;padding:8px 13px;font-weight:600;font-size:14px;margin:12px 0}
+/* code */
+pre{background:var(--code);border:1px solid var(--line);border-radius:12px;padding:13px 15px;overflow-x:auto;margin:8px 0;position:relative;font-size:13px;line-height:1.55}
+pre code{background:none;padding:0;font-size:inherit}
+.code-java,.code-py{display:none}body[data-lang=java] .code-java,body[data-lang=py] .code-py{display:block}
+.cp{position:absolute;top:7px;right:7px;font-size:11px;padding:2px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surf);color:var(--mut);cursor:pointer;opacity:0;transition:.15s}
+pre:hover .cp,.cp:focus{opacity:1}
+.trace{border-left:3px solid var(--warn)}
+/* tables */
+.tw{overflow-x:auto;margin:10px 0;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;background:var(--surf)}
+th,td{padding:8px 11px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:var(--soft);font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}tr:last-child td{border-bottom:0}
+.ladder td:first-child{width:34px;text-align:center}.ladder .t{white-space:nowrap}.ladder .c{white-space:nowrap;font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+input.pk{width:17px;height:17px;accent-color:var(--acc);cursor:pointer}
+.pill{font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:99px;white-space:nowrap}.dE{background:var(--ok-soft);color:var(--ok)}.dM{background:var(--warn-soft);color:var(--warn)}.dH{background:var(--hot-soft);color:var(--bad)}
+tr.done td{background:var(--ok-soft)}tr.done td:nth-child(3){text-decoration:line-through;text-decoration-color:var(--mut)}
+details{border:1px solid var(--line);border-radius:12px;padding:9px 14px;margin:8px 0;background:var(--surf)}summary{cursor:pointer;font-weight:600}details[open]{border-color:var(--acc)}details p{margin:8px 0 2px;color:var(--mut)}
+/* stepper */
+.stepper{border:1px solid var(--line);border-radius:16px;padding:14px;margin:8px 0 14px;background:linear-gradient(var(--soft),var(--surf));outline:none}
+.stepper:focus-visible{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-soft)}
+.st-prog{height:4px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:10px}.st-prog i{display:block;height:100%;background:var(--acc);width:0;transition:width .3s}
+.st-view{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;padding:6px 0 2px}
+.cellw{display:flex;flex-direction:column;align-items:center;min-width:46px}
+.ptr{min-height:22px;font:700 11px ui-monospace,Consolas,monospace;color:#fff;margin-bottom:3px;display:flex;align-items:flex-end}
+.ptr b{background:var(--acc);padding:1px 7px;border-radius:99px;white-space:nowrap;animation:drop .25s ease}
+.cell{min-width:46px;height:46px;display:flex;align-items:center;justify-content:center;border:2px solid var(--line);border-radius:11px;background:var(--surf);font:600 16px ui-monospace,Consolas,monospace;padding:0 7px;transition:background .25s,border-color .25s,transform .25s,box-shadow .25s}
+.cell.in{background:var(--acc-soft);border-color:var(--acc);transform:translateY(-2px);box-shadow:0 4px 10px rgba(79,70,229,.18)}
+.cell.ok{background:var(--ok-soft);border-color:var(--ok)}
+.cell.dim{background:var(--soft);color:var(--mut);border-style:dashed;opacity:.6}
+.cell.pop{animation:pop .35s ease}
+.idx{font:11px ui-monospace,Consolas,monospace;color:var(--mut);margin-top:3px}
+.st-aux{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;min-height:30px;margin-top:8px}
+.st-aux .al{font:700 11px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}
+.chip{font:600 12.5px ui-monospace,Consolas,monospace;background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:2px 9px}
+.st-note{min-height:48px;margin:8px 2px;font-size:14.5px;padding:9px 13px;background:var(--surf);border:1px solid var(--line);border-radius:10px}
+.st-ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.st-ctl input[type=range]{flex:1;min-width:90px;accent-color:var(--acc)}
+.st-count{font-size:12px;color:var(--mut);white-space:nowrap}
+@keyframes pop{0%{transform:scale(.75)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes drop{from{transform:translateY(-6px);opacity:0}to{transform:none;opacity:1}}
+.foot{margin-top:50px;padding-top:18px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:14px}
+@media (max-width:1020px){.wrap{display:block}nav.side{display:none}
+ .chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0;position:sticky;top:57px;z-index:10;background:var(--bg)}
+ .chips a{white-space:nowrap;font-size:12.5px;border:1px solid var(--line);background:var(--surf);padding:4px 11px;border-radius:99px;text-decoration:none;color:var(--fg)}}
+@media (max-width:640px){body{font-size:15px}.hero{padding:22px 18px}.pat{padding:16px 14px 6px}.two{grid-template-columns:1fr}.cell{min-width:36px;height:38px;font-size:13.5px}.cellw{min-width:36px}.brand span{display:none}.pp{margin-left:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{.bar,.pbar,nav.side,.chips,.st-ctl,.cp{display:none}.wrap{display:block}.code-java,.code-py{display:block!important}.pat{box-shadow:none;break-inside:avoid-page}body{background:#fff}}
+</style></head>
+<body data-lang="java" data-file="03_strings.html" data-topic="strings">
+<div class="bar"><div class="bar-in"><a class="brand" href="../index.html"><b>DSA</b> <span>Mastery</span></a>
+<span class="prog" id="prog"></span>
+<span class="seg"><button id="b-java" class="on">Java</button><button id="b-py">Python</button></span>
+<button id="b-theme" title="Toggle light / dark" aria-label="Toggle theme">◐</button>
+<button id="b-dl" title="Save this page as a standalone HTML file">⬇ Download</button></div><div class="pbar"><i id="pbar"></i></div></div>
+<div class="wrap"><nav class="side" aria-label="On this page"><h4>Start here</h4><a href="#mindset">The mindset</a><a href="#priority">Priority</a><a href="#cues">Problem cues</a><h4>Patterns</h4><a href="#p1"><span class="dot hot"></span>1. Frequency counting and anagrams<span class="cnt"></span></a><a href="#p2"><span class="dot hot"></span>2. Two pointers on strings<span class="cnt"></span></a><a href="#p3"><span class="dot hot"></span>3. Expand around the centre (palindromic substrings)<span class="cnt"></span></a><a href="#p4"><span class="dot hot"></span>4. Sliding window on strings<span class="cnt"></span></a><a href="#p5"><span class="dot sec"></span>5. String matching: KMP, Z and rolling hash<span class="cnt"></span></a><a href="#p6"><span class="dot hot"></span>6. Stack-based parsing and decoding<span class="cnt"></span></a><a href="#p7"><span class="dot sec"></span>7. In-place edits and simulation<span class="cnt"></span></a><a href="#p8"><span class="dot sec"></span>8. Character arithmetic and two-pass counting<span class="cnt"></span></a><h4>Wrap up</h4><a href="#recall">One-line recall</a><a href="#choose">Choosing</a><a href="#selftest">Self-test</a><a href="#plan">Study plan</a></nav><main><div class="chips"><a href="#p1">1. Frequency counting and anagrams</a><a href="#p2">2. Two pointers on strings</a><a href="#p3">3. Expand around the centre (palindromic substrings)</a><a href="#p4">4. Sliding window on strings</a><a href="#p5">5. String matching: KMP, Z and rolling hash</a><a href="#p6">6. Stack-based parsing and decoding</a><a href="#p7">7. In-place edits and simulation</a><a href="#p8">8. Character arithmetic and two-pass counting</a></div>
+<header class="hero"><div class="eyebrow">Topic 03</div><h1>Strings — Pattern Guide</h1><p class="lead">Strings are arrays of characters with extra rules: immutability, small alphabets, and substring structure. This guide covers counting, two pointers, palindromes, windows, pattern matching, stack parsing, in-place edits and character tricks, each with the intuition, a step-through animation, Java and Python code, and a ladder of LeetCode problems.</p><div class="stats"><span class="stat"><b>8</b> patterns</span><span class="stat"><b>53</b> practice problems</span><span class="stat"><b>8</b> animations</span><span class="stat">Java + Python</span></div></header>
+<div class="callout"><span class="lbl">How to use this page</span><p>For each section: read <em>Detect</em> and <em>Intuition</em>, play the animation, then try to write the skeleton from memory before opening the code. Finish by solving the problem ladder in order.</p></div>
+<h2 id="mindset">The mindset</h2><p>Almost every string problem becomes easy once you ask <strong>what it is really about</strong>: letter counts (hashing), symmetry (two pointers or a centre), a contiguous range (window), repeated structure (a border or a hash), or nesting (a stack). Because strings are immutable, also watch the hidden cost of building them: use <code>StringBuilder</code> / <code>''.join</code>.</p><p>Ask these questions on every string problem:</p><ul><li><strong>Does order matter?</strong> If not, count characters. If yes, think pointers, window or stack.</li><li><strong>Is the answer a substring (contiguous) or a subsequence?</strong> Substring → window or centre; subsequence → pointers or DP.</li><li><strong>How big is the alphabet?</strong> 26 or 128 → a fixed array and O(1) space.</li><li><strong>Is there nesting or a closing token?</strong> → stack.</li><li><strong>Am I building the result with <code>+=</code> in a loop?</strong> → switch to a builder.</li></ul>
+<h2 id="priority">Priority</h2><p class="muted">Ranked by how often these show up in interviews (our judgement from the common interview lists and company question banks, not hard data).</p><h3 style='margin:14px 0 4px;font-size:16px'>🔥 Frequently asked — master these first</h3><div class="tw"><table class=""><thead><tr><th>#</th><th>Pattern</th><th>Why it matters</th><th>Signature problem</th></tr></thead><tbody><tr><td>1</td><td><strong>Frequency counting and anagrams</strong></td><td>Most string questions reduce to "which letters, how many"</td><td>LC 242 / 49</td></tr><tr><td>2</td><td><strong>Two pointers on strings</strong></td><td>Palindromes and in-place reversals are string staples</td><td>LC 125 / 680</td></tr><tr><td>3</td><td><strong>Expand around the centre (palindromic substrings)</strong></td><td>The standard answer to "longest palindromic substring"</td><td>LC 5 / 647</td></tr><tr><td>4</td><td><strong>Sliding window on strings</strong></td><td>"Longest / shortest substring with…" is the most common string pattern</td><td>LC 3 / 76</td></tr><tr><td>6</td><td><strong>Stack-based parsing and decoding</strong></td><td>Nested or balanced structure in strings is always a stack</td><td>LC 20 / 394</td></tr></tbody></table></div><h3 style='margin:14px 0 4px;font-size:16px'>🧊 Secondary — know them</h3><div class="tw"><table class=""><thead><tr><th>#</th><th>Pattern</th><th>Why it matters</th><th>Signature problem</th></tr></thead><tbody><tr><td>5</td><td><strong>String matching: KMP, Z and rolling hash</strong></td><td>Appears as "find the needle", repeated-substring and palindrome-prefix tricks</td><td>LC 28 / 459</td></tr><tr><td>7</td><td><strong>In-place edits and simulation</strong></td><td>Parsing, arithmetic and compression questions test careful implementation</td><td>LC 443 / 8</td></tr><tr><td>8</td><td><strong>Character arithmetic and two-pass counting</strong></td><td>Unlocks O(1)-space tricks for many easy and medium problems</td><td>LC 387 / 1189</td></tr></tbody></table></div>
+<h2 id="cues">Problem cues</h2><p class="muted">If the problem says this, think of that.</p><div class="tw"><table class=""><thead><tr><th>If the problem says / looks like…</th><th>Pattern</th></tr></thead><tbody><tr><td>"anagram", "permutation", "can construct", "group by letters"</td><td><strong>P1</strong> Frequency counting</td></tr><tr><td>"palindrome" (whole string), "reverse in place", "is subsequence"</td><td><strong>P2</strong> Two pointers</td></tr><tr><td>"longest / count palindromic substring"</td><td><strong>P3</strong> Expand around the centre</td></tr><tr><td>"longest / shortest substring with…", "minimum window"</td><td><strong>P4</strong> Sliding window</td></tr><tr><td>"find the needle", "repeated substring", "longest prefix that is also a suffix"</td><td><strong>P5</strong> KMP / Z / rolling hash</td></tr><tr><td>brackets, "decode", "simplify path", "calculator"</td><td><strong>P6</strong> Stack parsing</td></tr><tr><td>"in place", "compress", "add / multiply strings", "atoi"</td><td><strong>P7</strong> Read / write pointers, simulation</td></tr><tr><td>"first unique", "pangram", "alien order", small alphabet</td><td><strong>P8</strong> Character arithmetic</td></tr></tbody></table></div>
+<h2>The patterns</h2>
+<section class="pat hot" id="p1">
+<div class="pat-h"><span class="badge">1</span><h3>Frequency counting and anagrams</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Order does not matter, only which characters appear and how often.</div><div class="gi"><span class="lbl">Detect it</span>"anagram" · "permutation of" · "can construct" · "first unique character" · "isomorphic" · "group by letters".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Two words are anagrams when they are built from the same bag of tiles. Do not sort the tiles; just count them. Add one for every tile in the first word, subtract one for every tile in the second, and the bag is balanced exactly when every count returns to zero.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Sort both strings and compare: O(n log n). Counting into a 26-slot array is one pass: O(n) time, O(1) space.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Replace the string by its <strong>letter-count signature</strong>. Two strings with the same signature are anagrams, and the signature can also be a hash key for grouping.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Make <code>int[26] count</code> (or a map when characters are not just <code>a–z</code>).</li><li>For each character of the first string do <code>count[c - 'a']++</code>; for the second do <code>count[c - 'a']--</code>.</li><li>If any count is non-zero (or goes negative early), the answer is no.</li><li>For grouping, use the sorted string or the 26-count tuple as the dictionary key.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="anagram"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p><code>"listen"</code> vs <code>"silent"</code></p><pre class="trace"><code>+l +i +s +t +e +n   -&gt; l1 i1 s1 t1 e1 n1
+-s -i -l -e -n -t   -&gt; all counts back to 0  -&gt; anagrams</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>valid anagram with a 26-slot array</p><pre class="code-java"><code>if (s.length() != t.length()) return false;
+int[] count = new int[26];
+for (int i = 0; i &lt; s.length(); i++) {
+    count[s.charAt(i) - &#x27;a&#x27;]++;
+    count[t.charAt(i) - &#x27;a&#x27;]--;
+}
+for (int c : count) if (c != 0) return false;
+return true;</code></pre><pre class="code-py"><code>from collections import Counter
+return Counter(s) == Counter(t)
+
+# or without a library, 26 slots:
+if len(s) != len(t):
+    return False
+count = [0] * 26
+for a, b in zip(s, t):
+    count[ord(a) - 97] += 1
+    count[ord(b) - 97] -= 1
+return not any(count)</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>group anagrams: the count signature as the key</p><pre class="code-java"><code>Map&lt;String, List&lt;String&gt;&gt; groups = new HashMap&lt;&gt;();
+for (String w : words) {
+    int[] c = new int[26];
+    for (char ch : w.toCharArray()) c[ch - &#x27;a&#x27;]++;
+    String key = Arrays.toString(c);               // same letters -&gt; same key
+    groups.computeIfAbsent(key, k -&gt; new ArrayList&lt;&gt;()).add(w);
+}
+return new ArrayList&lt;&gt;(groups.values());</code></pre><pre class="code-py"><code>from collections import defaultdict
+groups = defaultdict(list)
+for w in words:
+    c = [0] * 26
+    for ch in w:
+        c[ord(ch) - 97] += 1
+    groups[tuple(c)].append(w)          # same letters -&gt; same key
+return list(groups.values())</code></pre></div>
+<div class="cx">⏱ Complexity — O(n) time, O(1) space for a fixed alphabet (O(k) for k distinct characters).</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Check lengths first; different lengths can never be anagrams.</li><li><code>count[c - 'a']</code> only works for lowercase <code>a–z</code>. For Unicode or mixed case use a <code>HashMap</code>.</li><li>For Group Anagrams, sorting each word costs O(k log k); the count key is O(k).</li><li>Isomorphic strings need a <strong>two-way</strong> mapping (a→b and b→a), not one.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Fixed-size window of an anagram check: slide the counts (LC 438, 567).</li><li>Ransom note: counts of the magazine must cover counts of the note.</li><li>Sort by frequency: bucket by count.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When characters must stay in order (use two pointers or DP), or when only one specific position matters.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="strings-242" aria-label="Solved LC 242"></td><td class="t"><a href="https://leetcode.com/problems/valid-anagram/" target="_blank" rel="noopener">LC 242</a></td><td>Valid Anagram</td><td><span class="pill dE">Easy</span></td><td>+1 for one word, −1 for the other, all zeros</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-383" aria-label="Solved LC 383"></td><td class="t"><a href="https://leetcode.com/problems/ransom-note/" target="_blank" rel="noopener">LC 383</a></td><td>Ransom Note</td><td><span class="pill dE">Easy</span></td><td>Count the magazine, spend letters for the note</td><td class="c">O(n + m) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-205" aria-label="Solved LC 205"></td><td class="t"><a href="https://leetcode.com/problems/isomorphic-strings/" target="_blank" rel="noopener">LC 205</a></td><td>Isomorphic Strings</td><td><span class="pill dE">Easy</span></td><td>Two maps: s→t and t→s must both be consistent</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-290" aria-label="Solved LC 290"></td><td class="t"><a href="https://leetcode.com/problems/word-pattern/" target="_blank" rel="noopener">LC 290</a></td><td>Word Pattern</td><td><span class="pill dE">Easy</span></td><td>Same two-way mapping idea with words</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-49" aria-label="Solved LC 49"></td><td class="t"><a href="https://leetcode.com/problems/group-anagrams/" target="_blank" rel="noopener">LC 49</a></td><td>Group Anagrams</td><td><span class="pill dM">Medium</span></td><td>Key = sorted word or 26-count tuple</td><td class="c">O(N·K) / O(N·K)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-451" aria-label="Solved LC 451"></td><td class="t"><a href="https://leetcode.com/problems/sort-characters-by-frequency/" target="_blank" rel="noopener">LC 451</a></td><td>Sort Characters By Frequency</td><td><span class="pill dM">Medium</span></td><td>Count, then bucket by frequency</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-438" aria-label="Solved LC 438"></td><td class="t"><a href="https://leetcode.com/problems/find-all-anagrams-in-a-string/" target="_blank" rel="noopener">LC 438</a></td><td>Find All Anagrams in a String</td><td><span class="pill dM">Medium</span></td><td>Fixed window of len(p) with sliding counts</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-567" aria-label="Solved LC 567"></td><td class="t"><a href="https://leetcode.com/problems/permutation-in-string/" target="_blank" rel="noopener">LC 567</a></td><td>Permutation in String</td><td><span class="pill dM">Medium</span></td><td>Same window; matches when counts equal</td><td class="c">O(n) / O(1)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p2">
+<div class="pat-h"><span class="badge">2</span><h3>Two pointers on strings</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Checking symmetry, reversing, or merging two strings position by position.</div><div class="gi"><span class="lbl">Detect it</span>"palindrome" · "reverse in place" · "is subsequence" · "ignore case / non-alphanumeric" · "at most one deletion".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Read a word from both ends toward the middle like closing a zipper. As long as the two teeth match, keep closing; the first mismatch tells you the answer. Characters that do not count (spaces, punctuation) are simply stepped over without comparing.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Build the reversed string and compare: O(n) time but O(n) extra space and a second pass. Two pointers compare in place with O(1) space.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p><code>l</code> starts at the left, <code>r</code> at the right. Skip irrelevant characters, compare the relevant pair, move both inward, stop when they cross.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li><code>l = 0</code>, <code>r = n − 1</code>.</li><li>While <code>l &lt; r</code>: advance <code>l</code> past non-alphanumerics; retreat <code>r</code> past non-alphanumerics.</li><li>Compare the two characters (lower-case). Mismatch → false.</li><li>Move both inward. If the loop ends, it is a palindrome.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="palin"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p><code>"a.b,.B.a"</code></p><pre class="trace"><code>l=0 &#x27;a&#x27;  r=7 &#x27;a&#x27;  match
+l=1 &#x27;.&#x27;  skip l
+l=2 &#x27;b&#x27;  r=6 &#x27;.&#x27;  skip r
+l=2 &#x27;b&#x27;  r=5 &#x27;B&#x27;  match (ignore case)
+l=3 &#x27;,&#x27;  skip, l=4 &#x27;.&#x27; skip, pointers meet -&gt; palindrome</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>valid palindrome (ignore case and punctuation)</p><pre class="code-java"><code>int l = 0, r = s.length() - 1;
+while (l &lt; r) {
+    while (l &lt; r &amp;&amp; !Character.isLetterOrDigit(s.charAt(l))) l++;
+    while (l &lt; r &amp;&amp; !Character.isLetterOrDigit(s.charAt(r))) r--;
+    if (Character.toLowerCase(s.charAt(l)) != Character.toLowerCase(s.charAt(r))) return false;
+    l++; r--;
+}
+return true;</code></pre><pre class="code-py"><code>l, r = 0, len(s) - 1
+while l &lt; r:
+    while l &lt; r and not s[l].isalnum():
+        l += 1
+    while l &lt; r and not s[r].isalnum():
+        r -= 1
+    if s[l].lower() != s[r].lower():
+        return False
+    l += 1
+    r -= 1
+return True</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>palindrome with at most one deletion</p><pre class="code-java"><code>boolean valid(String s) {
+    int l = 0, r = s.length() - 1;
+    while (l &lt; r) {
+        if (s.charAt(l) != s.charAt(r))
+            return isPal(s, l + 1, r) || isPal(s, l, r - 1);   // skip either side once
+        l++; r--;
+    }
+    return true;
+}
+boolean isPal(String s, int l, int r) {
+    while (l &lt; r) if (s.charAt(l++) != s.charAt(r--)) return false;
+    return true;
+}</code></pre><pre class="code-py"><code>def valid(s):
+    def is_pal(l, r):
+        while l &lt; r:
+            if s[l] != s[r]:
+                return False
+            l += 1
+            r -= 1
+        return True
+    l, r = 0, len(s) - 1
+    while l &lt; r:
+        if s[l] != s[r]:
+            return is_pal(l + 1, r) or is_pal(l, r - 1)   # skip either side once
+        l += 1
+        r -= 1
+    return True</code></pre></div>
+<div class="cx">⏱ Complexity — O(n) time, O(1) extra space.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Keep the <code>l &lt; r</code> guard inside the skip loops or the pointers cross and index out of range.</li><li>Compare lower-cased characters; <code>Character.toLowerCase</code> / <code>str.lower()</code>.</li><li>With one deletion allowed you must try <strong>both</strong> sides, not just one.</li><li>Strings are immutable: reversing "in place" needs a <code>char[]</code> (Java) or a list (Python).</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Is subsequence: two pointers, one per string, advance <code>t</code> always and <code>s</code> on a match.</li><li>Reverse vowels: two pointers that stop only at vowels.</li><li>Merge two strings alternately.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When you need all palindromic substrings or the longest one (use expand-around-centre), or the comparison is not positional.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="strings-344" aria-label="Solved LC 344"></td><td class="t"><a href="https://leetcode.com/problems/reverse-string/" target="_blank" rel="noopener">LC 344</a></td><td>Reverse String</td><td><span class="pill dE">Easy</span></td><td>Swap ends and move inward</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-125" aria-label="Solved LC 125"></td><td class="t"><a href="https://leetcode.com/problems/valid-palindrome/" target="_blank" rel="noopener">LC 125</a></td><td>Valid Palindrome</td><td><span class="pill dE">Easy</span></td><td>Skip non-alphanumerics, compare ignoring case</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-392" aria-label="Solved LC 392"></td><td class="t"><a href="https://leetcode.com/problems/is-subsequence/" target="_blank" rel="noopener">LC 392</a></td><td>Is Subsequence</td><td><span class="pill dE">Easy</span></td><td>Advance s only when characters match</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-345" aria-label="Solved LC 345"></td><td class="t"><a href="https://leetcode.com/problems/reverse-vowels-of-a-string/" target="_blank" rel="noopener">LC 345</a></td><td>Reverse Vowels of a String</td><td><span class="pill dE">Easy</span></td><td>Both pointers stop only on vowels, then swap</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-680" aria-label="Solved LC 680"></td><td class="t"><a href="https://leetcode.com/problems/valid-palindrome-ii/" target="_blank" rel="noopener">LC 680</a></td><td>Valid Palindrome II</td><td><span class="pill dE">Easy</span></td><td>On mismatch try skipping the left or the right</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-1768" aria-label="Solved LC 1768"></td><td class="t"><a href="https://leetcode.com/problems/merge-strings-alternately/" target="_blank" rel="noopener">LC 1768</a></td><td>Merge Strings Alternately</td><td><span class="pill dE">Easy</span></td><td>Take one character from each, then append the rest</td><td class="c">O(n + m) / O(n + m)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p3">
+<div class="pat-h"><span class="badge">3</span><h3>Expand around the centre (palindromic substrings)</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Find the longest or count all palindromic substrings.</div><div class="gi"><span class="lbl">Detect it</span>"longest palindromic substring" · "count palindromic substrings" · "palindrome that contains the middle".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Drop a pebble in water: ripples spread outward symmetrically. A palindrome is a ripple pattern: from its centre, the left and right characters match at every distance. So instead of testing every substring, test every possible centre and let the ripple grow as long as both sides match.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Check every substring for being a palindrome: O(n³). Expanding from each of the <code>2n − 1</code> centres costs O(n) each: O(n²) with O(1) space.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>A palindrome centre is either a character (odd length) or the gap between two characters (even length). For each centre expand <code>l--</code>, <code>r++</code> while <code>s[l] == s[r]</code>.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>For each <code>i</code> from <code>0</code> to <code>n − 1</code>, expand from <code>(i, i)</code> (odd) and <code>(i, i + 1)</code> (even).</li><li>While <code>l ≥ 0</code>, <code>r &lt; n</code> and <code>s[l] == s[r]</code>, widen.</li><li>Track the best <code>(start, length)</code> or add one to a counter for each successful expansion.</li><li>Return the best substring or the count.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="center"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p><code>"babad"</code></p><pre class="trace"><code>centre &#x27;b&#x27;(0): b            len 1
+centre &#x27;a&#x27;(1): a -&gt; bab       len 3   best
+centre &#x27;b&#x27;(2): b -&gt; aba       len 3
+centres &#x27;a&#x27;(3),&#x27;d&#x27;(4): len 1
+even centres: all mismatch immediately
+=&gt; &quot;bab&quot;  (&quot;aba&quot; is equally valid)</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>longest palindromic substring</p><pre class="code-java"><code>int start = 0, best = 0;
+for (int i = 0; i &lt; s.length(); i++) {
+    int len = Math.max(expand(s, i, i), expand(s, i, i + 1));
+    if (len &gt; best) { best = len; start = i - (len - 1) / 2; }
+}
+return s.substring(start, start + best);
+
+int expand(String s, int l, int r) {
+    while (l &gt;= 0 &amp;&amp; r &lt; s.length() &amp;&amp; s.charAt(l) == s.charAt(r)) { l--; r++; }
+    return r - l - 1;                       // length of the palindrome found
+}</code></pre><pre class="code-py"><code>def longest(s):
+    def expand(l, r):
+        while l &gt;= 0 and r &lt; len(s) and s[l] == s[r]:
+            l -= 1
+            r += 1
+        return r - l - 1                    # length of the palindrome found
+    start = best = 0
+    for i in range(len(s)):
+        length = max(expand(i, i), expand(i, i + 1))
+        if length &gt; best:
+            best = length
+            start = i - (length - 1) // 2
+    return s[start:start + best]</code></pre></div>
+<div class="cx">⏱ Complexity — O(n²) time, O(1) space. Manacher's algorithm reaches O(n) but is rarely required.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Forget the even-length centres and <code>"abba"</code> fails.</li><li>Start index of the best palindrome is <code>i − (len − 1) / 2</code> for both parities.</li><li>Return length as <code>r − l − 1</code> after the loop has stepped one too far on each side.</li><li>Do not use a DP table when O(1) space is enough; DP is O(n²) space.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Count palindromic substrings: add <code>1</code> for every successful expansion.</li><li>Longest palindromic <strong>subsequence</strong> is a different problem (DP, topic 16).</li><li>Shortest palindrome by adding characters in front: KMP prefix function (pattern 5).</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When n is huge and O(n²) is too slow (use Manacher), or the problem is about subsequences rather than substrings.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="strings-409" aria-label="Solved LC 409"></td><td class="t"><a href="https://leetcode.com/problems/longest-palindrome/" target="_blank" rel="noopener">LC 409</a></td><td>Longest Palindrome</td><td><span class="pill dE">Easy</span></td><td>Count pairs of letters; one odd letter can sit in the middle</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-647" aria-label="Solved LC 647"></td><td class="t"><a href="https://leetcode.com/problems/palindromic-substrings/" target="_blank" rel="noopener">LC 647</a></td><td>Palindromic Substrings</td><td><span class="pill dM">Medium</span></td><td>Each successful expansion is one palindrome</td><td class="c">O(n²) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-5" aria-label="Solved LC 5"></td><td class="t"><a href="https://leetcode.com/problems/longest-palindromic-substring/" target="_blank" rel="noopener">LC 5</a></td><td>Longest Palindromic Substring</td><td><span class="pill dM">Medium</span></td><td>Best expansion over odd and even centres</td><td class="c">O(n²) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-131" aria-label="Solved LC 131"></td><td class="t"><a href="https://leetcode.com/problems/palindrome-partitioning/" target="_blank" rel="noopener">LC 131</a></td><td>Palindrome Partitioning</td><td><span class="pill dM">Medium</span></td><td>Backtrack; precompute palindromes with centre expansion or DP</td><td class="c">O(n·2ⁿ) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-214" aria-label="Solved LC 214"></td><td class="t"><a href="https://leetcode.com/problems/shortest-palindrome/" target="_blank" rel="noopener">LC 214</a></td><td>Shortest Palindrome</td><td><span class="pill dH">Hard</span></td><td>Longest palindromic prefix via the KMP prefix function of s + '#' + reverse(s)</td><td class="c">O(n) / O(n)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p4">
+<div class="pat-h"><span class="badge">4</span><h3>Sliding window on strings</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>A contiguous substring must satisfy a condition about its letters.</div><div class="gi"><span class="lbl">Detect it</span>"longest substring without repeating" · "at most K distinct" · "minimum window containing" · "replace at most k characters".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>An inchworm along the text. The head stretches right to take in letters; whenever the body breaks the rule, the tail pulls in until it is legal again. Neither end ever steps backwards, so every letter enters once and leaves once.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Test every substring: O(n²) substrings × O(n) to check = O(n³). The window visits each position twice at most: O(n).</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Keep a count map for the window and a <code>formed</code> counter of how many requirements are satisfied. Expand <code>r</code>; while the window is valid (min-window) or invalid (longest), move <code>l</code>.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Build <code>need</code> counts for the target (if any); <code>have</code> counts for the window; <code>formed = 0</code>.</li><li>Expand <code>r</code>: add <code>s[r]</code>, update <code>have</code> and <code>formed</code>.</li><li>While the window is valid (or invalid, for "longest"): record the answer, drop <code>s[l]</code>, <code>l++</code>.</li><li>Return the best window.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="minwin"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>minimum window containing <code>ABC</code> in <code>"ADOBECODEBANC"</code></p><pre class="trace"><code>r=5   ADOBEC covers A,B,C            len 6   best
+      shrink: drop A -&gt; invalid
+r=10  DOBECODEBA covers again; shrink down to CODEBA (len 6), drop C -&gt; invalid
+r=12  ODEBANC covers; shrink down to BANC (len 4)   best
+=&gt; &quot;BANC&quot;</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>longest substring without repeating characters</p><pre class="code-java"><code>int[] last = new int[128];              // last index + 1 of each character
+int best = 0, l = 0;
+for (int r = 0; r &lt; s.length(); r++) {
+    char c = s.charAt(r);
+    l = Math.max(l, last[c]);            // jump past the previous copy
+    best = Math.max(best, r - l + 1);
+    last[c] = r + 1;
+}</code></pre><pre class="code-py"><code>last = {}
+best = l = 0
+for r, c in enumerate(s):
+    if c in last and last[c] &gt;= l:
+        l = last[c] + 1                  # jump past the previous copy
+    last[c] = r
+    best = max(best, r - l + 1)</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>minimum window substring (need / have / formed)</p><pre class="code-java"><code>int[] need = new int[128], have = new int[128];
+int required = 0;
+for (char c : t.toCharArray()) { if (need[c]++ == 0) required++; }
+int l = 0, formed = 0, bestLen = Integer.MAX_VALUE, bestL = 0;
+for (int r = 0; r &lt; s.length(); r++) {
+    char c = s.charAt(r);
+    if (++have[c] == need[c] &amp;&amp; need[c] &gt; 0) formed++;
+    while (formed == required) {
+        if (r - l + 1 &lt; bestLen) { bestLen = r - l + 1; bestL = l; }
+        char d = s.charAt(l++);
+        if (have[d]-- == need[d] &amp;&amp; need[d] &gt; 0) formed--;
+    }
+}
+return bestLen == Integer.MAX_VALUE ? &quot;&quot; : s.substring(bestL, bestL + bestLen);</code></pre><pre class="code-py"><code>from collections import Counter
+need = Counter(t)
+have = {}
+required, formed = len(need), 0
+l, best, best_l = 0, float(&#x27;inf&#x27;), 0
+for r, c in enumerate(s):
+    have[c] = have.get(c, 0) + 1
+    if c in need and have[c] == need[c]:
+        formed += 1
+    while formed == required:
+        if r - l + 1 &lt; best:
+            best, best_l = r - l + 1, l
+        d = s[l]
+        have[d] -= 1
+        if d in need and have[d] &lt; need[d]:
+            formed -= 1
+        l += 1
+return &quot;&quot; if best == float(&#x27;inf&#x27;) else s[best_l:best_l + best]</code></pre></div>
+<div class="cx">⏱ Complexity — O(n + m) time, O(σ) space for the character counts (σ = alphabet size).</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Track <code>formed</code> (number of letters whose requirement is met), not the sum of counts; extra copies must not count twice.</li><li>Longest → update the answer after fixing the window; shortest → update inside the shrink loop.</li><li>"Replace at most k" windows are valid while <code>size − maxFreq ≤ k</code>.</li><li>Reading <code>last[c]</code> without <code>max(l, …)</code> lets <code>l</code> move backwards.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>At most K distinct characters: shrink while <code>map.size() &gt; K</code>.</li><li>Exactly K distinct: <code>atMost(K) − atMost(K − 1)</code>.</li><li>Fixed window anagram search: pattern 1 on a window of length <code>|p|</code>.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When the substring does not need to be contiguous (subsequence → DP), or when you need every occurrence with overlaps counted through a different rule.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="strings-3" aria-label="Solved LC 3"></td><td class="t"><a href="https://leetcode.com/problems/longest-substring-without-repeating-characters/" target="_blank" rel="noopener">LC 3</a></td><td>Longest Substring Without Repeating Characters</td><td><span class="pill dM">Medium</span></td><td>Jump l past the previous copy of s[r]</td><td class="c">O(n) / O(σ)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-424" aria-label="Solved LC 424"></td><td class="t"><a href="https://leetcode.com/problems/longest-repeating-character-replacement/" target="_blank" rel="noopener">LC 424</a></td><td>Longest Repeating Character Replacement</td><td><span class="pill dM">Medium</span></td><td>Valid while size − maxFreq ≤ k</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-2024" aria-label="Solved LC 2024"></td><td class="t"><a href="https://leetcode.com/problems/maximize-the-confusion-of-an-exam/" target="_blank" rel="noopener">LC 2024</a></td><td>Maximize the Confusion of an Exam</td><td><span class="pill dM">Medium</span></td><td>Longest window with at most k of the minority answer</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-567" aria-label="Solved LC 567"></td><td class="t"><a href="https://leetcode.com/problems/permutation-in-string/" target="_blank" rel="noopener">LC 567</a></td><td>Permutation in String</td><td><span class="pill dM">Medium</span></td><td>Fixed window with sliding counts</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-76" aria-label="Solved LC 76"></td><td class="t"><a href="https://leetcode.com/problems/minimum-window-substring/" target="_blank" rel="noopener">LC 76</a></td><td>Minimum Window Substring</td><td><span class="pill dH">Hard</span></td><td>need / have / formed, shrink while valid</td><td class="c">O(n + m) / O(σ)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-30" aria-label="Solved LC 30"></td><td class="t"><a href="https://leetcode.com/problems/substring-with-concatenation-of-all-words/" target="_blank" rel="noopener">LC 30</a></td><td>Substring with Concatenation of All Words</td><td><span class="pill dH">Hard</span></td><td>Window over word-length steps, for each of the wordLen offsets</td><td class="c">O(n·wordLen) / O(words)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat sec" id="p5">
+<div class="pat-h"><span class="badge">5</span><h3>String matching: KMP, Z and rolling hash</h3><span class="tier sec">🧊 Secondary</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Find a pattern in a text in linear time, or reason about borders (prefix = suffix).</div><div class="gi"><span class="lbl">Detect it</span>"first occurrence of" · "repeated substring pattern" · "longest happy prefix" · "shortest palindrome" · "duplicate substring of length L".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>While matching a long pattern you fail late: say 5 characters matched, the 6th differs. The naive method forgets everything and slides by one. But the 5 matched characters tell you something: if the start of the pattern also appears at their end, you can keep that overlap and continue without moving backwards in the text. The <code>lps</code> array stores that overlap for every prefix.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Try every start position and compare: O(n·m). KMP precomputes the longest border of each pattern prefix and never moves the text pointer backwards: O(n + m).</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p><code>lps[i]</code> = length of the longest proper prefix of <code>p[0..i]</code> that is also a suffix. On a mismatch after <code>j</code> matched characters, fall back to <code>j = lps[j − 1]</code> instead of restarting at 0. A <strong>rolling hash</strong> (Rabin–Karp) instead compares window hashes in O(1) per step.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Build <code>lps</code> for the pattern: compare <code>p[i]</code> with <code>p[len]</code>; on a mismatch fall back <code>len = lps[len − 1]</code> until <code>len = 0</code>.</li><li>Scan the text with index <code>i</code> and matched length <code>j</code>.</li><li>On a match advance both; on a mismatch with <code>j &gt; 0</code> set <code>j = lps[j − 1]</code>; if <code>j == m</code> a match ends at <code>i</code>.</li><li>Rolling hash: <code>h = (h·B − out·B^m + in) mod M</code>, then verify on hash equality.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="kmp"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>lps for <code>"ababaca"</code></p><pre class="trace"><code>i=1 b vs a  no          lps 0
+i=2 a vs a  yes len=1   lps 1
+i=3 b vs b  yes len=2   lps 2
+i=4 a vs a  yes len=3   lps 3
+i=5 c vs b  no -&gt; len=lps[2]=1, c vs b no -&gt; len=0, c vs a no   lps 0
+i=6 a vs a  yes len=1   lps 1
+lps = [0,0,1,2,3,0,1]</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>KMP: prefix function and search</p><pre class="code-java"><code>int[] lps(String p) {
+    int[] f = new int[p.length()];
+    for (int i = 1, len = 0; i &lt; p.length(); ) {
+        if (p.charAt(i) == p.charAt(len)) f[i++] = ++len;
+        else if (len &gt; 0) len = f[len - 1];
+        else f[i++] = 0;
+    }
+    return f;
+}
+int indexOf(String s, String p) {
+    if (p.isEmpty()) return 0;
+    int[] f = lps(p);
+    for (int i = 0, j = 0; i &lt; s.length(); ) {
+        if (s.charAt(i) == p.charAt(j)) { i++; j++; if (j == p.length()) return i - j; }
+        else if (j &gt; 0) j = f[j - 1];
+        else i++;
+    }
+    return -1;
+}</code></pre><pre class="code-py"><code>def lps(p):
+    f, length, i = [0] * len(p), 0, 1
+    while i &lt; len(p):
+        if p[i] == p[length]:
+            length += 1
+            f[i] = length
+            i += 1
+        elif length:
+            length = f[length - 1]
+        else:
+            f[i] = 0
+            i += 1
+    return f
+
+def index_of(s, p):
+    if not p:
+        return 0
+    f, j = lps(p), 0
+    for i, c in enumerate(s):
+        while j and c != p[j]:
+            j = f[j - 1]
+        if c == p[j]:
+            j += 1
+        if j == len(p):
+            return i - j + 1
+    return -1</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>Rabin–Karp rolling hash (find a window with the same hash)</p><pre class="code-java"><code>long M = 1_000_000_007L, B = 131;
+long h = 0, pw = 1;                                 // pw = B^(m-1)
+for (int i = 0; i &lt; m; i++) { h = (h * B + p.charAt(i)) % M; if (i &lt; m - 1) pw = pw * B % M; }
+long w = 0;
+for (int i = 0; i &lt; n; i++) {
+    if (i &gt;= m) w = ((w - s.charAt(i - m) * pw % M) + M) % M;   // remove the outgoing char
+    w = (w * B + s.charAt(i)) % M;                              // add the incoming char
+    if (i &gt;= m - 1 &amp;&amp; w == h &amp;&amp; s.startsWith(p, i - m + 1)) return i - m + 1;
+}</code></pre><pre class="code-py"><code>M, B = 1_000_000_007, 131
+m = len(p)
+h = 0
+for c in p:
+    h = (h * B + ord(c)) % M
+pw = pow(B, m - 1, M)
+w = 0
+for i, c in enumerate(s):
+    if i &gt;= m:
+        w = (w - ord(s[i - m]) * pw) % M              # remove the outgoing char
+    w = (w * B + ord(c)) % M                           # add the incoming char
+    if i &gt;= m - 1 and w == h and s.startswith(p, i - m + 1):
+        return i - m + 1</code></pre></div>
+<div class="cx">⏱ Complexity — KMP: O(n + m) time, O(m) space. Rabin–Karp: O(n + m) expected, O(n·m) worst case on hash collisions.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>The fall-back is <code>len = lps[len − 1]</code>, <strong>not</strong> <code>len = 0</code> (and not <code>len − 1</code>).</li><li>Rolling hash: always verify on equality (collisions exist) and add <code>M</code> before the modulo when subtracting.</li><li>Empty pattern: return 0 by convention (LC 28).</li><li>In an interview, <code>s.indexOf(p)</code> is usually not allowed for the "implement strStr" question.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Repeated substring pattern: <code>(s + s).indexOf(s, 1) != s.length()</code>, or <code>n % (n − lps[n−1]) == 0</code> with <code>lps[n−1] &gt; 0</code>.</li><li>Z-function: <code>z[i]</code> = length of the longest match between <code>s</code> and <code>s[i..]</code>; pattern matching on <code>p + '#' + s</code>.</li><li>Binary search on length + rolling hash for the longest duplicate substring (LC 1044).</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When a built-in search is allowed and input is small, or when you need many patterns at once (use a trie or Aho–Corasick).</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="strings-28" aria-label="Solved LC 28"></td><td class="t"><a href="https://leetcode.com/problems/find-the-index-of-the-first-occurrence-in-a-string/" target="_blank" rel="noopener">LC 28</a></td><td>Find the Index of the First Occurrence in a String</td><td><span class="pill dE">Easy</span></td><td>Naive O(n·m), then KMP</td><td class="c">O(n + m) / O(m)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-459" aria-label="Solved LC 459"></td><td class="t"><a href="https://leetcode.com/problems/repeated-substring-pattern/" target="_blank" rel="noopener">LC 459</a></td><td>Repeated Substring Pattern</td><td><span class="pill dE">Easy</span></td><td>Border check with lps, or search s in (s + s) minus the ends</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-1392" aria-label="Solved LC 1392"></td><td class="t"><a href="https://leetcode.com/problems/longest-happy-prefix/" target="_blank" rel="noopener">LC 1392</a></td><td>Longest Happy Prefix</td><td><span class="pill dH">Hard</span></td><td>Answer is lps[n − 1] of the whole string</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-686" aria-label="Solved LC 686"></td><td class="t"><a href="https://leetcode.com/problems/repeated-string-match/" target="_blank" rel="noopener">LC 686</a></td><td>Repeated String Match</td><td><span class="pill dM">Medium</span></td><td>Repeat a enough times, then search for b</td><td class="c">O(n + m) / O(n + m)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-187" aria-label="Solved LC 187"></td><td class="t"><a href="https://leetcode.com/problems/repeated-dna-sequences/" target="_blank" rel="noopener">LC 187</a></td><td>Repeated DNA Sequences</td><td><span class="pill dM">Medium</span></td><td>Hash every 10-letter window (rolling hash or set)</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-214" aria-label="Solved LC 214"></td><td class="t"><a href="https://leetcode.com/problems/shortest-palindrome/" target="_blank" rel="noopener">LC 214</a></td><td>Shortest Palindrome</td><td><span class="pill dH">Hard</span></td><td>lps of s + '#' + reverse(s) gives the longest palindromic prefix</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-1044" aria-label="Solved LC 1044"></td><td class="t"><a href="https://leetcode.com/problems/longest-duplicate-substring/" target="_blank" rel="noopener">LC 1044</a></td><td>Longest Duplicate Substring</td><td><span class="pill dH">Hard</span></td><td>Binary search the length, check with a rolling hash</td><td class="c">O(n log n) / O(n)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat hot" id="p6">
+<div class="pat-h"><span class="badge">6</span><h3>Stack-based parsing and decoding</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>The string has brackets, nesting, or operators that must be resolved in order.</div><div class="gi"><span class="lbl">Detect it</span>"valid parentheses" · "decode string" · "simplify path" · "remove adjacent duplicates" · "evaluate expression" · "calculator".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Like opening nested Russian dolls: each opener makes you remember where you were, and each closer returns you to the most recent unfinished doll. "Most recent unfinished" is exactly what a stack gives you.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Repeatedly scan and replace innermost brackets: O(n²). One left-to-right pass with a stack resolves everything in O(n).</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>On an opening symbol, push the state you will need later (count, previous text, previous operator). On a closing symbol, pop it and combine it with what you have built inside.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Scan left to right keeping the current text and number being built.</li><li><code>[</code>: push <code>(count, text so far)</code> and reset current text.</li><li><code>]</code>: pop <code>(count, prev)</code>; current = <code>prev + current × count</code>.</li><li>Letter: append to the current text. Digit: extend the number.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="decode"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>decode <code>"3[a2[c]]"</code></p><pre class="trace"><code>3     num=3
+[     push (3,&quot;&quot;)   cur=&quot;&quot;
+a     cur=&quot;a&quot;
+2     num=2
+[     push (2,&quot;a&quot;)  cur=&quot;&quot;
+c     cur=&quot;c&quot;
+]     pop (2,&quot;a&quot;)  cur=&quot;a&quot;+&quot;cc&quot;=&quot;acc&quot;
+]     pop (3,&quot;&quot;)   cur=&quot;acc&quot;*3=&quot;accaccacc&quot;</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>decode string k[text]</p><pre class="code-java"><code>Deque&lt;int[]&gt; counts = new ArrayDeque&lt;&gt;();
+Deque&lt;StringBuilder&gt; texts = new ArrayDeque&lt;&gt;();
+StringBuilder cur = new StringBuilder();
+int num = 0;
+for (char c : s.toCharArray()) {
+    if (Character.isDigit(c)) num = num * 10 + (c - &#x27;0&#x27;);
+    else if (c == &#x27;[&#x27;) { counts.push(new int[]{num}); texts.push(cur); num = 0; cur = new StringBuilder(); }
+    else if (c == &#x27;]&#x27;) {
+        StringBuilder prev = texts.pop();
+        prev.append(String.valueOf(cur).repeat(counts.pop()[0]));
+        cur = prev;
+    } else cur.append(c);
+}
+return cur.toString();</code></pre><pre class="code-py"><code>stack, cur, num = [], &quot;&quot;, 0
+for c in s:
+    if c.isdigit():
+        num = num * 10 + int(c)
+    elif c == &#x27;[&#x27;:
+        stack.append((num, cur))
+        num, cur = 0, &quot;&quot;
+    elif c == &#x27;]&#x27;:
+        k, prev = stack.pop()
+        cur = prev + cur * k
+    else:
+        cur += c
+return cur</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>valid parentheses</p><pre class="code-java"><code>Deque&lt;Character&gt; st = new ArrayDeque&lt;&gt;();
+for (char c : s.toCharArray()) {
+    if (c == &#x27;(&#x27; || c == &#x27;[&#x27; || c == &#x27;{&#x27;) st.push(c);
+    else {
+        if (st.isEmpty()) return false;
+        char o = st.pop();
+        if ((c == &#x27;)&#x27; &amp;&amp; o != &#x27;(&#x27;) || (c == &#x27;]&#x27; &amp;&amp; o != &#x27;[&#x27;) || (c == &#x27;}&#x27; &amp;&amp; o != &#x27;{&#x27;)) return false;
+    }
+}
+return st.isEmpty();</code></pre><pre class="code-py"><code>pairs = {&#x27;)&#x27;: &#x27;(&#x27;, &#x27;]&#x27;: &#x27;[&#x27;, &#x27;}&#x27;: &#x27;{&#x27;}
+st = []
+for c in s:
+    if c in pairs:
+        if not st or st.pop() != pairs[c]:
+            return False
+    else:
+        st.append(c)
+return not st</code></pre></div>
+<div class="cx">⏱ Complexity — O(n) time (each character pushed and popped at most once), O(n) space.</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Multi-digit counts (<code>12[a]</code>): build the number, do not read one digit.</li><li>Pop only after checking the stack is non-empty.</li><li>Return <code>stack.isEmpty()</code> at the end, not <code>true</code>; unclosed openers must fail.</li><li>String concatenation in a loop is O(n²): use <code>StringBuilder</code> / list and join.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Basic calculator: stack of (result, sign) saved at <code>(</code>.</li><li>Calculator II (no parentheses): stack of numbers, apply <code>*</code> and <code>/</code> immediately, sum at the end.</li><li>Simplify path: split on <code>/</code>, push directories, pop on <code>..</code>.</li><li>Remove adjacent duplicates: push unless top equals current.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When the structure is flat (no nesting), a simple loop or two pointers suffices.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="strings-20" aria-label="Solved LC 20"></td><td class="t"><a href="https://leetcode.com/problems/valid-parentheses/" target="_blank" rel="noopener">LC 20</a></td><td>Valid Parentheses</td><td><span class="pill dE">Easy</span></td><td>Push openers; each closer must match the top</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-1047" aria-label="Solved LC 1047"></td><td class="t"><a href="https://leetcode.com/problems/remove-all-adjacent-duplicates-in-string/" target="_blank" rel="noopener">LC 1047</a></td><td>Remove All Adjacent Duplicates In String</td><td><span class="pill dE">Easy</span></td><td>Push unless the top equals the current character</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-71" aria-label="Solved LC 71"></td><td class="t"><a href="https://leetcode.com/problems/simplify-path/" target="_blank" rel="noopener">LC 71</a></td><td>Simplify Path</td><td><span class="pill dM">Medium</span></td><td>Split on '/', push names, pop on '..'</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-394" aria-label="Solved LC 394"></td><td class="t"><a href="https://leetcode.com/problems/decode-string/" target="_blank" rel="noopener">LC 394</a></td><td>Decode String</td><td><span class="pill dM">Medium</span></td><td>Stack of (count, text before the bracket)</td><td class="c">O(n + output) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-227" aria-label="Solved LC 227"></td><td class="t"><a href="https://leetcode.com/problems/basic-calculator-ii/" target="_blank" rel="noopener">LC 227</a></td><td>Basic Calculator II</td><td><span class="pill dM">Medium</span></td><td>Resolve * and / immediately, sum the stack</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-224" aria-label="Solved LC 224"></td><td class="t"><a href="https://leetcode.com/problems/basic-calculator/" target="_blank" rel="noopener">LC 224</a></td><td>Basic Calculator</td><td><span class="pill dH">Hard</span></td><td>Push (result, sign) at '(' and restore at ')'</td><td class="c">O(n) / O(n)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat sec" id="p7">
+<div class="pat-h"><span class="badge">7</span><h3>In-place edits and simulation</h3><span class="tier sec">🧊 Secondary</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>Transform a string step by step with exact rules: compress, add, parse, reverse words.</div><div class="gi"><span class="lbl">Detect it</span>"in place" · "compress" · "string to integer" · "add two numbers as strings" · "reverse words" · "zigzag".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>Think of a scribe copying a document onto the same page: the reading finger always runs ahead of the writing pen, so the pen never overwrites something it still needs. Two indices over the same array give you an in-place rewrite in a single pass.</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Build a new string with repeated concatenation: O(n²) copies. A single pass with a <code>StringBuilder</code> is O(n) time; a read/write pointer pair also gives O(1) extra space.</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Separate <strong>reading</strong> from <strong>writing</strong>. <code>r</code> scans input groups or tokens; <code>w</code> writes the result at the front. For arithmetic, process digits from the right with a carry.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li><code>r = w = 0</code>.</li><li>Read one logical unit (a run of equal characters, a number, a word) starting at <code>r</code> and advance <code>r</code> past it.</li><li>Write its encoded form at <code>w</code> and advance <code>w</code>.</li><li>At the end, the answer is the first <code>w</code> characters.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="compress"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>compress <code>"aabbccc"</code> in place</p><pre class="trace"><code>group aa -&gt; write a2     [a,2,b,b,c,c,c]  w=2
+group bb -&gt; write b2     [a,2,b,2,c,c,c]  w=4
+group ccc-&gt; write c3     [a,2,b,2,c,3,c]  w=6
+=&gt; first 6 characters &quot;a2b2c3&quot;</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>string compression in place</p><pre class="code-java"><code>int w = 0, r = 0;
+while (r &lt; chars.length) {
+    char c = chars[r];
+    int start = r;
+    while (r &lt; chars.length &amp;&amp; chars[r] == c) r++;      // read a whole run
+    chars[w++] = c;
+    int count = r - start;
+    if (count &gt; 1) for (char d : String.valueOf(count).toCharArray()) chars[w++] = d;
+}
+return w;</code></pre><pre class="code-py"><code>w = r = 0
+while r &lt; len(chars):
+    c, start = chars[r], r
+    while r &lt; len(chars) and chars[r] == c:             # read a whole run
+        r += 1
+    chars[w] = c
+    w += 1
+    count = r - start
+    if count &gt; 1:
+        for d in str(count):
+            chars[w] = d
+            w += 1
+return w</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>add two numeric strings (digit by digit with a carry)</p><pre class="code-java"><code>StringBuilder sb = new StringBuilder();
+int i = a.length() - 1, j = b.length() - 1, carry = 0;
+while (i &gt;= 0 || j &gt;= 0 || carry &gt; 0) {
+    int sum = carry;
+    if (i &gt;= 0) sum += a.charAt(i--) - &#x27;0&#x27;;
+    if (j &gt;= 0) sum += b.charAt(j--) - &#x27;0&#x27;;
+    sb.append(sum % 10);
+    carry = sum / 10;
+}
+return sb.reverse().toString();</code></pre><pre class="code-py"><code>out, i, j, carry = [], len(a) - 1, len(b) - 1, 0
+while i &gt;= 0 or j &gt;= 0 or carry:
+    s = carry
+    if i &gt;= 0:
+        s += ord(a[i]) - 48
+        i -= 1
+    if j &gt;= 0:
+        s += ord(b[j]) - 48
+        j -= 1
+    out.append(str(s % 10))
+    carry = s // 10
+return &#x27;&#x27;.join(reversed(out))</code></pre></div>
+<div class="cx">⏱ Complexity — O(n) time, O(1) extra space for pointer-based rewrites (O(n) when you build a new string).</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>The write pointer must never pass the read pointer.</li><li>Do not use <code>+=</code> in a loop; use <code>StringBuilder</code> / list.</li><li>atoi: skip leading spaces, read one optional sign, stop at the first non-digit, clamp on overflow.</li><li>Reverse words: split on runs of spaces and trim; consecutive spaces create empty tokens.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Reverse words in place: reverse the whole string, then reverse each word.</li><li>Multiply strings: grade-school multiplication into an int array.</li><li>Zigzag conversion: simulate rows with a direction flag.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>When the transformation needs random access to later input (then build a new string instead of overwriting).</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="strings-14" aria-label="Solved LC 14"></td><td class="t"><a href="https://leetcode.com/problems/longest-common-prefix/" target="_blank" rel="noopener">LC 14</a></td><td>Longest Common Prefix</td><td><span class="pill dE">Easy</span></td><td>Compare column by column until a mismatch</td><td class="c">O(S) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-58" aria-label="Solved LC 58"></td><td class="t"><a href="https://leetcode.com/problems/length-of-last-word/" target="_blank" rel="noopener">LC 58</a></td><td>Length of Last Word</td><td><span class="pill dE">Easy</span></td><td>Scan from the right, skip spaces, count letters</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-415" aria-label="Solved LC 415"></td><td class="t"><a href="https://leetcode.com/problems/add-strings/" target="_blank" rel="noopener">LC 415</a></td><td>Add Strings</td><td><span class="pill dE">Easy</span></td><td>Digits from the right with a carry</td><td class="c">O(max(m,n)) / O(max(m,n))</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-67" aria-label="Solved LC 67"></td><td class="t"><a href="https://leetcode.com/problems/add-binary/" target="_blank" rel="noopener">LC 67</a></td><td>Add Binary</td><td><span class="pill dE">Easy</span></td><td>Same with base 2</td><td class="c">O(max(m,n)) / O(max(m,n))</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-443" aria-label="Solved LC 443"></td><td class="t"><a href="https://leetcode.com/problems/string-compression/" target="_blank" rel="noopener">LC 443</a></td><td>String Compression</td><td><span class="pill dM">Medium</span></td><td>Read a run, write char and count at the front</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-151" aria-label="Solved LC 151"></td><td class="t"><a href="https://leetcode.com/problems/reverse-words-in-a-string/" target="_blank" rel="noopener">LC 151</a></td><td>Reverse Words in a String</td><td><span class="pill dM">Medium</span></td><td>Split on whitespace, reverse, join</td><td class="c">O(n) / O(n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-8" aria-label="Solved LC 8"></td><td class="t"><a href="https://leetcode.com/problems/string-to-integer-atoi/" target="_blank" rel="noopener">LC 8</a></td><td>String to Integer (atoi)</td><td><span class="pill dM">Medium</span></td><td>Trim, sign, digits, clamp on overflow</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-43" aria-label="Solved LC 43"></td><td class="t"><a href="https://leetcode.com/problems/multiply-strings/" target="_blank" rel="noopener">LC 43</a></td><td>Multiply Strings</td><td><span class="pill dM">Medium</span></td><td>result[i + j + 1] accumulates products; carry at the end</td><td class="c">O(m·n) / O(m + n)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-6" aria-label="Solved LC 6"></td><td class="t"><a href="https://leetcode.com/problems/zigzag-conversion/" target="_blank" rel="noopener">LC 6</a></td><td>Zigzag Conversion</td><td><span class="pill dM">Medium</span></td><td>Row index bounces between 0 and numRows − 1</td><td class="c">O(n) / O(n)</td></tr></tbody></table></div></div>
+</section>
+<section class="pat sec" id="p8">
+<div class="pat-h"><span class="badge">8</span><h3>Character arithmetic and two-pass counting</h3><span class="tier sec">🧊 Secondary</span><span class="pp"></span></div>
+<div class="glance"><div class="gi"><span class="lbl">When to use</span>The alphabet is small and fixed, and you need order-aware answers (first, last, earliest).</div><div class="gi"><span class="lbl">Detect it</span>"first unique character" · "maximum number of balloons" · "pangram" · "alien dictionary order" · "half of the string" · "minimum steps to make anagrams".</div></div>
+<div class="callout intu"><span class="lbl">Intuition</span><p>A character is just a small integer. <code>'d' − 'a' = 3</code> is a free array index. Two passes are a classic combo: the first pass collects facts (counts), the second pass uses them in the original order (find the first with count 1).</p></div>
+<div class="blk "><span class="lbl">Brute force → optimised</span><p>Nested loops comparing each character with all others: O(n²). One counting pass plus one scan: O(n).</p></div>
+<div class="blk "><span class="lbl">Core idea</span><p>Map each character to a slot (<code>c − 'a'</code>), collect counts in pass one, then answer questions that depend on position in pass two. A bitmask can store "has this letter been seen" in one int.</p></div>
+<div class="blk "><span class="lbl">How it works</span><ol><li>Allocate <code>int[26]</code> (or <code>int[128]</code> for ASCII).</li><li>Pass 1: count with <code>count[c − 'a']++</code>.</li><li>Pass 2: scan the original string and test <code>count[c − 'a']</code> for the condition.</li><li>For custom orders, build <code>rank[c]</code> from the given order and compare ranks.</li></ol></div>
+<span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="unique"></div>
+<div class="blk "><span class="lbl">Worked trace</span><p>first unique character in <code>"loveleetcode"</code></p><pre class="trace"><code>counts: l2 o2 v1 e4 t1 c1 d1
+scan:   l(2) o(2) v(1) -&gt; index 2</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>first unique character</p><pre class="code-java"><code>int[] count = new int[26];
+for (char c : s.toCharArray()) count[c - &#x27;a&#x27;]++;
+for (int i = 0; i &lt; s.length(); i++)
+    if (count[s.charAt(i) - &#x27;a&#x27;] == 1) return i;
+return -1;</code></pre><pre class="code-py"><code>from collections import Counter
+count = Counter(s)
+for i, c in enumerate(s):
+    if count[c] == 1:
+        return i
+return -1</code></pre></div>
+<div class="blk "><span class="lbl">Skeleton</span><p>bitmask of seen letters (pangram) and custom order ranks</p><pre class="code-java"><code>int mask = 0;
+for (char c : s.toCharArray()) mask |= 1 &lt;&lt; (c - &#x27;a&#x27;);
+boolean pangram = mask == (1 &lt;&lt; 26) - 1;
+
+int[] rank = new int[26];
+for (int i = 0; i &lt; order.length(); i++) rank[order.charAt(i) - &#x27;a&#x27;] = i;   // alien alphabet</code></pre><pre class="code-py"><code>mask = 0
+for c in s:
+    mask |= 1 &lt;&lt; (ord(c) - 97)
+pangram = mask == (1 &lt;&lt; 26) - 1
+
+rank = {c: i for i, c in enumerate(order)}      # alien alphabet</code></pre></div>
+<div class="cx">⏱ Complexity — O(n) time, O(1) space (fixed alphabet).</div>
+<div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li><code>c − 'a'</code> is only valid for lowercase letters; guard or normalise otherwise.</li><li>Alien dictionary: also check the prefix rule (<code>"app"</code> must come before <code>"apple"</code>).</li><li><code>Character</code> arithmetic in Java promotes to <code>int</code>; cast back to <code>char</code> when building strings.</li><li>Decide whether case matters before indexing.</li></ul></div>
+<div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Maximum number of balloons: counts divided by required copies, take the minimum.</li><li>Minimum steps to make anagrams: sum of positive differences in counts.</li><li>Caesar shift: <code>(c − 'a' + k) % 26 + 'a'</code>.</li></ul></div>
+<div class="blk "><span class="lbl">When NOT to use</span><p>Large or Unicode alphabets (use a hash map) or problems that need substrings rather than single characters.</p></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="strings-387" aria-label="Solved LC 387"></td><td class="t"><a href="https://leetcode.com/problems/first-unique-character-in-a-string/" target="_blank" rel="noopener">LC 387</a></td><td>First Unique Character in a String</td><td><span class="pill dE">Easy</span></td><td>Count, then scan for the first count of 1</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-1832" aria-label="Solved LC 1832"></td><td class="t"><a href="https://leetcode.com/problems/check-if-the-sentence-is-pangram/" target="_blank" rel="noopener">LC 1832</a></td><td>Check if the Sentence Is Pangram</td><td><span class="pill dE">Easy</span></td><td>26-bit mask of seen letters</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-1189" aria-label="Solved LC 1189"></td><td class="t"><a href="https://leetcode.com/problems/maximum-number-of-balloons/" target="_blank" rel="noopener">LC 1189</a></td><td>Maximum Number of Balloons</td><td><span class="pill dE">Easy</span></td><td>Min over count / needed for b, a, l, o, n</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-1704" aria-label="Solved LC 1704"></td><td class="t"><a href="https://leetcode.com/problems/determine-if-string-halves-are-alike/" target="_blank" rel="noopener">LC 1704</a></td><td>Determine if String Halves Are Alike</td><td><span class="pill dE">Easy</span></td><td>Count vowels in each half</td><td class="c">O(n) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-953" aria-label="Solved LC 953"></td><td class="t"><a href="https://leetcode.com/problems/verifying-an-alien-dictionary/" target="_blank" rel="noopener">LC 953</a></td><td>Verifying an Alien Dictionary</td><td><span class="pill dE">Easy</span></td><td>Rank each letter, compare adjacent words</td><td class="c">O(total chars) / O(1)</td></tr><tr><td><input type="checkbox" class="pk" data-k="strings-1347" aria-label="Solved LC 1347"></td><td class="t"><a href="https://leetcode.com/problems/minimum-number-of-steps-to-make-two-strings-anagram/" target="_blank" rel="noopener">LC 1347</a></td><td>Minimum Number of Steps to Make Two Strings Anagram</td><td><span class="pill dM">Medium</span></td><td>Sum of positive count differences</td><td class="c">O(n) / O(1)</td></tr></tbody></table></div></div>
+</section>
+<h2 id="recall">One-line recall</h2><div class="tw"><table class=""><thead><tr><th>#</th><th>Pattern</th><th>Tier</th><th>Core idea in one line</th></tr></thead><tbody><tr><td>1</td><td>Frequency counting and anagrams</td><td>🔥</td><td>count letters, compare the counts</td></tr><tr><td>2</td><td>Two pointers on strings</td><td>🔥</td><td>compare from both ends, skip what does not count</td></tr><tr><td>3</td><td>Expand around the centre (palindromic substrings)</td><td>🔥</td><td>every palindrome mirrors around a centre</td></tr><tr><td>4</td><td>Sliding window on strings</td><td>🔥</td><td>grow right, shrink left, track what the window holds</td></tr><tr><td>5</td><td>String matching: KMP, Z and rolling hash</td><td>🧊</td><td>never re-read text: reuse what already matched</td></tr><tr><td>6</td><td>Stack-based parsing and decoding</td><td>🔥</td><td>push context on an opener, resolve it on a closer</td></tr><tr><td>7</td><td>In-place edits and simulation</td><td>🧊</td><td>a read pointer, a write pointer, one pass</td></tr><tr><td>8</td><td>Character arithmetic and two-pass counting</td><td>🧊</td><td>characters are numbers: index with c − 'a'</td></tr></tbody></table></div>
+<h2 id="choose">Choosing between them</h2><div class="tw"><table class=""><thead><tr><th>Need</th><th>Use</th></tr></thead><tbody><tr><td>Compare the multiset of letters</td><td>Frequency counting (P1)</td></tr><tr><td>Check symmetry in O(1) space</td><td>Two pointers (P2)</td></tr><tr><td>Find all or the longest palindromic substring</td><td>Expand around the centre (P3)</td></tr><tr><td>Best contiguous range under a rule</td><td>Sliding window (P4)</td></tr><tr><td>Search a pattern in linear time</td><td>KMP or rolling hash (P5)</td></tr><tr><td>Nested or balanced structure</td><td>Stack (P6)</td></tr><tr><td>Rewrite or do arithmetic on strings</td><td>Pointers and carries (P7)</td></tr><tr><td>Position-aware facts about a small alphabet</td><td>Two-pass counting (P8)</td></tr></tbody></table></div><div class="callout"><span class="lbl">Rule of thumb</span><p>if the question says <strong>substring</strong>, think window or centre; if it says <strong>subsequence</strong>, think two pointers or DP; if it says <strong>anagram or permutation</strong>, think counts; if it has <strong>brackets</strong>, think stack.</p></div>
+<h2 id="selftest">Self-test</h2><p class="muted">Answer in your head first, then click to reveal.</p><details><summary>Why compare character counts instead of sorting to test anagrams?</summary><p>Counting is O(n) time and O(1) space for a fixed alphabet; sorting is O(n log n).</p></details><details><summary>Why must expand-around-centre try even-length centres as well?</summary><p>A palindrome like "abba" has no single middle character; its centre is the gap between the two b's, so only the even expansion finds it.</p></details><details><summary>In KMP, what does <code>lps[i]</code> mean and why does a mismatch use <code>lps[len − 1]</code>?</summary><p><code>lps[i]</code> is the longest proper prefix of <code>p[0..i]</code> that is also its suffix. After a mismatch the next-best partial match is the longest border of what has matched so far, which is <code>lps[len − 1]</code>, so the text pointer never moves back.</p></details><details><summary>What is the complexity of building a string with <code>s += c</code> in a loop of n iterations?</summary><p>O(n²), because each concatenation copies the existing string. Use <code>StringBuilder</code> or <code>''.join</code> for O(n).</p></details><details><summary>Why is <code>3[a2[c]]</code> naturally solved with a stack?</summary><p>The innermost bracket must be finished first. A stack stores the unfinished outer context (count and text) and returns it in last-in, first-out order.</p></details><details><summary>When does a window for "minimum window substring" count as valid?</summary><p>When every required letter has at least its needed count inside the window, tracked by a <code>formed</code> counter that equals the number of distinct required letters.</p></details><details><summary>Why is <code>count[c − 'a']</code> risky?</summary><p>It only works for lowercase <code>a–z</code>. Uppercase, digits or Unicode produce negative or out-of-range indices; use a larger array or a hash map.</p></details><details><summary>Subsequence or substring: which problem allows a sliding window?</summary><p>Substring (contiguous). Subsequence problems use two pointers (matching) or dynamic programming.</p></details>
+<h2 id="plan">Study plan</h2><ol><li><strong>Days 1–2:</strong> frequency counting and two pointers. Do every Easy on both ladders without hints.</li><li><strong>Day 3:</strong> expand around the centre and the fixed-window anagram problems.</li><li><strong>Days 4–5:</strong> variable sliding window (LC 3, 424, 76). These recur constantly.</li><li><strong>Day 6:</strong> stack parsing: parentheses, decode string, calculator.</li><li><strong>Day 7:</strong> in-place edits and character tricks; implement atoi and add-strings carefully.</li><li><strong>Day 8:</strong> KMP: build lps by hand for three strings, then code it. Revisit anything you needed a hint for.</li></ol>
+<div class="foot"><span><a href="02_arrays.html">← Arrays, Hashing and Searching</a></span><span></span></div>
+</main></div>
+<script>(function(){
+function rng(x,y){var r=[];for(var i=x;i<=y;i++)r.push(i);return r}
+function mapStr(m){var k=Object.keys(m);return '{'+k.map(function(x){return x+':'+m[x]}).join(', ')+'}'}
+var SIM={
+two:function(){var a=[1,3,4,6,8,11],t=10,S=[],l=0,r=a.length-1;
+ while(l<r){var s=a[l]+a[r];
+  if(s===t){S.push({a:a,ptr:{l:l,r:r},ok:[l,r],note:a[l]+' + '+a[r]+' = '+s+' equals the target '+t+'. Found the pair at indices '+l+' and '+r+'.'});break}
+  if(s<t){S.push({a:a,ptr:{l:l,r:r},note:a[l]+' + '+a[r]+' = '+s+' is smaller than '+t+'. The sum must grow, so move l right (a[l] can never pair with anything smaller than a[r]).'});l++}
+  else{S.push({a:a,ptr:{l:l,r:r},note:a[l]+' + '+a[r]+' = '+s+' is bigger than '+t+'. The sum must shrink, so move r left (a[r] is too large for every remaining partner).'});r--}}
+ S.unshift({a:a,ptr:{l:0,r:a.length-1},note:'Sorted array, target '+t+'. Put one pointer at each end.'});return S},
+fixed:function(){var a=[2,1,5,1,3,2],k=3,S=[],sum=0;for(var i=0;i<k;i++)sum+=a[i];var best=sum;
+ S.push({a:a,ptr:{},hi:rng(0,k-1),note:'First window of size '+k+': sum = '+sum+'. Best so far = '+best+'.'});
+ for(i=k;i<a.length;i++){sum+=a[i]-a[i-k];best=Math.max(best,sum);S.push({a:a,ptr:{i:i},hi:rng(i-k+1,i),note:'Slide: add '+a[i]+', drop '+a[i-k]+' → sum = '+sum+'. Best so far = '+best+'. (One add and one subtract, not a re-sum.)'})}
+ S.push({a:a,ptr:{},ok:[2,3,4],note:'Maximum window sum of size '+k+' is '+best+'.'});return S},
+variable:function(){var s='abcabcbb'.split(''),S=[],l=0,c={},best=0,bl=0;
+ for(var r=0;r<s.length;r++){var ch=s[r];c[ch]=(c[ch]||0)+1;
+  S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),note:"Expand: add '"+ch+"' at r="+r+'.'+(c[ch]>1?" '"+ch+"' now appears twice, so the window is invalid.":' Window "'+s.slice(l,r+1).join('')+'" is valid.')});
+  while(c[ch]>1){c[s[l]]--;l++;S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),note:'Shrink: drop the left character, l becomes '+l+'. Window "'+s.slice(l,r+1).join('')+'".'})}
+  if(r-l+1>best){best=r-l+1;bl=l}}
+ S.push({a:s,ptr:{},ok:rng(bl,bl+best-1),note:'Longest substring without repeats has length '+best+'. Each index entered and left the window once, so O(n).'});return S},
+prefix:function(){var a=[3,4,7,2,-3,1,4,2],k=7,S=[],m={0:1},sum=0,cnt=0;
+ S.push({a:a,ptr:{},note:'Count subarrays with sum = '+k+'. Seed the map with {0:1} (the empty prefix).'});
+ for(var i=0;i<a.length;i++){sum+=a[i];var need=sum-k,add=m[need]||0;cnt+=add;m[sum]=(m[sum]||0)+1;
+  S.push({a:a,ptr:{i:i},ok:add?[i]:[],note:'Prefix sum = '+sum+'. Need an earlier prefix of '+sum+' − '+k+' = '+need+': seen '+add+' time(s), so '+add+' subarray(s) end here. Total = '+cnt+'. Map = '+mapStr(m)})}
+ return S},
+kadane:function(){var a=[-2,1,-3,4,-1,2,1,-5,4],S=[],cur=a[0],st=0,best=a[0],bs=0,be=0;
+ S.push({a:a,ptr:{i:0},hi:[0],ok:[0],note:'Start: cur = '+cur+', best = '+best+'.'});
+ for(var i=1;i<a.length;i++){var restart=a[i]>cur+a[i];
+  if(restart){cur=a[i];st=i}else{cur+=a[i]}
+  if(cur>best){best=cur;bs=st;be=i}
+  S.push({a:a,ptr:{i:i},hi:rng(st,i),ok:rng(bs,be),note:(restart?'The running sum was negative, so restart at index '+i+': cur = '+cur+'.':'Extend the run: cur = '+cur+'.')+' best = '+best+' (green).'})}
+ return S},
+hash:function(){var a=[5,1,9,3,7],t=12,S=[],m={};S.push({a:a,ptr:{},note:'Find two numbers that sum to '+t+'. Keep a map value → index of what we have already seen.'});
+ for(var i=0;i<a.length;i++){var need=t-a[i];
+  if(need in m){S.push({a:a,ptr:{i:i},ok:[m[need],i],note:'Need '+need+' for '+a[i]+': it is in the map at index '+m[need]+'. Answer = ['+m[need]+', '+i+'].'});break}
+  m[a[i]]=i;S.push({a:a,ptr:{i:i},note:'At '+a[i]+': need '+need+', not seen yet. Store '+a[i]+' → '+i+'. Map = '+mapStr(m)})}
+ return S},
+dutch:function(){var a=[2,0,2,1,1,0],S=[],lo=0,mid=0,hi=a.length-1;
+ function p(n,ok){S.push({a:a.slice(),ptr:{lo:lo,mid:mid,hi:hi},ok:ok||[],note:n})}
+ p('lo marks the end of the 0s, hi the start of the 2s, mid scans the unknown middle.');
+ while(mid<=hi){var v=a[mid];
+  if(v===0){a[mid]=a[lo];a[lo]=0;lo++;mid++;p('a[mid] was 0: swap into the 0-zone, advance lo and mid.')}
+  else if(v===2){a[mid]=a[hi];a[hi]=2;hi--;p('a[mid] was 2: swap with a[hi], shrink hi. Do NOT advance mid; the swapped-in value is unexamined.')}
+  else{mid++;p('a[mid] is 1: it already belongs in the middle zone, advance mid.')}}
+ S.push({a:a.slice(),ptr:{},ok:rng(0,a.length-1),note:'mid passed hi: sorted in one pass, O(n), O(1) space.'});return S},
+binary:function(){var a=[1,3,5,7,7,7,9,11],t=7,S=[],lo=0,hi=a.length-1;
+ S.push({a:a,ptr:{lo:lo,hi:hi},note:'Find the FIRST index with a[i] ≥ '+t+' (lower bound). Invariant: the answer is always inside [lo, hi].'});
+ while(lo<hi){var mid=lo+((hi-lo)>>1);
+  if(a[mid]>=t){S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(lo,hi),note:'mid = '+mid+', a[mid] = '+a[mid]+' ≥ '+t+'. mid could be the answer, so keep it: hi = mid.'});hi=mid}
+  else{S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(lo,hi),note:'mid = '+mid+', a[mid] = '+a[mid]+' < '+t+'. Everything up to mid is too small: lo = mid + 1.'});lo=mid+1}}
+ S.push({a:a,ptr:{lo:lo},ok:[lo],note:'lo = hi = '+lo+'. First occurrence of '+t+' is at index '+lo+'. Each step halved the range: O(log n).'});return S},
+rotated:function(){var a=[4,5,6,7,0,1,2],t=0,S=[],lo=0,hi=a.length-1;
+ S.push({a:a,ptr:{lo:lo,hi:hi},note:'Sorted array rotated at an unknown point. Search for '+t+'. One half around mid is always sorted.'});
+ while(lo<=hi){var mid=lo+((hi-lo)>>1);
+  if(a[mid]===t){S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},ok:[mid],note:'a[mid] = '+t+'. Found at index '+mid+'.'});break}
+  if(a[lo]<=a[mid]){var go=a[lo]<=t&&t<a[mid];S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(lo,mid),note:'Left half ['+lo+'..'+mid+'] is sorted ('+a[lo]+' ≤ '+a[mid]+'). '+t+(go?' lies inside it: hi = mid − 1.':' is not inside it: search the right, lo = mid + 1.')});if(go)hi=mid-1;else lo=mid+1}
+  else{var go2=a[mid]<t&&t<=a[hi];S.push({a:a,ptr:{lo:lo,mid:mid,hi:hi},hi:rng(mid,hi),note:'Right half ['+mid+'..'+hi+'] is sorted. '+t+(go2?' lies inside it: lo = mid + 1.':' is not inside it: search the left, hi = mid − 1.')});if(go2)lo=mid+1;else hi=mid-1}}
+ return S},
+quick:function(){var a=[3,2,1,5,6,4],S=[],target=a.length-2,lo=0,hi=a.length-1;
+ function dim(){var d=[];for(var x=0;x<a.length;x++)if(x<lo||x>hi)d.push(x);return d}
+ S.push({a:a.slice(),ptr:{},note:'2nd largest = element at sorted index n − k = '+target+'. Partition around a pivot; recurse into ONE side only.'});
+ while(lo<=hi){var pv=a[hi],i=lo;
+  S.push({a:a.slice(),ptr:{lo:lo,pivot:hi},dim:dim(),hi:[hi],note:'Partition ['+lo+'..'+hi+'] with pivot '+pv+' (last element). i marks where the next smaller element goes.'});
+  for(var j=lo;j<hi;j++){if(a[j]<pv){var tm=a[i];a[i]=a[j];a[j]=tm;i++;S.push({a:a.slice(),ptr:{i:i,j:j,pivot:hi},dim:dim(),note:a[i-1]+' < '+pv+': swap into the "smaller" zone, i = '+i+'.'})}
+   else S.push({a:a.slice(),ptr:{i:i,j:j,pivot:hi},dim:dim(),note:a[j]+' ≥ '+pv+': leave it, move j on.'})}
+  var t2=a[i];a[i]=a[hi];a[hi]=t2;
+  if(i===target){S.push({a:a.slice(),ptr:{p:i},ok:[i],dim:dim(),note:'Pivot lands at index '+i+' = target index. Answer: '+a[i]+'.'});break}
+  S.push({a:a.slice(),ptr:{p:i},ok:[i],dim:dim(),note:'Pivot '+pv+' is now at its final sorted index '+i+(i<target?' < target '+target+': only the right side can contain it.':' > target '+target+': only the left side can contain it.')});
+  if(i<target)lo=i+1;else hi=i-1}
+ return S},
+amort:function(){var S=[],cap=1,n=0,a=[''],cost=0;
+ S.push({a:a.slice(),ptr:{},note:'A dynamic array starts with capacity 1. Append 1..8. When it is full, allocate double the space and copy everything over.'});
+ for(var v=1;v<=8;v++){
+  if(n===cap){var c=n;cap*=2;var b=[];for(var i=0;i<cap;i++)b.push(i<n?a[i]:'');cost+=c;a=b;S.push({a:a.slice(),ptr:{},hi:rng(0,n-1),note:'Full. Resize to capacity '+cap+': copy '+c+' element(s). Total copy cost so far = '+cost+'.'})}
+  a[n]=v;n++;S.push({a:a.slice(),ptr:{i:n-1},ok:[n-1],note:'Append '+v+' (cost 1). Length '+n+', capacity '+cap+'.'})}
+ S.push({a:a.slice(),ptr:{},note:'8 appends cost 8 writes + '+cost+' copies = '+(8+cost)+' units, under 2 per append. Rare expensive steps are paid for by many cheap ones: amortised O(1).'});return S},
+pairs:function(){var a=['a','b','c','d','e'],S=[],k=0;
+ S.push({a:a,ptr:{},note:'Nested loop: for every i, for every j > i. Count how many (i, j) pairs get visited.'});
+ for(var i=0;i<a.length;i++)for(var j=i+1;j<a.length;j++){k++;S.push({a:a,ptr:{i:i,j:j},hi:[i,j],note:'Pair #'+k+': ('+a[i]+', '+a[j]+').'})}
+ S.push({a:a,ptr:{},ok:rng(0,a.length-1),note:'n = 5 gave '+k+' pairs = n(n−1)/2. Double n and the work roughly quadruples: O(n²).'});return S},
+anagram:function(){var s='listen',t='silent',a=s.split('').concat(t.split('')),S=[],c={};
+ function A(){return {label:'counts',items:Object.keys(c).map(function(k){return k+': '+c[k]})}}
+ S.push({a:a,ptr:{},note:'Are "listen" and "silent" anagrams? Count the letters of the first word UP and the second word DOWN.'});
+ for(var i=0;i<s.length;i++){c[s[i]]=(c[s[i]]||0)+1;S.push({a:a,ptr:{i:i},hi:[i],aux:A(),note:"First word: +1 for '"+s[i]+"'."})}
+ for(var j=0;j<t.length;j++){var k=s.length+j;c[t[j]]=(c[t[j]]||0)-1;S.push({a:a,ptr:{j:k},hi:[k],aux:A(),note:"Second word: −1 for '"+t[j]+"'."+(c[t[j]]<0?' The count went negative, so it is not an anagram.':'')})}
+ S.push({a:a,ptr:{},ok:rng(0,a.length-1),aux:A(),note:'Every count is back to 0, so they are anagrams. O(n) time and O(1) space (26 letters).'});return S},
+palin:function(){var s='a.b,.B.a'.split(''),S=[],l=0,r=s.length-1;
+ function al(c){return /[a-z0-9]/i.test(c)}
+ S.push({a:s,ptr:{l:l,r:r},note:'Valid palindrome, ignoring case and punctuation. One pointer at each end.'});
+ while(l<r){
+  if(!al(s[l])){S.push({a:s,ptr:{l:l,r:r},dim:[l],note:"'"+s[l]+"' is not a letter or digit: skip it (l++)."});l++;continue}
+  if(!al(s[r])){S.push({a:s,ptr:{l:l,r:r},dim:[r],note:"'"+s[r]+"' is not a letter or digit: skip it (r--)."});r--;continue}
+  var eq=s[l].toLowerCase()===s[r].toLowerCase();
+  S.push({a:s,ptr:{l:l,r:r},hi:[l,r],ok:eq?[l,r]:[],note:"Compare '"+s[l]+"' and '"+s[r]+"' ignoring case: "+(eq?'match, move both inward.':'mismatch, so it is NOT a palindrome.')});
+  if(!eq)return S;l++;r--}
+ S.push({a:s,ptr:{},ok:rng(0,s.length-1),note:'The pointers met without a mismatch: palindrome. O(n) time, O(1) space.'});return S},
+center:function(){var s='babad'.split(''),S=[],bl=0,bestLen=0;
+ function tryC(l,r,kind){var any=false;
+  while(l>=0&&r<s.length&&s[l]===s[r]){any=true;var len=r-l+1;if(len>bestLen){bestLen=len;bl=l}
+   S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),ok:bestLen?rng(bl,bl+bestLen-1):[],note:kind+' centre: "'+s.slice(l,r+1).join('')+'" is a palindrome (length '+len+'). Best so far: '+bestLen+'. Expand outward.'});l--;r++}
+  S.push({a:s,ptr:{},ok:bestLen?rng(bl,bl+bestLen-1):[],note:kind+' centre: '+(any?'cannot expand further (mismatch or edge).':'the two sides differ immediately, nothing to expand.')})}
+ S.push({a:s,ptr:{},note:'Every palindrome mirrors around a centre: a letter (odd length) or a gap (even length). Try all 2n−1 centres and expand while both sides match.'});
+ for(var i=0;i<s.length;i++){tryC(i,i,'Odd (index '+i+')');if(i<s.length-1)tryC(i,i+1,'Even (gap after '+i+')')}
+ S.push({a:s,ptr:{},ok:rng(bl,bl+bestLen-1),note:'Longest palindromic substring: "'+s.slice(bl,bl+bestLen).join('')+'" (length '+bestLen+'; "aba" ties). 2n−1 centres × O(n) expansion = O(n²) time, O(1) space.'});return S},
+minwin:function(){var s='ADOBECODEBANC'.split(''),S=[],need={A:1,B:1,C:1},have={},formed=0,req=3,l=0,best=1e9,bl=0;
+ function A(){return {label:'covered '+formed+' / '+req,items:['A','B','C'].map(function(k){return k+' '+(have[k]||0)+'/1'})}}
+ S.push({a:s,ptr:{l:0,r:0},aux:A(),note:'Smallest window of the string that contains A, B and C. Expand r; once the window covers everything, shrink l as far as possible.'});
+ for(var r=0;r<s.length;r++){var c=s[r];if(need[c]){have[c]=(have[c]||0)+1;if(have[c]===need[c])formed++}
+  S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),aux:A(),note:"Expand: add '"+c+"'. "+(formed===req?'The window now covers A, B and C.':'Still missing some required letters.')});
+  while(formed===req){if(r-l+1<best){best=r-l+1;bl=l}var d=s[l];
+   S.push({a:s,ptr:{l:l,r:r},hi:rng(l,r),ok:rng(bl,bl+best-1),aux:A(),note:'Valid window "'+s.slice(l,r+1).join('')+'" (length '+(r-l+1)+'); shortest so far = '+best+'. Try to shrink: drop \''+d+'\' from the left.'});
+   if(need[d]){have[d]--;if(have[d]<need[d])formed--}l++}}
+ S.push({a:s,ptr:{},ok:rng(bl,bl+best-1),note:'Minimum window: "'+s.slice(bl,bl+best).join('')+'". l and r only move forward, so O(n).'});return S},
+kmp:function(){var p='ababaca'.split(''),lps=[0],S=[],len=0,i=1;
+ function A(){return {label:'lps (longest border)',items:lps.map(function(v,k){return k+': '+v})}}
+ S.push({a:p,ptr:{},aux:A(),note:'lps[i] = length of the longest proper prefix of p[0..i] that is also a suffix of it. lps[0] = 0. KMP uses it to never re-read text.'});
+ while(i<p.length){var ii=i,ll=len;
+  if(p[i]===p[len]){len++;lps[i]=len;i++;S.push({a:p,ptr:{i:ii,len:ll},hi:[ii,ll],ok:[ii],aux:A(),note:'p['+ii+'] = p['+ll+'] = \''+p[ii]+'\': the border grows, lps['+ii+'] = '+len+'.'})}
+  else if(len>0){len=lps[len-1];S.push({a:p,ptr:{i:ii,len:ll},hi:[ii,ll],aux:A(),note:'p['+ii+'] \''+p[ii]+'\' ≠ p['+ll+'] \''+p[ll]+'\'. Fall back to len = lps['+(ll-1)+'] = '+len+' (try a shorter border; never restart from scratch).'})}
+  else{lps[i]=0;i++;S.push({a:p,ptr:{i:ii,len:0},hi:[ii],aux:A(),note:'\''+p[ii]+'\' ≠ \''+p[0]+'\' and there is no shorter border: lps['+ii+'] = 0.'})}}
+ S.push({a:p,ptr:{},ok:rng(0,p.length-1),aux:A(),note:'lps = ['+lps.join(', ')+']. Built in O(m): len only falls back as far as it has climbed.'});return S},
+decode:function(){var s='3[a2[c]]'.split(''),S=[],stack=[],cur='',num=0;
+ function A(){return {label:'stack (count, text before)',items:(stack.length?stack.map(function(x){return '('+x[0]+', "'+x[1]+'")'}):['empty']).concat(['cur = "'+cur+'"'])}}
+ S.push({a:s,ptr:{},aux:A(),note:'Decode k[text]. Keep a stack: on "[" save (count, text so far); on "]" pop and repeat the inner text.'});
+ for(var i=0;i<s.length;i++){var c=s[i],n;
+  if(/\d/.test(c)){num=num*10+(+c);n='Digit: repeat count is now '+num+'.'}
+  else if(c==='['){stack.push([num,cur]);n='"[": push ('+num+', "'+cur+'") and start a fresh inner string.';num=0;cur=''}
+  else if(c===']'){var t=stack.pop();n='"]": pop ('+t[0]+', "'+t[1]+'"). New text = "'+t[1]+'" + "'+cur+'" × '+t[0]+'.';cur=t[1]+cur.repeat(t[0])}
+  else{cur+=c;n="Letter '"+c+"': append to the current text."}
+  S.push({a:s,ptr:{i:i},hi:[i],aux:A(),note:n})}
+ S.push({a:s,ptr:{},ok:rng(0,s.length-1),aux:A(),note:'Result: "'+cur+'". Each character is handled once: O(n + output length).'});return S},
+compress:function(){var a='aabbccc'.split(''),S=[],w=0,r=0;
+ S.push({a:a.slice(),ptr:{w:0,r:0},note:'Compress runs in place: "aabbccc" → "a2b2c3". r reads groups, w writes the result at the front. w never passes r, so no extra array.'});
+ while(r<a.length){var ch=a[r],st=r;while(r<a.length&&a[r]===ch)r++;var cnt=r-st;
+  S.push({a:a.slice(),ptr:{w:w,r:st},hi:rng(st,r-1),note:"Group found: '"+ch+"' × "+cnt+'.'});
+  a[w++]=ch;if(cnt>1)String(cnt).split('').forEach(function(d){a[w++]=d});
+  S.push({a:a.slice(),ptr:{w:w},ok:rng(0,w-1),note:"Write '"+ch+"'"+(cnt>1?' and the count '+cnt:'')+' at the front. Compressed so far: "'+a.slice(0,w).join('')+'".'})}
+ S.push({a:a.slice(),ptr:{},ok:rng(0,w-1),dim:rng(w,a.length-1),note:'New length = '+w+' ("'+a.slice(0,w).join('')+'"). Anything after w is ignored. O(n) time, O(1) space.'});return S},
+unique:function(){var s='loveleetcode'.split(''),S=[],c={};
+ function A(){return {label:'counts',items:Object.keys(c).map(function(k){return k+': '+c[k]})}}
+ S.push({a:s,ptr:{},note:'First non-repeating character. Pass 1 counts every letter; pass 2 finds the first letter whose count is 1.'});
+ for(var i=0;i<s.length;i++){c[s[i]]=(c[s[i]]||0)+1;S.push({a:s,ptr:{i:i},hi:[i],aux:A(),note:"Pass 1: count '"+s[i]+"'."})}
+ for(i=0;i<s.length;i++){if(c[s[i]]===1){S.push({a:s,ptr:{i:i},ok:[i],aux:A(),note:"Pass 2: '"+s[i]+"' has count 1: answer is index "+i+'.'});return S}
+  S.push({a:s,ptr:{i:i},dim:[i],aux:A(),note:"Pass 2: '"+s[i]+"' appears "+c[s[i]]+' times, skip it.'})}
+ return S}};
+
+var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+var body=document.body;
+/* language + theme */
+function setLang(l){body.dataset.lang=l;$('#b-java').classList.toggle('on',l==='java');$('#b-py').classList.toggle('on',l==='py');ls('dsa-lang',l)}
+setLang(ls('dsa-lang')||'java');
+$('#b-java').onclick=function(){setLang('java')};$('#b-py').onclick=function(){setLang('py')};
+var th=ls('dsa-theme');if(th)document.documentElement.dataset.theme=th;
+$('#b-theme').onclick=function(){var d=document.documentElement,dark=d.dataset.theme?d.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;d.dataset.theme=dark?'light':'dark';ls('dsa-theme',d.dataset.theme)};
+/* progress (saved in this browser only) */
+function load(){try{return JSON.parse(ls('dsa-progress')||'{}')}catch(e){return {}}}
+var prog=load();
+function refresh(){var boxes=$$('.pk'),n=0;
+ boxes.forEach(function(b){var on=!!prog[b.dataset.k];b.checked=on;b.closest('tr').classList.toggle('done',on);if(on)n++});
+ $('#prog').textContent=n+' / '+boxes.length+' solved';$('#pbar').style.width=(boxes.length?100*n/boxes.length:0)+'%';
+ $$('.pat').forEach(function(p){var bx=$$('.pk',p),d=bx.filter(function(c){return c.checked}).length,e=$('.pp',p),s=$('nav.side a[href="#'+p.id+'"] .cnt');
+  if(e)e.textContent=d+' / '+bx.length+' solved';if(s)s.textContent=d+'/'+bx.length})}
+$$('.pk').forEach(function(b){b.onchange=function(){if(b.checked)prog[b.dataset.k]=1;else delete prog[b.dataset.k];ls('dsa-progress',JSON.stringify(prog));refresh()}});
+refresh();
+/* copy buttons */
+$$('.cp').forEach(function(e){e.remove()});
+$$('pre').forEach(function(p){var b=document.createElement('button');b.className='cp';b.textContent='Copy';b.onclick=function(){var t=p.querySelector('code').textContent;try{navigator.clipboard.writeText(t);b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1200)}catch(e){}};p.appendChild(b)});
+/* scroll spy */
+var links=$$('nav.side a');
+if('IntersectionObserver' in window&&links.length){var map={};links.forEach(function(a){map[a.getAttribute('href').slice(1)]=a});
+ var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(a){a.classList.remove('act')});var a=map[e.target.id];if(a)a.classList.add('act')}})},{rootMargin:'-70px 0px -70% 0px'});
+ Object.keys(map).forEach(function(id){var t=document.getElementById(id);if(t)io.observe(t)})}
+/* download */
+$('#b-dl').onclick=function(){
+ var clone=document.documentElement.cloneNode(true);
+ $$('.stepper',clone).forEach(function(e){e.innerHTML=''});$$('.cp',clone).forEach(function(e){e.remove()});
+ $$('.pk',clone).forEach(function(e){e.removeAttribute('checked')});$$('tr.done',clone).forEach(function(e){e.classList.remove('done')});
+ $$('a.act',clone).forEach(function(e){e.classList.remove('act')});
+ var h='<!DOCTYPE html>\n'+clone.outerHTML,blob=new Blob([h],{type:'text/html'}),a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);a.download=body.dataset.file||'topic.html';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)};
+/* animated stepper */
+function stepper(el){
+ var steps=SIM[el.dataset.sim](),i=0,timer=null,speed=1300,max=0;
+ steps.forEach(function(s){max=Math.max(max,s.a.length)});
+ el.setAttribute('tabindex','0');el.setAttribute('aria-label','Step-by-step animation');
+ el.innerHTML='<div class="st-prog"><i></i></div><div class="st-view"></div><div class="st-aux"></div><div class="st-note" aria-live="polite"></div>'+
+  '<div class="st-ctl"><button data-a="prev" title="Previous (←)">◀</button><button data-a="play" title="Play / pause (space)">▶ Play</button><button data-a="next" title="Next (→)">▶|</button><button data-a="reset" title="Restart">↺</button>'+
+  '<input type="range" min="0" max="'+(steps.length-1)+'" value="0" aria-label="Step"><select aria-label="Speed"><option value="2200">Slow</option><option value="1300" selected>Normal</option><option value="600">Fast</option></select><span class="st-count"></span></div>';
+ var view=$('.st-view',el),aux=$('.st-aux',el),note=$('.st-note',el),cnt=$('.st-count',el),play=$('[data-a=play]',el),bar=$('.st-prog i',el),rg=$('input',el),sel=$('select',el);
+ var cells=[],h='';for(var k=0;k<max;k++)h+='<div class="cellw"><div class="ptr"></div><div class="cell"></div><div class="idx">'+k+'</div></div>';
+ view.innerHTML=h;$$('.cellw',view).forEach(function(w){cells.push({w:w,p:$('.ptr',w),c:$('.cell',w),v:null})});
+ function draw(){var s=steps[i],lab={};Object.keys(s.ptr||{}).forEach(function(k){var ix=s.ptr[k];(lab[ix]=lab[ix]||[]).push(k)});
+  cells.forEach(function(o,ix){if(ix>=s.a.length){o.w.style.display='none';return}o.w.style.display='';
+   var v=String(s.a[ix]);if(o.v!==null&&o.v!==v){o.c.classList.remove('pop');void o.c.offsetWidth;o.c.classList.add('pop')}
+   o.v=v;o.c.textContent=v;
+   o.c.className='cell'+((s.hi||[]).indexOf(ix)>=0?' in':'')+((s.ok||[]).indexOf(ix)>=0?' ok':'')+((s.dim||[]).indexOf(ix)>=0?' dim':'')+(o.c.classList.contains('pop')?' pop':'');
+   o.p.innerHTML=lab[ix]?'<b>'+lab[ix].join(', ')+'</b>':''});
+  if(s.aux){aux.innerHTML='<span class="al">'+s.aux.label+'</span>'+s.aux.items.map(function(t){return '<span class="chip">'+String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span>'}).join('')}else aux.innerHTML='';
+  note.textContent=s.note;cnt.textContent=(i+1)+' / '+steps.length;bar.style.width=(100*(i+1)/steps.length)+'%';rg.value=i}
+ function stop(){if(timer){clearInterval(timer);timer=null;play.textContent='▶ Play'}}
+ function go(n){i=Math.max(0,Math.min(steps.length-1,n));draw()}
+ function start(){if(i>=steps.length-1)i=0;play.textContent='❚❚ Pause';draw();timer=setInterval(function(){if(i<steps.length-1){i++;draw()}else stop()},speed)}
+ $('[data-a=prev]',el).onclick=function(){stop();go(i-1)};$('[data-a=next]',el).onclick=function(){stop();go(i+1)};
+ $('[data-a=reset]',el).onclick=function(){stop();go(0)};play.onclick=function(){timer?stop():start()};
+ rg.oninput=function(){stop();go(+rg.value)};sel.onchange=function(){speed=+sel.value;if(timer){stop();start()}};
+ el.onkeydown=function(e){if(e.target!==el)return;if(e.key==='ArrowRight'){stop();go(i+1);e.preventDefault()}else if(e.key==='ArrowLeft'){stop();go(i-1);e.preventDefault()}else if(e.key===' '){timer?stop():start();e.preventDefault()}};
+ draw()}
+$$('.stepper').forEach(stepper);
+
+})();</script>
+</body></html>
