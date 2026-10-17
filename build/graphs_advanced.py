@@ -568,17 +568,27 @@ P.append(dict(
 pass 2 (reversed graph) from 0: reaches 2, 1   -> SCC {0,1,2}
 from 3: reaches 5, 4                            -> SCC {3,4,5}""",
     code=[("Kosaraju's algorithm",
-           """boolean[] seen = new boolean[n];
+           """int n;
+List<Integer>[] g;                                           // original graph
+boolean[] seen;
 Deque<Integer> order = new ArrayDeque<>();
-void dfs1(int u) { seen[u] = true; for (int v : g[u]) if (!seen[v]) dfs1(v); order.push(u); }   // push AFTER children
-for (int u = 0; u < n; u++) if (!seen[u]) dfs1(u);
+int[] comp;
 
-List<List<Integer>> rev = reversedGraph(g);
-Arrays.fill(seen, false);
-int sccCount = 0;
-int[] comp = new int[n];
-void dfs2(int u, int id) { seen[u] = true; comp[u] = id; for (int v : rev.get(u)) if (!seen[v]) dfs2(v, id); }
-while (!order.isEmpty()) { int u = order.pop(); if (!seen[u]) dfs2(u, sccCount++); }    // latest finisher first""",
+void dfs1(int u) { seen[u] = true; for (int v : g[u]) if (!seen[v]) dfs1(v); order.push(u); }   // push AFTER children
+void dfs2(List<Integer>[] rev, int u, int id) { seen[u] = true; comp[u] = id; for (int v : rev[u]) if (!seen[v]) dfs2(rev, v, id); }
+
+int kosaraju() {                                             // returns the number of SCCs; comp[u] = its component id
+    seen = new boolean[n];
+    for (int u = 0; u < n; u++) if (!seen[u]) dfs1(u);
+    List<Integer>[] rev = new List[n];                       // reversed graph
+    for (int i = 0; i < n; i++) rev[i] = new ArrayList<>();
+    for (int u = 0; u < n; u++) for (int v : g[u]) rev[v].add(u);
+    Arrays.fill(seen, false);
+    comp = new int[n];
+    int sccCount = 0;
+    while (!order.isEmpty()) { int u = order.pop(); if (!seen[u]) dfs2(rev, u, sccCount++); }    // latest finisher first
+    return sccCount;
+}""",
            """import sys
 sys.setrecursionlimit(10**6)
 seen, order = [False] * n, []
@@ -633,14 +643,18 @@ back in A: no more edges, append A ; C append ; B append ; A append
 route (built backwards): D A C B A  -> reversed: A B C A D""",
     code=[("reconstruct itinerary (lexicographically smallest Eulerian path)",
            """Map<String, PriorityQueue<String>> g = new HashMap<>();
-for (List<String> t : tickets) g.computeIfAbsent(t.get(0), k -> new PriorityQueue<>()).add(t.get(1));
 LinkedList<String> route = new LinkedList<>();
+
+List<String> findItinerary(List<List<String>> tickets) {
+    for (List<String> t : tickets) g.computeIfAbsent(t.get(0), k -> new PriorityQueue<>()).add(t.get(1));
+    dfs("JFK");
+    return route;
+}
 void dfs(String u) {
     PriorityQueue<String> pq = g.get(u);
     while (pq != null && !pq.isEmpty()) dfs(pq.poll());     // consume each edge once, smallest destination first
     route.addFirst(u);                                      // add AFTER the edges are exhausted
-}
-// dfs("JFK"); return route;""",
+}""",
            """from collections import defaultdict
 g = defaultdict(list)
 for a, b in sorted(tickets, reverse=True):                 # reversed so pop() yields the smallest destination

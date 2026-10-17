@@ -47,27 +47,38 @@ for bill in bills:
 return True"""),
           ("an UNSAFE greedy (coin change) and the DP that fixes it",
            """// greedy: wrong for coins {1, 3, 4}, amount 6
-Arrays.sort(coins);
-int count = 0;
-for (int i = coins.length - 1; i >= 0; i--) { count += amount / coins[i]; amount %= coins[i]; }
+int greedyCoins(int[] coins, int amount) {
+    Arrays.sort(coins);
+    int count = 0;
+    for (int i = coins.length - 1; i >= 0; i--) { count += amount / coins[i]; amount %= coins[i]; }
+    return count;
+}
 
 // correct: dp[a] = fewest coins that make amount a
-int[] dp = new int[amount + 1];
-Arrays.fill(dp, amount + 1); dp[0] = 0;
-for (int a = 1; a <= amount; a++)
-    for (int c : coins) if (c <= a) dp[a] = Math.min(dp[a], dp[a - c] + 1);""",
+int minCoins(int[] coins, int amount) {
+    int[] dp = new int[amount + 1];
+    Arrays.fill(dp, amount + 1); dp[0] = 0;
+    for (int a = 1; a <= amount; a++)
+        for (int c : coins)
+            if (c <= a) dp[a] = Math.min(dp[a], dp[a - c] + 1);
+    return dp[amount];
+}""",
            """# greedy: wrong for coins [1, 3, 4], amount 6
-count = 0
-for c in sorted(coins, reverse=True):
-    count += amount // c
-    amount %= c
+def greedy_coins(coins, amount):
+    count = 0
+    for c in sorted(coins, reverse=True):
+        count += amount // c
+        amount %= c                                   # (a local copy: the caller's amount is unchanged)
+    return count
 
 # correct: dp[a] = fewest coins that make amount a
-dp = [0] + [float('inf')] * amount
-for a in range(1, amount + 1):
-    for c in coins:
-        if c <= a:
-            dp[a] = min(dp[a], dp[a - c] + 1)""")],
+def min_coins(coins, amount):
+    dp = [0] + [float('inf')] * amount
+    for a in range(1, amount + 1):
+        for c in coins:
+            if c <= a:
+                dp[a] = min(dp[a], dp[a - c] + 1)
+    return dp[amount]""")],
     complexity="Usually O(n) or O(n log n) (sort) with O(1) extra space.",
     traps=["A rule that works on the samples may still be wrong: build counterexamples (ties, large first, equal items).", "Greedy on \"coin change\" is correct only for special coin systems; general coins need DP.",
            "Sort by the **right key** (end time, ratio, deadline) and break ties deliberately.", "Do not confuse greedy with \"fast heuristic\": an interview answer needs the reason it is optimal."],
@@ -98,36 +109,42 @@ i=2: far=4   i==curEnd(2) -> jumps 2, curEnd 4
 reached the last index: 2 jumps (0 -> 1 -> 4)""",
     code=[("can reach, and minimum jumps",
            """// reachable?
-int far = 0;
-for (int i = 0; i < n; i++) {
-    if (i > far) return false;                    // a gap we cannot cross
-    far = Math.max(far, i + a[i]);
+boolean canJump(int[] a) {
+    int far = 0;
+    for (int i = 0; i < a.length; i++) {
+        if (i > far) return false;                    // a gap we cannot cross
+        far = Math.max(far, i + a[i]);
+    }
+    return true;
 }
-return true;
 
 // minimum jumps (guaranteed reachable)
-int jumps = 0, curEnd = 0; far = 0;
-for (int i = 0; i < n - 1; i++) {
-    far = Math.max(far, i + a[i]);
-    if (i == curEnd) { jumps++; curEnd = far; }   // the current level is exhausted: jump
-}
-return jumps;""",
+int minJumps(int[] a) {
+    int jumps = 0, curEnd = 0, far = 0;
+    for (int i = 0; i < a.length - 1; i++) {
+        far = Math.max(far, i + a[i]);
+        if (i == curEnd) { jumps++; curEnd = far; }   // the current level is exhausted: jump
+    }
+    return jumps;
+}""",
            """# reachable?
-far = 0
-for i, x in enumerate(a):
-    if i > far:
-        return False                              # a gap we cannot cross
-    far = max(far, i + x)
-return True
+def can_jump(a):
+    far = 0
+    for i, x in enumerate(a):
+        if i > far:
+            return False                              # a gap we cannot cross
+        far = max(far, i + x)
+    return True
 
 # minimum jumps (guaranteed reachable)
-jumps = cur_end = far = 0
-for i in range(len(a) - 1):
-    far = max(far, i + a[i])
-    if i == cur_end:
-        jumps += 1                                # the current level is exhausted: jump
-        cur_end = far
-return jumps"""),
+def min_jumps(a):
+    jumps = cur_end = far = 0
+    for i in range(len(a) - 1):
+        far = max(far, i + a[i])
+        if i == cur_end:
+            jumps += 1                                # the current level is exhausted: jump
+            cur_end = far
+    return jumps"""),
           ("minimum taps to water a garden (intervals as jumps)",
            """int[] reach = new int[n + 1];                               // reach[l] = farthest right end of a tap starting at l
 for (int i = 0; i <= n; i++) {

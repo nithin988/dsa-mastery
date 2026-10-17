@@ -144,16 +144,18 @@ for (int i = 0; i &lt; s.length(); i++) {
 }
 for (int c : count) if (c != 0) return false;
 return true;</code></pre><pre class="code-py"><code>from collections import Counter
-return Counter(s) == Counter(t)
+def is_anagram(s, t):
+    return Counter(s) == Counter(t)
 
 # or without a library, 26 slots:
-if len(s) != len(t):
-    return False
-count = [0] * 26
-for a, b in zip(s, t):
-    count[ord(a) - 97] += 1
-    count[ord(b) - 97] -= 1
-return not any(count)</code></pre></div>
+def is_anagram_array(s, t):
+    if len(s) != len(t):
+        return False
+    count = [0] * 26
+    for a, b in zip(s, t):
+        count[ord(a) - 97] += 1
+        count[ord(b) - 97] -= 1
+    return not any(count)</code></pre></div>
 <div class="blk "><span class="lbl">Skeleton</span><p>group anagrams: the count signature as the key</p><pre class="code-java"><code>Map&lt;String, List&lt;String&gt;&gt; groups = new HashMap&lt;&gt;();
 for (String w : words) {
     int[] c = new int[26];
@@ -253,12 +255,14 @@ centre &#x27;b&#x27;(2): b -&gt; aba       len 3
 centres &#x27;a&#x27;(3),&#x27;d&#x27;(4): len 1
 even centres: all mismatch immediately
 =&gt; &quot;bab&quot;  (&quot;aba&quot; is equally valid)</code></pre></div>
-<div class="blk "><span class="lbl">Skeleton</span><p>longest palindromic substring</p><pre class="code-java"><code>int start = 0, best = 0;
-for (int i = 0; i &lt; s.length(); i++) {
-    int len = Math.max(expand(s, i, i), expand(s, i, i + 1));
-    if (len &gt; best) { best = len; start = i - (len - 1) / 2; }
+<div class="blk "><span class="lbl">Skeleton</span><p>longest palindromic substring</p><pre class="code-java"><code>String longestPalindrome(String s) {
+    int start = 0, best = 0;
+    for (int i = 0; i &lt; s.length(); i++) {
+        int len = Math.max(expand(s, i, i), expand(s, i, i + 1));
+        if (len &gt; best) { best = len; start = i - (len - 1) / 2; }
+    }
+    return s.substring(start, start + best);
 }
-return s.substring(start, start + best);
 
 int expand(String s, int l, int r) {
     while (l &gt;= 0 &amp;&amp; r &lt; s.length() &amp;&amp; s.charAt(l) == s.charAt(r)) { l--; r++; }

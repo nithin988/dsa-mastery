@@ -25,16 +25,18 @@ for (int i = 0; i < s.length(); i++) {
 for (int c : count) if (c != 0) return false;
 return true;""",
            """from collections import Counter
-return Counter(s) == Counter(t)
+def is_anagram(s, t):
+    return Counter(s) == Counter(t)
 
 # or without a library, 26 slots:
-if len(s) != len(t):
-    return False
-count = [0] * 26
-for a, b in zip(s, t):
-    count[ord(a) - 97] += 1
-    count[ord(b) - 97] -= 1
-return not any(count)"""),
+def is_anagram_array(s, t):
+    if len(s) != len(t):
+        return False
+    count = [0] * 26
+    for a, b in zip(s, t):
+        count[ord(a) - 97] += 1
+        count[ord(b) - 97] -= 1
+    return not any(count)"""),
           ("group anagrams: the count signature as the key",
            """Map<String, List<String>> groups = new HashMap<>();
 for (String w : words) {
@@ -165,12 +167,14 @@ centres 'a'(3),'d'(4): len 1
 even centres: all mismatch immediately
 => \"bab\"  (\"aba\" is equally valid)""",
     code=[("longest palindromic substring",
-           """int start = 0, best = 0;
-for (int i = 0; i < s.length(); i++) {
-    int len = Math.max(expand(s, i, i), expand(s, i, i + 1));
-    if (len > best) { best = len; start = i - (len - 1) / 2; }
+           """String longestPalindrome(String s) {
+    int start = 0, best = 0;
+    for (int i = 0; i < s.length(); i++) {
+        int len = Math.max(expand(s, i, i), expand(s, i, i + 1));
+        if (len > best) { best = len; start = i - (len - 1) / 2; }
+    }
+    return s.substring(start, start + best);
 }
-return s.substring(start, start + best);
 
 int expand(String s, int l, int r) {
     while (l >= 0 && r < s.length() && s.charAt(l) == s.charAt(r)) { l--; r++; }

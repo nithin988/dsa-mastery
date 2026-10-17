@@ -48,3 +48,7 @@ Every topic page is generated from the same three shared files, so one edit rest
 - `build/lib.py`: the page structure (hero, sidebar, pattern cards)
 
 After editing any of them run `python build/build.py` and commit the regenerated `index.html` and `topics/*.html`. Each page embeds the CSS and JS so it still works as a single downloaded file.
+
+## Verification
+
+`python verify/check_all.py` runs the offline checks (see [verify/README.md](verify/README.md)): every Python and Java snippet is syntax-checked, Java is type-checked, 73 Python test groups and 30 Java classes run the published code against known answers, and `verify/link_check.js` validates every LeetCode link (number, difficulty, premium status) from inside a real LeetCode page.

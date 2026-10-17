@@ -72,20 +72,28 @@ P.append(dict(
 component 2: 6 -> 7
 components = 2""",
     code=[("DFS: recursive, iterative, and counting components",
-           """boolean[] seen = new boolean[n];
+           """List<List<Integer>> g;                          // adjacency list
+boolean[] seen;
+
 void dfs(int u) {
     seen[u] = true;
     for (int v : g.get(u)) if (!seen[v]) dfs(v);
 }
-int components = 0;
-for (int u = 0; u < n; u++) if (!seen[u]) { components++; dfs(u); }
+int countComponents(int n) {
+    seen = new boolean[n];
+    int components = 0;
+    for (int u = 0; u < n; u++) if (!seen[u]) { components++; dfs(u); }
+    return components;
+}
 
 // iterative: avoids stack overflow on long paths
-Deque<Integer> st = new ArrayDeque<>();
-st.push(start); seen[start] = true;
-while (!st.isEmpty()) {
-    int u = st.pop();
-    for (int v : g.get(u)) if (!seen[v]) { seen[v] = true; st.push(v); }
+void dfsIterative(int start) {
+    Deque<Integer> st = new ArrayDeque<>();
+    st.push(start); seen[start] = true;
+    while (!st.isEmpty()) {
+        int u = st.pop();
+        for (int v : g.get(u)) if (!seen[v]) { seen[v] = true; st.push(v); }
+    }
 }""",
            """seen = [False] * n
 def dfs(u):
@@ -239,10 +247,13 @@ P.append(dict(
     g[r][c] = '0';                                          // sink = mark visited
     return 1 + dfs(g, r + 1, c) + dfs(g, r - 1, c) + dfs(g, r, c + 1) + dfs(g, r, c - 1);
 }
-int count = 0, best = 0;
-for (int r = 0; r < g.length; r++)
-    for (int c = 0; c < g[0].length; c++)
-        if (g[r][c] == '1') { count++; best = Math.max(best, dfs(g, r, c)); }""",
+int[] islands(char[][] g) {                                 // returns {number of islands, max area}
+    int count = 0, best = 0;
+    for (int r = 0; r < g.length; r++)
+        for (int c = 0; c < g[0].length; c++)
+            if (g[r][c] == '1') { count++; best = Math.max(best, dfs(g, r, c)); }
+    return new int[]{count, best};
+}""",
            """def dfs(r, c):
     if not (0 <= r < R and 0 <= c < C) or g[r][c] != '1':
         return 0
@@ -505,7 +516,7 @@ return True""")],
     variants=["Possible bipartition: same check on the dislike graph.", "Flower planting with no adjacent equal: greedy colouring with 4 colours (max degree 3).", "Divide nodes into maximum groups: per-component BFS depth after bipartite check."],
     notuse="When you need more than two groups (general graph colouring is NP-hard).",
     problems=[
-        (1042, "Flower Planting With No Adjacent", "E", "flower-planting-with-no-adjacent", "Greedy: give each garden the first colour unused by neighbours", "O(V + E) / O(V)"),
+        (1042, "Flower Planting With No Adjacent", "M", "flower-planting-with-no-adjacent", "Greedy: give each garden the first colour unused by neighbours", "O(V + E) / O(V)"),
         (785, "Is Graph Bipartite?", "M", "is-graph-bipartite", "BFS two-colouring of each component", "O(V + E) / O(V)"),
         (886, "Possible Bipartition", "M", "possible-bipartition", "Build the dislike graph, then 2-colour it", "O(V + E) / O(V + E)"),
         (2493, "Divide Nodes Into the Maximum Number of Groups", "H", "divide-nodes-into-the-maximum-number-of-groups", "Per component: bipartite check + best BFS depth over start nodes", "O(V·(V + E)) / O(V + E)"),
@@ -665,9 +676,18 @@ void mark(char[][] b, int r, int c) {
             if b[r][c] == 'O': b[r][c] = 'X'                # enclosed
             elif b[r][c] == 'S': b[r][c] = 'O'              # safe: restore"""),
           ("Pacific Atlantic: search uphill from each ocean, intersect",
-           """boolean[][] pac = new boolean[m][n], atl = new boolean[m][n];
-for (int r = 0; r < m; r++) { dfs(h, pac, r, 0); dfs(h, atl, r, n - 1); }
-for (int c = 0; c < n; c++) { dfs(h, pac, 0, c); dfs(h, atl, m - 1, c); }
+           """int[][] D = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+
+List<List<Integer>> pacificAtlantic(int[][] h) {
+    int m = h.length, n = h[0].length;
+    boolean[][] pac = new boolean[m][n], atl = new boolean[m][n];
+    for (int r = 0; r < m; r++) { dfs(h, pac, r, 0); dfs(h, atl, r, n - 1); }
+    for (int c = 0; c < n; c++) { dfs(h, pac, 0, c); dfs(h, atl, m - 1, c); }
+    List<List<Integer>> res = new ArrayList<>();
+    for (int r = 0; r < m; r++)
+        for (int c = 0; c < n; c++) if (pac[r][c] && atl[r][c]) res.add(Arrays.asList(r, c));   // reaches both oceans
+    return res;
+}
 void dfs(int[][] h, boolean[][] seen, int r, int c) {
     seen[r][c] = true;
     for (int[] d : D) {
@@ -675,8 +695,7 @@ void dfs(int[][] h, boolean[][] seen, int r, int c) {
         if (nr < 0 || nc < 0 || nr >= h.length || nc >= h[0].length || seen[nr][nc]) continue;
         if (h[nr][nc] >= h[r][c]) dfs(h, seen, nr, nc);          // water flows downhill, so we climb in reverse
     }
-}
-// answer: cells with pac[r][c] && atl[r][c]""",
+}""",
            """def reach(starts):
     seen, stack = set(starts), list(starts)
     while stack:

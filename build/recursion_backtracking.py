@@ -98,7 +98,9 @@ def dfs(start, path):
         path.pop()                                       # un-choose
 dfs(0, [])"""),
           ("include / exclude form and bitmask form",
-           """// include or exclude each element
+           """List<List<Integer>> res = new ArrayList<>();
+
+// include or exclude each element
 void dfs(int[] a, int i, List<Integer> path) {
     if (i == a.length) { res.add(new ArrayList<>(path)); return; }
     dfs(a, i + 1, path);                                 // exclude a[i]
@@ -106,11 +108,17 @@ void dfs(int[] a, int i, List<Integer> path) {
     dfs(a, i + 1, path);                                 // include a[i]
     path.remove(path.size() - 1);
 }
+
 // bitmask: every integer 0 .. 2^n - 1 is a subset
-for (int mask = 0; mask < (1 << n); mask++) {
-    List<Integer> s = new ArrayList<>();
-    for (int j = 0; j < n; j++) if ((mask >> j & 1) == 1) s.add(a[j]);
-    res.add(s);
+List<List<Integer>> allSubsets(int[] a) {
+    int n = a.length;
+    List<List<Integer>> out = new ArrayList<>();
+    for (int mask = 0; mask < (1 << n); mask++) {
+        List<Integer> s = new ArrayList<>();
+        for (int j = 0; j < n; j++) if ((mask >> j & 1) == 1) s.add(a[j]);
+        out.add(s);
+    }
+    return out;
 }""",
            """def dfs(i, path):
     if i == len(a):
@@ -294,7 +302,13 @@ P.append(dict(
   at root: i=2 equals i=1 -> skip
 => [] [1] [1,2] [1,2,2] [2] [2,2]  (6, not 8)""",
     code=[("Subsets II (duplicates in the input)",
-           """Arrays.sort(a);
+           """List<List<Integer>> res = new ArrayList<>();
+
+List<List<Integer>> subsetsWithDup(int[] a) {
+    Arrays.sort(a);
+    dfs(a, 0, new ArrayList<>());
+    return res;
+}
 void dfs(int[] a, int start, List<Integer> path) {
     res.add(new ArrayList<>(path));
     for (int i = start; i < a.length; i++) {
@@ -315,7 +329,13 @@ def dfs(start, path):
         path.pop()
 dfs(0, [])"""),
           ("Permutations II (duplicates in the input)",
-           """Arrays.sort(a);
+           """List<List<Integer>> res = new ArrayList<>();
+
+List<List<Integer>> permuteUnique(int[] a) {
+    Arrays.sort(a);
+    dfs(a, new boolean[a.length], new ArrayList<>());
+    return res;
+}
 void dfs(int[] a, boolean[] used, List<Integer> path) {
     if (path.size() == a.length) { res.add(new ArrayList<>(path)); return; }
     for (int i = 0; i < a.length; i++) {
@@ -471,8 +491,12 @@ boolean dfs(char[][] b, String w, int k, int r, int c) {
         return ok
     return any(dfs(r, c, 0) for r in range(R) for c in range(C))"""),
           ("path with maximum gold (best path, not just existence)",
-           """int best = 0;
-for (int r = 0; r < m; r++) for (int c = 0; c < n; c++) best = Math.max(best, dfs(g, r, c));
+           """int maxGold(int[][] g) {
+    int best = 0;
+    for (int r = 0; r < g.length; r++)
+        for (int c = 0; c < g[0].length; c++) best = Math.max(best, dfs(g, r, c));
+    return best;
+}
 int dfs(int[][] g, int r, int c) {
     if (r < 0 || c < 0 || r >= g.length || c >= g[0].length || g[r][c] == 0) return 0;
     int gold = g[r][c];
@@ -612,7 +636,9 @@ P.append(dict(
 ()() RECORD
 => (()) ()()""",
     code=[("generate parentheses (prune invalid prefixes)",
-           """void dfs(int open, int close, int n, StringBuilder sb) {
+           """List<String> res = new ArrayList<>();
+
+void dfs(int open, int close, int n, StringBuilder sb) {
     if (sb.length() == 2 * n) { res.add(sb.toString()); return; }
     if (open < n) {                                         // may still open
         sb.append('('); dfs(open + 1, close, n, sb); sb.deleteCharAt(sb.length() - 1);

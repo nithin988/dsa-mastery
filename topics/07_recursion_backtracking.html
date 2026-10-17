@@ -202,7 +202,9 @@ def dfs(start, path):
         dfs(i + 1, path)                                 # explore
         path.pop()                                       # un-choose
 dfs(0, [])</code></pre></div>
-<div class="blk "><span class="lbl">Skeleton</span><p>include / exclude form and bitmask form</p><pre class="code-java"><code>// include or exclude each element
+<div class="blk "><span class="lbl">Skeleton</span><p>include / exclude form and bitmask form</p><pre class="code-java"><code>List&lt;List&lt;Integer&gt;&gt; res = new ArrayList&lt;&gt;();
+
+// include or exclude each element
 void dfs(int[] a, int i, List&lt;Integer&gt; path) {
     if (i == a.length) { res.add(new ArrayList&lt;&gt;(path)); return; }
     dfs(a, i + 1, path);                                 // exclude a[i]
@@ -210,11 +212,17 @@ void dfs(int[] a, int i, List&lt;Integer&gt; path) {
     dfs(a, i + 1, path);                                 // include a[i]
     path.remove(path.size() - 1);
 }
+
 // bitmask: every integer 0 .. 2^n - 1 is a subset
-for (int mask = 0; mask &lt; (1 &lt;&lt; n); mask++) {
-    List&lt;Integer&gt; s = new ArrayList&lt;&gt;();
-    for (int j = 0; j &lt; n; j++) if ((mask &gt;&gt; j &amp; 1) == 1) s.add(a[j]);
-    res.add(s);
+List&lt;List&lt;Integer&gt;&gt; allSubsets(int[] a) {
+    int n = a.length;
+    List&lt;List&lt;Integer&gt;&gt; out = new ArrayList&lt;&gt;();
+    for (int mask = 0; mask &lt; (1 &lt;&lt; n); mask++) {
+        List&lt;Integer&gt; s = new ArrayList&lt;&gt;();
+        for (int j = 0; j &lt; n; j++) if ((mask &gt;&gt; j &amp; 1) == 1) s.add(a[j]);
+        out.add(s);
+    }
+    return out;
 }</code></pre><pre class="code-py"><code>def dfs(i, path):
     if i == len(a):
         res.append(path[:])
@@ -359,7 +367,13 @@ dfs(0)</code></pre></div>
 [2] [2,2]
   at root: i=2 equals i=1 -&gt; skip
 =&gt; [] [1] [1,2] [1,2,2] [2] [2,2]  (6, not 8)</code></pre></div>
-<div class="blk "><span class="lbl">Skeleton</span><p>Subsets II (duplicates in the input)</p><pre class="code-java"><code>Arrays.sort(a);
+<div class="blk "><span class="lbl">Skeleton</span><p>Subsets II (duplicates in the input)</p><pre class="code-java"><code>List&lt;List&lt;Integer&gt;&gt; res = new ArrayList&lt;&gt;();
+
+List&lt;List&lt;Integer&gt;&gt; subsetsWithDup(int[] a) {
+    Arrays.sort(a);
+    dfs(a, 0, new ArrayList&lt;&gt;());
+    return res;
+}
 void dfs(int[] a, int start, List&lt;Integer&gt; path) {
     res.add(new ArrayList&lt;&gt;(path));
     for (int i = start; i &lt; a.length; i++) {
@@ -378,7 +392,13 @@ def dfs(start, path):
         dfs(i + 1, path)
         path.pop()
 dfs(0, [])</code></pre></div>
-<div class="blk "><span class="lbl">Skeleton</span><p>Permutations II (duplicates in the input)</p><pre class="code-java"><code>Arrays.sort(a);
+<div class="blk "><span class="lbl">Skeleton</span><p>Permutations II (duplicates in the input)</p><pre class="code-java"><code>List&lt;List&lt;Integer&gt;&gt; res = new ArrayList&lt;&gt;();
+
+List&lt;List&lt;Integer&gt;&gt; permuteUnique(int[] a) {
+    Arrays.sort(a);
+    dfs(a, new boolean[a.length], new ArrayList&lt;&gt;());
+    return res;
+}
 void dfs(int[] a, boolean[] used, List&lt;Integer&gt; path) {
     if (path.size() == a.length) { res.add(new ArrayList&lt;&gt;(path)); return; }
     for (int i = 0; i &lt; a.length; i++) {
@@ -508,8 +528,12 @@ boolean dfs(char[][] b, String w, int k, int r, int c) {
         board[r][c] = t                                       # un-mark (backtrack)
         return ok
     return any(dfs(r, c, 0) for r in range(R) for c in range(C))</code></pre></div>
-<div class="blk "><span class="lbl">Skeleton</span><p>path with maximum gold (best path, not just existence)</p><pre class="code-java"><code>int best = 0;
-for (int r = 0; r &lt; m; r++) for (int c = 0; c &lt; n; c++) best = Math.max(best, dfs(g, r, c));
+<div class="blk "><span class="lbl">Skeleton</span><p>path with maximum gold (best path, not just existence)</p><pre class="code-java"><code>int maxGold(int[][] g) {
+    int best = 0;
+    for (int r = 0; r &lt; g.length; r++)
+        for (int c = 0; c &lt; g[0].length; c++) best = Math.max(best, dfs(g, r, c));
+    return best;
+}
 int dfs(int[][] g, int r, int c) {
     if (r &lt; 0 || c &lt; 0 || r &gt;= g.length || c &gt;= g[0].length || g[r][c] == 0) return 0;
     int gold = g[r][c];
@@ -626,7 +650,9 @@ def ok(b, r, c, d):
 ()(  open 2
 ()() RECORD
 =&gt; (()) ()()</code></pre></div>
-<div class="blk "><span class="lbl">Skeleton</span><p>generate parentheses (prune invalid prefixes)</p><pre class="code-java"><code>void dfs(int open, int close, int n, StringBuilder sb) {
+<div class="blk "><span class="lbl">Skeleton</span><p>generate parentheses (prune invalid prefixes)</p><pre class="code-java"><code>List&lt;String&gt; res = new ArrayList&lt;&gt;();
+
+void dfs(int open, int close, int n, StringBuilder sb) {
     if (sb.length() == 2 * n) { res.add(sb.toString()); return; }
     if (open &lt; n) {                                         // may still open
         sb.append(&#x27;(&#x27;); dfs(open + 1, close, n, sb); sb.deleteCharAt(sb.length() - 1);

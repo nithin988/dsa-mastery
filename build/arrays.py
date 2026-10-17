@@ -217,12 +217,12 @@ for x in a:
           ("static range-sum queries",
            """int[] pre = new int[n + 1];
 for (int i = 0; i < n; i++) pre[i + 1] = pre[i] + a[i];
-// sum of a[i..j] inclusive
-int rangeSum = pre[j + 1] - pre[i];""",
+// sum of a[l..r] inclusive
+int rangeSum = pre[r + 1] - pre[l];""",
            """pre = [0] * (len(a) + 1)
 for i, x in enumerate(a):
     pre[i + 1] = pre[i] + x
-range_sum = pre[j + 1] - pre[i]        # a[i..j] inclusive""")],
+range_sum = pre[r + 1] - pre[l]        # a[l..r] inclusive""")],
     complexity="O(n) time, O(n) space.",
     traps=["Seed the map with `{0:1}` or you miss subarrays that start at index 0.", "Divisible-by-k: normalise the remainder with `((s % k) + k) % k` in Java.",
            "Prefix XOR is the same trick with XOR. For 2D use a 2D prefix with inclusion–exclusion.", "If the array is updated between queries a static prefix goes stale: use a Fenwick or segment tree."],
@@ -561,13 +561,15 @@ P.append(dict(
     trace="""pivot 4: [3,2,1,4,6,5]  p=3 < 4 -> search right [6,5]
 pivot 5: [5,6]          p=4 == 4 -> answer 5""",
     code=[("quick select (Lomuto partition)",
-           """int target = n - k, lo = 0, hi = n - 1;
-while (lo <= hi) {
-    int p = partition(a, lo, hi);
-    if (p == target) return a[p];
-    if (p < target) lo = p + 1; else hi = p - 1;
+           """int quickSelect(int[] a, int k) {              // kth largest
+    int n = a.length, target = n - k, lo = 0, hi = n - 1;
+    while (lo <= hi) {
+        int p = partition(a, lo, hi);
+        if (p == target) return a[p];
+        if (p < target) lo = p + 1; else hi = p - 1;
+    }
+    return -1;
 }
-return -1;
 
 int partition(int[] a, int lo, int hi) {
     int pivot = a[hi], i = lo;

@@ -30,10 +30,14 @@ int steps(int n) { int c = 0; while (n > 1) { n /= 2; c++; } return c; }
 int sum(int[] a) { int s = 0; for (int x : a) s += x; return s; }
 
 // O(n log n): n times a halving loop (e.g. merge sort)
-for (int i = 0; i < n; i++) for (int j = 1; j < n; j *= 2) { /* work */ }
+void nLogN(int n) {
+    for (int i = 0; i < n; i++) for (int j = 1; j < n; j *= 2) { /* work */ }
+}
 
 // O(n^2): all pairs
-for (int i = 0; i < n; i++) for (int j = i + 1; j < n; j++) { /* work */ }""",
+void allPairs(int n) {
+    for (int i = 0; i < n; i++) for (int j = i + 1; j < n; j++) { /* work */ }
+}""",
            """# O(1): constant
 def first(a): return a[0]
 

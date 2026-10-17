@@ -594,17 +594,27 @@ def dfs(u, parent):
 <div class="blk "><span class="lbl">Worked trace</span><p>edges 0→1, 1→2, 2→0, 2→3, 3→4, 4→5, 5→3</p><pre class="trace"><code>pass 1 finish order: 5 4 3 2 1 0
 pass 2 (reversed graph) from 0: reaches 2, 1   -&gt; SCC {0,1,2}
 from 3: reaches 5, 4                            -&gt; SCC {3,4,5}</code></pre></div>
-<div class="blk "><span class="lbl">Skeleton</span><p>Kosaraju's algorithm</p><pre class="code-java"><code>boolean[] seen = new boolean[n];
+<div class="blk "><span class="lbl">Skeleton</span><p>Kosaraju's algorithm</p><pre class="code-java"><code>int n;
+List&lt;Integer&gt;[] g;                                           // original graph
+boolean[] seen;
 Deque&lt;Integer&gt; order = new ArrayDeque&lt;&gt;();
-void dfs1(int u) { seen[u] = true; for (int v : g[u]) if (!seen[v]) dfs1(v); order.push(u); }   // push AFTER children
-for (int u = 0; u &lt; n; u++) if (!seen[u]) dfs1(u);
+int[] comp;
 
-List&lt;List&lt;Integer&gt;&gt; rev = reversedGraph(g);
-Arrays.fill(seen, false);
-int sccCount = 0;
-int[] comp = new int[n];
-void dfs2(int u, int id) { seen[u] = true; comp[u] = id; for (int v : rev.get(u)) if (!seen[v]) dfs2(v, id); }
-while (!order.isEmpty()) { int u = order.pop(); if (!seen[u]) dfs2(u, sccCount++); }    // latest finisher first</code></pre><pre class="code-py"><code>import sys
+void dfs1(int u) { seen[u] = true; for (int v : g[u]) if (!seen[v]) dfs1(v); order.push(u); }   // push AFTER children
+void dfs2(List&lt;Integer&gt;[] rev, int u, int id) { seen[u] = true; comp[u] = id; for (int v : rev[u]) if (!seen[v]) dfs2(rev, v, id); }
+
+int kosaraju() {                                             // returns the number of SCCs; comp[u] = its component id
+    seen = new boolean[n];
+    for (int u = 0; u &lt; n; u++) if (!seen[u]) dfs1(u);
+    List&lt;Integer&gt;[] rev = new List[n];                       // reversed graph
+    for (int i = 0; i &lt; n; i++) rev[i] = new ArrayList&lt;&gt;();
+    for (int u = 0; u &lt; n; u++) for (int v : g[u]) rev[v].add(u);
+    Arrays.fill(seen, false);
+    comp = new int[n];
+    int sccCount = 0;
+    while (!order.isEmpty()) { int u = order.pop(); if (!seen[u]) dfs2(rev, u, sccCount++); }    // latest finisher first
+    return sccCount;
+}</code></pre><pre class="code-py"><code>import sys
 sys.setrecursionlimit(10**6)
 seen, order = [False] * n, []
 def dfs1(u):
@@ -649,14 +659,18 @@ for u in reversed(order):                              # latest finisher first
 back in A: no more edges, append A ; C append ; B append ; A append
 route (built backwards): D A C B A  -&gt; reversed: A B C A D</code></pre></div>
 <div class="blk "><span class="lbl">Skeleton</span><p>reconstruct itinerary (lexicographically smallest Eulerian path)</p><pre class="code-java"><code>Map&lt;String, PriorityQueue&lt;String&gt;&gt; g = new HashMap&lt;&gt;();
-for (List&lt;String&gt; t : tickets) g.computeIfAbsent(t.get(0), k -&gt; new PriorityQueue&lt;&gt;()).add(t.get(1));
 LinkedList&lt;String&gt; route = new LinkedList&lt;&gt;();
+
+List&lt;String&gt; findItinerary(List&lt;List&lt;String&gt;&gt; tickets) {
+    for (List&lt;String&gt; t : tickets) g.computeIfAbsent(t.get(0), k -&gt; new PriorityQueue&lt;&gt;()).add(t.get(1));
+    dfs(&quot;JFK&quot;);
+    return route;
+}
 void dfs(String u) {
     PriorityQueue&lt;String&gt; pq = g.get(u);
     while (pq != null &amp;&amp; !pq.isEmpty()) dfs(pq.poll());     // consume each edge once, smallest destination first
     route.addFirst(u);                                      // add AFTER the edges are exhausted
-}
-// dfs(&quot;JFK&quot;); return route;</code></pre><pre class="code-py"><code>from collections import defaultdict
+}</code></pre><pre class="code-py"><code>from collections import defaultdict
 g = defaultdict(list)
 for a, b in sorted(tickets, reverse=True):                 # reversed so pop() yields the smallest destination
     g[a].append(b)

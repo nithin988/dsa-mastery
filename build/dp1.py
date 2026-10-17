@@ -20,24 +20,29 @@ dp[4] = 5   dp[5] = 8
 only the last two values are needed -> O(1) space""",
     code=[("one recurrence, four implementations (climbing stairs)",
            """// 1) naive recursion: O(2^n)
-int ways(int n) { return n <= 1 ? 1 : ways(n - 1) + ways(n - 2); }
+int waysNaive(int n) { return n <= 1 ? 1 : waysNaive(n - 1) + waysNaive(n - 2); }
 
 // 2) top-down with memo: O(n) time, O(n) space
-int[] memo = new int[n + 1];
-int ways(int n) {
+int[] memo;
+int waysMemo(int n) {
     if (n <= 1) return 1;
     if (memo[n] != 0) return memo[n];
-    return memo[n] = ways(n - 1) + ways(n - 2);
+    return memo[n] = waysMemo(n - 1) + waysMemo(n - 2);      // allocate memo = new int[n + 1] first
 }
 
 // 3) bottom-up table
-int[] dp = new int[n + 1]; dp[0] = dp[1] = 1;
-for (int i = 2; i <= n; i++) dp[i] = dp[i - 1] + dp[i - 2];
+int waysTable(int n) {
+    int[] dp = new int[n + 1]; dp[0] = 1; if (n >= 1) dp[1] = 1;
+    for (int i = 2; i <= n; i++) dp[i] = dp[i - 1] + dp[i - 2];
+    return dp[n];
+}
 
 // 4) rolling variables: O(1) space
-int a = 1, b = 1;
-for (int i = 2; i <= n; i++) { int c = a + b; a = b; b = c; }
-return b;""",
+int waysRolling(int n) {
+    int a = 1, b = 1;
+    for (int i = 2; i <= n; i++) { int c = a + b; a = b; b = c; }
+    return b;
+}""",
            """# 1) naive recursion: O(2^n)
 def ways(n):
     return 1 if n <= 1 else ways(n - 1) + ways(n - 2)

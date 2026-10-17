@@ -178,20 +178,28 @@ return -1</code></pre></div>
 <div class="blk "><span class="lbl">Worked trace</span><p>edges <code>0-1 0-2 1-3 1-4 2-5</code> and <code>6-7</code></p><pre class="trace"><code>component 1: 0 -&gt; 1 -&gt; 3 (back) -&gt; 4 (back) -&gt; back -&gt; 2 -&gt; 5
 component 2: 6 -&gt; 7
 components = 2</code></pre></div>
-<div class="blk "><span class="lbl">Skeleton</span><p>DFS: recursive, iterative, and counting components</p><pre class="code-java"><code>boolean[] seen = new boolean[n];
+<div class="blk "><span class="lbl">Skeleton</span><p>DFS: recursive, iterative, and counting components</p><pre class="code-java"><code>List&lt;List&lt;Integer&gt;&gt; g;                          // adjacency list
+boolean[] seen;
+
 void dfs(int u) {
     seen[u] = true;
     for (int v : g.get(u)) if (!seen[v]) dfs(v);
 }
-int components = 0;
-for (int u = 0; u &lt; n; u++) if (!seen[u]) { components++; dfs(u); }
+int countComponents(int n) {
+    seen = new boolean[n];
+    int components = 0;
+    for (int u = 0; u &lt; n; u++) if (!seen[u]) { components++; dfs(u); }
+    return components;
+}
 
 // iterative: avoids stack overflow on long paths
-Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();
-st.push(start); seen[start] = true;
-while (!st.isEmpty()) {
-    int u = st.pop();
-    for (int v : g.get(u)) if (!seen[v]) { seen[v] = true; st.push(v); }
+void dfsIterative(int start) {
+    Deque&lt;Integer&gt; st = new ArrayDeque&lt;&gt;();
+    st.push(start); seen[start] = true;
+    while (!st.isEmpty()) {
+        int u = st.pop();
+        for (int v : g.get(u)) if (!seen[v]) { seen[v] = true; st.push(v); }
+    }
 }</code></pre><pre class="code-py"><code>seen = [False] * n
 def dfs(u):
     seen[u] = True
@@ -318,10 +326,13 @@ while q:
     g[r][c] = &#x27;0&#x27;;                                          // sink = mark visited
     return 1 + dfs(g, r + 1, c) + dfs(g, r - 1, c) + dfs(g, r, c + 1) + dfs(g, r, c - 1);
 }
-int count = 0, best = 0;
-for (int r = 0; r &lt; g.length; r++)
-    for (int c = 0; c &lt; g[0].length; c++)
-        if (g[r][c] == &#x27;1&#x27;) { count++; best = Math.max(best, dfs(g, r, c)); }</code></pre><pre class="code-py"><code>def dfs(r, c):
+int[] islands(char[][] g) {                                 // returns {number of islands, max area}
+    int count = 0, best = 0;
+    for (int r = 0; r &lt; g.length; r++)
+        for (int c = 0; c &lt; g[0].length; c++)
+            if (g[r][c] == &#x27;1&#x27;) { count++; best = Math.max(best, dfs(g, r, c)); }
+    return new int[]{count, best};
+}</code></pre><pre class="code-py"><code>def dfs(r, c):
     if not (0 &lt;= r &lt; R and 0 &lt;= c &lt; C) or g[r][c] != &#x27;1&#x27;:
         return 0
     g[r][c] = &#x27;0&#x27;                                           # sink = mark visited
@@ -538,7 +549,7 @@ return True</code></pre></div>
 <div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Check <strong>every component</strong> (the graph may be disconnected).</li><li>Compare colours when the neighbour is already coloured; do not only check <code>visited</code>.</li><li>Build the graph from the "dislikes" pairs in both directions.</li><li>A graph with no edges, or only even cycles / trees, is bipartite.</li></ul></div>
 <div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Possible bipartition: same check on the dislike graph.</li><li>Flower planting with no adjacent equal: greedy colouring with 4 colours (max degree 3).</li><li>Divide nodes into maximum groups: per-component BFS depth after bipartite check.</li></ul></div>
 <div class="blk "><span class="lbl">When NOT to use</span><p>When you need more than two groups (general graph colouring is NP-hard).</p></div>
-<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="graphs_traversal-1042" aria-label="Solved LC 1042"></td><td class="t"><a href="https://leetcode.com/problems/flower-planting-with-no-adjacent/" target="_blank" rel="noopener">LC 1042</a></td><td>Flower Planting With No Adjacent</td><td><span class="pill dE">Easy</span></td><td>Greedy: give each garden the first colour unused by neighbours</td><td class="c">O(V + E) / O(V)</td></tr><tr><td><input type="checkbox" class="pk" data-k="graphs_traversal-785" aria-label="Solved LC 785"></td><td class="t"><a href="https://leetcode.com/problems/is-graph-bipartite/" target="_blank" rel="noopener">LC 785</a></td><td>Is Graph Bipartite?</td><td><span class="pill dM">Medium</span></td><td>BFS two-colouring of each component</td><td class="c">O(V + E) / O(V)</td></tr><tr><td><input type="checkbox" class="pk" data-k="graphs_traversal-886" aria-label="Solved LC 886"></td><td class="t"><a href="https://leetcode.com/problems/possible-bipartition/" target="_blank" rel="noopener">LC 886</a></td><td>Possible Bipartition</td><td><span class="pill dM">Medium</span></td><td>Build the dislike graph, then 2-colour it</td><td class="c">O(V + E) / O(V + E)</td></tr><tr><td><input type="checkbox" class="pk" data-k="graphs_traversal-2493" aria-label="Solved LC 2493"></td><td class="t"><a href="https://leetcode.com/problems/divide-nodes-into-the-maximum-number-of-groups/" target="_blank" rel="noopener">LC 2493</a></td><td>Divide Nodes Into the Maximum Number of Groups</td><td><span class="pill dH">Hard</span></td><td>Per component: bipartite check + best BFS depth over start nodes</td><td class="c">O(V·(V + E)) / O(V + E)</td></tr></tbody></table></div></div>
+<div class="blk "><span class="lbl">Problem ladder</span><p class="muted">Easy → hard. Tick what you have solved; ticks are saved in this browser.</p><div class="tw"><table class="ladder"><thead><tr><th></th><th>Problem</th><th>Title</th><th>Level</th><th>One-line logic</th><th>Time / Space</th></tr></thead><tbody><tr><td><input type="checkbox" class="pk" data-k="graphs_traversal-1042" aria-label="Solved LC 1042"></td><td class="t"><a href="https://leetcode.com/problems/flower-planting-with-no-adjacent/" target="_blank" rel="noopener">LC 1042</a></td><td>Flower Planting With No Adjacent</td><td><span class="pill dM">Medium</span></td><td>Greedy: give each garden the first colour unused by neighbours</td><td class="c">O(V + E) / O(V)</td></tr><tr><td><input type="checkbox" class="pk" data-k="graphs_traversal-785" aria-label="Solved LC 785"></td><td class="t"><a href="https://leetcode.com/problems/is-graph-bipartite/" target="_blank" rel="noopener">LC 785</a></td><td>Is Graph Bipartite?</td><td><span class="pill dM">Medium</span></td><td>BFS two-colouring of each component</td><td class="c">O(V + E) / O(V)</td></tr><tr><td><input type="checkbox" class="pk" data-k="graphs_traversal-886" aria-label="Solved LC 886"></td><td class="t"><a href="https://leetcode.com/problems/possible-bipartition/" target="_blank" rel="noopener">LC 886</a></td><td>Possible Bipartition</td><td><span class="pill dM">Medium</span></td><td>Build the dislike graph, then 2-colour it</td><td class="c">O(V + E) / O(V + E)</td></tr><tr><td><input type="checkbox" class="pk" data-k="graphs_traversal-2493" aria-label="Solved LC 2493"></td><td class="t"><a href="https://leetcode.com/problems/divide-nodes-into-the-maximum-number-of-groups/" target="_blank" rel="noopener">LC 2493</a></td><td>Divide Nodes Into the Maximum Number of Groups</td><td><span class="pill dH">Hard</span></td><td>Per component: bipartite check + best BFS depth over start nodes</td><td class="c">O(V·(V + E)) / O(V + E)</td></tr></tbody></table></div></div>
 </section>
 <section class="pat hot" id="p8">
 <div class="pat-h"><span class="badge">8</span><h3>Implicit graphs: BFS over states</h3><span class="tier hot">🔥 Frequently asked</span><span class="pp"></span></div>
@@ -674,9 +685,18 @@ void mark(char[][] b, int r, int c) {
         for c in range(n):
             if b[r][c] == &#x27;O&#x27;: b[r][c] = &#x27;X&#x27;                # enclosed
             elif b[r][c] == &#x27;S&#x27;: b[r][c] = &#x27;O&#x27;              # safe: restore</code></pre></div>
-<div class="blk "><span class="lbl">Skeleton</span><p>Pacific Atlantic: search uphill from each ocean, intersect</p><pre class="code-java"><code>boolean[][] pac = new boolean[m][n], atl = new boolean[m][n];
-for (int r = 0; r &lt; m; r++) { dfs(h, pac, r, 0); dfs(h, atl, r, n - 1); }
-for (int c = 0; c &lt; n; c++) { dfs(h, pac, 0, c); dfs(h, atl, m - 1, c); }
+<div class="blk "><span class="lbl">Skeleton</span><p>Pacific Atlantic: search uphill from each ocean, intersect</p><pre class="code-java"><code>int[][] D = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+
+List&lt;List&lt;Integer&gt;&gt; pacificAtlantic(int[][] h) {
+    int m = h.length, n = h[0].length;
+    boolean[][] pac = new boolean[m][n], atl = new boolean[m][n];
+    for (int r = 0; r &lt; m; r++) { dfs(h, pac, r, 0); dfs(h, atl, r, n - 1); }
+    for (int c = 0; c &lt; n; c++) { dfs(h, pac, 0, c); dfs(h, atl, m - 1, c); }
+    List&lt;List&lt;Integer&gt;&gt; res = new ArrayList&lt;&gt;();
+    for (int r = 0; r &lt; m; r++)
+        for (int c = 0; c &lt; n; c++) if (pac[r][c] &amp;&amp; atl[r][c]) res.add(Arrays.asList(r, c));   // reaches both oceans
+    return res;
+}
 void dfs(int[][] h, boolean[][] seen, int r, int c) {
     seen[r][c] = true;
     for (int[] d : D) {
@@ -684,8 +704,7 @@ void dfs(int[][] h, boolean[][] seen, int r, int c) {
         if (nr &lt; 0 || nc &lt; 0 || nr &gt;= h.length || nc &gt;= h[0].length || seen[nr][nc]) continue;
         if (h[nr][nc] &gt;= h[r][c]) dfs(h, seen, nr, nc);          // water flows downhill, so we climb in reverse
     }
-}
-// answer: cells with pac[r][c] &amp;&amp; atl[r][c]</code></pre><pre class="code-py"><code>def reach(starts):
+}</code></pre><pre class="code-py"><code>def reach(starts):
     seen, stack = set(starts), list(starts)
     while stack:
         r, c = stack.pop()

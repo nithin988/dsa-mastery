@@ -108,7 +108,7 @@ bat    : b a t          (3 new nodes)
     notuse="Only whole-word membership (a hash set is simpler) or prefix queries on a static sorted list (binary search works).",
     problems=[
         (14, "Longest Common Prefix", "E", "longest-common-prefix", "Insert all words; walk while one child and not a word end", "O(S) / O(S)"),
-        (720, "Longest Word in Dictionary", "E", "longest-word-in-dictionary", "DFS the trie through word-end nodes only", "O(S) / O(S)"),
+        (720, "Longest Word in Dictionary", "M", "longest-word-in-dictionary", "DFS the trie through word-end nodes only", "O(S) / O(S)"),
         (208, "Implement Trie (Prefix Tree)", "M", "implement-trie-prefix-tree", "Insert, search and startsWith by walking nodes", "O(L) per op / O(S)"),
         (648, "Replace Words", "M", "replace-words", "Walk each word; stop at the first end node", "O(S) / O(S)"),
         (1268, "Search Suggestions System", "M", "search-suggestions-system", "Walk the prefix, collect up to 3 lexicographically smallest", "O(S + L·m) / O(S)"),
@@ -458,7 +458,6 @@ for c in searchWord:
     notuse="A single global query (just loop) or exact-key lookups (hash map).",
     problems=[
         (677, "Map Sum Pairs", "M", "map-sum-pairs", "Prefix sums on every node; update with the delta", "O(L) per op / O(S)"),
-        (1166, "Design File System", "M", "design-file-system", "Hash map of full paths (or a trie of segments)", "O(L) per op / O(S)"),
         (1268, "Search Suggestions System", "M", "search-suggestions-system", "Top-3 smallest words stored at each node", "O(S + L) / O(S)"),
         (692, "Top K Frequent Words", "M", "top-k-frequent-words", "Counts then a heap (topic 10), or a trie of buckets", "O(n log k) / O(n)"),
     ]))
@@ -578,9 +577,12 @@ for f in folder:
 return res"""),
           ("set of all prefixes: O(1) prefix test, O(total letters²) memory",
            """Set<String> prefixes = new HashSet<>(), words = new HashSet<>();
-for (String w : dict) {
-    words.add(w);
-    for (int i = 1; i <= w.length(); i++) prefixes.add(w.substring(0, i));
+
+void build(List<String> dict) {
+    for (String w : dict) {
+        words.add(w);
+        for (int i = 1; i <= w.length(); i++) prefixes.add(w.substring(0, i));
+    }
 }
 boolean hasPrefix(String p) { return prefixes.contains(p); }
 boolean hasWord(String w) { return words.contains(w); }""",
@@ -662,12 +664,15 @@ dp[8] = true : leet + code""",
                 dp[j + 1] = True                                 # a word ends at j
     return dp[n]"""),
           ("concatenated words: sort by length, test each word against shorter ones",
-           """List<String> res = new ArrayList<>();
-Set<String> seen = new HashSet<>();
-Arrays.sort(words, (a, b) -> a.length() - b.length());
-for (String w : words) {
-    if (!w.isEmpty() && canForm(w, seen)) res.add(w);
-    seen.add(w);
+           """List<String> findAllConcatenatedWords(String[] words) {
+    List<String> res = new ArrayList<>();
+    Set<String> seen = new HashSet<>();
+    Arrays.sort(words, (a, b) -> a.length() - b.length());
+    for (String w : words) {
+        if (!w.isEmpty() && canForm(w, seen)) res.add(w);
+        seen.add(w);
+    }
+    return res;
 }
 boolean canForm(String w, Set<String> seen) {
     if (seen.isEmpty()) return false;
@@ -776,7 +781,6 @@ class StreamChecker:
     problems=[
         (1032, "Stream of Characters", "H", "stream-of-characters", "Reversed trie and a bounded buffer", "O(L) per query / O(S)"),
         (2227, "Encrypt and Decrypt Strings", "H", "encrypt-and-decrypt-strings", "Encrypt each dictionary word; count by encrypted string", "O(L) per op / O(D·L)"),
-        (1166, "Design File System", "M", "design-file-system", "Path → value with parent-existence check (hash map or trie)", "O(L) per op / O(S)"),
     ]))
 
 TOPIC = dict(

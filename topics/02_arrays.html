@@ -285,11 +285,11 @@ for x in a:
     seen[total] = seen.get(total, 0) + 1</code></pre></div>
 <div class="blk "><span class="lbl">Skeleton</span><p>static range-sum queries</p><pre class="code-java"><code>int[] pre = new int[n + 1];
 for (int i = 0; i &lt; n; i++) pre[i + 1] = pre[i] + a[i];
-// sum of a[i..j] inclusive
-int rangeSum = pre[j + 1] - pre[i];</code></pre><pre class="code-py"><code>pre = [0] * (len(a) + 1)
+// sum of a[l..r] inclusive
+int rangeSum = pre[r + 1] - pre[l];</code></pre><pre class="code-py"><code>pre = [0] * (len(a) + 1)
 for i, x in enumerate(a):
     pre[i + 1] = pre[i] + x
-range_sum = pre[j + 1] - pre[i]        # a[i..j] inclusive</code></pre></div>
+range_sum = pre[r + 1] - pre[l]        # a[l..r] inclusive</code></pre></div>
 <div class="cx">⏱ Complexity — O(n) time, O(n) space.</div>
 <div class="blk warn"><span class="lbl">Traps to avoid</span><ul><li>Seed the map with <code>{0:1}</code> or you miss subarrays that start at index 0.</li><li>Divisible-by-k: normalise the remainder with <code>((s % k) + k) % k</code> in Java.</li><li>Prefix XOR is the same trick with XOR. For 2D use a 2D prefix with inclusion–exclusion.</li><li>If the array is updated between queries a static prefix goes stale: use a Fenwick or segment tree.</li></ul></div>
 <div class="blk "><span class="lbl">Variants and follow-ups</span><ul><li>Longest subarray with sum k: store the <strong>first</strong> index of each prefix instead of a count.</li><li>Equal 0s and 1s: map 0 → −1, then longest subarray with sum 0.</li><li>Product except self: prefix and suffix products.</li></ul></div>
@@ -538,13 +538,15 @@ return a[lo]</code></pre></div>
 <span class="lbl" style="margin-top:14px">Watch it run</span><p class="muted" style="margin:0 0 4px">Press Play, or step with the buttons, the slider or the ← → keys.</p><div class="stepper" data-sim="quick"></div>
 <div class="blk "><span class="lbl">Worked trace</span><p>2nd largest in <code>[3,2,1,5,6,4]</code> (target index 4)</p><pre class="trace"><code>pivot 4: [3,2,1,4,6,5]  p=3 &lt; 4 -&gt; search right [6,5]
 pivot 5: [5,6]          p=4 == 4 -&gt; answer 5</code></pre></div>
-<div class="blk "><span class="lbl">Skeleton</span><p>quick select (Lomuto partition)</p><pre class="code-java"><code>int target = n - k, lo = 0, hi = n - 1;
-while (lo &lt;= hi) {
-    int p = partition(a, lo, hi);
-    if (p == target) return a[p];
-    if (p &lt; target) lo = p + 1; else hi = p - 1;
+<div class="blk "><span class="lbl">Skeleton</span><p>quick select (Lomuto partition)</p><pre class="code-java"><code>int quickSelect(int[] a, int k) {              // kth largest
+    int n = a.length, target = n - k, lo = 0, hi = n - 1;
+    while (lo &lt;= hi) {
+        int p = partition(a, lo, hi);
+        if (p == target) return a[p];
+        if (p &lt; target) lo = p + 1; else hi = p - 1;
+    }
+    return -1;
 }
-return -1;
 
 int partition(int[] a, int lo, int hi) {
     int pivot = a[hi], i = lo;
