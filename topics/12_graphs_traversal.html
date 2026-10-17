@@ -708,7 +708,7 @@ return [list(p) for p in pac &amp; atl]</code></pre></div>
 <h2 id="choose">Choosing between them</h2><div class="tw"><table class=""><thead><tr><th>Need</th><th>Use</th></tr></thead><tbody><tr><td>Fewest edges or moves</td><td>BFS (P3, P5, P8)</td></tr><tr><td>Count components or regions</td><td>DFS / flood fill (P2, P4)</td></tr><tr><td>Detect a cycle in a directed graph</td><td>DFS colours (P6)</td></tr><tr><td>Two-group assignment</td><td>BFS colouring (P7)</td></tr><tr><td>Nearest of many sources</td><td>Multi-source BFS (P5)</td></tr><tr><td>Enclosed or border-connected regions</td><td>Search from the border (P9)</td></tr><tr><td>Puzzle with moves</td><td>BFS on states (P8)</td></tr></tbody></table></div><div class="callout"><span class="lbl">Rule of thumb</span><p><strong>fewest steps → BFS; everything reachable, components, cycles → DFS; many sources → put them all in the queue first; enclosed → search from the border.</strong> Always keep a visited structure and mark it when you enqueue or enter.</p></div>
 <h2 id="selftest">Self-test</h2><p class="muted">Answer in your head first, then click to reveal.</p><details><summary>Why mark a vertex visited when you enqueue it in BFS?</summary><p>Otherwise several neighbours can enqueue the same vertex before it is processed, growing the queue and (with weights or counts) giving wrong results.</p></details><details><summary>Why does BFS find shortest paths in unweighted graphs?</summary><p>It processes vertices in order of distance from the source, so the first time a vertex is reached is by a path with the fewest edges.</p></details><details><summary>Why does directed cycle detection need three colours?</summary><p>A visited vertex may be finished (harmless cross or forward edge) or still on the current path (back edge = cycle). Only the grey state signals a cycle.</p></details><details><summary>What is the time complexity of DFS or BFS over an adjacency list?</summary><p>O(V + E): each vertex is processed once and each edge is examined once (twice if undirected).</p></details><details><summary>How does multi-source BFS beat running BFS from each source?</summary><p>All sources start in the same queue at distance 0, so each cell is reached by the nearest source in one pass: O(V + E) instead of O(sources × (V + E)).</p></details><details><summary>When is a graph bipartite?</summary><p>Exactly when it contains no odd-length cycle; BFS or DFS two-colouring detects a violation as an edge joining two vertices of the same colour.</p></details><details><summary>How do you count connected components?</summary><p>Loop over all vertices; each time you meet an unvisited one, increment the counter and traverse its whole component.</p></details><details><summary>Why search from the border in Surrounded Regions?</summary><p>The border-connected <code>O</code>s are exactly the safe ones; marking them with one traversal leaves the enclosed regions unmarked, avoiding a separate search per region.</p></details>
 <h2 id="plan">Study plan</h2><ol><li><strong>Day 1:</strong> representation and DFS: build adjacency lists, count components, clone a graph.</li><li><strong>Day 2:</strong> BFS shortest path on graphs and grids; write the template from memory.</li><li><strong>Day 3:</strong> grid problems: islands, max area, flood fill; then multi-source BFS (rotting oranges, 01 matrix).</li><li><strong>Day 4:</strong> cycle detection and course schedule; bipartite checks.</li><li><strong>Day 5:</strong> implicit graphs: word ladder, open the lock, perfect squares.</li><li><strong>Day 6:</strong> border-first problems and a mixed review; for each problem name the vertices, edges and traversal aloud.</li></ol>
-<div class="foot"><span><a href="10_heap_priority_queue.html">← Heaps and Priority Queues</a></span><span></span></div>
+<div class="foot"><span><a href="10_heap_priority_queue.html">← Heaps and Priority Queues</a></span><span><a href="13_graphs_advanced.html">Advanced Graphs →</a></span></div>
 </main></div>
 <script>(function(){
 function rng(x,y){var r=[];for(var i=x;i<=y;i++)r.push(i);return r}
@@ -1433,7 +1433,102 @@ surrounded:function(){var g='XXXXXOOXXXOXXOXX'.split(''),R=4,C=4,safe=[],S=[];
  var flip=[];for(var i=0;i<g.length;i++)if(g[i]==='O'&&safe.indexOf(i)<0)flip.push(i);
  P('Every O that is NOT marked safe is surrounded: cells '+flip.map(function(p){return '('+Math.floor(p/C)+','+p%C+')'}).join(', ')+'.',{ok:safe.slice(),dim:flip.slice()});
  flip.forEach(function(p){g[p]='X'});
- P('Flip the surrounded O cells to X; the safe O stays. One pass from the border + one scan: O(rows × cols). The same reverse thinking solves "Pacific Atlantic water flow" and "number of enclaves".',{ok:safe.slice()});return S}};
+ P('Flip the surrounded O cells to X; the safe O stays. One pass from the border + one scan: O(rows × cols). The same reverse thinking solves "Pacific Atlantic water flow" and "number of enclaves".',{ok:safe.slice()});return S},
+kahn:function(){var N=[{x:140,y:170},{x:330,y:105},{x:140,y:40},{x:240,y:40},{x:40,y:170},{x:40,y:40}];
+ var E=[[5,2],[5,0],[4,0],[4,1],[2,3],[3,1]],S=[],n=6,adj=[[],[],[],[],[],[]],indeg=[0,0,0,0,0,0];
+ E.forEach(function(e,k){adj[e[0]].push([e[1],k]);indeg[e[1]]++});
+ var q=[],order=[],used=[],G={nodes:N,edges:E,directed:true};
+ for(var i=0;i<n;i++)if(indeg[i]===0)q.push(i);
+ function lab(){var o={};indeg.forEach(function(d,i){o['in='+d+new Array(i+1).join('​')]=i});return o}
+ function A(){return {label:'queue | order',items:['queue: ['+q.join(', ')+']','order: ['+order.join(', ')+']']}}
+ S.push({a:[],graph:G,ptr:lab(),hi:q.slice(),aux:A(),note:'Topological order (every edge u → v has u before v), Kahn\'s algorithm. Each vertex shows its in-degree = number of prerequisites still pending. Vertices with in-degree 0 can go first, so they start in the queue.'});
+ while(q.length){var u=q.shift();order.push(u);var rel=[];adj[u].forEach(function(p){used.push(p[1]);indeg[p[0]]--;if(indeg[p[0]]===0){q.push(p[0]);rel.push(p[0])}});
+  S.push({a:[],graph:G,ptr:lab(),hi:q.slice(),ok:order.slice(),eok:used.slice(),aux:A(),note:'Take '+u+' (all its prerequisites are done). Remove its outgoing edges: decrement the in-degree of its successors.'+(rel.length?' '+rel.join(', ')+' reach in-degree 0 and join the queue.':' No successor became free.')})}
+ S.push({a:[],graph:G,ptr:{},ok:order.slice(),eok:used.slice(),aux:A(),note:'Order: '+order.join(' → ')+'. All '+n+' vertices were output, so there is no cycle. If fewer than n come out, the rest are on or behind a cycle. O(V + E).'});return S},
+dsu:function(){var n=6,par=[0,1,2,3,4,5],sz=[1,1,1,1,1,1],S=[];
+ var N=[{x:50,y:50},{x:140,y:50},{x:230,y:50},{x:320,y:50},{x:100,y:160},{x:250,y:160}];
+ function edges(){var e=[];par.forEach(function(p,i){if(p!==i)e.push([i,p])});return e}
+ function P(note,o){var x={a:[],graph:{nodes:N,edges:edges(),directed:true},ptr:{},aux:{label:'parent | size',items:['parent: ['+par.join(', ')+']','size: ['+sz.join(', ')+']']},note:note};if(o)for(var k in o)x[k]=o[k];S.push(x)}
+ function find(x){while(par[x]!==x)x=par[x];return x}
+ function union(a,b){var ra=find(a),rb=find(b);if(ra===rb){P('union('+a+', '+b+'): both already have root '+ra+', same set. Nothing to do.',{hi:[a,b]});return false}
+  if(sz[ra]<sz[rb]){var t=ra;ra=rb;rb=t}par[rb]=ra;sz[ra]+=sz[rb];P('union('+a+', '+b+'): roots '+ra+' and '+rb+'. Attach the SMALLER tree under the larger: parent['+rb+'] = '+ra+'. (Union by size keeps trees shallow.)',{hi:[ra],ok:[rb]});return true}
+ P('Disjoint set union: every element starts as its own set (a self-parent root). Each arrow points from a node to its parent; the root of a tree names the set.');
+ union(0,1);union(2,3);union(1,3);union(4,5);
+ var x=3,path=[3];while(par[path[path.length-1]]!==path[path.length-1])path.push(par[path[path.length-1]]);
+ P('find(3): follow parents '+path.join(' → ')+'. The root is '+path[path.length-1]+'.',{hi:path.slice()});
+ path.slice(0,-1).forEach(function(v){par[v]=path[path.length-1]});
+ P('PATH COMPRESSION: point every node on that path straight at the root. The next find(3) takes one step. Union by size + path compression give near-constant time per operation (inverse Ackermann).',{ok:[3]});
+ P('Sets: {0, 1, 2, 3} and {4, 5}. Components = n − successful unions = 6 − 4 = 2. Use it for "are u and v connected?", cycle detection in undirected graphs, Kruskal, grouping.',{ok:[0,1,2,3]});return S},
+dijkstra2:function(){var N=[{x:40,y:105},{x:150,y:42},{x:150,y:168},{x:255,y:105},{x:335,y:105}],names=['A','B','C','D','E'].map(function(l,i){N[i].label=l;return l});
+ var E=[[0,1,4],[0,2,1],[2,1,2],[1,3,1],[2,3,5],[3,4,3]],S=[],adj=[[],[],[],[],[]];
+ E.forEach(function(e,k){adj[e[0]].push([e[1],e[2],k]);adj[e[1]].push([e[0],e[2],k])});
+ var dist=[0,1e9,1e9,1e9,1e9],par={},pe={},done=[],tree=[],G={nodes:N,edges:E};
+ function A(){return {label:'distance from A',items:names.map(function(n,i){return n+'='+(dist[i]>=1e9?'∞':dist[i])})}}
+ var pq=[[0,0]];
+ S.push({a:[],graph:G,ptr:{start:0},hi:[0],aux:A(),note:'Dijkstra: repeatedly finalise the unfinished vertex with the smallest tentative distance, then relax its edges (try dist[u] + w < dist[v]). Edge weights are shown on the edges. Works only with non-negative weights.'});
+ while(pq.length){pq.sort(function(x,y){return x[0]-y[0]});var cur=pq.shift(),d=cur[0],u=cur[1];if(d>dist[u])continue;if(done.indexOf(u)>=0)continue;done.push(u);if(pe[u]!==undefined)tree.push(pe[u]);var ch=[];
+  adj[u].forEach(function(p){var v=p[0],w=p[1];if(d+w<dist[v]){dist[v]=d+w;par[v]=u;pe[v]=p[2];pq.push([dist[v],v]);ch.push(names[v]+'='+dist[v])}});
+  S.push({a:[],graph:G,ptr:{pop:u},hi:[u],ok:done.filter(function(x){return x!==u}),eok:tree.slice(),aux:A(),note:'Finalise '+names[u]+' (distance '+d+').'+(ch.length?' Relax neighbours: '+ch.join(', ')+'.':' Nothing improves.')})}
+ S.push({a:[],graph:G,ptr:{},ok:[0,1,2,3,4],eok:tree.slice(),aux:A(),note:'Distances from A: '+names.map(function(n,i){return n+'='+dist[i]}).join(', ')+'. Highlighted edges form the shortest-path tree. With a binary heap: O((V + E) log V). For edge weights 0 or 1 use 0-1 BFS (a deque) in O(V + E).'});return S},
+bellman:function(){var N=[{x:40,y:105,label:'s'},{x:140,y:40,label:'a'},{x:140,y:172,label:'b'},{x:250,y:172,label:'c'},{x:330,y:70,label:'d'}],S=[],INF=1e9;
+ var E=[[0,1,6],[0,2,7],[1,2,8],[1,3,5],[1,4,-4],[2,3,-3],[2,4,9],[3,1,-2],[4,3,7],[4,0,2]],dist=[0,INF,INF,INF,INF],G={nodes:N,edges:E,directed:true};
+ function A(){return {label:'distances from s',items:['s','a','b','c','d'].map(function(n,i){return n+'='+(dist[i]>=INF?'∞':dist[i])})}}
+ S.push({a:[],graph:G,ptr:{src:0},hi:[0],aux:A(),note:'Bellman-Ford handles NEGATIVE edge weights (here a→d is −4 and b→c is −3). Repeat V − 1 = 4 rounds: in each round relax EVERY edge (u → v with weight w): if dist[u] + w < dist[v], update dist[v].'});
+ var changedAny=true;for(var r=1;r<=4&&changedAny;r++){changedAny=false;var upd=[],used=[];E.forEach(function(e,k){if(dist[e[0]]<INF&&dist[e[0]]+e[2]<dist[e[1]]){dist[e[1]]=dist[e[0]]+e[2];upd.push(e[1]);used.push(k);changedAny=true}});
+  S.push({a:[],graph:G,ptr:{},hi:upd,eok:used,aux:A(),note:'Round '+r+': '+(used.length?used.length+' edge(s) improved a distance (highlighted).':'no edge improves anything: converged early.')})}
+ var neg=E.some(function(e){return dist[e[0]]<INF&&dist[e[0]]+e[2]<dist[e[1]]});
+ S.push({a:[],graph:G,ptr:{},ok:[0,1,2,3,4],aux:A(),note:'Final distances: s=0, a=2, b=7, c=4, d=−2. A V-th round that still improves something would prove a NEGATIVE CYCLE (here: '+(neg?'yes':'no')+'). O(V·E). Limit the rounds to K + 1 to find the cheapest path with at most K edges ("K stops").'});return S},
+kruskal:function(){var N=[{x:50,y:105},{x:140,y:40},{x:140,y:170},{x:250,y:105},{x:335,y:105}].map(function(p,i){p.label='ABCDE'[i];return p}),E=[[0,1,1],[1,2,2],[0,2,3],[2,3,4],[1,3,5],[3,4,6],[2,4,7]],S=[],par=[0,1,2,3,4];
+ function f(x){while(par[x]!==x)x=par[x];return x}
+ var acc=[],tot=0,G={nodes:N,edges:E};
+ function A(){return {label:'MST so far',items:['edges: '+(acc.length?acc.map(function(k){return 'ABCDE'[E[k][0]]+'–'+'ABCDE'[E[k][1]]+'('+E[k][2]+')'}).join(' '):'none'),'total weight = '+tot]}}
+ S.push({a:[],graph:G,ptr:{},aux:A(),note:'Minimum spanning tree (connect all vertices with minimum total weight, no cycles). Kruskal: sort edges by weight, take an edge if it joins two DIFFERENT components (check with union-find), skip it if both ends are already connected. The edges are already listed in weight order.'});
+ E.forEach(function(e,k){var a=f(e[0]),b=f(e[1]),nm='ABCDE'[e[0]]+'–'+'ABCDE'[e[1]];
+  if(a!==b){par[a]=b;acc.push(k);tot+=e[2];S.push({a:[],graph:G,ptr:{},hi:[e[0],e[1]],ok:[],eok:acc.slice(),aux:A(),note:'Edge '+nm+' (weight '+e[2]+'): endpoints are in different components → ACCEPT. Union them.'})}
+  else S.push({a:[],graph:G,ptr:{},dim:[e[0],e[1]],eok:acc.slice(),aux:A(),note:'Edge '+nm+' (weight '+e[2]+'): both endpoints already connected → it would close a cycle, SKIP.'})});
+ S.push({a:[],graph:G,ptr:{},ok:[0,1,2,3,4],eok:acc.slice(),aux:A(),note:'MST has '+acc.length+' = V − 1 edges, total weight '+tot+'. Sorting dominates: O(E log E). Prim\'s algorithm grows one tree with a heap instead (O(E log V)), better for dense graphs.'});return S},
+redundant:function(){var N=[{x:60,y:50,label:1},{x:190,y:50,label:2},{x:190,y:165,label:3},{x:60,y:165,label:4},{x:300,y:105,label:5}],E=[[0,1],[1,2],[2,3],[0,3],[0,4]],S=[],par=[0,1,2,3,4],added=[];
+ function f(x){while(par[x]!==x)x=par[x];return x}
+ function A(){return {label:'components (root of each vertex)',items:par.map(function(_,i){return (i+1)+'→'+(f(i)+1)})}}
+ S.push({a:[],graph:{nodes:N,edges:[]},ptr:{},aux:A(),note:'Redundant connection: edges arrive one by one forming a tree plus ONE extra edge. Use union-find: if an edge joins two vertices that already have the same root, they were already connected, so this edge closes a cycle and is the answer.'});
+ for(var k=0;k<E.length;k++){var e=E[k],a=f(e[0]),b=f(e[1]);
+  if(a===b){S.push({a:[],graph:{nodes:N,edges:E.slice(0,k+1)},ptr:{},eok:[k],dim:[e[0],e[1]],aux:A(),note:'Edge '+(e[0]+1)+'–'+(e[1]+1)+': vertices '+(e[0]+1)+' and '+(e[1]+1)+' already share root '+(a+1)+'. Same set → this edge makes a cycle: it is the REDUNDANT edge.'});break}
+  par[a]=b;added.push(k);S.push({a:[],graph:{nodes:N,edges:E.slice(0,k+1)},ptr:{},eok:[k],hi:[e[0],e[1]],aux:A(),note:'Edge '+(e[0]+1)+'–'+(e[1]+1)+': different roots → union them. The edge is kept.'})}
+ S.push({a:[],graph:{nodes:N,edges:E.slice(0,4)},ptr:{},dim:[0,3],aux:A(),note:'Answer [1, 4]. One pass with near-constant find: O(n α(n)). The same idea detects cycles while building a graph and powers Kruskal, accounts merge and grouping problems.'});return S},
+bridges:function(){var N=[{x:40,y:55},{x:140,y:105},{x:40,y:160},{x:240,y:105},{x:330,y:105}],E=[[0,1],[1,2],[2,0],[1,3],[3,4]],S=[],adj=[[],[],[],[],[]];
+ E.forEach(function(e,k){adj[e[0]].push([e[1],k]);adj[e[1]].push([e[0],k])});
+ var disc=[0,0,0,0,0],low=[0,0,0,0,0],timer=0,used=[],bridges=[],G={nodes:N,edges:E};
+ function lab(){var o={};for(var i=0;i<5;i++)if(disc[i])o['d'+disc[i]+' l'+low[i]+new Array(i+1).join('​')]=i;return o}
+ function P(note,hi,x){var o={a:[],graph:G,ptr:lab(),hi:hi||[],eok:bridges.slice(),aux:{label:'discovery time | low-link',items:['disc: ['+disc.join(', ')+']','low:  ['+low.join(', ')+']']},note:note};if(x)for(var k in x)o[k]=x[k];S.push(o)}
+ P('A BRIDGE is an edge whose removal disconnects the graph. Tarjan: DFS assigns each vertex a discovery time d and a low-link l = the earliest discovery time reachable using the DFS subtree plus at most one back edge. Edge (u, v) with v a child is a bridge iff low[v] > disc[u].');
+ function dfs(u,p){disc[u]=low[u]=++timer;P('Enter '+u+': disc = low = '+timer+'.',[u]);
+  adj[u].forEach(function(pr){var v=pr[0],k=pr[1];if(v===p)return;
+   if(disc[v]){low[u]=Math.min(low[u],disc[v]);P('Back edge '+u+' – '+v+' (already visited): low['+u+'] = min(low['+u+'], disc['+v+']) = '+low[u]+'.',[u,v])}
+   else{dfs(v,u);low[u]=Math.min(low[u],low[v]);
+    if(low[v]>disc[u]){bridges.push(k);P('Return to '+u+': low['+v+'] = '+low[v]+' > disc['+u+'] = '+disc[u]+', so nothing in '+v+'\'s subtree can climb above '+u+'. Edge '+u+' – '+v+' is a BRIDGE.',[u,v])}
+    else P('Return to '+u+': low['+u+'] = min(low['+u+'], low['+v+']) = '+low[u]+'. Edge '+u+' – '+v+' lies on a cycle, not a bridge.',[u,v])}})}
+ dfs(0,-1);P('Bridges: 1 – 3 and 3 – 4 (highlighted). The triangle 0 – 1 – 2 has no bridge. One DFS: O(V + E). Articulation points use low[v] ≥ disc[u] (plus a root rule).',[]);return S},
+scc:function(){var N=[{x:40,y:50},{x:130,y:50},{x:130,y:165},{x:235,y:105},{x:325,y:50},{x:325,y:165}],E=[[0,1],[1,2],[2,0],[2,3],[3,4],[4,5],[5,3]],S=[],adj=[[],[],[],[],[],[]],radj=[[],[],[],[],[],[]];
+ E.forEach(function(e){adj[e[0]].push(e[1]);radj[e[1]].push(e[0])});
+ var seen=[],fin=[],comp=[[],[]],G={nodes:N,edges:E,directed:true};
+ function A(x){return {label:'finish order | components',items:['finished: ['+fin.join(', ')+']','SCCs: '+comp.filter(function(c){return c.length}).map(function(c){return '{'+c.join(',')+'}'}).join(' ')||'—']}}
+ function P(n,o){var x={a:[],graph:G,ptr:{},aux:A(),note:n};if(o)for(var k in o)x[k]=o[k];S.push(x)}
+ P('Strongly connected components: maximal groups where every vertex can reach every other. Kosaraju: (1) DFS on the graph and record vertices in order of FINISHING; (2) DFS on the REVERSED graph, starting vertices in reverse finishing order; each DFS tree is one SCC.');
+ function d1(u){seen[u]=true;adj[u].forEach(function(v){if(!seen[v])d1(v)});fin.push(u);P('Pass 1: '+u+' is finished (all its descendants are done). Finish order so far: '+fin.join(', ')+'.',{ok:fin.slice()})}
+ d1(0);
+ P('Pass 2: reverse every edge. Process vertices from the LAST finished ('+fin[fin.length-1]+') to the first. A DFS in the reversed graph from the latest finisher cannot leave its SCC.',{ok:[]});
+ var seen2=[],ci=0;
+ function d2(u,c){seen2[u]=true;comp[c].push(u);radj[u].forEach(function(v){if(!seen2[v])d2(v,c)})}
+ for(var i=fin.length-1;i>=0;i--){var u=fin[i];if(!seen2[u]){d2(u,ci);P('Reversed DFS from '+u+' reaches exactly '+comp[ci].join(', ')+': that is SCC #'+(ci+1)+'.',{ok:ci===0?comp[0].slice():comp[0].slice(),hi:comp[ci].slice()});ci++}}
+ P('SCCs: {'+comp[0].join(', ')+'} and {'+comp[1].join(', ')+'}. Contract each SCC to one node and the result is a DAG (the condensation), which you can topologically sort or run DP on. O(V + E). Tarjan\'s algorithm does it in one DFS with low-links.',{ok:rng(0,5)});return S},
+euler:function(){var N=[{x:50,y:105,label:'A'},{x:160,y:40,label:'B'},{x:160,y:170,label:'C'},{x:290,y:105,label:'D'}],E=[[0,1],[1,2],[2,0],[0,3]],S=[],adj=[[1,3],[2],[0],[]].map(function(l,i){return l.map(function(v){for(var k=0;k<E.length;k++)if(E[k][0]===i&&E[k][1]===v)return [v,k]})});
+ var used=[],route=[],ptr=[0,0,0,0],G={nodes:N,edges:E,directed:true},names='ABCD';
+ function P(n,o){var x={a:[],graph:G,ptr:{},eok:used.slice(),aux:{label:'route (built backwards)',items:[route.length?route.map(function(i){return names[i]}).join(' '):'—']},note:n};if(o)for(var k in o)x[k]=o[k];S.push(x)}
+ P('Eulerian path: use EVERY edge exactly once (Reconstruct Itinerary). Hierholzer: walk along unused edges until stuck; the vertex where you get stuck goes to the END of the route; then back up, and keep walking any other unused edges. Edges: A→B, B→C, C→A, A→D.',{hi:[0]});
+ function dfs(u){while(ptr[u]<adj[u].length){var pr=adj[u][ptr[u]++];used.push(pr[1]);P('At '+names[u]+': take the unused edge '+names[u]+' → '+names[pr[0]]+' and continue from '+names[pr[0]]+'.',{hi:[u,pr[0]]});dfs(pr[0])}
+  route.push(u);P(names[u]+' has no unused edges left: append it to the route (the route is built in REVERSE order).',{ok:[u]})}
+ dfs(0);var fin=route.slice().reverse();
+ P('Reverse the route: '+fin.map(function(i){return names[i]}).join(' → ')+'. Every edge is used exactly once. A path exists iff at most two vertices have unbalanced in/out degree (start has out − in = 1, end has in − out = 1). O(E log E) if neighbours are kept sorted (lexical smallest itinerary).',{ok:rng(0,3)});return S}};
 
 var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
