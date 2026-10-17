@@ -8,7 +8,7 @@ STEPS = [
     ("syntax (Python + Java)", ["check_syntax.py"]),
     ("dead code", ["check_deadcode.py"]),
     ("Java types", ["check_java_types.py"]),
-    ("Python behaviour", ["run_tests.py", "tests_1", "tests_2", "tests_3"]),
+    ("Python behaviour", ["run_tests.py", "tests_1", "tests_2", "tests_3", "tests_4"]),
     ("Java behaviour", ["java_tests.py"]),
 ]
 

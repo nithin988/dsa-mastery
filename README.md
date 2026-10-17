@@ -25,7 +25,8 @@ Every page has a **Download** button (and the index has one per topic), so frien
 | 13 | [Advanced Graphs](topics/13_graphs_advanced.html) | done |
 | 14 | [Greedy Algorithms](topics/14_greedy.html) | done |
 | 15 | [Dynamic Programming I](topics/15_dp_1d_2d.html) | done |
-| 16-19 | see [ROADMAP.md](ROADMAP.md) | planned |
+| 16 | [Dynamic Programming II](topics/16_dp_advanced.html) | done |
+| 17-19 | see [ROADMAP.md](ROADMAP.md) | planned |
 
 ## For contributors
 

@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(HERE), "build"))
 
 MODULES = ["arrays", "foundations", "strings", "linked_list", "stack_queue", "sorting_intervals",
            "recursion_backtracking", "bit_math", "trees", "heaps", "tries", "graphs", "graphs_advanced",
-           "greedy", "dp1"]
+           "greedy", "dp1", "dp2"]
 
 
 def topics():

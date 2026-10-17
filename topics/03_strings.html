@@ -1634,7 +1634,80 @@ rebuild:function(){var coins=[1,3,4],amt=6,dp=[0],ch=[0],S=[];
  S.push({a:dp.slice(),ptr:{},aux:A(),note:'A DP table gives the BEST VALUE, not the solution itself. To reconstruct the answer, store alongside each cell which choice produced it: choice[a] = the coin used last. Here dp = [0, 1, 2, 1, 1, 2, 2] for coins 1, 3, 4.'});
  S.push({a:dp.slice(),ptr:{start:6},hi:[6],aux:A(),note:'Start at the target amount 6: dp[6] = '+dp[6]+'.'});
  var cur=amt,used=[];while(cur>0){var c=ch[cur];used.push(c);S.push({a:dp.slice(),ptr:{amount:cur},hi:[cur,cur-c],ok:[],aux:{label:'coins collected',items:['['+used.join(', ')+']','choice['+cur+'] = '+c]},note:'choice['+cur+'] = '+c+': the last coin was '+c+'. Jump back to '+cur+' − '+c+' = '+(cur-c)+'.'});cur-=c}
- S.push({a:dp.slice(),ptr:{},ok:[0],aux:{label:'solution',items:['coins = ['+used.join(', ')+']','count = '+used.length]},note:'Reached 0: the coins are '+used.join(' + ')+' = 6. Same pattern for LIS (store the predecessor index), LCS and knapsack: keep a parent / choice table, then walk it backwards. Space optimisation (rolling rows) and reconstruction pull in opposite directions: keep the full table if you need the path.'});return S}};
+ S.push({a:dp.slice(),ptr:{},ok:[0],aux:{label:'solution',items:['coins = ['+used.join(', ')+']','count = '+used.length]},note:'Reached 0: the coins are '+used.join(' + ')+' = 6. Same pattern for LIS (store the predecessor index), LCS and knapsack: keep a parent / choice table, then walk it backwards. Space optimisation (rolling rows) and reconstruction pull in opposite directions: keep the full table if you need the path.'});return S},
+knap01:function(){var nums=[1,5,11,5],T=11,dp=[],S=[];for(var i=0;i<=T;i++)dp.push(i===0);
+ function cells(){return dp.map(function(v){return v?'T':'·'})}
+ function A(){return {label:'dp[s] = can some chosen items sum to s?',items:['sum 0..'+T,'reachable: '+dp.map(function(v,i){return v?i:null}).filter(function(x){return x!==null}).join(', ')]}}
+ S.push({a:cells(),ptr:{s0:0},ok:[0],aux:A(),note:'Subset sum (0/1 knapsack): can some of [1, 5, 11, 5] add up to 11? dp[s] = true if a subset of the items so far sums to s. dp[0] = true (empty subset). Process items one at a time; for each item x update s from HIGH to LOW so each item is used at most once.'});
+ nums.forEach(function(x){var ch=[];for(var s=T;s>=x;s--){if(dp[s-x]&&!dp[s]){dp[s]=true;ch.push(s)}}
+  S.push({a:cells(),ptr:{item:x},ok:ch,hi:ch.map(function(s){return s-x}),aux:A(),note:'Item '+x+': for s from '+T+' down to '+x+', dp[s] |= dp[s − '+x+']. '+(ch.length?'Newly reachable sums: '+ch.join(', ')+' (each came from the highlighted source sum + '+x+').':'No new sum became reachable.')})});
+ S.push({a:cells(),ptr:{target:T},ok:[T],aux:A(),note:'dp[11] = true: 11 = 11 or 5 + 5 + 1. Looping s DOWNWARDS is what makes it 0/1: going upwards would let the same item feed itself (that is the unbounded knapsack). O(n · target) time, O(target) space.'});return S},
+ones:function(){var strs=['10','0001','111001','1','0'],m=5,n=3,C=n+1,dp=[],S=[];for(var i=0;i<=m;i++){dp.push([]);for(var j=0;j<=n;j++)dp[i].push(0)}
+ function flat(){return dp.reduce(function(a,r){return a.concat(r)},[])}
+ S.push({a:flat(),cols:C,ptr:{},aux:{label:'budget: at most m = 5 zeros and n = 3 ones',items:['rows = zeros used 0..5','columns = ones used 0..3']},note:'Ones and Zeroes: pick the largest subset of strings using at most 5 zeros and 3 ones in total. This is a 0/1 knapsack with TWO capacities. dp[i][j] = most strings using at most i zeros and j ones. Each string has a weight (z, o) and value 1.'});
+ strs.forEach(function(s){var z=0,o=0;s.split('').forEach(function(c){if(c==='0')z++;else o++});
+  if(z>m||o>n){S.push({a:flat(),cols:C,ptr:{},aux:{label:'string "'+s+'"',items:['zeros '+z+', ones '+o,'too many ones: skipped']},note:'"'+s+'" needs '+z+' zeros and '+o+' ones. It exceeds the ones budget ('+n+'), so it can never be chosen: skip.'});return}
+  var ch=[];for(var i=m;i>=z;i--)for(var j=n;j>=o;j--){var v=dp[i-z][j-o]+1;if(v>dp[i][j]){dp[i][j]=v;ch.push(i*C+j)}}
+  S.push({a:flat(),cols:C,ptr:{},ok:ch,aux:{label:'string "'+s+'"',items:['zeros '+z+', ones '+o,'updated '+ch.length+' cell(s)']},note:'"'+s+'" costs '+z+' zero(s) and '+o+' one(s). For i from '+m+' down to '+z+' and j from '+n+' down to '+o+': dp[i][j] = max(dp[i][j], dp[i−'+z+'][j−'+o+'] + 1). Both loops run downwards so the string is used once.'})});
+ S.push({a:flat(),cols:C,ptr:{},ok:[m*C+n],aux:{label:'answer',items:['dp[5][3] = '+dp[m][n]]},note:'Answer dp[5][3] = '+dp[m][n]+' (strings "10", "0001", "1", "0"). Same pattern as 1D knapsack with one more dimension: O(len · m · n) time, O(m · n) space. Profitable schemes and painting the walls are the same idea with different weights and values.'});return S},
+lcs:function(){var a='abcde',b='ace',R=a.length+1,C=b.length+1,dp=[],S=[];for(var i=0;i<R;i++){dp.push([]);for(var j=0;j<C;j++)dp[i].push(i===0||j===0?0:'·')}
+ function flat(){return dp.reduce(function(x,r){return x.concat(r)},[])}
+ function A(){return {label:'rows: prefix of "abcde" · columns: prefix of "ace"',items:['dp[i][j] = LCS length of the first i and first j letters']}}
+ S.push({a:flat(),cols:C,ptr:{},aux:A(),note:'Longest common subsequence of "abcde" and "ace". dp[i][j] = LCS of the first i letters of the first string and the first j of the second. First row and column are 0 (an empty prefix has nothing in common). Fill row by row.'});
+ for(i=1;i<R;i++)for(j=1;j<C;j++){var eq=a[i-1]===b[j-1],v,msg;if(eq){v=dp[i-1][j-1]+1;msg='"'+a[i-1]+'" = "'+b[j-1]+'": the letters match, extend the diagonal: dp = dp['+(i-1)+']['+(j-1)+'] + 1 = '+v+'.'}else{v=Math.max(dp[i-1][j],dp[i][j-1]);msg='"'+a[i-1]+'" ≠ "'+b[j-1]+'": skip a letter from either string: dp = max(up '+dp[i-1][j]+', left '+dp[i][j-1]+') = '+v+'.'}
+  dp[i][j]=v;var hi=[i*C+j];if(eq)hi.push((i-1)*C+j-1);else{hi.push((i-1)*C+j);hi.push(i*C+j-1)}
+  S.push({a:flat(),cols:C,ptr:{cur:i*C+j},hi:hi,aux:A(),note:msg})}
+ S.push({a:flat(),cols:C,ptr:{},ok:[R*C-1,4*C+2,2*C+1,0*C+0].filter(function(x,k){return true}),aux:A(),note:'LCS length = dp[5][3] = '+dp[R-1][C-1]+' ("ace"). Walk back from the corner: diagonal on a match, otherwise toward the larger neighbour, to recover the sequence. O(m · n) time; keep two rows for O(n) space if only the length is needed.'});return S},
+edit:function(){var a='horse',b='ros',R=a.length+1,C=b.length+1,dp=[],S=[];for(var i=0;i<R;i++){dp.push([]);for(var j=0;j<C;j++)dp[i].push(i===0?j:(j===0?i:'·'))}
+ function flat(){return dp.reduce(function(x,r){return x.concat(r)},[])}
+ function A(){return {label:'rows: prefix of "horse" · columns: prefix of "ros"',items:['dp[i][j] = fewest edits to turn the first i letters into the first j']}}
+ S.push({a:flat(),cols:C,ptr:{},aux:A(),note:'Edit distance horse → ros (insert, delete, replace one letter). dp[i][j] = fewest edits turning the first i letters of "horse" into the first j of "ros". Base cases: turning i letters into nothing costs i deletions; nothing into j letters costs j insertions.'});
+ for(i=1;i<R;i++)for(j=1;j<C;j++){var v,msg,hi=[i*C+j];
+  if(a[i-1]===b[j-1]){v=dp[i-1][j-1];msg='"'+a[i-1]+'" = "'+b[j-1]+'": no edit needed, copy the diagonal: dp = '+v+'.';hi.push((i-1)*C+j-1)}
+  else{var rep=dp[i-1][j-1],del=dp[i-1][j],ins=dp[i][j-1];v=1+Math.min(rep,del,ins);msg='"'+a[i-1]+'" ≠ "'+b[j-1]+'": 1 + min(replace '+rep+', delete '+del+', insert '+ins+') = '+v+'.';hi.push((i-1)*C+j-1,(i-1)*C+j,i*C+j-1)}
+  dp[i][j]=v;S.push({a:flat(),cols:C,ptr:{cur:i*C+j},hi:hi,aux:A(),note:msg})}
+ S.push({a:flat(),cols:C,ptr:{},ok:[R*C-1],aux:A(),note:'Edit distance = dp[5][3] = '+dp[R-1][C-1]+' (horse → rorse → rose → ros). Three moves = three neighbours: diagonal (replace / match), above (delete from the first), left (insert). O(m · n) time and space (O(n) with a rolling row).'});return S},
+lps:function(){var s='bbbab',n=5,dp=[],S=[];for(var i=0;i<n;i++){dp.push([]);for(var j=0;j<n;j++)dp[i].push(i===j?1:(j<i?0:'·'))}
+ function flat(){return dp.reduce(function(x,r){return x.concat(r)},[])}
+ function A(){return {label:'dp[i][j] = longest palindromic subsequence of s[i..j]',items:['s = '+s.split('').join(' ')]}}
+ S.push({a:flat(),cols:n,ptr:{},aux:A(),note:'Longest palindromic SUBSEQUENCE of "bbbab" (letters need not be adjacent). dp[i][j] covers s[i..j]. A single letter is a palindrome of length 1 (the diagonal). Fill by increasing interval length so shorter intervals are ready.'});
+ for(var len=2;len<=n;len++)for(i=0;i+len-1<n;i++){j=i+len-1;var v,msg,hi=[i*n+j];
+  if(s[i]===s[j]){v=(len===2?0:dp[i+1][j-1])+2;msg='s['+i+'] = s['+j+'] = "'+s[i]+'": both ends match, wrap the inside: '+(len===2?'0':'dp['+(i+1)+']['+(j-1)+'] = '+dp[i+1][j-1])+' + 2 = '+v+'.';if(len>2)hi.push((i+1)*n+j-1)}
+  else{v=Math.max(dp[i+1][j],dp[i][j-1]);msg='s['+i+'] = "'+s[i]+'" ≠ s['+j+'] = "'+s[j]+'": drop one end: max(dp['+(i+1)+']['+j+'] = '+dp[i+1][j]+', dp['+i+']['+(j-1)+'] = '+dp[i][j-1]+') = '+v+'.';hi.push((i+1)*n+j,i*n+j-1)}
+  dp[i][j]=v;S.push({a:flat(),cols:n,ptr:{cur:i*n+j},hi:hi,aux:A(),note:msg})}
+ S.push({a:flat(),cols:n,ptr:{},ok:[0*n+4],aux:A(),note:'Answer dp[0][4] = '+dp[0][n-1]+' ("bbbb"). Minimum insertions to make a string a palindrome = n − this value. Interval order (by length) is the signature of this DP family. O(n²) time and space.'});return S},
+balloons:function(){var nums=[3,1,5,8],a=[1].concat(nums,[1]),n=a.length,dp=[],S=[];for(var i=0;i<n;i++){dp.push([]);for(var j=0;j<n;j++)dp[i].push(j<=i+1?0:'·')}
+ function flat(){return dp.reduce(function(x,r){return x.concat(r)},[])}
+ function A(){return {label:'padded balloons',items:[a.join(' ')]}}
+ S.push({a:flat(),cols:n,ptr:{},aux:A(),note:'Burst Balloons: bursting balloon k earns a[k−1] · a[k] · a[k+1]. Think in REVERSE: dp[l][r] = best coins from the balloons strictly between l and r, choosing which one is burst LAST (k). Then its neighbours are exactly l and r, and the left and right parts are independent. Pad the array with 1s.'});
+ for(var gap=2;gap<n;gap++)for(var l=0;l+gap<n;l++){var r=l+gap,best=-1,bk=-1;for(var k=l+1;k<r;k++){var v=dp[l][k]+dp[k][r]+a[l]*a[k]*a[r];if(v>best){best=v;bk=k}}
+  dp[l][r]=best;S.push({a:flat(),cols:n,ptr:{cur:l*n+r},hi:[l*n+r],aux:A(),note:'Interval ('+l+', '+r+'): try each k as the LAST balloon to burst. Best k = '+bk+' (a['+bk+'] = '+a[bk]+'): dp['+l+']['+bk+'] + dp['+bk+']['+r+'] + '+a[l]+'·'+a[bk]+'·'+a[r]+' = '+best+'.'})}
+ S.push({a:flat(),cols:n,ptr:{},ok:[0*n+n-1],aux:A(),note:'Answer dp[0]['+(n-1)+'] = '+dp[0][n-1]+'. Three nested loops (gap, left end, split point): O(n³) time, O(n²) space. The same "choose the last / split point, solve both sides" template solves matrix chain multiplication, cutting a stick and polygon triangulation.'});return S},
+maskdp:function(){var cost=[[9,2,7],[6,4,3],[5,8,1]],N=3,INF=1e9,dp=[],S=[];for(var m=0;m<8;m++)dp.push(m===0?0:INF);
+ function bits(m){var s=m.toString(2);while(s.length<3)s='0'+s;return s}
+ function cells(){return dp.map(function(v){return v>=INF?'∞':v})}
+ function A(){return {label:'cost matrix (worker i, task j)',items:cost.map(function(r,i){return 'worker '+i+': '+r.join(' ')})}}
+ S.push({a:cells(),ptr:{start:0},ok:[0],aux:A(),note:'Assignment problem with bitmask DP: give each of 3 workers a different task at minimum total cost. mask = the SET of tasks already taken (bit j = task j). dp[mask] = cheapest way to give the first popcount(mask) workers exactly those tasks. Cells are masks 000 … 111 in order.'});
+ for(m=0;m<8;m++){if(dp[m]>=INF)continue;var w=bits(m).split('').filter(function(c){return c==='1'}).length;if(w>=N)continue;var upd=[];
+  for(var j=0;j<N;j++){if(m>>j&1)continue;var nm=m|(1<<j),v=dp[m]+cost[w][j];if(v<dp[nm]){dp[nm]=v;upd.push(nm)}}
+  S.push({a:cells(),ptr:{mask:m},hi:[m],ok:upd,aux:A(),note:'mask '+bits(m)+' (tasks taken: '+[0,1,2].filter(function(j){return m>>j&1}).join(', ')+'), cost so far '+dp[m]+'. Worker '+w+' takes a free task j: dp[mask | (1 << j)] = min(…, dp[mask] + cost['+w+'][j]). Updated masks: '+upd.map(bits).join(', ')+'.'})}
+ S.push({a:cells(),ptr:{},ok:[7],aux:A(),note:'dp[111] = '+dp[7]+': worker 0 → task 1 (2), worker 1 → task 0 (6), worker 2 → task 2 (1). 2ⁿ · n states-transitions: O(2ⁿ · n) instead of n!. Same skeleton: travelling salesman (mask, last city), partition into k subsets, stickers, shortest path visiting all nodes. Works for n ≤ about 20.'});return S},
+digit:function(){var D=[1,3,5],N='234'.split(''),S=[],total=0;
+ function A(){return {label:'digit set {1, 3, 5} | count so far',items:['numbers ≤ 234 using only these digits','total = '+total]}}
+ S.push({a:N,ptr:{},aux:A(),note:'Digit DP: count numbers ≤ N = 234 whose digits all come from {1, 3, 5}. Split into (a) numbers SHORTER than N: any combination works; (b) numbers with the SAME length as N: walk N digit by digit, staying "tight" (equal to N so far) or becoming free once a digit is smaller.'});
+ var len=N.length;for(var l=1;l<len;l++){var c=Math.pow(D.length,l);total+=c;S.push({a:N,ptr:{},aux:A(),note:'Length '+l+': every digit is free, so '+D.length+'^'+l+' = '+c+' numbers. Running total = '+total+'.'})}
+ for(var i=0;i<len;i++){var d=+N[i],smaller=D.filter(function(x){return x<d}).length,add=smaller*Math.pow(D.length,len-i-1);total+=add;
+  S.push({a:N,ptr:{pos:i},hi:rng(0,i),aux:A(),note:'Position '+i+' (digit '+d+'): '+smaller+' allowed digit(s) smaller than '+d+', each followed by '+(len-i-1)+' free position(s): '+smaller+' × '+D.length+'^'+(len-i-1)+' = '+add+'. Total = '+total+'.'});
+  if(D.indexOf(d)<0){S.push({a:N,ptr:{stop:i},dim:[i],hi:rng(0,i-1),aux:A(),note:'Digit '+d+' is NOT in the digit set, so we cannot stay tight to N any further: stop here.'});break}
+  if(i===len-1){total+=1;S.push({a:N,ptr:{},ok:rng(0,len-1),aux:A(),note:'Every digit of N was allowed, so N itself counts (+1).'})}}
+ S.push({a:N,ptr:{},ok:rng(0,len-1),aux:A(),note:'Answer = '+total+' (3 one-digit + 9 two-digit + 9 three-digit numbers starting with 1). Digit DP state = (position, tight?, extra info like "last digit" or "seen digits mask"). O(digits · states).'});return S},
+jump6:function(){var a=[1,-1,-2,4,-7,3],k=2,dp=[],dq=[],S=[];
+ function A(){return {label:'monotonic deque of indices (decreasing dp) | dp',items:['deque: ['+dq.map(function(j){return j+':'+dp[j]}).join(', ')+']','dp = ['+dp.join(', ')+']']}}
+ S.push({a:a,ptr:{},aux:A(),note:'Jump Game VI: from index i you may jump to any of the next k = 2 indices; maximise the total of visited values. dp[i] = a[i] + max(dp[i−k .. i−1]). A plain max over the window costs O(k) per cell. A monotonic deque keeps the window maximum at the front in O(1) amortised.'});
+ for(var i=0;i<a.length;i++){var msg;if(i===0){dp[0]=a[0];msg='dp[0] = a[0] = '+a[0]+'.'}else{while(dq.length&&dq[0]<i-k)dq.shift();var best=dp[dq[0]];dp[i]=a[i]+best;msg='Window dp['+Math.max(0,i-k)+'..'+(i-1)+']: best is dp['+dq[0]+'] = '+best+' (front of the deque). dp['+i+'] = '+a[i]+' + '+best+' = '+dp[i]+'.'}
+  while(dq.length&&dp[dq[dq.length-1]]<=dp[i])dq.pop();dq.push(i);
+  S.push({a:a,ptr:{i:i},hi:rng(Math.max(0,i-k),i),aux:A(),note:msg+' Push '+i+' on the deque after popping weaker (smaller or equal dp) indices from the back.'})}
+ S.push({a:a,ptr:{},ok:[a.length-1],aux:A(),note:'Answer dp[5] = '+dp[5]+'. Each index enters and leaves the deque once: O(n) instead of O(n·k). Other DP speed-ups: prefix sums / BIT for range transitions, binary search for LIS-like dp, convex-hull trick for linear cost functions.'});return S}};
 
 var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}

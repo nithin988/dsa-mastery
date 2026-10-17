@@ -73,8 +73,29 @@ case(("14", 2, 1), 'check(t.canJump(new int[]{2, 3, 1, 1, 4}) && !t.canJump(new 
 case(("15", 1, 1), 't.memo = new int[11]; check(t.waysNaive(10) == 89 && t.waysMemo(10) == 89 && t.waysTable(10) == 89 && t.waysRolling(10) == 89 && t.waysRolling(1) == 1, "stairs");')
 
 
+# ---- 16 DP II ----------------------------------------------------------------------------
+case(("16", 1, 1), 'check(t.canPartition(new int[]{1, 5, 11, 5}) && !t.canPartition(new int[]{1, 2, 3, 5}), "partition"); check(t.findTargetSumWays(new int[]{1, 1, 1, 1, 1}, 3) == 5, "target sum");')
+case(("16", 1, 2), 'check(t.knapsack(new int[]{1, 3, 4, 5}, new int[]{1, 4, 5, 7}, 7) == 9, "knapsack");')
+case(("16", 2, 1), 'check(t.findMaxForm(new String[]{"10", "0001", "111001", "1", "0"}, 5, 3) == 4, "ones and zeroes");')
+case(("16", 2, 2), 'check(t.profitableSchemes(5, 3, new int[]{2, 2}, new int[]{2, 3}) == 2 && t.profitableSchemes(10, 5, new int[]{2, 3, 5}, new int[]{6, 7, 8}) == 7, "schemes");')
+case(("16", 3, 1), 'check(t.lcs("abcde", "ace") == 3 && t.lcsString("abcde", "ace").equals("ace") && t.lcs("abc", "def") == 0, "lcs");')
+case(("16", 3, 2), 'check(t.numDistinct("rabbbit", "rabbit") == 3 && t.numDistinct("babgbag", "bag") == 5, "distinct");')
+case(("16", 4, 1), 'check(t.minDistance("horse", "ros") == 3 && t.minDistance("intention", "execution") == 5 && t.minDistance("", "abc") == 3, "edit");')
+case(("16", 4, 2), 'check(!t.isMatch("aa", "a") && t.isMatch("aa", "*") && !t.isMatch("cb", "?a") && t.isMatch("adceb", "*a*b") && !t.isMatch("acdcb", "a*c?b") && t.isMatch("", "***"), "wildcard");')
+case(("16", 5, 1), 'check(t.longestPalindromeSubseq("bbbab") == 4 && t.longestPalindromeSubseq("cbbd") == 2 && t.countSubstrings("aaa") == 6 && t.countSubstrings("abc") == 3, "palindromes");')
+case(("16", 5, 2), 'check(t.minCut("aab") == 1 && t.minCut("a") == 0 && t.minCut("ab") == 1, "min cut");')
+case(("16", 6, 1), 'check(t.maxCoins(new int[]{3, 1, 5, 8}) == 167 && t.maxCoins(new int[]{1, 5}) == 10, "balloons"); check(t.minCost(7, new int[]{1, 3, 4, 5}) == 16 && t.minCost(9, new int[]{5, 6, 1, 4, 2}) == 22, "cut stick");')
+case(("16", 6, 2), 'check(!t.predictTheWinner(new int[]{1, 5, 2}) && t.predictTheWinner(new int[]{1, 5, 233, 7}), "predict");')
+case(("16", 7, 1), 'check(t.minAssignmentCost(new int[][]{{9, 2, 7}, {6, 4, 3}, {5, 8, 1}}) == 9, "assignment");')
+case(("16", 7, 2), 'check(t.tsp(new int[][]{{0, 10, 15, 20}, {10, 0, 35, 25}, {15, 35, 0, 30}, {20, 25, 30, 0}}) == 80, "tsp");')
+case(("16", 8, 1), 'check(t.atMostNGivenDigitSet(new String[]{"1", "3", "5", "7"}, 100) == 20 && t.atMostNGivenDigitSet(new String[]{"1", "4", "9"}, 1000000000) == 29523 && t.atMostNGivenDigitSet(new String[]{"7"}, 8) == 1, "digit set");')
+case(("16", 8, 2), 'check(t.countNumbersWithUniqueDigits(0) == 1 && t.countNumbersWithUniqueDigits(2) == 91 && t.countNumbersWithUniqueDigits(3) == 739, "unique digits");')
+case(("16", 9, 1), 'check(t.maxResult(new int[]{1, -1, -2, 4, -7, 3}, 2) == 7 && t.maxResult(new int[]{10, -5, -2, 4, 0, 3}, 3) == 17, "jump VI");')
+case(("16", 9, 2), 'check(t.constrainedSubsetSum(new int[]{10, 2, -10, 5, 20}, 2) == 37 && t.constrainedSubsetSum(new int[]{-1, -2, -3}, 1) == -1, "constrained");')
+
+
 def main():
-    work = tempfile.mkdtemp(prefix="jrun")
+    work =tempfile.mkdtemp(prefix="jrun")
     files = []
     for i, (key, body, name) in enumerate(CASES):
         cls = "J%d" % i

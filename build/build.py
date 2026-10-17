@@ -23,6 +23,7 @@ import graphs_advanced  # noqa: E402
 import tries  # noqa: E402
 import greedy  # noqa: E402
 import dp1  # noqa: E402
+import dp2  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -43,7 +44,7 @@ CATALOG = [
     ("13_graphs_advanced", "Advanced Graphs", "Topological sort, union-find, Dijkstra, Bellman-Ford, MST, bridges, SCC, Eulerian paths", graphs_advanced.TOPIC),
     ("14_greedy", "Greedy", "Exchange argument, jump games, running balance, stock, two-pass, characters, digits, ratios", greedy.TOPIC),
     ("15_dp_1d_2d", "Dynamic Programming I", "State and transition, take-or-skip, coin change, LIS, grids, string prefixes, matrix DP, state machines, rolling arrays", dp1.TOPIC),
-    ("16_dp_advanced", "Dynamic Programming II", "Knapsack, LCS/edit distance, bitmask, tree DP", None),
+    ("16_dp_advanced", "Dynamic Programming II", "0/1 and multi-dimensional knapsack, LCS, edit distance, palindromic and interval DP, bitmask DP, digit DP, monotonic-deque speed-ups", dp2.TOPIC),
     ("17_advanced_ds", "Advanced Data Structures", "Segment tree, Fenwick tree, sparse table", None),
     ("18_design_problems", "Design Problems", "LRU/LFU, iterators, time-based stores", None),
     ("19_interview_playbook", "Interview Playbook", "Pattern selector, communication, 12-week plan", None),
