@@ -105,3 +105,7 @@ details{border:1px solid var(--line);border-radius:12px;padding:9px 14px;margin:
 @media (max-width:640px){body{font-size:15px}.hero{padding:22px 18px}.pat{padding:16px 14px 6px}.two{grid-template-columns:1fr}.cell{min-width:36px;height:38px;font-size:13.5px}.cellw{min-width:36px}.brand span{display:none}.pp{margin-left:0}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media print{.bar,.pbar,nav.side,.chips,.st-ctl,.cp{display:none}.wrap{display:block}.code-java,.code-py{display:block!important}.pat{box-shadow:none;break-inside:avoid-page}body{background:#fff}}
+
+.st-tree svg{display:block;margin:0 auto;height:auto}.st-tree line{stroke:var(--mut);stroke-width:2;opacity:.55}
+.tn circle{fill:var(--surf);stroke:var(--line);stroke-width:2.5;transition:fill .25s,stroke .25s}.tn.in circle{fill:var(--acc-soft);stroke:var(--acc)}.tn.ok circle{fill:var(--ok-soft);stroke:var(--ok)}.tn.dim circle{fill:var(--soft);stroke-dasharray:4 3;opacity:.7}
+.tn text{font:600 14px ui-monospace,Consolas,monospace;fill:var(--fg);text-anchor:middle;dominant-baseline:central}.tp{font:700 11px ui-monospace,Consolas,monospace;fill:var(--acc);text-anchor:middle}

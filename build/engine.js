@@ -34,17 +34,31 @@ $('#b-dl').onclick=function(){
  var h='<!DOCTYPE html>\n'+clone.outerHTML,blob=new Blob([h],{type:'text/html'}),a=document.createElement('a');
  a.href=URL.createObjectURL(blob);a.download=body.dataset.file||'topic.html';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)};
 /* animated stepper */
+function treeSVG(s){var T=s.tree,n=T.length,last=0,i;for(i=0;i<n;i++)if(T[i]!==null&&T[i]!==undefined)last=i;
+ var D=Math.floor(Math.log2(last+1))+1,W=Math.max(300,Math.pow(2,D-1)*56),H=D*64+30,R=18;
+ function pos(k){var d=Math.floor(Math.log2(k+1)),j=k-(Math.pow(2,d)-1),w=Math.pow(2,d);return {x:(j+0.5)/w*W,y:d*64+40}}
+ var lines='',nodes='',lab={};Object.keys(s.ptr||{}).forEach(function(k){(lab[s.ptr[k]]=lab[s.ptr[k]]||[]).push(k)});
+ for(i=0;i<=last;i++){if(T[i]===null||T[i]===undefined)continue;var p=pos(i);
+  if(i>0){var par=Math.floor((i-1)/2);if(T[par]!==null&&T[par]!==undefined){var q=pos(par);lines+='<line x1="'+q.x+'" y1="'+q.y+'" x2="'+p.x+'" y2="'+p.y+'"/>'}}
+  var c='tn'+((s.hi||[]).indexOf(i)>=0?' in':'')+((s.ok||[]).indexOf(i)>=0?' ok':'')+((s.dim||[]).indexOf(i)>=0?' dim':'');
+  nodes+='<g class="'+c+'"><circle cx="'+p.x+'" cy="'+p.y+'" r="'+R+'"/><text x="'+p.x+'" y="'+p.y+'">'+String(T[i]).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</text></g>';
+  if(lab[i])nodes+='<text class="tp" x="'+p.x+'" y="'+(p.y-R-7)+'">'+lab[i].join(', ').replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</text>'}
+ return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:'+W+'px" role="img" aria-label="Binary tree">'+lines+nodes+'</svg>'}
+
 function stepper(el){
  var steps=SIM[el.dataset.sim](),i=0,timer=null,speed=1300,max=0;
- steps.forEach(function(s){max=Math.max(max,s.a.length)});
+ steps.forEach(function(s){max=Math.max(max,(s.a||[]).length)});
  el.setAttribute('tabindex','0');el.setAttribute('aria-label','Step-by-step animation');
- el.innerHTML='<div class="st-prog"><i></i></div><div class="st-view"></div><div class="st-aux"></div><div class="st-note" aria-live="polite"></div>'+
+ el.innerHTML='<div class="st-prog"><i></i></div><div class="st-view"></div><div class="st-tree" style="display:none"></div><div class="st-aux"></div><div class="st-note" aria-live="polite"></div>'+
   '<div class="st-ctl"><button data-a="prev" title="Previous (←)">◀</button><button data-a="play" title="Play / pause (space)">▶ Play</button><button data-a="next" title="Next (→)">▶|</button><button data-a="reset" title="Restart">↺</button>'+
   '<input type="range" min="0" max="'+(steps.length-1)+'" value="0" aria-label="Step"><select aria-label="Speed"><option value="2200">Slow</option><option value="1300" selected>Normal</option><option value="600">Fast</option></select><span class="st-count"></span></div>';
  var view=$('.st-view',el),aux=$('.st-aux',el),note=$('.st-note',el),cnt=$('.st-count',el),play=$('[data-a=play]',el),bar=$('.st-prog i',el),rg=$('input',el),sel=$('select',el);
  var cells=[],h='';for(var k=0;k<max;k++)h+='<div class="cellw"><div class="ptr"></div><div class="cell"></div><div class="idx">'+k+'</div></div>'+(k<max-1?'<div class="edge"></div>':'');
  view.innerHTML=h;$$('.cellw',view).forEach(function(w){cells.push({w:w,p:$('.ptr',w),c:$('.cell',w),v:null})});var edges=$$('.edge',view);
- function draw(){var s=steps[i],lab={};Object.keys(s.ptr||{}).forEach(function(k){var ix=s.ptr[k];(lab[ix]=lab[ix]||[]).push(k)});
+ var tb=$('.st-tree',el);
+ function draw(){var s=steps[i],lab={};
+  if(s.tree){view.style.display='none';tb.style.display='block';tb.innerHTML=treeSVG(s)}else{view.style.display='';tb.style.display='none';tb.innerHTML=''}
+  s.a=s.a||[];Object.keys(s.ptr||{}).forEach(function(k){var ix=s.ptr[k];(lab[ix]=lab[ix]||[]).push(k)});
   cells.forEach(function(o,ix){if(ix>=s.a.length){o.w.style.display='none';return}o.w.style.display='';
    var v=String(s.a[ix]);if(o.v!==null&&o.v!==v){o.c.classList.remove('pop');void o.c.offsetWidth;o.c.classList.add('pop')}
    o.v=v;o.c.textContent=v;

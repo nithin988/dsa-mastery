@@ -107,6 +107,10 @@ details{border:1px solid var(--line);border-radius:12px;padding:9px 14px;margin:
 @media (max-width:640px){body{font-size:15px}.hero{padding:22px 18px}.pat{padding:16px 14px 6px}.two{grid-template-columns:1fr}.cell{min-width:36px;height:38px;font-size:13.5px}.cellw{min-width:36px}.brand span{display:none}.pp{margin-left:0}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media print{.bar,.pbar,nav.side,.chips,.st-ctl,.cp{display:none}.wrap{display:block}.code-java,.code-py{display:block!important}.pat{box-shadow:none;break-inside:avoid-page}body{background:#fff}}
+
+.st-tree svg{display:block;margin:0 auto;height:auto}.st-tree line{stroke:var(--mut);stroke-width:2;opacity:.55}
+.tn circle{fill:var(--surf);stroke:var(--line);stroke-width:2.5;transition:fill .25s,stroke .25s}.tn.in circle{fill:var(--acc-soft);stroke:var(--acc)}.tn.ok circle{fill:var(--ok-soft);stroke:var(--ok)}.tn.dim circle{fill:var(--soft);stroke-dasharray:4 3;opacity:.7}
+.tn text{font:600 14px ui-monospace,Consolas,monospace;fill:var(--fg);text-anchor:middle;dominant-baseline:central}.tp{font:700 11px ui-monospace,Consolas,monospace;fill:var(--acc);text-anchor:middle}
 </style></head>
 <body data-lang="java" data-file="02_arrays.html" data-topic="arrays">
 <div class="bar"><div class="bar-in"><a class="brand" href="../index.html"><b>DSA</b> <span>Mastery</span></a>
@@ -1137,7 +1141,77 @@ trailing:function(){var n=125,S=[],q=n,total=0,vals=[n];
  function A(){return {label:'zeros so far',items:['total = '+total]}}
  S.push({a:vals.slice(),ptr:{},aux:A(),note:'Trailing zeros of 125! = number of factors of 10 = number of 5s (2s are plentiful). Count multiples of 5, then of 25, then 125, …: n/5 + n/25 + n/125 + …'});
  while(true){q=Math.floor(q/5);if(!q)break;vals.push(q);total+=q;S.push({a:vals.slice(),ptr:{now:vals.length-1},hi:[vals.length-1],aux:A(),note:'Divide by 5 again → '+q+': that many numbers are multiples of the next power of 5 and add one more factor of 5 each. total = '+total+'.'})}
- S.push({a:vals.slice(),ptr:{},ok:[vals.length-1],aux:A(),note:'125! ends with '+total+' zeros. O(log₅ n), not O(n) and no factorial is ever computed.'});return S}};
+ S.push({a:vals.slice(),ptr:{},ok:[vals.length-1],aux:A(),note:'125! ends with '+total+' zeros. O(log₅ n), not O(n) and no factorial is ever computed.'});return S},
+height:function(){var T=[3,9,20,null,null,15,7],S=[],done=[],hs={};
+ function L(i){return 2*i+1}function Rr(i){return 2*i+2}function ok(i){return i<T.length&&T[i]!==null}
+ function A(){return {label:'heights computed',items:done.length?done.map(function(i){return T[i]+' → '+hs[i]}):['none yet']}}
+ S.push({a:[],tree:T,ptr:{},aux:A(),note:'Height of a tree = 1 + max(height(left), height(right)), and an empty tree has height 0. Recurse down to the leaves; each node answers only after both children have answered (post-order).'});
+ function h(i){if(!ok(i))return 0;var l=h(L(i)),r=h(Rr(i)),v=1+Math.max(l,r);hs[i]=v;done.push(i);
+  S.push({a:[],tree:T,ptr:{['h = '+v]:i},hi:[i],ok:done.filter(function(x){return x!==i}),aux:A(),note:'Node '+T[i]+': left height '+l+', right height '+r+' → height = 1 + max('+l+', '+r+') = '+v+'.'+((!ok(L(i))&&!ok(Rr(i)))?' (A leaf: both children are empty, so 1 + max(0, 0).)':'')});return v}
+ var res=h(0);S.push({a:[],tree:T,ptr:{},ok:done.slice(),aux:A(),note:'Height of the whole tree = '+res+'. Every node is visited once: O(n) time; recursion depth = tree height (O(log n) balanced, O(n) skewed).'});return S},
+traversal:function(){var T=[1,2,3,4,5],S=[];
+ function ok(i){return i<T.length&&T[i]!==null}
+ var pre=[],ino=[],post=[];
+ (function go(i){if(!ok(i))return;pre.push(i);go(2*i+1);ino.push(i);go(2*i+2);post.push(i)})(0);
+ S.push({a:[],tree:T,ptr:{},aux:{label:'orders',items:['pre / in / post']},note:'Three depth-first orders differ only in WHEN the node is visited relative to its children: preorder = node, left, right; inorder = left, node, right; postorder = left, right, node.'});
+ [['Preorder',pre,'visit the node BEFORE its subtrees (copy a tree, serialise)'],['Inorder',ino,'visit the node BETWEEN its subtrees (a BST yields sorted order)'],['Postorder',post,'visit the node AFTER its subtrees (delete a tree, compute heights)']].forEach(function(ph){
+  ph[1].forEach(function(idx,k){S.push({a:[],tree:T,ptr:{visit:idx},hi:[idx],ok:ph[1].slice(0,k),aux:{label:ph[0]+' order so far',items:ph[1].slice(0,k+1).map(function(i){return T[i]})},note:ph[0]+': visit '+T[idx]+' ('+(k+1)+' of '+ph[1].length+'). Rule: '+ph[2]+'.'})})});
+ S.push({a:[],tree:T,ptr:{},ok:rng(0,4),aux:{label:'results',items:['pre: '+pre.map(function(i){return T[i]}).join(' '),'in: '+ino.map(function(i){return T[i]}).join(' '),'post: '+post.map(function(i){return T[i]}).join(' ')]},note:'Each traversal touches every node once: O(n) time, O(h) stack space.'});return S},
+levelorder:function(){var T=[3,9,20,null,null,15,7],S=[],q=[0],seen=[],levels=[];
+ function ok(i){return i<T.length&&T[i]!==null}
+ function A(){return {label:'queue (front → back) | levels',items:['queue: ['+q.map(function(i){return T[i]}).join(', ')+']'].concat(levels.map(function(l){return '['+l.join(',')+']'}))}}
+ S.push({a:[],tree:T,ptr:{},hi:[0],aux:A(),note:'Level-order traversal with a queue. Process exactly queue.size() nodes per round: that round is one level.'});
+ var lvl=0;while(q.length){var size=q.length,cur=[];
+  for(var k=0;k<size;k++){var i=q.shift();cur.push(T[i]);seen.push(i);var added=[];[2*i+1,2*i+2].forEach(function(c){if(ok(c)){q.push(c);added.push(T[c])}});
+   S.push({a:[],tree:T,ptr:{pop:i},hi:q.slice(),ok:seen.slice(),aux:A(),note:'Level '+lvl+': dequeue '+T[i]+'.'+(added.length?' Enqueue its children '+added.join(', ')+'.':' No children.')})}
+  levels.push(cur);lvl++;S.push({a:[],tree:T,ptr:{},hi:q.slice(),ok:seen.slice(),aux:A(),note:'Level '+(lvl-1)+' complete: ['+cur.join(', ')+']. Whatever is in the queue now is the next level.'})}
+ S.push({a:[],tree:T,ptr:{},ok:seen.slice(),aux:A(),note:'Levels: '+levels.map(function(l){return '['+l.join(',')+']'}).join(' ')+'. O(n) time, O(width) space. Right-side view = last node of each level; zigzag = reverse every other level.'});return S},
+maxpath:function(){var T=[-10,9,20,null,null,15,7],S=[],best=-1e9,done=[];
+ function ok(i){return i<T.length&&T[i]!==null}
+ function A(r){return {label:'gain returned | best path',items:r===undefined?['—','best = '+(best<-1e8?'−∞':best)]:['returns '+r,'best = '+best]}}
+ S.push({a:[],tree:T,ptr:{},aux:A(),note:'Maximum path sum (a path may start and end anywhere, no node twice). At each node: the best path THROUGH it is node + best left gain + best right gain; but it can only return ONE side upward: node + max(left gain, right gain). Negative gains are dropped (use 0).'});
+ function g(i){if(!ok(i))return 0;var l=Math.max(0,g(2*i+1)),r=Math.max(0,g(2*i+2)),through=T[i]+l+r;if(through>best)best=through;var ret=T[i]+Math.max(l,r);done.push(i);
+  S.push({a:[],tree:T,ptr:{['gain '+ret]:i},hi:[i],ok:done.filter(function(x){return x!==i}),aux:A(ret),note:'Node '+T[i]+': left gain '+l+', right gain '+r+'. Path through it = '+T[i]+' + '+l+' + '+r+' = '+through+' (best so far '+best+'). Return '+T[i]+' + max('+l+', '+r+') = '+ret+' to the parent.'});return ret}
+ g(0);S.push({a:[],tree:T,ptr:{},ok:[2,5,6],aux:A(),note:'Maximum path sum = '+best+' (15 → 20 → 7). Single post-order pass: O(n) time, O(h) space. Initialise best to −∞, not 0, so all-negative trees work.'});return S},
+bstinsert:function(){var T=[8,3,10,1,6,null,14,null,null,null,null,null,null,null,null],S=[],v=7,i=0;
+ T.length=11;
+ S.push({a:[],tree:T.slice(),ptr:{},aux:{label:'insert',items:['value = '+v]},note:'Insert 7 into this BST. BST rule: everything in the left subtree is smaller, everything in the right subtree is larger. So at each node compare once and go one way, ignoring the other half.'});
+ while(T[i]!==null&&T[i]!==undefined){var go=v<T[i]?'left':'right';S.push({a:[],tree:T.slice(),ptr:{cur:i},hi:[i],aux:{label:'insert',items:['value = '+v,'compare with '+T[i]]},note:v+' '+(v<T[i]?'<':'>')+' '+T[i]+': go '+go+'.'});i=v<T[i]?2*i+1:2*i+2}
+ T[i]=v;var T2=T.slice();S.push({a:[],tree:T2,ptr:{new:i},ok:[i],aux:{label:'insert',items:['value = '+v,'placed at an empty child']},note:'Found an empty spot: attach the new node '+v+' there. Cost = height of the tree: O(log n) balanced, O(n) if the tree is a chain.'});
+ S.push({a:[],tree:T2,ptr:{},ok:[0,1,4,i],aux:{label:'in-order of this BST',items:['1 3 6 7 8 10 14']},note:'An inorder traversal of a BST is always sorted; that is the fastest way to validate one or to find the kth smallest.'});return S},
+lca:function(){var T=[3,5,1,6,2,0,8,null,null,7,4],S=[],p=3,q=10;
+ function ok(i){return i<T.length&&T[i]!==null}
+ S.push({a:[],tree:T,ptr:{p:p,q:q},hi:[p,q],aux:{label:'find LCA of',items:[T[p]+' and '+T[q]]},note:'Lowest common ancestor of 6 and 4. Recurse: a node returns itself if it is p or q, otherwise whatever its subtrees return. The first node that receives a result from BOTH sides is the LCA.'});
+ var found=null;
+ function f(i){if(!ok(i))return -1;if(i===p||i===q){S.push({a:[],tree:T,ptr:{p:p,q:q,ret:i},hi:[p,q],ok:found!==null?[found]:[],aux:{label:'returns',items:['node '+T[i]+' → itself']},note:'Node '+T[i]+' is one of the targets: return it immediately (no need to look below).'});return i}
+  var l=f(2*i+1),r=f(2*i+2),ret;
+  if(l>=0&&r>=0){ret=i;found=i;S.push({a:[],tree:T,ptr:{p:p,q:q,lca:i},hi:[p,q],ok:[i],aux:{label:'returns',items:['left = '+T[l],'right = '+T[r]]},note:'Node '+T[i]+': left subtree returned '+T[l]+' AND right subtree returned '+T[r]+'. Both targets live under different children, so '+T[i]+' is the lowest common ancestor.'})}
+  else{ret=l>=0?l:r;S.push({a:[],tree:T,ptr:{p:p,q:q,at:i},hi:[p,q],ok:found!==null?[found]:[],aux:{label:'returns',items:[l>=0?'left = '+T[l]:'left = null',r>=0?'right = '+T[r]:'right = null']},note:'Node '+T[i]+': '+(ret>=0?'only one side found a target ('+T[ret]+'), pass it up.':'neither side found a target: return null.')})}
+  return ret}
+ var res=f(0);S.push({a:[],tree:T,ptr:{lca:res},hi:[p,q],ok:[found],aux:{label:'result',items:['LCA = '+T[found]]},note:'LCA(6, 4) = 5. A node can be its own ancestor, so if q lies under p the answer is p. One pass: O(n) time, O(h) space. In a BST you can do it in O(h) by comparing values.'});return S},
+build:function(){var pre=[3,9,20,15,7],ino=[9,3,15,20,7],T=[null,null,null,null,null,null,null],S=[],pi=0,built=[];
+ function A(l,r){return {label:'inorder window | preorder used',items:['inorder['+l+'..'+r+'] = ['+ino.slice(l,r+1).join(', ')+']','next in preorder: '+(pi<pre.length?pre[pi]:'—')]}}
+ S.push({a:[],tree:T.slice(),ptr:{},aux:A(0,4),note:'Rebuild a tree from preorder [3,9,20,15,7] and inorder [9,3,15,20,7]. Preorder\'s first unused value is always the next ROOT; the root\'s position in inorder splits left and right subtrees.'});
+ function b(l,r,pos){if(l>r)return;var v=pre[pi++],m=ino.indexOf(v);T[pos]=v;built.push(pos);
+  S.push({a:[],tree:T.slice(),ptr:{root:pos},hi:[pos],ok:built.filter(function(x){return x!==pos}),aux:A(l,r),note:'Next preorder value '+v+' is the root of inorder['+l+'..'+r+']. It sits at inorder index '+m+': left part = ['+ino.slice(l,m).join(', ')+'], right part = ['+ino.slice(m+1,r+1).join(', ')+'].'});
+  b(l,m-1,2*pos+1);b(m+1,r,2*pos+2)}
+ b(0,4,0);S.push({a:[],tree:T.slice(),ptr:{},ok:built.slice(),aux:A(0,4),note:'Tree rebuilt: 3 with left 9 and right 20 (children 15 and 7). Use a hash map value → inorder index for O(1) lookups so the whole build is O(n). Values must be unique.'});return S},
+robber:function(){var T=[3,2,3,null,3,null,1],S=[],done=[],info={};
+ function ok(i){return i<T.length&&T[i]!==null}
+ function A(){return {label:'node: skip / take',items:done.length?done.map(function(i){return T[i]+': '+info[i][0]+' / '+info[i][1]}):['none yet']}}
+ S.push({a:[],tree:T,ptr:{},aux:A(),note:'House Robber III: you cannot rob two directly linked houses. Each node returns a PAIR: [best if we skip this node, best if we take it]. Taking a node forces its children to be skipped.'});
+ function r(i){if(!ok(i))return [0,0];var l=r(2*i+1),rr=r(2*i+2);var take=T[i]+l[0]+rr[0],skip=Math.max(l[0],l[1])+Math.max(rr[0],rr[1]);info[i]=[skip,take];done.push(i);
+  S.push({a:[],tree:T,ptr:{['skip '+skip+' / take '+take]:i},hi:[i],ok:done.filter(function(x){return x!==i}),aux:A(),note:'Node '+T[i]+': take = '+T[i]+' + skip(left) '+l[0]+' + skip(right) '+rr[0]+' = '+take+'. skip = max(left) '+Math.max(l[0],l[1])+' + max(right) '+Math.max(rr[0],rr[1])+' = '+skip+'.'});return [skip,take]}
+ var res=r(0);S.push({a:[],tree:T,ptr:{},ok:done.slice(),aux:A(),note:'Answer = max(skip, take) at the root = '+Math.max(res[0],res[1])+' (rob 3 + 3 + 1). Returning a tuple from each node is the standard TREE DP pattern: O(n) time, O(h) space.'});return S},
+iterinorder:function(){var T=[4,2,6,1,3,5,7],S=[],st=[],out=[],cur=0;
+ function ok(i){return i<T.length&&T[i]!==null}
+ function A(){return {label:'stack (top at right) | output',items:['stack: ['+st.map(function(i){return T[i]}).join(', ')+']','out: ['+out.map(function(i){return T[i]}).join(', ')+']']}}
+ S.push({a:[],tree:T,ptr:{cur:0},aux:A(),note:'Iterative inorder: an explicit stack replaces the recursion. Go as far left as possible (pushing), pop and visit, then move to the right child and repeat.'});
+ while(ok(cur)||st.length){
+  while(ok(cur)){st.push(cur);S.push({a:[],tree:T,ptr:{cur:cur},hi:st.slice(),ok:out.slice(),aux:A(),note:'Push '+T[cur]+' and go left.'});cur=2*cur+1}
+  cur=st.pop();out.push(cur);S.push({a:[],tree:T,ptr:{visit:cur},hi:st.slice(),ok:out.slice(),aux:A(),note:'No left child: pop and VISIT '+T[cur]+'. Output so far: '+out.map(function(i){return T[i]}).join(', ')+'.'});
+  cur=2*cur+2}
+ S.push({a:[],tree:T,ptr:{},ok:out.slice(),aux:A(),note:'Output 1 2 3 4 5 6 7 (sorted: it is a BST). O(n) time, O(h) space; the same loop powers the BST iterator (next() pops, then pushes the right child\'s left chain).'});return S}};
 
 var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
@@ -1175,17 +1249,31 @@ $('#b-dl').onclick=function(){
  var h='<!DOCTYPE html>\n'+clone.outerHTML,blob=new Blob([h],{type:'text/html'}),a=document.createElement('a');
  a.href=URL.createObjectURL(blob);a.download=body.dataset.file||'topic.html';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)};
 /* animated stepper */
+function treeSVG(s){var T=s.tree,n=T.length,last=0,i;for(i=0;i<n;i++)if(T[i]!==null&&T[i]!==undefined)last=i;
+ var D=Math.floor(Math.log2(last+1))+1,W=Math.max(300,Math.pow(2,D-1)*56),H=D*64+30,R=18;
+ function pos(k){var d=Math.floor(Math.log2(k+1)),j=k-(Math.pow(2,d)-1),w=Math.pow(2,d);return {x:(j+0.5)/w*W,y:d*64+40}}
+ var lines='',nodes='',lab={};Object.keys(s.ptr||{}).forEach(function(k){(lab[s.ptr[k]]=lab[s.ptr[k]]||[]).push(k)});
+ for(i=0;i<=last;i++){if(T[i]===null||T[i]===undefined)continue;var p=pos(i);
+  if(i>0){var par=Math.floor((i-1)/2);if(T[par]!==null&&T[par]!==undefined){var q=pos(par);lines+='<line x1="'+q.x+'" y1="'+q.y+'" x2="'+p.x+'" y2="'+p.y+'"/>'}}
+  var c='tn'+((s.hi||[]).indexOf(i)>=0?' in':'')+((s.ok||[]).indexOf(i)>=0?' ok':'')+((s.dim||[]).indexOf(i)>=0?' dim':'');
+  nodes+='<g class="'+c+'"><circle cx="'+p.x+'" cy="'+p.y+'" r="'+R+'"/><text x="'+p.x+'" y="'+p.y+'">'+String(T[i]).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</text></g>';
+  if(lab[i])nodes+='<text class="tp" x="'+p.x+'" y="'+(p.y-R-7)+'">'+lab[i].join(', ').replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</text>'}
+ return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:'+W+'px" role="img" aria-label="Binary tree">'+lines+nodes+'</svg>'}
+
 function stepper(el){
  var steps=SIM[el.dataset.sim](),i=0,timer=null,speed=1300,max=0;
- steps.forEach(function(s){max=Math.max(max,s.a.length)});
+ steps.forEach(function(s){max=Math.max(max,(s.a||[]).length)});
  el.setAttribute('tabindex','0');el.setAttribute('aria-label','Step-by-step animation');
- el.innerHTML='<div class="st-prog"><i></i></div><div class="st-view"></div><div class="st-aux"></div><div class="st-note" aria-live="polite"></div>'+
+ el.innerHTML='<div class="st-prog"><i></i></div><div class="st-view"></div><div class="st-tree" style="display:none"></div><div class="st-aux"></div><div class="st-note" aria-live="polite"></div>'+
   '<div class="st-ctl"><button data-a="prev" title="Previous (←)">◀</button><button data-a="play" title="Play / pause (space)">▶ Play</button><button data-a="next" title="Next (→)">▶|</button><button data-a="reset" title="Restart">↺</button>'+
   '<input type="range" min="0" max="'+(steps.length-1)+'" value="0" aria-label="Step"><select aria-label="Speed"><option value="2200">Slow</option><option value="1300" selected>Normal</option><option value="600">Fast</option></select><span class="st-count"></span></div>';
  var view=$('.st-view',el),aux=$('.st-aux',el),note=$('.st-note',el),cnt=$('.st-count',el),play=$('[data-a=play]',el),bar=$('.st-prog i',el),rg=$('input',el),sel=$('select',el);
  var cells=[],h='';for(var k=0;k<max;k++)h+='<div class="cellw"><div class="ptr"></div><div class="cell"></div><div class="idx">'+k+'</div></div>'+(k<max-1?'<div class="edge"></div>':'');
  view.innerHTML=h;$$('.cellw',view).forEach(function(w){cells.push({w:w,p:$('.ptr',w),c:$('.cell',w),v:null})});var edges=$$('.edge',view);
- function draw(){var s=steps[i],lab={};Object.keys(s.ptr||{}).forEach(function(k){var ix=s.ptr[k];(lab[ix]=lab[ix]||[]).push(k)});
+ var tb=$('.st-tree',el);
+ function draw(){var s=steps[i],lab={};
+  if(s.tree){view.style.display='none';tb.style.display='block';tb.innerHTML=treeSVG(s)}else{view.style.display='';tb.style.display='none';tb.innerHTML=''}
+  s.a=s.a||[];Object.keys(s.ptr||{}).forEach(function(k){var ix=s.ptr[k];(lab[ix]=lab[ix]||[]).push(k)});
   cells.forEach(function(o,ix){if(ix>=s.a.length){o.w.style.display='none';return}o.w.style.display='';
    var v=String(s.a[ix]);if(o.v!==null&&o.v!==v){o.c.classList.remove('pop');void o.c.offsetWidth;o.c.classList.add('pop')}
    o.v=v;o.c.textContent=v;
