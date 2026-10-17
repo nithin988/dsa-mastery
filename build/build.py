@@ -20,6 +20,7 @@ import trees  # noqa: E402
 import heaps  # noqa: E402
 import graphs  # noqa: E402
 import graphs_advanced  # noqa: E402
+import tries  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -35,7 +36,7 @@ CATALOG = [
     ("08_bit_math", "Bit Manipulation and Math", "Bit tricks, XOR, bitmasks, fast power, GCD and primes, digits, formulas", bit_math.TOPIC),
     ("09_trees", "Binary Trees and BST", "Recursion on trees, DFS/BFS, path problems, BST, LCA, construction, tree DP, iterative traversals", trees.TOPIC),
     ("10_heap_priority_queue", "Heaps and Priority Queues", "Heap mechanics, top-K, two heaps, k-way merge, greedy, lazy deletion, Dijkstra", heaps.TOPIC),
-    ("11_trie", "Tries", "Prefix search, word dictionary, XOR trie", None),
+    ("11_trie", "Tries", "Trie basics, prefix queries, wildcards, Word Search II, augmented nodes, XOR trie, streams", tries.TOPIC),
     ("12_graphs_traversal", "Graph Traversal", "Representation, DFS, BFS, grids, multi-source BFS, cycles, bipartite, state graphs", graphs.TOPIC),
     ("13_graphs_advanced", "Advanced Graphs", "Topological sort, union-find, Dijkstra, Bellman-Ford, MST, bridges, SCC, Eulerian paths", graphs_advanced.TOPIC),
     ("14_greedy", "Greedy", "Exchange argument, intervals, scheduling", None),

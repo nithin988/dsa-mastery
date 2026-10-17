@@ -18,7 +18,7 @@ Each topic is one self-contained HTML file (`topics/NN_name.html`) with a built-
 | 08 | `08_bit_math` | Bit manipulation and math | Bit idioms, XOR cancellation, counting set bits, bitmask subsets, arithmetic with bits, fast power and modular arithmetic, GCD and sieve, digit manipulation, formula-based math | **done** (9 patterns, 51 problems) |
 | 09 | `09_trees` | Binary trees and BST | Recursive thinking, DFS traversals and paths, BFS levels, record-vs-return path problems, BST operations, LCA, construct and serialise, tree DP, iterative traversals | **done** (9 patterns, 58 problems) |
 | 10 | `10_heap_priority_queue` | Heaps | Heap mechanics, top-K, two heaps (median), k-way merge, greedy with a heap, lazy deletion, heap sort and comparators, Dijkstra, frequency heaps | **done** (9 patterns, 43 problems) |
-| 11 | `11_trie` | Tries | Prefix search, word dictionary, XOR trie, board search | planned |
+| 11 | `11_trie` | Tries | Trie basics, prefix counts and autocomplete, wildcards, trie + backtracking, augmented nodes, XOR trie, compressed tries and alternatives, word break, streams | **done** (9 patterns, 32 problems) |
 | 12 | `12_graphs_traversal` | Graph traversal | Representation, DFS and components, BFS shortest paths, grids and islands, multi-source BFS, cycle detection, bipartite check, implicit state graphs, border-first search | **done** (9 patterns, 43 problems) |
 | 13 | `13_graphs_advanced` | Advanced graphs | Topological sort, union-find, Dijkstra and 0-1 BFS, Bellman-Ford / Floyd-Warshall, MST, union-find applications, bridges, SCC, Eulerian paths | **done** (9 patterns, 37 problems) |
 | 14 | `14_greedy` | Greedy | Exchange argument, interval scheduling, jump game, task scheduling, proof sketches | planned |
