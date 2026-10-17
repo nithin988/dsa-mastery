@@ -24,7 +24,8 @@ Every page has a **Download** button (and the index has one per topic), so frien
 | 12 | [Graph Traversal](topics/12_graphs_traversal.html) | done |
 | 13 | [Advanced Graphs](topics/13_graphs_advanced.html) | done |
 | 14 | [Greedy Algorithms](topics/14_greedy.html) | done |
-| 15-19 | see [ROADMAP.md](ROADMAP.md) | planned |
+| 15 | [Dynamic Programming I](topics/15_dp_1d_2d.html) | done |
+| 16-19 | see [ROADMAP.md](ROADMAP.md) | planned |
 
 ## For contributors
 
@@ -35,5 +36,15 @@ python build/build.py      # writes index.html and topics/*.html
 ```
 
 - `build/lib.py`: page renderer; `build/style.css`: design; `build/engine.js`: page behaviour and the animated stepper; `build/sims.js`: the animations
-- `build/arrays.py`, `build/foundations.py`, `build/strings.py`, `build/linked_list.py`, `build/stack_queue.py`, `build/sorting_intervals.py`, `build/recursion_backtracking.py`, `build/bit_math.py`, `build/trees.py`, `build/heaps.py`, `build/graphs.py`, `build/graphs_advanced.py`, `build/tries.py`, `build/greedy.py`: topic content (copy one as the starting point for a new topic)
+- `build/arrays.py`, `build/foundations.py`, `build/strings.py`, `build/linked_list.py`, `build/stack_queue.py`, `build/sorting_intervals.py`, `build/recursion_backtracking.py`, `build/bit_math.py`, `build/trees.py`, `build/heaps.py`, `build/graphs.py`, `build/graphs_advanced.py`, `build/tries.py`, `build/greedy.py`, `build/dp1.py`: topic content (copy one as the starting point for a new topic)
 - `build/build.py`: the topic catalogue and landing page
+
+## Changing the look of every page
+
+Every topic page is generated from the same three shared files, so one edit restyles all of them:
+
+- `build/style.css`: colours, spacing, cards, tables, animation styling
+- `build/engine.js`: page behaviour (theme toggle, progress ticks, download button, the animated stepper)
+- `build/lib.py`: the page structure (hero, sidebar, pattern cards)
+
+After editing any of them run `python build/build.py` and commit the regenerated `index.html` and `topics/*.html`. Each page embeds the CSS and JS so it still works as a single downloaded file.

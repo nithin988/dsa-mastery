@@ -22,7 +22,7 @@ Each topic is one self-contained HTML file (`topics/NN_name.html`) with a built-
 | 12 | `12_graphs_traversal` | Graph traversal | Representation, DFS and components, BFS shortest paths, grids and islands, multi-source BFS, cycle detection, bipartite check, implicit state graphs, border-first search | **done** (9 patterns, 43 problems) |
 | 13 | `13_graphs_advanced` | Advanced graphs | Topological sort, union-find, Dijkstra and 0-1 BFS, Bellman-Ford / Floyd-Warshall, MST, union-find applications, bridges, SCC, Eulerian paths | **done** (9 patterns, 37 problems) |
 | 14 | `14_greedy` | Greedy | Exchange argument and counterexamples, jump games, running balance with resets, stock trading, two-pass greedy, characters and digits, range tracking, ratio greedy | **done** (9 patterns, 38 problems) |
-| 15 | `15_dp_1d_2d` | Dynamic programming I | Fibonacci-style, grid paths, house robber, coin change, LIS, state definition method | planned |
+| 15 | `15_dp_1d_2d` | Dynamic programming I | State/transition method, take-or-skip, coin change, LIS, grid paths, string-prefix DP, matrix DP (largest square), state machines, rolling arrays and reconstruction | **done** (9 patterns, 46 problems) |
 | 16 | `16_dp_advanced` | Dynamic programming II | Knapsack family, string DP (LCS, edit distance), interval DP, bitmask DP, tree DP, digit DP | planned |
 | 17 | `17_advanced_ds` | Advanced data structures | Segment tree, Fenwick (BIT), sparse table, monotonic deque optimisations | planned |
 | 18 | `18_design_problems` | Design-style problems | LRU/LFU, iterators, rate limiter, Twitter feed, time-based key-value | planned |

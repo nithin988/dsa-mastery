@@ -1695,7 +1695,76 @@ fracknap:function(){var items=[['A',60,10],['B',100,20],['C',120,30]],cap=50,S=[
  function A(){return {label:'capacity left | value',items:['capacity left = '+cap+' kg','value = $'+val.toFixed(0)]}}
  S.push({a:cells,ptr:{},aux:A(),note:'Knapsack with capacity 50 kg where items can be SPLIT (fractional knapsack). Greedy: sort by value per kg (ratio), take the best ratio first. Ratios: A = 6, B = 5, C = 4 $/kg.'});
  items.forEach(function(it,i){var r=it[1]/it[2];if(cap>=it[2]){cap-=it[2];val+=it[1];S.push({a:cells,ptr:{i:i},hi:[i],ok:rng(0,i),aux:A(),note:'Take all of '+it[0]+' (ratio '+r+'): value + '+it[1]+', capacity left '+cap+'.'})}else{var f=cap/it[2],g=it[1]*f;val+=g;S.push({a:cells,ptr:{i:i},hi:[i],ok:rng(0,i-1),aux:A(),note:'Only '+cap+' kg left: take the fraction '+cap+'/'+it[2]+' of '+it[0]+' for $'+g.toFixed(0)+'. Capacity is full.'});cap=0}});
- S.push({a:cells,ptr:{},ok:[0,1,2],aux:A(),note:'Best value = $'+val.toFixed(0)+'. This greedy is optimal ONLY because items can be split. In the 0/1 version (take or leave whole items) the ratio rule picks A + B = $160, but B + C = $220 is better: greedy fails, use dynamic programming. Sorting dominates: O(n log n).'});return S}};
+ S.push({a:cells,ptr:{},ok:[0,1,2],aux:A(),note:'Best value = $'+val.toFixed(0)+'. This greedy is optimal ONLY because items can be split. In the 0/1 version (take or leave whole items) the ratio rule picks A + B = $160, but B + C = $220 is better: greedy fails, use dynamic programming. Sorting dominates: O(n log n).'});return S},
+fibtree:function(){var T=['f5','f4','f3','f3','f2','f2','f1','f2','f1','f1','f0','f1','f0',null,null,'f1','f0'],S=[];
+ function P(n,o){var x={a:[],tree:T,ptr:{},aux:{label:'distinct subproblems vs calls',items:['calls = 15','distinct = 6 (f0 … f5)']},note:n};if(o)for(var k in o)x[k]=o[k];S.push(x)}
+ P('Naïve recursion fib(n) = fib(n−1) + fib(n−2). This is the call tree of fib(5): 15 calls, but look how many nodes repeat the same work.');
+ P('fib(3) is computed TWICE (highlighted), each time from scratch, including everything below it.',{hi:[2,3]});
+ P('fib(2) is computed THREE times.',{hi:[4,5,7]});
+ P('fib(1) is computed FIVE times. The tree roughly doubles at every level, so naïve fib(n) costs about 2ⁿ.',{hi:[6,8,9,11,15]});
+ P('Only 6 distinct subproblems exist (fib 0 … 5). OVERLAPPING SUBPROBLEMS is the first sign that dynamic programming applies: solve each distinct subproblem ONCE (green), reuse the answer (dashed nodes are skipped).',{ok:[0,1,2,4,6,10],dim:[3,5,7,8,9,11,12,15,16]});
+ P('Memoisation (top-down: recursion + a cache) or tabulation (bottom-up: table[i] = table[i−1] + table[i−2]) both give O(n). The second sign is OPTIMAL SUBSTRUCTURE: the answer for n is built from answers for smaller n.',{ok:[0,1,2,4,6,10],aux:{label:'table (bottom-up)',items:['0','1','1','2','3','5']}});return S},
+robber:function(){var a=[2,7,9,3,1],dp=[],S=[];
+ function A(){return {label:'dp[i] = best loot using houses 0..i',items:dp.length?dp.map(function(v,i){return i+': '+v}):['(empty)']}}
+ S.push({a:a,ptr:{},aux:A(),note:'House Robber: you cannot rob two adjacent houses. Define dp[i] = the most money you can get from houses 0..i. For house i either SKIP it (dp[i−1]) or ROB it (a[i] + dp[i−2], the previous house must be skipped).'});
+ a.forEach(function(x,i){var v;if(i===0){v=x;dp.push(v);S.push({a:a,ptr:{i:i},hi:[i],ok:[i],aux:A(),note:'dp[0] = a[0] = '+v+' (only one house).'})}
+  else if(i===1){v=Math.max(a[0],a[1]);dp.push(v);S.push({a:a,ptr:{i:i},hi:[0,1],aux:A(),note:'dp[1] = max(a[0], a[1]) = max('+a[0]+', '+a[1]+') = '+v+' (the better of the two houses).'})}
+  else{var skip=dp[i-1],rob=dp[i-2]+x;v=Math.max(skip,rob);dp.push(v);S.push({a:a,ptr:{i:i},hi:[i-2,i-1,i],aux:A(),note:'dp['+i+'] = max(skip = dp['+(i-1)+'] = '+skip+', rob = dp['+(i-2)+'] + a['+i+'] = '+dp[i-2]+' + '+x+' = '+rob+') = '+v+'.'})}});
+ S.push({a:a,ptr:{},ok:[0,2,4],aux:A(),note:'Answer dp[4] = '+dp[4]+' (rob 2, 9, 1). Each cell uses only the previous two, so keep just two variables: O(1) space. This "take it or skip it" recurrence is the template for many 1D DPs.'});return S},
+coinchange:function(){var coins=[1,3,4],amt=6,dp=['·','·','·','·','·','·','·'],val=[0],S=[];dp[0]=0;
+ function A(){return {label:'dp[a] = fewest coins for amount a',items:['coins: 1, 3, 4']}}
+ S.push({a:dp.slice(),ptr:{a:0},ok:[0],aux:A(),note:'Fewest coins to make 6 from coins 1, 3, 4 (each may be used any number of times). dp[a] = min over coins c ≤ a of dp[a − c] + 1. Base case dp[0] = 0.'});
+ for(var a=1;a<=amt;a++){var best=1e9,cand=[],hi=[a];coins.forEach(function(c){if(c<=a){var v=val[a-c]+1;cand.push('coin '+c+': dp['+(a-c)+'] + 1 = '+v);hi.push(a-c);if(v<best)best=v}});val[a]=best;dp[a]=best;
+  S.push({a:dp.slice(),ptr:{a:a},hi:hi,ok:[a],aux:{label:'candidates for dp['+a+']',items:cand},note:'Amount '+a+': try each coin → '+cand.join('; ')+'. Best = '+best+'.'})}
+ S.push({a:dp.slice(),ptr:{},ok:[6],aux:{label:'result',items:['dp[6] = 2 (3 + 3)']},note:'dp[6] = 2: the greedy "largest coin" (4 + 1 + 1 = 3 coins) is beaten by 3 + 3. Time O(amount × coins), space O(amount). For "number of ways" loop coins in the OUTER loop (combinations); for "number of sequences" loop amounts outside.'});return S},
+lis:function(){var a=[10,9,2,5,3,7,101,18],tails=[],S=[];
+ function A(x){return {label:'tails[k] = smallest tail of an increasing subsequence of length k + 1',items:['length so far = '+tails.length]}}
+ S.push({a:tails.slice(),ptr:{},aux:{label:'sequence',items:['10, 9, 2, 5, 3, 7, 101, 18']},note:'Longest increasing subsequence in O(n log n). Keep tails[k] = the smallest possible last element of an increasing subsequence of length k + 1. tails is always sorted, so each new number x finds its slot with BINARY SEARCH.'});
+ a.forEach(function(x){var lo=0,hi=tails.length;while(lo<hi){var m=(lo+hi)>>1;if(tails[m]<x)lo=m+1;else hi=m}var idx=lo,msg;
+  if(idx===tails.length){tails.push(x);msg='x = '+x+': larger than every tail, so it EXTENDS the longest subsequence. Append → length '+tails.length+'.'}else{msg='x = '+x+': the first tail ≥ x is '+tails[idx]+' at index '+idx+'. Replace it with '+x+' (same length, but a smaller tail leaves more room to extend later).';tails[idx]=x}
+  S.push({a:tails.slice(),ptr:{x:idx},ok:[idx],aux:{label:'processing '+x,items:['tails = ['+tails.join(', ')+']','LIS length = '+tails.length]},note:msg})});
+ S.push({a:tails.slice(),ptr:{},ok:rng(0,tails.length-1),aux:{label:'result',items:['LIS length = '+tails.length]},note:'LIS length = '+tails.length+'. Note tails is NOT itself the subsequence (here 2, 3, 7, 18 happens to be valid), only its length is meaningful. O(n log n) time, O(n) space versus the O(n²) dp[i] = 1 + max dp[j] (a[j] < a[i]) version.'});return S},
+gridpath:function(){var g=[[1,3,1,2],[1,5,1,3],[4,2,1,1]],R=3,C=4,dp=[],S=[];
+ for(var i=0;i<R;i++){dp.push([]);for(var j=0;j<C;j++)dp[i].push('·')}
+ function flat(){return dp.reduce(function(a,r){return a.concat(r)},[])}
+ function P(n,o){var x={a:flat(),cols:C,ptr:{},aux:{label:'grid costs',items:g.map(function(r){return r.join(' ')})},note:n};if(o)for(var k in o)x[k]=o[k];S.push(x)}
+ P('Minimum path sum from the top-left to the bottom-right, moving only right or down. dp[i][j] = cost[i][j] + min(dp[i−1][j], dp[i][j−1]). The table below fills in row by row.');
+ for(i=0;i<R;i++)for(j=0;j<C;j++){var up=i>0?dp[i-1][j]:null,left=j>0?dp[i][j-1]:null,best=up===null?left:(left===null?up:Math.min(up,left)),v=g[i][j]+(best===null?0:best);dp[i][j]=v;
+  var hi=[i*C+j];if(i>0)hi.push((i-1)*C+j);if(j>0)hi.push(i*C+j-1);
+  var msg=(i===0&&j===0)?'dp[0][0] = cost = '+v+' (the start).':(i===0?'First row: can only come from the left. dp[0]['+j+'] = '+g[i][j]+' + '+left+' = '+v+'.':(j===0?'First column: can only come from above. dp['+i+'][0] = '+g[i][j]+' + '+up+' = '+v+'.':'dp['+i+']['+j+'] = '+g[i][j]+' + min(above '+up+', left '+left+') = '+v+'.'));
+  var okc=[];for(var a2=0;a2<R*C;a2++)if(dp[Math.floor(a2/C)][a2%C]!=='·'&&a2!==i*C+j)okc.push(a2);
+  P(msg,{hi:hi,ok:okc})}
+ var path=[[0,0],[0,1],[0,2],[1,2],[2,2],[2,3]].map(function(p){return p[0]*C+p[1]});
+ P('Minimum path sum = dp[2][3] = '+dp[2][3]+'. To recover the PATH, walk back from the corner choosing the smaller predecessor: (2,3) ← (2,2) ← (1,2) ← (0,2) ← (0,1) ← (0,0). Each cell is computed once: O(rows × cols); keeping only one row gives O(cols) space.',{ok:path});return S},
+decode:function(){var s='226'.split(''),dp=[1],S=[];
+ function A(){return {label:'dp[i] = number of ways to decode the first i characters',items:dp.map(function(v,i){return i+': '+v})}}
+ S.push({a:s,ptr:{},aux:A(),note:'Decode ways: A = 1, B = 2, …, Z = 26. How many ways can "226" be decoded? dp[i] = ways for the first i characters. dp[0] = 1 (the empty prefix has one way: do nothing).'});
+ for(var i=1;i<=s.length;i++){var one=s[i-1]!=='0',two=i>=2&&(+(s[i-2]+s[i-1])>=10&&+(s[i-2]+s[i-1])<=26),v=(one?dp[i-1]:0)+(two?dp[i-2]:0),parts=[];
+  if(one)parts.push('"'+s[i-1]+'" is a valid letter: + dp['+(i-1)+'] = '+dp[i-1]);if(two)parts.push('"'+s[i-2]+s[i-1]+'" is a valid letter (10–26): + dp['+(i-2)+'] = '+dp[i-2]);if(!one&&!two)parts.push('no valid way to decode this character');
+  dp.push(v);S.push({a:s,ptr:{i:i-1},hi:i>=2?[i-2,i-1]:[i-1],aux:A(),note:'Position '+i+': '+parts.join('; ')+'. dp['+i+'] = '+v+'.'})}
+ S.push({a:s,ptr:{},ok:[0,1,2],aux:A(),note:'3 ways: "2 2 6" (BBF), "22 6" (VF), "2 26" (BZ). Each position depends on the previous one and two: O(n) time, O(1) space with two variables. Careful with zeros: "0" alone is invalid, "10" and "20" are valid only as pairs.'});return S},
+square:function(){var g=[[1,0,1,0,0],[1,0,1,1,1],[1,1,1,1,1],[1,0,0,1,0]],R=4,C=5,dp=[],S=[],best=0;
+ for(var i=0;i<R;i++){dp.push([]);for(var j=0;j<C;j++)dp[i].push(g[i][j]?'·':0)}
+ function flat(){return dp.reduce(function(a,r){return a.concat(r)},[])}
+ function P(n,o){var x={a:flat(),cols:C,ptr:{},aux:{label:'largest square side so far',items:['side = '+best,'area = '+best*best]},note:n};if(o)for(var k in o)x[k]=o[k];S.push(x)}
+ P('Largest square of 1s. dp[i][j] = side of the biggest all-1 square whose BOTTOM-RIGHT corner is (i, j). Zeros give 0 (already filled). For a 1: dp = 1 + min(above, left, above-left): the square can grow only as far as the weakest of its three neighbours.');
+ for(i=0;i<R;i++)for(j=0;j<C;j++){if(!g[i][j])continue;var up=i>0?dp[i-1][j]:0,lf=j>0?dp[i][j-1]:0,dg=(i>0&&j>0)?dp[i-1][j-1]:0,v=1+Math.min(up,lf,dg);dp[i][j]=v;if(v>best)best=v;
+  var hi=[i*C+j];if(i>0)hi.push((i-1)*C+j);if(j>0)hi.push(i*C+j-1);if(i>0&&j>0)hi.push((i-1)*C+j-1);
+  P('Cell ('+i+','+j+') is 1: dp = 1 + min(above '+up+', left '+lf+', above-left '+dg+') = '+v+'.'+(v===best&&v>1?' New largest side: '+v+'.':''),{hi:hi,ptr:{cur:i*C+j}})}
+ P('Largest square has side '+best+' (area '+best*best+'), ending at the highlighted corner cells. The SUM of all dp cells also counts every square submatrix (a corner with value k contributes k squares). O(rows × cols).',{ok:[2*C+3,2*C+4,C+3,C+4]});return S},
+cooldown:function(){var p=[1,2,3,0,2],S=[],hold=-p[0],sold=0,rest=0;
+ function A(){return {label:'three states',items:['hold = '+hold+'  (own a share)','sold = '+sold+'  (sold today)','rest = '+rest+'  (no share, not selling today)']}}
+ S.push({a:p,ptr:{},hi:[0],aux:A(),note:'Buy and sell with a ONE-DAY COOLDOWN after selling. Model each day as a state machine: HOLD (own a share), SOLD (sold today), REST (own nothing and free to buy). Track the best profit in each state: hold = −1 after buying at price 1.'});
+ for(var i=1;i<p.length;i++){var ph=hold,ps=sold,pr=rest;sold=ph+p[i];hold=Math.max(ph,pr-p[i]);rest=Math.max(pr,ps);
+  S.push({a:p,ptr:{day:i},hi:[i],aux:A(),note:'Day '+i+' (price '+p[i]+'): sold = hold + price = '+ph+' + '+p[i]+' = '+sold+'; hold = max(keep '+ph+', buy from rest '+pr+' − '+p[i]+') = '+hold+'; rest = max(rest '+pr+', yesterday\'s sold '+ps+') = '+rest+'.'})}
+ S.push({a:p,ptr:{},ok:[0,1,2,4],aux:A(),note:'Answer = max(sold, rest) = '+Math.max(sold,rest)+' (buy 1 sell 3, cooldown, buy 0 sell 2). Entering REST only from SOLD or REST (never directly from sold into hold) is what enforces the cooldown. O(n) time, O(1) space. The same "state machine DP" handles k transactions and fees.'});return S},
+rebuild:function(){var coins=[1,3,4],amt=6,dp=[0],ch=[0],S=[];
+ for(var a=1;a<=amt;a++){var best=1e9,pick=0;coins.forEach(function(c){if(c<=a&&dp[a-c]+1<best){best=dp[a-c]+1;pick=c}});dp[a]=best;ch[a]=pick}
+ function A(x){return {label:'choice[a] = last coin used to reach a',items:ch.map(function(c,i){return i+': '+(i===0?'—':c)})}}
+ S.push({a:dp.slice(),ptr:{},aux:A(),note:'A DP table gives the BEST VALUE, not the solution itself. To reconstruct the answer, store alongside each cell which choice produced it: choice[a] = the coin used last. Here dp = [0, 1, 2, 1, 1, 2, 2] for coins 1, 3, 4.'});
+ S.push({a:dp.slice(),ptr:{start:6},hi:[6],aux:A(),note:'Start at the target amount 6: dp[6] = '+dp[6]+'.'});
+ var cur=amt,used=[];while(cur>0){var c=ch[cur];used.push(c);S.push({a:dp.slice(),ptr:{amount:cur},hi:[cur,cur-c],ok:[],aux:{label:'coins collected',items:['['+used.join(', ')+']','choice['+cur+'] = '+c]},note:'choice['+cur+'] = '+c+': the last coin was '+c+'. Jump back to '+cur+' − '+c+' = '+(cur-c)+'.'});cur-=c}
+ S.push({a:dp.slice(),ptr:{},ok:[0],aux:{label:'solution',items:['coins = ['+used.join(', ')+']','count = '+used.length]},note:'Reached 0: the coins are '+used.join(' + ')+' = 6. Same pattern for LIS (store the predecessor index), LCS and knapsack: keep a parent / choice table, then walk it backwards. Space optimisation (rolling rows) and reconstruction pull in opposite directions: keep the full table if you need the path.'});return S}};
 
 var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
