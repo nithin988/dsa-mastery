@@ -17,6 +17,7 @@ import sorting_intervals  # noqa: E402
 import recursion_backtracking  # noqa: E402
 import bit_math  # noqa: E402
 import trees  # noqa: E402
+import heaps  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -31,7 +32,7 @@ CATALOG = [
     ("07_recursion_backtracking", "Recursion and Backtracking", "Recursion, subsets, combinations, permutations, duplicates, grid search, N-Queens, pruning", recursion_backtracking.TOPIC),
     ("08_bit_math", "Bit Manipulation and Math", "Bit tricks, XOR, bitmasks, fast power, GCD and primes, digits, formulas", bit_math.TOPIC),
     ("09_trees", "Binary Trees and BST", "Recursion on trees, DFS/BFS, path problems, BST, LCA, construction, tree DP, iterative traversals", trees.TOPIC),
-    ("10_heap_priority_queue", "Heaps and Priority Queues", "Top-K, two heaps, k-way merge", None),
+    ("10_heap_priority_queue", "Heaps and Priority Queues", "Heap mechanics, top-K, two heaps, k-way merge, greedy, lazy deletion, Dijkstra", heaps.TOPIC),
     ("11_trie", "Tries", "Prefix search, word dictionary, XOR trie", None),
     ("12_graphs_traversal", "Graph Traversal", "BFS, DFS, grids, components, multi-source BFS", None),
     ("13_graphs_advanced", "Advanced Graphs", "Topological sort, union-find, Dijkstra, MST", None),

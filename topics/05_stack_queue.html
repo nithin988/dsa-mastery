@@ -739,6 +739,8 @@ return q[0]</code></pre></div>
 function rng(x,y){var r=[];for(var i=x;i<=y;i++)r.push(i);return r}
 function mapStr(m){var k=Object.keys(m);return '{'+k.map(function(x){return x+':'+m[x]}).join(', ')+'}'}
 function bitsOf(x,n){var s=(x>>>0).toString(2);while(s.length<n)s='0'+s;return s.split('')}
+function hpush(h,x,cmp){h.push(x);var i=h.length-1;while(i>0){var p=(i-1)>>1;if(cmp(h[i],h[p])<0){var t=h[i];h[i]=h[p];h[p]=t;i=p}else break}}
+function hpop(h,cmp){var top=h[0],last=h.pop();if(h.length){h[0]=last;var i=0,n=h.length;while(true){var l=2*i+1,r=l+1,m=i;if(l<n&&cmp(h[l],h[m])<0)m=l;if(r<n&&cmp(h[r],h[m])<0)m=r;if(m===i)break;var t=h[i];h[i]=h[m];h[m]=t;i=m}}return top}
 var SIM={
 two:function(){var a=[1,3,4,6,8,11],t=10,S=[],l=0,r=a.length-1;
  while(l<r){var s=a[l]+a[r];
@@ -1294,7 +1296,83 @@ iterinorder:function(){var T=[4,2,6,1,3,5,7],S=[],st=[],out=[],cur=0;
   while(ok(cur)){st.push(cur);S.push({a:[],tree:T,ptr:{cur:cur},hi:st.slice(),ok:out.slice(),aux:A(),note:'Push '+T[cur]+' and go left.'});cur=2*cur+1}
   cur=st.pop();out.push(cur);S.push({a:[],tree:T,ptr:{visit:cur},hi:st.slice(),ok:out.slice(),aux:A(),note:'No left child: pop and VISIT '+T[cur]+'. Output so far: '+out.map(function(i){return T[i]}).join(', ')+'.'});
   cur=2*cur+2}
- S.push({a:[],tree:T,ptr:{},ok:out.slice(),aux:A(),note:'Output 1 2 3 4 5 6 7 (sorted: it is a BST). O(n) time, O(h) space; the same loop powers the BST iterator (next() pops, then pushes the right child\'s left chain).'});return S}};
+ S.push({a:[],tree:T,ptr:{},ok:out.slice(),aux:A(),note:'Output 1 2 3 4 5 6 7 (sorted: it is a BST). O(n) time, O(h) space; the same loop powers the BST iterator (next() pops, then pushes the right child\'s left chain).'});return S},
+heapops:function(){var h=[],S=[];
+ function P(n,o){var r={a:[],tree:h.slice(),ptr:{},aux:{label:'heap array (index = position)',items:h.length?h.slice():['empty']},note:n};if(o)for(var k in o)r[k]=o[k];S.push(r)}
+ function push(x){h.push(x);var i=h.length-1;P('Insert '+x+' at the first free slot (the end of the array): index '+i+'. Then SIFT UP while it is smaller than its parent.',{hi:[i],ptr:{new:i}});
+  while(i>0){var p=(i-1)>>1;if(h[p]>h[i]){P('Parent '+h[p]+' > '+h[i]+': swap them.',{hi:[i,p]});var t=h[p];h[p]=h[i];h[i]=t;i=p;P('Swapped. Keep checking the new parent.',{hi:[i],ptr:{moving:i}})}else{P('Parent '+h[p]+' ≤ '+h[i]+': heap order holds, stop.',{ok:[i,p]});break}}
+  if(i===0&&h.length>1)P(x+' reached the root: it is the new minimum.',{ok:[0]})}
+ P('A min-heap is a complete binary tree stored in an array: the parent of index i is (i − 1) / 2 and its children are 2i + 1 and 2i + 2. Rule: every parent ≤ its children, so the minimum is always at index 0.');
+ push(5);push(3);push(8);push(1);
+ var top=h[0],last=h.pop();h[0]=last;P('Pop the minimum: take the root ('+top+'), move the LAST element ('+last+') to the root, shrink the array. Then SIFT DOWN.',{hi:[0],ptr:{moved:0}});
+ var i=0;while(true){var l=2*i+1,r=l+1,m=i;if(l<h.length&&h[l]<h[m])m=l;if(r<h.length&&h[r]<h[m])m=r;
+  if(m===i){P('Both children are ≥ '+h[i]+': heap order holds, stop. Popped value: '+top+'.',{ok:[i]});break}
+  P('Smaller child is '+h[m]+' < '+h[i]+': swap down.',{hi:[i,m]});var t=h[i];h[i]=h[m];h[m]=t;i=m;P('Swapped. Compare with the next children.',{hi:[i],ptr:{moving:i}})}
+ P('Push and pop are O(log n) (the tree height). Peek is O(1). Building a heap from n items with heapify is O(n), not O(n log n).');return S},
+topk:function(){var nums=[3,2,1,5,6,4],k=2,h=[],S=[];
+ var c=function(a,b){return a-b};
+ function P(n,i,o){var r={a:nums,ptr:i===undefined?{}:{i:i},hi:i===undefined?[]:[i],aux:{label:'min-heap of size ≤ '+k+' (the k largest so far)',items:h.length?h.slice():['empty']},note:n};if(o)for(var x in o)r[x]=o[x];S.push(r)}
+ P('Find the 2nd largest in [3,2,1,5,6,4]. Keep a MIN-heap holding the k largest seen so far: its root is the smallest of those k, i.e. the kth largest. Anything smaller than the root can be ignored.');
+ nums.forEach(function(x,i){hpush(h,x,c);var msg='Push '+x+'.';if(h.length>k){var r=hpop(h,c);msg+=' Size is '+(k+1)+' > k, so pop the smallest ('+r+').'}P(msg+' Heap root (kth largest so far) = '+h[0]+'.',i)});
+ P('Answer: the 2nd largest is '+h[0]+' (the heap root). Each element costs O(log k), so O(n log k) time and O(k) space, better than sorting when k ≪ n and it works on streams.',undefined,{ok:[]});return S},
+median:function(){var stream=[5,15,1,3],low=[],high=[],S=[];
+ function A(med){return {label:'two heaps | median',items:['low (max-heap): ['+low.slice().sort(function(a,b){return b-a}).join(', ')+']','high (min-heap): ['+high.slice().sort(function(a,b){return a-b}).join(', ')+']','median = '+(med===undefined?'—':med)]}}
+ S.push({a:stream,ptr:{},aux:A(),note:'Running median. Keep the SMALLER half in a max-heap (low) and the LARGER half in a min-heap (high), with sizes equal or low one bigger. The median sits at the tops of the heaps.'});
+ stream.forEach(function(x,i){low.push(x);low.sort(function(a,b){return a-b});var mv=low.pop();high.push(mv);high.sort(function(a,b){return a-b});var bal='';
+  if(high.length>low.length){var mv2=high.shift();low.push(mv2);low.sort(function(a,b){return a-b});bal=' High became bigger, so move its smallest ('+mv2+') back to low.'}
+  var lt=low[low.length-1],med=low.length>high.length?lt:(lt+high[0])/2;
+  S.push({a:stream,ptr:{x:i},hi:[i],aux:A(med),note:'Add '+x+': push to low, move low\'s max ('+mv+') to high.'+bal+' Median = '+(low.length>high.length?'top of low = '+lt:'(top of low '+lt+' + top of high '+high[0]+') / 2')+' = '+med+'.'})});
+ S.push({a:stream,ptr:{},ok:[0,1,2,3],aux:A(4),note:'add() is O(log n) and the median is O(1). The invariant: every element of low ≤ every element of high, and |low| − |high| ∈ {0, 1}.'});return S},
+kmerge:function(){var lists=[[1,4,5],[1,3,4],[2,6]],h=[],out=[],S=[];
+ var c=function(a,b){return a[0]-b[0]||a[1]-b[1]};
+ function A(){return {label:'heap: (value, list)',items:h.length?h.slice().sort(c).map(function(e){return '('+e[0]+', L'+e[1]+')'}):['empty']}}
+ lists.forEach(function(l,i){hpush(h,[l[0],i,0],c)});
+ S.push({a:out.slice(),ptr:{},aux:A(),note:'Merge 3 sorted lists [1,4,5], [1,3,4], [2,6]. Put the FIRST element of each list in a min-heap; the heap always holds one candidate per list, so its minimum is the next output.'});
+ while(h.length){var e=hpop(h,c);out.push(e[0]);var nx=lists[e[1]][e[2]+1],msg='Pop ('+e[0]+', L'+e[1]+') → output. ';
+  if(nx!==undefined){hpush(h,[nx,e[1],e[2]+1],c);msg+='Push the next element of that list: '+nx+'.'}else msg+='List L'+e[1]+' is exhausted.';
+  S.push({a:out.slice(),ptr:{last:out.length-1},ok:[out.length-1],aux:A(),note:msg})}
+ S.push({a:out.slice(),ptr:{},ok:rng(0,out.length-1),aux:A(),note:'Merged: '+out.join(', ')+'. The heap never holds more than k = 3 items, so each of the N outputs costs O(log k): O(N log k) total, versus O(N·k) comparing all heads.'});return S},
+ropes:function(){var sticks=[1,8,3,5],h=[],S=[],cost=0;
+ var c=function(a,b){return a-b};sticks.forEach(function(x){hpush(h,x,c)});
+ function P(n,o){var r={a:[],tree:h.slice(),ptr:{},aux:{label:'total cost',items:['cost so far = '+cost]},note:n};if(o)for(var k in o)r[k]=o[k];S.push(r)}
+ P('Connect sticks [1, 8, 3, 5]; joining two sticks costs the sum of their lengths. Greedy: always join the two SHORTEST sticks, because every join cost is paid again by every later join that includes the result.');
+ while(h.length>1){var a=hpop(h,c),b=hpop(h,c);cost+=a+b;P('Pop the two smallest: '+a+' and '+b+'. Join them: cost += '+(a+b)+' (total '+cost+'). Push '+(a+b)+' back.',{});hpush(h,a+b,c);P('Heap now: ['+h.join(', ')+'].',{ok:[h.indexOf(a+b)]})}
+ P('One stick left; minimum total cost = '+cost+'. Same idea as Huffman coding. O(n log n).',{ok:[0]});return S},
+lazy:function(){var nums=[9,3,1,2,5],k=3,h=[],S=[],res=[];
+ var c=function(a,b){return b[0]-a[0]||a[1]-b[1]};
+ function A(){return {label:'max-heap (value, index) | result',items:[h.length?h.slice().sort(c).map(function(e){return '('+e[0]+','+e[1]+')'}).join(' '):'empty','max per window = ['+res.join(', ')+']']}}
+ S.push({a:nums,ptr:{},aux:A(),note:'Sliding window maximum, window size 3, with a max-heap. A heap cannot delete an arbitrary element cheaply, so use LAZY DELETION: leave stale entries in the heap and discard them only when they reach the top.'});
+ nums.forEach(function(x,i){hpush(h,[x,i],c);var msg='Push ('+x+', '+i+').';var stale=[];
+  if(i>=k-1){while(h[0][1]<=i-k){stale.push(hpop(h,c))}
+   if(stale.length)msg+=' Top '+stale.map(function(e){return '('+e[0]+','+e[1]+')'}).join(', ')+' has index ≤ '+(i-k)+': it left the window, so discard it (lazy deletion).';
+   res.push(h[0][0]);msg+=' Window max = '+h[0][0]+'.'}
+  S.push({a:nums,ptr:{i:i},hi:i>=k-1?rng(i-k+1,i):[i],ok:i>=k-1?[h[0][1]]:[],aux:A(),note:msg})});
+ S.push({a:nums,ptr:{},ok:rng(0,4),aux:A(),note:'Result ['+res.join(', ')+']. Each entry is pushed and popped at most once: O(n log n). The same trick supports "update price", "remove id" and stock-price style problems.'});return S},
+heapsort:function(){var a=[4,10,3,5,1],n=a.length,S=[],size=n;
+ function P(note,o){var r={a:[],tree:a.slice(0,size),ptr:{},aux:{label:'array | sorted tail',items:['['+a.join(', ')+']','sorted: ['+a.slice(size).join(', ')+']']},note:note};if(o)for(var k in o)r[k]=o[k];S.push(r)}
+ function sift(i,end){while(true){var l=2*i+1,r=l+1,m=i;if(l<end&&a[l]>a[m])m=l;if(r<end&&a[r]>a[m])m=r;if(m===i)return;P('Sift down: child '+a[m]+' > '+a[i]+', swap.',{hi:[i,m]});var t=a[i];a[i]=a[m];a[m]=t;i=m;P('Swapped.',{hi:[i]})}}
+ P('Heap sort: (1) turn the array into a MAX-heap, (2) repeatedly swap the maximum to the end and shrink the heap. In place, O(n log n), not stable.');
+ for(var i=(n>>1)-1;i>=0;i--){P('Heapify: sift down the node at index '+i+' ('+a[i]+'). Building from the last parent upward costs only O(n).',{hi:[i]});sift(i,size)}
+ P('The array is now a max-heap: the root is the maximum ('+a[0]+').',{ok:[0]});
+ for(var end=n-1;end>0;end--){var t=a[0];a[0]=a[end];a[end]=t;size=end;P('Swap the root (max '+t+') with the last heap element: '+t+' is now in its final sorted position. Shrink the heap.',{hi:[0]});sift(0,size)}
+ size=0;P('Sorted: '+a.join(', ')+'. Each of n extractions sifts down O(log n): O(n log n) worst case with O(1) extra space.',{});return S},
+dijkstra:function(){var names=['A','B','C','D','E'],edges={0:[[1,4],[2,1]],1:[[3,1]],2:[[1,2],[3,5]],3:[[4,3]],4:[]},dist=[0,1e9,1e9,1e9,1e9],done=[],h=[],S=[];
+ var c=function(a,b){return a[0]-b[0]};hpush(h,[0,0],c);
+ function A(){return {label:'distances | heap (dist, node)',items:['dist: '+names.map(function(n,i){return n+'='+(dist[i]>=1e9?'∞':dist[i])}).join(' '),'heap: '+(h.length?h.slice().sort(c).map(function(e){return '('+e[0]+','+names[e[1]]+')'}).join(' '):'empty')]}}
+ S.push({a:names,ptr:{start:0},aux:A(),note:'Shortest paths from A. Edges: A→B 4, A→C 1, C→B 2, B→D 1, C→D 5, D→E 3. A min-heap always yields the unfinished node with the smallest known distance.'});
+ while(h.length){var e=hpop(h,c),d=e[0],u=e[1];
+  if(d>dist[u]){S.push({a:names,ptr:{pop:u},dim:[u],ok:done.slice(),aux:A(),note:'Pop ('+d+', '+names[u]+'): stale, we already found a shorter distance '+dist[u]+'. Skip it (lazy deletion).'});continue}
+  done.push(u);var ch=[];edges[u].forEach(function(ed){var v=ed[0],w=ed[1];if(d+w<dist[v]){ch.push(names[v]+(dist[v]<1e9?' improves '+dist[v]+' → '+(d+w):' = '+(d+w)));dist[v]=d+w;hpush(h,[dist[v],v],c)}});
+  S.push({a:names,ptr:{pop:u},hi:[u],ok:done.filter(function(x){return x!==u}),aux:A(),note:'Pop ('+d+', '+names[u]+'): '+names[u]+' is final at distance '+d+'. '+(ch.length?'Relax: '+ch.join('; ')+'.':'Nothing to relax.')})}
+ S.push({a:names,ptr:{},ok:rng(0,4),aux:A(),note:'Shortest distances: '+names.map(function(n,i){return n+'='+dist[i]}).join(', ')+'. Each edge pushes at most one entry: O((V + E) log V). Requires non-negative weights.'});return S},
+reorg:function(){var cnt={a:3,b:2,c:1},h=[],res=[],S=[],prev=null;
+ var c=function(x,y){return y[0]-x[0]||(x[1]<y[1]?-1:1)};
+ Object.keys(cnt).forEach(function(k){hpush(h,[cnt[k],k],c)});
+ function A(){return {label:'max-heap (count, letter) | held back',items:[h.length?h.slice().sort(c).map(function(e){return '('+e[0]+','+e[1]+')'}).join(' '):'empty','held: '+(prev&&prev[0]>0?'('+prev[0]+','+prev[1]+')':'none')]}}
+ S.push({a:[],ptr:{},aux:A(),note:'Rearrange "aaabbc" so no two equal letters are adjacent. Greedy: always place the letter with the highest remaining count, but hold the one just placed out of the heap for one round so it cannot repeat immediately.'});
+ while(h.length){var e=hpop(h,c);res.push(e[1]);var cur=[e[0]-1,e[1]],back='';if(prev&&prev[0]>0){hpush(h,prev,c);back=' Return the held-back letter '+prev[1]+' ('+prev[0]+') to the heap.'}prev=cur;
+  S.push({a:res.slice(),ptr:{last:res.length-1},ok:[res.length-1],aux:A(),note:'Place the most frequent available letter '+e[1]+' (count '+e[0]+' → '+cur[0]+') and hold it for one round.'+back})}
+ S.push({a:res.slice(),ptr:{},ok:rng(0,res.length-1),aux:A(),note:'Result "'+res.join('')+'": no equal neighbours. If the most frequent letter appears more than (n + 1) / 2 times it is impossible. O(n log k), k = number of distinct letters.'});return S}};
 
 var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
