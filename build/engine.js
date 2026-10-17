@@ -34,6 +34,19 @@ $('#b-dl').onclick=function(){
  var h='<!DOCTYPE html>\n'+clone.outerHTML,blob=new Blob([h],{type:'text/html'}),a=document.createElement('a');
  a.href=URL.createObjectURL(blob);a.download=body.dataset.file||'topic.html';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)};
 /* animated stepper */
+function graphSVG(s){var g=s.graph,W=g.w||360,H=g.h||210,R=17,lines='',nodes='',lab={};
+ Object.keys(s.ptr||{}).forEach(function(k){(lab[s.ptr[k]]=lab[s.ptr[k]]||[]).push(k)});
+ function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+ g.edges.forEach(function(e,k){var a=g.nodes[e[0]],b=g.nodes[e[1]],on=(s.eok||[]).indexOf(k)>=0,x1=a.x,y1=a.y,x2=b.x,y2=b.y,mk='';
+  if(g.directed){var dx=x2-x1,dy=y2-y1,L=Math.sqrt(dx*dx+dy*dy)||1;x1+=dx/L*R;y1+=dy/L*R;x2-=dx/L*(R+4);y2-=dy/L*(R+4);mk=' marker-end="url(#'+(on?'garrOn':'garr')+')"'}
+  lines+='<line class="ge'+(on?' on':'')+'" x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'"'+mk+'/>';
+  if(e[2]!==undefined)lines+='<text class="gw" x="'+((a.x+b.x)/2)+'" y="'+((a.y+b.y)/2-6)+'">'+esc(e[2])+'</text>'});
+ g.nodes.forEach(function(n,i){var c='tn'+((s.hi||[]).indexOf(i)>=0?' in':'')+((s.ok||[]).indexOf(i)>=0?' ok':'')+((s.dim||[]).indexOf(i)>=0?' dim':'');
+  nodes+='<g class="'+c+'"><circle cx="'+n.x+'" cy="'+n.y+'" r="'+R+'"/><text x="'+n.x+'" y="'+n.y+'">'+esc(n.label===undefined?i:n.label)+'</text></g>';
+  if(lab[i])nodes+='<text class="tp" x="'+n.x+'" y="'+(n.y-R-7)+'">'+esc(lab[i].join(', '))+'</text>'});
+ var defs='<defs><marker id="garr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="mk" d="M0,0 L10,5 L0,10 z"/></marker><marker id="garrOn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="mk2" d="M0,0 L10,5 L0,10 z"/></marker></defs>';
+ return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:'+W+'px" role="img" aria-label="Graph">'+defs+lines+nodes+'</svg>'}
+
 function treeSVG(s){var T=s.tree,n=T.length,last=0,i;for(i=0;i<n;i++)if(T[i]!==null&&T[i]!==undefined)last=i;
  var D=Math.floor(Math.log2(last+1))+1,W=Math.max(300,Math.pow(2,D-1)*56),H=D*64+30,R=18;
  function pos(k){var d=Math.floor(Math.log2(k+1)),j=k-(Math.pow(2,d)-1),w=Math.pow(2,d);return {x:(j+0.5)/w*W,y:d*64+40}}
@@ -57,7 +70,7 @@ function stepper(el){
  view.innerHTML=h;$$('.cellw',view).forEach(function(w){cells.push({w:w,p:$('.ptr',w),c:$('.cell',w),v:null})});var edges=$$('.edge',view);
  var tb=$('.st-tree',el);
  function draw(){var s=steps[i],lab={};
-  if(s.tree){view.style.display='none';tb.style.display='block';tb.innerHTML=treeSVG(s)}else{view.style.display='';tb.style.display='none';tb.innerHTML=''}
+  if(s.tree||s.graph){view.style.display='none';tb.style.display='block';tb.innerHTML=s.tree?treeSVG(s):graphSVG(s)}else{view.style.display='';tb.style.display='none';tb.innerHTML=''}
   s.a=s.a||[];Object.keys(s.ptr||{}).forEach(function(k){var ix=s.ptr[k];(lab[ix]=lab[ix]||[]).push(k)});
   cells.forEach(function(o,ix){if(ix>=s.a.length){o.w.style.display='none';return}o.w.style.display='';
    var v=String(s.a[ix]);if(o.v!==null&&o.v!==v){o.c.classList.remove('pop');void o.c.offsetWidth;o.c.classList.add('pop')}

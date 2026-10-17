@@ -19,7 +19,7 @@ Each topic is one self-contained HTML file (`topics/NN_name.html`) with a built-
 | 09 | `09_trees` | Binary trees and BST | Recursive thinking, DFS traversals and paths, BFS levels, record-vs-return path problems, BST operations, LCA, construct and serialise, tree DP, iterative traversals | **done** (9 patterns, 58 problems) |
 | 10 | `10_heap_priority_queue` | Heaps | Heap mechanics, top-K, two heaps (median), k-way merge, greedy with a heap, lazy deletion, heap sort and comparators, Dijkstra, frequency heaps | **done** (9 patterns, 43 problems) |
 | 11 | `11_trie` | Tries | Prefix search, word dictionary, XOR trie, board search | planned |
-| 12 | `12_graphs_traversal` | Graph traversal | BFS, DFS, grid problems, connected components, multi-source BFS, cycle detection | planned |
+| 12 | `12_graphs_traversal` | Graph traversal | Representation, DFS and components, BFS shortest paths, grids and islands, multi-source BFS, cycle detection, bipartite check, implicit state graphs, border-first search | **done** (9 patterns, 43 problems) |
 | 13 | `13_graphs_advanced` | Advanced graphs | Topological sort, union-find, Dijkstra, Bellman-Ford, MST, bridges/SCC | planned |
 | 14 | `14_greedy` | Greedy | Exchange argument, interval scheduling, jump game, task scheduling, proof sketches | planned |
 | 15 | `15_dp_1d_2d` | Dynamic programming I | Fibonacci-style, grid paths, house robber, coin change, LIS, state definition method | planned |

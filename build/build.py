@@ -18,6 +18,7 @@ import recursion_backtracking  # noqa: E402
 import bit_math  # noqa: E402
 import trees  # noqa: E402
 import heaps  # noqa: E402
+import graphs  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -34,7 +35,7 @@ CATALOG = [
     ("09_trees", "Binary Trees and BST", "Recursion on trees, DFS/BFS, path problems, BST, LCA, construction, tree DP, iterative traversals", trees.TOPIC),
     ("10_heap_priority_queue", "Heaps and Priority Queues", "Heap mechanics, top-K, two heaps, k-way merge, greedy, lazy deletion, Dijkstra", heaps.TOPIC),
     ("11_trie", "Tries", "Prefix search, word dictionary, XOR trie", None),
-    ("12_graphs_traversal", "Graph Traversal", "BFS, DFS, grids, components, multi-source BFS", None),
+    ("12_graphs_traversal", "Graph Traversal", "Representation, DFS, BFS, grids, multi-source BFS, cycles, bipartite, state graphs", graphs.TOPIC),
     ("13_graphs_advanced", "Advanced Graphs", "Topological sort, union-find, Dijkstra, MST", None),
     ("14_greedy", "Greedy", "Exchange argument, intervals, scheduling", None),
     ("15_dp_1d_2d", "Dynamic Programming I", "1D/2D DP, coin change, LIS, state definition", None),

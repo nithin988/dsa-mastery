@@ -20,7 +20,8 @@ Every page has a **Download** button (and the index has one per topic), so frien
 | 08 | [Bit Manipulation and Math](topics/08_bit_math.html) | done |
 | 09 | [Binary Trees and BSTs](topics/09_trees.html) | done |
 | 10 | [Heaps and Priority Queues](topics/10_heap_priority_queue.html) | done |
-| 11-19 | see [ROADMAP.md](ROADMAP.md) | planned |
+| 12 | [Graph Traversal](topics/12_graphs_traversal.html) | done |
+| 11, 13-19 | see [ROADMAP.md](ROADMAP.md) | planned |
 
 ## For contributors
 
@@ -31,5 +32,5 @@ python build/build.py      # writes index.html and topics/*.html
 ```
 
 - `build/lib.py`: page renderer; `build/style.css`: design; `build/engine.js`: page behaviour and the animated stepper; `build/sims.js`: the animations
-- `build/arrays.py`, `build/foundations.py`, `build/strings.py`, `build/linked_list.py`, `build/stack_queue.py`, `build/sorting_intervals.py`, `build/recursion_backtracking.py`, `build/bit_math.py`, `build/trees.py`, `build/heaps.py`: topic content (copy one as the starting point for a new topic)
+- `build/arrays.py`, `build/foundations.py`, `build/strings.py`, `build/linked_list.py`, `build/stack_queue.py`, `build/sorting_intervals.py`, `build/recursion_backtracking.py`, `build/bit_math.py`, `build/trees.py`, `build/heaps.py`, `build/graphs.py`: topic content (copy one as the starting point for a new topic)
 - `build/build.py`: the topic catalogue and landing page

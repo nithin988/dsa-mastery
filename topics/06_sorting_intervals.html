@@ -111,6 +111,7 @@ details{border:1px solid var(--line);border-radius:12px;padding:9px 14px;margin:
 .st-tree svg{display:block;margin:0 auto;height:auto}.st-tree line{stroke:var(--mut);stroke-width:2;opacity:.55}
 .tn circle{fill:var(--surf);stroke:var(--line);stroke-width:2.5;transition:fill .25s,stroke .25s}.tn.in circle{fill:var(--acc-soft);stroke:var(--acc)}.tn.ok circle{fill:var(--ok-soft);stroke:var(--ok)}.tn.dim circle{fill:var(--soft);stroke-dasharray:4 3;opacity:.7}
 .tn text{font:600 14px ui-monospace,Consolas,monospace;fill:var(--fg);text-anchor:middle;dominant-baseline:central}.tp{font:700 11px ui-monospace,Consolas,monospace;fill:var(--acc);text-anchor:middle}
+.ge{stroke:var(--mut);stroke-width:2;opacity:.5}.ge.on{stroke:var(--acc);stroke-width:3.5;opacity:1}.gw{font:600 11px ui-monospace,Consolas,monospace;fill:var(--mut);text-anchor:middle}.mk{fill:var(--mut);opacity:.7}.mk2{fill:var(--acc)}
 </style></head>
 <body data-lang="java" data-file="06_sorting_intervals.html" data-topic="sorting_intervals">
 <div class="bar"><div class="bar-in"><a class="brand" href="../index.html"><b>DSA</b> <span>Mastery</span></a>
@@ -1248,7 +1249,93 @@ reorg:function(){var cnt={a:3,b:2,c:1},h=[],res=[],S=[],prev=null;
  S.push({a:[],ptr:{},aux:A(),note:'Rearrange "aaabbc" so no two equal letters are adjacent. Greedy: always place the letter with the highest remaining count, but hold the one just placed out of the heap for one round so it cannot repeat immediately.'});
  while(h.length){var e=hpop(h,c);res.push(e[1]);var cur=[e[0]-1,e[1]],back='';if(prev&&prev[0]>0){hpush(h,prev,c);back=' Return the held-back letter '+prev[1]+' ('+prev[0]+') to the heap.'}prev=cur;
   S.push({a:res.slice(),ptr:{last:res.length-1},ok:[res.length-1],aux:A(),note:'Place the most frequent available letter '+e[1]+' (count '+e[0]+' → '+cur[0]+') and hold it for one round.'+back})}
- S.push({a:res.slice(),ptr:{},ok:rng(0,res.length-1),aux:A(),note:'Result "'+res.join('')+'": no equal neighbours. If the most frequent letter appears more than (n + 1) / 2 times it is impossible. O(n log k), k = number of distinct letters.'});return S}};
+ S.push({a:res.slice(),ptr:{},ok:rng(0,res.length-1),aux:A(),note:'Result "'+res.join('')+'": no equal neighbours. If the most frequent letter appears more than (n + 1) / 2 times it is impossible. O(n log k), k = number of distinct letters.'});return S},
+buildgraph:function(){var N=[{x:80,y:50},{x:260,y:50},{x:80,y:160},{x:260,y:160}],E=[[0,1],[0,2],[1,2],[2,3]],S=[],adj=[[],[],[],[]];
+ function A(){return {label:'adjacency list',items:adj.map(function(l,i){return i+': ['+l.join(', ')+']'})}}
+ S.push({a:[],graph:{nodes:N,edges:[]},ptr:{},aux:A(),note:'Graph = vertices + edges. The input usually arrives as an EDGE LIST. Build an adjacency list: for each vertex, the list of its neighbours. It uses O(V + E) space and lets you loop over neighbours in O(degree).'});
+ E.forEach(function(e,k){adj[e[0]].push(e[1]);adj[e[1]].push(e[0]);S.push({a:[],graph:{nodes:N,edges:E.slice(0,k+1)},ptr:{},eok:[k],hi:[e[0],e[1]],aux:A(),note:'Edge '+e[0]+' – '+e[1]+': undirected, so add '+e[1]+' to '+e[0]+'\'s list AND '+e[0]+' to '+e[1]+'\'s list. (A directed edge would add only one of them.)'})});
+ S.push({a:[],graph:{nodes:N,edges:E},ptr:{},ok:[0,1,2,3],aux:A(),note:'Adjacency list: O(V + E) space, neighbours in O(deg). Adjacency matrix: O(V²) space, edge test in O(1), good only for dense graphs. For grids the neighbours are implicit: (r±1, c), (r, c±1), no list needed.'});return S},
+dfs:function(){var N=[{x:150,y:28},{x:80,y:100},{x:220,y:100},{x:40,y:172},{x:120,y:172},{x:220,y:172},{x:300,y:60},{x:325,y:150}],E=[[0,1],[0,2],[1,3],[1,4],[2,5],[6,7]],S=[];
+ var adj=N.map(function(){return[]});E.forEach(function(e){adj[e[0]].push(e[1]);adj[e[1]].push(e[0])});
+ var seen={},path=[],done=[],used=[],order=[],comps=0,G={nodes:N,edges:E};
+ function ei(a,b){for(var k=0;k<E.length;k++)if((E[k][0]===a&&E[k][1]===b)||(E[k][0]===b&&E[k][1]===a))return k;return -1}
+ function P(note,cur){S.push({a:[],graph:G,ptr:cur===undefined?{}:{cur:cur},hi:path.slice(),ok:done.slice(),eok:used.slice(),aux:{label:'call stack | visited | components',items:['stack: '+(path.length?path.join(' → '):'empty'),'visited: '+(order.length?order.join(' '):'—'),'components = '+comps]},note:note})}
+ function go(u,from){seen[u]=true;path.push(u);order.push(u);P('Visit '+u+': mark it visited and recurse into the first unvisited neighbour.',u);
+  adj[u].forEach(function(v){if(seen[v]){if(v!==from)P(u+' sees '+v+': already visited, skip it (this is how DFS avoids loops).',u);return}used.push(ei(u,v));go(v,u)});
+  path.pop();done.push(u);P('All neighbours of '+u+' are done: backtrack.'+(path.length?' Back to '+path[path.length-1]+'.':''),path.length?path[path.length-1]:undefined)}
+ P('Depth-first search goes as deep as possible along one path before backing up. Edges 0–1, 0–2, 1–3, 1–4, 2–5 form one component; 6–7 is another. Run DFS from every unvisited vertex to count components.');
+ for(var u=0;u<N.length;u++){if(!seen[u]){comps++;P('Vertex '+u+' is unvisited: it starts a NEW component (#'+comps+').',u);go(u,-1)}}
+ S.push({a:[],graph:G,ptr:{},ok:order.slice(),eok:used.slice(),aux:{label:'result',items:['components = '+comps,'visited order: '+order.join(' ')]},note:'2 connected components. DFS visits each vertex and edge once: O(V + E) time, O(V) space (visited set + recursion stack).'});return S},
+bfsg:function(){var N=[{x:40,y:105},{x:110,y:40},{x:110,y:170},{x:195,y:40},{x:195,y:170},{x:270,y:105},{x:335,y:105}],E=[[0,1],[0,2],[1,3],[2,3],[2,4],[3,5],[4,5],[5,6]],S=[];
+ var adj=N.map(function(){return[]});E.forEach(function(e){adj[e[0]].push(e[1]);adj[e[1]].push(e[0])});
+ var dist={0:0},par={},q=[0],done=[],used=[],G={nodes:N,edges:E};
+ function ei(a,b){for(var k=0;k<E.length;k++)if((E[k][0]===a&&E[k][1]===b)||(E[k][0]===b&&E[k][1]===a))return k;return -1}
+ function A(){return {label:'queue | distance',items:['queue: ['+q.join(', ')+']','dist: '+Object.keys(dist).map(function(k){return k+'='+dist[k]}).join(' ')]}}
+ S.push({a:[],graph:G,ptr:{start:0},hi:[0],aux:A(),note:'Breadth-first search from 0: visit all vertices at distance 1, then distance 2, and so on. The queue holds the frontier. In an UNWEIGHTED graph the first time BFS reaches a vertex is by a shortest path.'});
+ while(q.length){var u=q.shift();done.push(u);var add=[];adj[u].forEach(function(v){if(!(v in dist)){dist[v]=dist[u]+1;par[v]=u;q.push(v);used.push(ei(u,v));add.push(v)}});
+  S.push({a:[],graph:G,ptr:{pop:u},hi:q.slice(),ok:done.slice(),eok:used.slice(),aux:A(),note:'Dequeue '+u+' (distance '+dist[u]+'). '+(add.length?'Discover '+add.join(', ')+' at distance '+(dist[u]+1)+' and enqueue them.':'No new neighbours.')})}
+ var pth=[6];while(pth[0]!==0)pth.unshift(par[pth[0]]);var pe=[];for(var i=0;i<pth.length-1;i++)pe.push(ei(pth[i],pth[i+1]));
+ S.push({a:[],graph:G,ptr:{},ok:pth,eok:pe,aux:{label:'shortest path 0 → 6',items:[pth.join(' → ')+'  ('+dist[6]+' edges)']},note:'Follow the parent pointers back from 6: shortest path = '+pth.join(' → ')+' with '+dist[6]+' edges. O(V + E) time, O(V) space. Mark vertices visited when you ENQUEUE them.'});return S},
+islands:function(){var g='11000100110001001000'.split('').map(Number);var R=4,C=5,id=new Array(R*C).fill(0),S=[],count=0;
+ function cells(){return id.map(function(v,i){return v?v:(g[i]?'1':'·')})}
+ function P(n,o){var x={a:cells(),cols:C,ptr:{},note:n};if(o)for(var k in o)x[k]=o[k];S.push(x)}
+ P('Count islands in a grid (1 = land, · = water). Scan every cell; when you meet unvisited land, that is a NEW island: flood-fill it (DFS) so its cells are never counted again.');
+ function fill(r,c,k){if(r<0||c<0||r>=R||c>=C||!g[r*C+c]||id[r*C+c])return;id[r*C+c]=k;P('Flood-fill island '+k+': mark ('+r+','+c+'). Spread to the 4 neighbours that are unvisited land.',{hi:[r*C+c],ok:id.map(function(v,i){return v?i:-1}).filter(function(i){return i>=0&&i!==r*C+c})});[[1,0],[-1,0],[0,1],[0,-1]].forEach(function(d){fill(r+d[0],c+d[1],k)})}
+ for(var r=0;r<R;r++)for(var c=0;c<C;c++){if(g[r*C+c]&&!id[r*C+c]){count++;P('Scan reaches ('+r+','+c+'): unvisited land, so island #'+count+' starts here.',{hi:[r*C+c],ptr:{scan:r*C+c}});fill(r,c,count)}}
+ P('Islands = '+count+'. Each cell is visited a constant number of times: O(rows × cols) time. Marking visited by changing the grid (or a visited set) prevents counting the same island twice.',{ok:id.map(function(v,i){return v?i:-1}).filter(function(i){return i>=0})});return S},
+multibfs:function(){var g=[1,1,1,0,1,1,1,1,0,1,1,1];var R=3,C=4,d=g.map(function(v){return v===0?0:-1}),S=[],frontier=[];
+ function cells(){return d.map(function(v){return v<0?'?':v})}
+ for(var i=0;i<d.length;i++)if(d[i]===0)frontier.push(i);
+ function P(n,o){var x={a:cells(),cols:C,ptr:{},note:n};if(o)for(var k in o)x[k]=o[k];S.push(x)}
+ P('Distance of every cell to its nearest 0. Instead of one BFS per cell, start ONE BFS from ALL zeros at once (multi-source BFS): they all enter the queue at distance 0.',{ok:frontier.slice()});
+ var lvl=0;while(frontier.length){var next=[];frontier.forEach(function(p){var r=Math.floor(p/C),c=p%C;[[1,0],[-1,0],[0,1],[0,-1]].forEach(function(dd){var nr=r+dd[0],nc=c+dd[1];if(nr>=0&&nc>=0&&nr<R&&nc<C&&d[nr*C+nc]<0){d[nr*C+nc]=lvl+1;next.push(nr*C+nc)}})});
+  lvl++;if(next.length)P('Level '+lvl+': every unvisited neighbour of the previous level gets distance '+lvl+'. The whole grid wave advances one step at a time.',{hi:next.slice()});frontier=next}
+ P('Done: every cell holds its distance to the nearest 0. One BFS pass: O(rows × cols) time and space, instead of O((rows × cols)²) for a BFS from each cell.',{ok:rng(0,R*C-1)});return S},
+cycle:function(){var N=[{x:40,y:100},{x:130,y:100},{x:215,y:40},{x:215,y:160},{x:60,y:175}],E=[[0,1],[1,2],[2,3],[3,1],[0,4]],S=[];
+ var adj=N.map(function(){return[]});E.forEach(function(e,k){adj[e[0]].push([e[1],k])});
+ var path=[],done=[],used=[],G={nodes:N,edges:E,directed:true},found=false;
+ function P(n,cur,x){var o={a:[],graph:G,ptr:cur===undefined?{}:{cur:cur},hi:path.slice(),ok:done.slice(),eok:used.slice(),aux:{label:'colours (grey = on the current path)',items:['grey: ['+path.join(', ')+']','black: ['+done.join(', ')+']']},note:n};if(x)for(var k in x)o[k]=x[k];S.push(o)}
+ P('Cycle detection in a DIRECTED graph with DFS colours. White = unvisited, grey = on the current recursion path, black = finished. An edge to a GREY vertex is a back edge and means a cycle.');
+ function go(u){path.push(u);P('Enter '+u+': colour it grey (it is now on the path).',u);
+  for(var j=0;j<adj[u].length&&!found;j++){var v=adj[u][j][0],k=adj[u][j][1];
+   if(path.indexOf(v)>=0){found=true;used.push(k);P('Edge '+u+' → '+v+': '+v+' is GREY (still on the path). Back edge → CYCLE: '+path.slice(path.indexOf(v)).join(' → ')+' → '+v+'.',u,{dim:[v,u]});return}
+   if(done.indexOf(v)>=0){P('Edge '+u+' → '+v+': '+v+' is BLACK (fully explored, no cycle through it). Skip.',u);continue}
+   used.push(k);go(v)}
+  if(!found){path.pop();done.push(u);P('All edges out of '+u+' explored: colour it black.',path.length?path[path.length-1]:undefined)}}
+ go(0);S.push({a:[],graph:G,ptr:{},dim:[1,2,3],eok:used.slice(),aux:{label:'result',items:['cycle found: 1 → 2 → 3 → 1']},note:'In an UNDIRECTED graph a cycle is an edge to an already visited vertex that is not your parent. In a DIRECTED graph "visited" is not enough (cross edges to finished vertices are fine): you need the grey / black distinction, or Kahn\'s algorithm. O(V + E).'});return S},
+bipartite:function(){var N=[{x:60,y:50},{x:60,y:160},{x:170,y:105},{x:290,y:105}],E=[[0,1],[1,2],[2,0],[2,3]],S=[];
+ var adj=N.map(function(){return[]});E.forEach(function(e,k){adj[e[0]].push([e[1],k]);adj[e[1]].push([e[0],k])});
+ var col={0:0},q=[0],G={nodes:N,edges:E},conflict=false,used=[];
+ function A(){return {label:'colours (A = blue, B = green)',items:Object.keys(col).map(function(k){return k+': '+(col[k]?'B':'A')}).concat(['queue: ['+q.join(', ')+']'])}}
+ function cls(){var hi=[],ok=[];Object.keys(col).forEach(function(k){(col[k]===0?hi:ok).push(+k)});return {hi:hi,ok:ok}}
+ function P(n,x){var c=cls(),o={a:[],graph:G,ptr:{},hi:c.hi,ok:c.ok,eok:used.slice(),aux:A(),note:n};if(x)for(var k in x)o[k]=x[k];S.push(o)}
+ P('Is the graph bipartite (can the vertices be split into two groups with every edge going between groups)? 2-colour it with BFS: give a vertex colour A, all its neighbours colour B, their neighbours A, and so on. A conflict means an odd cycle.');
+ while(q.length&&!conflict){var u=q.shift();
+  for(var j=0;j<adj[u].length&&!conflict;j++){var v=adj[u][j][0],k=adj[u][j][1];
+   if(!(v in col)){col[v]=1-col[u];q.push(v);used.push(k);P('From '+u+': neighbour '+v+' is uncoloured → give it the OPPOSITE colour ('+(col[v]?'B':'A')+') and enqueue it.')}
+   else if(col[v]===col[u]){conflict=true;used.push(k);var cc=cls();S.push({a:[],graph:G,ptr:{},hi:cc.hi.filter(function(x){return x!==u&&x!==v}),ok:cc.ok.filter(function(x){return x!==u&&x!==v}),dim:[u,v],eok:used.slice(),aux:A(),note:'Edge '+u+' – '+v+': both endpoints already have colour '+(col[u]?'B':'A')+'. They are adjacent but in the same group, so the graph is NOT bipartite (it contains the odd cycle 0 – 1 – 2).'})}}}
+ S.push({a:[],graph:G,ptr:{},dim:[0,1,2],aux:{label:'result',items:['not bipartite']},note:'A graph is bipartite iff it has no odd-length cycle. BFS or DFS colouring decides it in O(V + E). Run it from every unvisited vertex when the graph can be disconnected.'});return S},
+wordladder:function(){var W=['hit','hot','dot','lot','dog','log','cog'],N=[{x:35,y:105,label:'hit'},{x:105,y:105,label:'hot'},{x:175,y:45,label:'dot'},{x:175,y:165,label:'lot'},{x:250,y:45,label:'dog'},{x:250,y:165,label:'log'},{x:325,y:105,label:'cog'}],E=[[0,1],[1,2],[1,3],[2,3],[2,4],[3,5],[4,5],[4,6],[5,6]],S=[];
+ var adj=N.map(function(){return[]});E.forEach(function(e){adj[e[0]].push(e[1]);adj[e[1]].push(e[0])});
+ var dist={0:1},q=[0],done=[],used=[],par={},G={nodes:N,edges:E};
+ function ei(a,b){for(var k=0;k<E.length;k++)if((E[k][0]===a&&E[k][1]===b)||(E[k][0]===b&&E[k][1]===a))return k;return -1}
+ function A(){return {label:'queue | length so far',items:['queue: ['+q.map(function(i){return W[i]}).join(', ')+']','words in the chain so far: '+Object.keys(dist).map(function(k){return W[k]+'='+dist[k]}).join(' ')]}}
+ S.push({a:[],graph:G,ptr:{start:0},hi:[0],aux:A(),note:'Word ladder: change one letter at a time (every intermediate word must be in the dictionary) to get from hit to cog. The WORDS are vertices; two words are joined by an edge if they differ in exactly one letter. The graph is implicit: you generate neighbours on the fly. Shortest transformation = BFS.'});
+ while(q.length){var u=q.shift();done.push(u);var add=[];adj[u].forEach(function(v){if(!(v in dist)){dist[v]=dist[u]+1;par[v]=u;q.push(v);used.push(ei(u,v));add.push(W[v])}});
+  S.push({a:[],graph:G,ptr:{pop:u},hi:q.slice(),ok:done.slice(),eok:used.slice(),aux:A(),note:'Dequeue "'+W[u]+'". Words one letter away that are not yet seen: '+(add.length?add.join(', ')+' (chain length '+(dist[u]+1)+').':'none.')});if(u===6)break}
+ var pth=[6];while(pth[0]!==0)pth.unshift(par[pth[0]]);var pe=[];for(var i=0;i<pth.length-1;i++)pe.push(ei(pth[i],pth[i+1]));
+ S.push({a:[],graph:G,ptr:{},ok:pth,eok:pe,aux:{label:'shortest ladder',items:[pth.map(function(i){return W[i]}).join(' → ')]},note:'Shortest ladder: '+pth.map(function(i){return W[i]}).join(' → ')+' ('+pth.length+' words). To find neighbours quickly, replace each letter with a wildcard (h*t, *ot, ho*) and group words by pattern. O(N · L²).'});return S},
+surrounded:function(){var g='XXXXXOOXXXOXXOXX'.split(''),R=4,C=4,safe=[],S=[];
+ function P(n,o){var x={a:g.slice(),cols:C,ptr:{},note:n};if(o)for(var k in o)x[k]=o[k];S.push(x)}
+ P('Capture surrounded regions: flip every O that cannot reach the border to X. Think in REVERSE: instead of checking each O region, start from the O cells on the border (they are safe) and mark everything connected to them.');
+ var border=[];for(var r=0;r<R;r++)for(var c=0;c<C;c++)if((r===0||c===0||r===R-1||c===C-1)&&g[r*C+c]==='O')border.push(r*C+c);
+ P('Border cells that are O: '+border.map(function(p){return '('+Math.floor(p/C)+','+p%C+')'}).join(', ')+'. These can never be captured.',{hi:border.slice()});
+ function mark(p){if(safe.indexOf(p)>=0)return;safe.push(p);var r=Math.floor(p/C),c=p%C;P('Mark ('+r+','+c+') safe, then search its O neighbours (DFS/BFS from the border inwards).',{ok:safe.slice(),hi:[p]});[[1,0],[-1,0],[0,1],[0,-1]].forEach(function(d){var nr=r+d[0],nc=c+d[1];if(nr>=0&&nc>=0&&nr<R&&nc<C&&g[nr*C+nc]==='O')mark(nr*C+nc)})}
+ border.forEach(mark);
+ var flip=[];for(var i=0;i<g.length;i++)if(g[i]==='O'&&safe.indexOf(i)<0)flip.push(i);
+ P('Every O that is NOT marked safe is surrounded: cells '+flip.map(function(p){return '('+Math.floor(p/C)+','+p%C+')'}).join(', ')+'.',{ok:safe.slice(),dim:flip.slice()});
+ flip.forEach(function(p){g[p]='X'});
+ P('Flip the surrounded O cells to X; the safe O stays. One pass from the border + one scan: O(rows × cols). The same reverse thinking solves "Pacific Atlantic water flow" and "number of enclaves".',{ok:safe.slice()});return S}};
 
 var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
@@ -1286,6 +1373,19 @@ $('#b-dl').onclick=function(){
  var h='<!DOCTYPE html>\n'+clone.outerHTML,blob=new Blob([h],{type:'text/html'}),a=document.createElement('a');
  a.href=URL.createObjectURL(blob);a.download=body.dataset.file||'topic.html';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)};
 /* animated stepper */
+function graphSVG(s){var g=s.graph,W=g.w||360,H=g.h||210,R=17,lines='',nodes='',lab={};
+ Object.keys(s.ptr||{}).forEach(function(k){(lab[s.ptr[k]]=lab[s.ptr[k]]||[]).push(k)});
+ function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+ g.edges.forEach(function(e,k){var a=g.nodes[e[0]],b=g.nodes[e[1]],on=(s.eok||[]).indexOf(k)>=0,x1=a.x,y1=a.y,x2=b.x,y2=b.y,mk='';
+  if(g.directed){var dx=x2-x1,dy=y2-y1,L=Math.sqrt(dx*dx+dy*dy)||1;x1+=dx/L*R;y1+=dy/L*R;x2-=dx/L*(R+4);y2-=dy/L*(R+4);mk=' marker-end="url(#'+(on?'garrOn':'garr')+')"'}
+  lines+='<line class="ge'+(on?' on':'')+'" x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'"'+mk+'/>';
+  if(e[2]!==undefined)lines+='<text class="gw" x="'+((a.x+b.x)/2)+'" y="'+((a.y+b.y)/2-6)+'">'+esc(e[2])+'</text>'});
+ g.nodes.forEach(function(n,i){var c='tn'+((s.hi||[]).indexOf(i)>=0?' in':'')+((s.ok||[]).indexOf(i)>=0?' ok':'')+((s.dim||[]).indexOf(i)>=0?' dim':'');
+  nodes+='<g class="'+c+'"><circle cx="'+n.x+'" cy="'+n.y+'" r="'+R+'"/><text x="'+n.x+'" y="'+n.y+'">'+esc(n.label===undefined?i:n.label)+'</text></g>';
+  if(lab[i])nodes+='<text class="tp" x="'+n.x+'" y="'+(n.y-R-7)+'">'+esc(lab[i].join(', '))+'</text>'});
+ var defs='<defs><marker id="garr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="mk" d="M0,0 L10,5 L0,10 z"/></marker><marker id="garrOn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="mk2" d="M0,0 L10,5 L0,10 z"/></marker></defs>';
+ return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:'+W+'px" role="img" aria-label="Graph">'+defs+lines+nodes+'</svg>'}
+
 function treeSVG(s){var T=s.tree,n=T.length,last=0,i;for(i=0;i<n;i++)if(T[i]!==null&&T[i]!==undefined)last=i;
  var D=Math.floor(Math.log2(last+1))+1,W=Math.max(300,Math.pow(2,D-1)*56),H=D*64+30,R=18;
  function pos(k){var d=Math.floor(Math.log2(k+1)),j=k-(Math.pow(2,d)-1),w=Math.pow(2,d);return {x:(j+0.5)/w*W,y:d*64+40}}
@@ -1309,7 +1409,7 @@ function stepper(el){
  view.innerHTML=h;$$('.cellw',view).forEach(function(w){cells.push({w:w,p:$('.ptr',w),c:$('.cell',w),v:null})});var edges=$$('.edge',view);
  var tb=$('.st-tree',el);
  function draw(){var s=steps[i],lab={};
-  if(s.tree){view.style.display='none';tb.style.display='block';tb.innerHTML=treeSVG(s)}else{view.style.display='';tb.style.display='none';tb.innerHTML=''}
+  if(s.tree||s.graph){view.style.display='none';tb.style.display='block';tb.innerHTML=s.tree?treeSVG(s):graphSVG(s)}else{view.style.display='';tb.style.display='none';tb.innerHTML=''}
   s.a=s.a||[];Object.keys(s.ptr||{}).forEach(function(k){var ix=s.ptr[k];(lab[ix]=lab[ix]||[]).push(k)});
   cells.forEach(function(o,ix){if(ix>=s.a.length){o.w.style.display='none';return}o.w.style.display='';
    var v=String(s.a[ix]);if(o.v!==null&&o.v!==v){o.c.classList.remove('pop');void o.c.offsetWidth;o.c.classList.add('pop')}

@@ -109,3 +109,4 @@ details{border:1px solid var(--line);border-radius:12px;padding:9px 14px;margin:
 .st-tree svg{display:block;margin:0 auto;height:auto}.st-tree line{stroke:var(--mut);stroke-width:2;opacity:.55}
 .tn circle{fill:var(--surf);stroke:var(--line);stroke-width:2.5;transition:fill .25s,stroke .25s}.tn.in circle{fill:var(--acc-soft);stroke:var(--acc)}.tn.ok circle{fill:var(--ok-soft);stroke:var(--ok)}.tn.dim circle{fill:var(--soft);stroke-dasharray:4 3;opacity:.7}
 .tn text{font:600 14px ui-monospace,Consolas,monospace;fill:var(--fg);text-anchor:middle;dominant-baseline:central}.tp{font:700 11px ui-monospace,Consolas,monospace;fill:var(--acc);text-anchor:middle}
+.ge{stroke:var(--mut);stroke-width:2;opacity:.5}.ge.on{stroke:var(--acc);stroke-width:3.5;opacity:1}.gw{font:600 11px ui-monospace,Consolas,monospace;fill:var(--mut);text-anchor:middle}.mk{fill:var(--mut);opacity:.7}.mk2{fill:var(--acc)}
