@@ -21,6 +21,7 @@ import heaps  # noqa: E402
 import graphs  # noqa: E402
 import graphs_advanced  # noqa: E402
 import tries  # noqa: E402
+import greedy  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -39,7 +40,7 @@ CATALOG = [
     ("11_trie", "Tries", "Trie basics, prefix queries, wildcards, Word Search II, augmented nodes, XOR trie, streams", tries.TOPIC),
     ("12_graphs_traversal", "Graph Traversal", "Representation, DFS, BFS, grids, multi-source BFS, cycles, bipartite, state graphs", graphs.TOPIC),
     ("13_graphs_advanced", "Advanced Graphs", "Topological sort, union-find, Dijkstra, Bellman-Ford, MST, bridges, SCC, Eulerian paths", graphs_advanced.TOPIC),
-    ("14_greedy", "Greedy", "Exchange argument, intervals, scheduling", None),
+    ("14_greedy", "Greedy", "Exchange argument, jump games, running balance, stock, two-pass, characters, digits, ratios", greedy.TOPIC),
     ("15_dp_1d_2d", "Dynamic Programming I", "1D/2D DP, coin change, LIS, state definition", None),
     ("16_dp_advanced", "Dynamic Programming II", "Knapsack, LCS/edit distance, bitmask, tree DP", None),
     ("17_advanced_ds", "Advanced Data Structures", "Segment tree, Fenwick tree, sparse table", None),

@@ -893,4 +893,67 @@ stream:function(){var words=['cd','f','kl'],rev=words.map(function(w){return {s:
  stream.forEach(function(c){buf+=c;var cur=0,path=[0],hit=false,msg='Letter \''+c+'\' arrives. Read the stream backwards: ';var steps=[];
   for(var k=buf.length-1;k>=0;k--){var nx=t.nodes[cur].kids[buf[k]];if(nx===undefined)break;cur=nx;path.push(cur);steps.push(buf[k]);if(t.nodes[cur].end){hit=true;break}}
   P(msg+(steps.length?steps.join(' → ')+(hit?' reaches a word-end: suffix "'+buf.slice(buf.length-steps.length)+'" is a dictionary word → true.':' then no further child: false.'):'no trie child for \''+c+'\' at the root: false.'),path.slice(),hit?[cur]:[],{aux:{label:'stream | answer',items:['stream: '+buf,'query → '+hit]}})});
- P('Answers: false false false TRUE ("cd"), TRUE ("f"), false, TRUE ("kl"). Reversing the words turns "does a suffix match?" into a plain prefix walk, and the walk is at most the longest word long (keep only that many recent letters).',[0],[]);return S}};
+ P('Answers: false false false TRUE ("cd"), TRUE ("f"), false, TRUE ("kl"). Reversing the words turns "does a suffix match?" into a plain prefix walk, and the walk is at most the longest word long (keep only that many recent letters).',[0],[]);return S},
+coins:function(){var S=[],used=[],rem=6;
+ function A(){return {label:'remaining amount',items:['remaining = '+rem,'coins used: '+used.length]}}
+ S.push({a:[1,3,4],ptr:{},aux:A(),note:'Make change for 6 with coins 1, 3, 4 using the fewest coins. GREEDY rule: always take the largest coin that fits. Easy to code, but is it always optimal? Let\'s check.'});
+ [4,1,1].forEach(function(c){rem-=c;used.push(c);S.push({a:used.slice(),ptr:{},ok:[used.length-1],aux:A(),note:'Take the largest coin ≤ '+(rem+c)+': '+c+'. Remaining '+rem+'.'})});
+ S.push({a:used.slice(),ptr:{},dim:[0,1,2],aux:{label:'greedy result',items:['4 + 1 + 1 = 6','3 coins']},note:'Greedy used 3 coins: 4, 1, 1.'});
+ S.push({a:[3,3],ptr:{},ok:[0,1],aux:{label:'optimal result',items:['3 + 3 = 6','2 coins']},note:'But 3 + 3 uses only 2 coins. The locally best first move (the biggest coin, 4) forced a worse total, so this greedy choice is NOT safe for these coins. For coin systems like 1, 5, 10, 25 greedy works; for arbitrary coins use dynamic programming. Always look for a counterexample or a proof (exchange argument) before trusting a greedy rule.'});return S},
+jump2:function(){var a=[2,3,1,1,4],S=[],far=0,end=0,jumps=0,win=[0];
+ function A(){return {label:'jumps | current reach | farthest',items:['jumps = '+jumps,'current level ends at index '+end,'farthest reachable = '+far]}}
+ S.push({a:a,ptr:{},hi:[0],aux:A(),note:'Minimum number of jumps to reach the last index. Think of BFS levels: level k = every index reachable with k jumps. Track the end of the current level (curEnd) and the farthest index any index in the level can reach (far). When you pass curEnd you must take one more jump.'});
+ for(var i=0;i<a.length-1;i++){var msg='Index '+i+': it can reach '+(i+a[i])+'. ';far=Math.max(far,i+a[i]);msg+='farthest = '+far+'. ';
+  if(i===end){jumps++;end=far;msg+='We have reached the end of the current level ('+i+'): take a jump (jumps = '+jumps+'), the next level ends at '+end+'.'}
+  win=rng(i,Math.max(i,end));S.push({a:a,ptr:{i:i},hi:win,ok:i===end-0&&jumps?[]:[],aux:A(),note:msg})}
+ S.push({a:a,ptr:{},ok:[0,1,4],aux:A(),note:'Minimum jumps = '+jumps+' (0 → 1 → 4). Each index is looked at once: O(n) time, O(1) space. Choosing the jump that reaches farthest is the safe greedy move: anything reachable from a nearer landing is also reachable from the farther level.'});return S},
+gas:function(){var gas=[1,2,3,4,5],cost=[3,4,5,1,2],net=gas.map(function(g,i){return g-cost[i]}),S=[],tank=0,total=0,start=0;
+ function A(){return {label:'tank | start | total',items:['tank = '+tank,'candidate start = '+start,'total = '+total]}}
+ S.push({a:net,ptr:{},aux:A(),note:'Circular route: gas[i] fuel at station i, cost[i] to reach the next. Cells show the NET gain per station (gas − cost) = [−2, −2, −2, 3, 3]. Find the starting station that completes the circle. Greedy: if the tank goes negative at station i, no start from the stations before i (up to i) can work, so restart at i + 1.'});
+ net.forEach(function(d,i){tank+=d;total+=d;var msg='Station '+i+': net '+d+', tank = '+tank+'.';if(tank<0){start=i+1;tank=0;msg+=' Tank is negative: we could not reach station '+(i+1)+' from any start up to here. Reset: new candidate start = '+start+', tank = 0.'}
+  S.push({a:net,ptr:{i:i,start:Math.min(start,4)},hi:[i],dim:rng(0,start-1),aux:A(),note:msg})});
+ S.push({a:net,ptr:{start:start},ok:rng(start,4),aux:A(),note:'Total net = '+total+' ≥ 0, so a solution exists, and it is station '+start+'. One pass, O(n). If the total were negative there would not be enough fuel in the whole circle, no matter where you start.'});return S},
+stock:function(){var p=[7,1,5,3,6,4],S=[],profit=0,up=[],down=[];
+ function A(){return {label:'profit',items:['total profit = '+profit]}}
+ S.push({a:p,ptr:{},aux:A(),note:'Buy and sell as many times as you like (one share at a time). Greedy: collect EVERY rise. If tomorrow\'s price is higher than today\'s, pretend you bought today and sold tomorrow. Adding up all upward steps equals the best possible profit.'});
+ for(var i=1;i<p.length;i++){var d=p[i]-p[i-1],msg;if(d>0){profit+=d;up.push(i-1,i);msg=p[i-1]+' → '+p[i]+': a rise of '+d+'. Take it: profit = '+profit+'.'}else{down.push(i);msg=p[i-1]+' → '+p[i]+': a drop. Do nothing.'}
+  S.push({a:p,ptr:{i:i},hi:[i-1,i],ok:up.slice(),dim:d>0?[]:[i],aux:A(),note:msg})}
+ S.push({a:p,ptr:{},ok:up.slice(),aux:A(),note:'Profit = '+profit+' (buy 1 sell 5, buy 3 sell 6). A rise from a to c equals the sum of the smaller rises in between, so catching every small rise never loses anything. O(n), O(1). With a single allowed transaction track the minimum price so far instead.'});return S},
+candy:function(){var r=[1,3,2,2,1],n=5,c=[1,1,1,1,1],S=[];
+ function A(){return {label:'candies per child',items:['['+c.join(', ')+']','sum = '+c.reduce(function(a,b){return a+b},0)]}}
+ S.push({a:r,ptr:{},aux:A(),note:'Ratings [1, 3, 2, 2, 1]. Every child gets at least 1 candy; a child with a higher rating than a NEIGHBOUR must get more than that neighbour. One pass cannot see both neighbours, so do TWO passes: left → right fixes the left-neighbour rule, right → left fixes the right-neighbour rule.'});
+ for(var i=1;i<n;i++){if(r[i]>r[i-1]){c[i]=c[i-1]+1;S.push({a:r,ptr:{i:i},hi:[i-1,i],ok:[i],aux:A(),note:'Pass 1 (left → right): rating '+r[i]+' > '+r[i-1]+' on its left, so candy['+i+'] = candy['+(i-1)+'] + 1 = '+c[i]+'.'})}else S.push({a:r,ptr:{i:i},hi:[i-1,i],aux:A(),note:'Pass 1: rating '+r[i]+' is not higher than '+r[i-1]+', keep '+c[i]+'.'})}
+ for(i=n-2;i>=0;i--){if(r[i]>r[i+1]){var nv=Math.max(c[i],c[i+1]+1);c[i]=nv;S.push({a:r,ptr:{i:i},hi:[i,i+1],ok:[i],aux:A(),note:'Pass 2 (right → left): rating '+r[i]+' > '+r[i+1]+' on its right, so candy['+i+'] = max(current, candy['+(i+1)+'] + 1) = '+nv+'.'})}else S.push({a:r,ptr:{i:i},hi:[i,i+1],aux:A(),note:'Pass 2: rating '+r[i]+' is not higher than '+r[i+1]+' on its right, no change ('+c[i]+').'})}
+ S.push({a:r,ptr:{},ok:rng(0,4),aux:A(),note:'Total candies = '+c.reduce(function(a,b){return a+b},0)+'. Taking the max in pass 2 keeps what pass 1 already guaranteed. Two linear passes: O(n) time. The same left-pass / right-pass idea solves trapping rain water and shortest distance to a character.'});return S},
+partition:function(){var s='ababcbacadefegdehijhklij',ch=s.split(''),last={},S=[],start=0,end=0,sizes=[],done=[];
+ ch.forEach(function(c,i){last[c]=i});
+ function A(){return {label:'partitions',items:sizes.length?sizes.map(function(z){return z}):['none yet'],extra:0}}
+ function AX(){return {label:'current part [start..end] | sizes',items:['start = '+start,'end = '+end,'sizes: ['+sizes.join(', ')+']']}}
+ S.push({a:ch,ptr:{},aux:AX(),note:'Split the string into as many parts as possible so that each letter appears in at most one part. Record the LAST index of every letter. Scan: the current part must extend at least to the last occurrence of every letter it contains (end = max). When the scan index reaches end, the part is complete: cut here.'});
+ for(var i=0;i<ch.length;i++){var prev=end;end=Math.max(end,last[ch[i]]);var msg=null;
+  if(end>prev)msg='Index '+i+' (\''+ch[i]+'\'): its last occurrence is at '+last[ch[i]]+', so the current part must reach at least index '+end+'.';
+  if(i===end){sizes.push(end-start+1);for(var k=start;k<=end;k++)done.push(k);msg=(msg?msg+' ':'')+'Index '+i+' equals end: every letter in ['+start+'..'+end+'] lives only inside it. CUT. Part size '+(end-start+1)+'.';start=i+1;end=i+1}
+  if(msg)S.push({a:ch,ptr:{i:i},hi:rng(Math.max(0,i-3),i),ok:done.slice(),aux:AX(),note:msg})}
+ S.push({a:ch,ptr:{},ok:rng(0,ch.length-1),aux:AX(),note:'Part sizes: ['+sizes.join(', ')+']. Cutting at the earliest possible moment gives the most parts: that is the greedy choice. One pass plus a last-index table: O(n) time, O(26) space.'});return S},
+maxswap:function(){var d='2736'.split(''),last=[],S=[];
+ d.forEach(function(c,i){last[+c]=i});
+ function A(){return {label:'last index of each digit',items:Object.keys(last).map(function(k){return k+' at '+last[k]})}}
+ S.push({a:d.slice(),ptr:{},aux:A(),note:'You may swap two digits once to make the largest number. Greedy: find the leftmost digit that has a LARGER digit somewhere to its right, and swap it with the LARGEST such digit (its last occurrence, so the smaller digit moves as far right as possible). First record the last index of every digit.'});
+ for(var i=0;i<d.length;i++){var found=-1;for(var g=9;g>+d[i];g--){if(last[g]!==undefined&&last[g]>i){found=g;break}}
+  if(found>=0){var j=last[found];S.push({a:d.slice(),ptr:{i:i,j:j},hi:[i,j],aux:A(),note:'Position '+i+' holds '+d[i]+'. Is there a bigger digit to its right? Try 9, 8, ... : digit '+found+' exists at index '+j+'. Swap positions '+i+' and '+j+'.'});var t=d[i];d[i]=d[j];d[j]=t;S.push({a:d.slice(),ptr:{},ok:[i,j],aux:A(),note:'After the swap: '+d.join('')+'. The leftmost position got the biggest possible digit, which matters more than anything to its right.'});break}
+  S.push({a:d.slice(),ptr:{i:i},hi:[i],aux:A(),note:'Position '+i+' holds '+d[i]+': no larger digit to its right, nothing to improve here. Move on.'})}
+ S.push({a:d.slice(),ptr:{},ok:rng(0,d.length-1),aux:A(),note:'Result '+d.join('')+' (from 2736). One pass over positions with at most 9 digit checks each: O(n). Same style: monotone increasing digits, maximum 69 number, remove k digits.'});return S},
+parenrange:function(){var s='(*))'.split(''),lo=0,hi=0,S=[];
+ function A(){return {label:'possible number of unmatched "("',items:['lo = '+lo+'  (fewest)','hi = '+hi+'  (most)']}}
+ S.push({a:s,ptr:{},aux:A(),note:'Valid parenthesis string: "*" can act as "(", ")" or empty. Instead of trying all 3^k choices, track the RANGE [lo, hi] of how many "(" could still be unmatched. "(" adds 1 to both ends, ")" subtracts 1 from both, "*" can subtract 1 (as ")") or add 1 (as "(") so it widens the range.'});
+ s.forEach(function(c,i){var msg;if(c==='('){lo++;hi++;msg='"(": both bounds +1.'}else if(c===')'){lo--;hi--;msg='")": both bounds −1.'}else{lo--;hi++;msg='"*": lo −1 (treat as ")"), hi +1 (treat as "(").'}
+  if(hi<0){S.push({a:s,ptr:{i:i},hi:[i],dim:[i],aux:A(),note:msg+' hi < 0: even if every "*" were "(", there are more ")" than "(": INVALID.'});return}
+  if(lo<0){lo=0;msg+=' lo cannot be negative (the extra would just be unused): clamp lo to 0.'}
+  S.push({a:s,ptr:{i:i},hi:rng(0,i),aux:A(),note:msg+' Range is now ['+lo+', '+hi+'].'})});
+ S.push({a:s,ptr:{},ok:rng(0,3),aux:A(),note:'End: valid iff lo == 0 (some choice leaves nothing unmatched). Here lo = '+lo+', so "(*))" is valid ("*" acts as "("). O(n) time, O(1) space: the greedy invariant is the interval of reachable balances.'});return S},
+fracknap:function(){var items=[['A',60,10],['B',100,20],['C',120,30]],cap=50,S=[],val=0;
+ var cells=items.map(function(it){return it[0]+': $'+it[1]+' / '+it[2]+'kg'});
+ function A(){return {label:'capacity left | value',items:['capacity left = '+cap+' kg','value = $'+val.toFixed(0)]}}
+ S.push({a:cells,ptr:{},aux:A(),note:'Knapsack with capacity 50 kg where items can be SPLIT (fractional knapsack). Greedy: sort by value per kg (ratio), take the best ratio first. Ratios: A = 6, B = 5, C = 4 $/kg.'});
+ items.forEach(function(it,i){var r=it[1]/it[2];if(cap>=it[2]){cap-=it[2];val+=it[1];S.push({a:cells,ptr:{i:i},hi:[i],ok:rng(0,i),aux:A(),note:'Take all of '+it[0]+' (ratio '+r+'): value + '+it[1]+', capacity left '+cap+'.'})}else{var f=cap/it[2],g=it[1]*f;val+=g;S.push({a:cells,ptr:{i:i},hi:[i],ok:rng(0,i-1),aux:A(),note:'Only '+cap+' kg left: take the fraction '+cap+'/'+it[2]+' of '+it[0]+' for $'+g.toFixed(0)+'. Capacity is full.'});cap=0}});
+ S.push({a:cells,ptr:{},ok:[0,1,2],aux:A(),note:'Best value = $'+val.toFixed(0)+'. This greedy is optimal ONLY because items can be split. In the 0/1 version (take or leave whole items) the ratio rule picks A + B = $160, but B + C = $220 is better: greedy fails, use dynamic programming. Sorting dominates: O(n log n).'});return S}};

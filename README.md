@@ -23,7 +23,8 @@ Every page has a **Download** button (and the index has one per topic), so frien
 | 11 | [Tries](topics/11_trie.html) | done |
 | 12 | [Graph Traversal](topics/12_graphs_traversal.html) | done |
 | 13 | [Advanced Graphs](topics/13_graphs_advanced.html) | done |
-| 14-19 | see [ROADMAP.md](ROADMAP.md) | planned |
+| 14 | [Greedy Algorithms](topics/14_greedy.html) | done |
+| 15-19 | see [ROADMAP.md](ROADMAP.md) | planned |
 
 ## For contributors
 
@@ -34,5 +35,5 @@ python build/build.py      # writes index.html and topics/*.html
 ```
 
 - `build/lib.py`: page renderer; `build/style.css`: design; `build/engine.js`: page behaviour and the animated stepper; `build/sims.js`: the animations
-- `build/arrays.py`, `build/foundations.py`, `build/strings.py`, `build/linked_list.py`, `build/stack_queue.py`, `build/sorting_intervals.py`, `build/recursion_backtracking.py`, `build/bit_math.py`, `build/trees.py`, `build/heaps.py`, `build/graphs.py`, `build/graphs_advanced.py`, `build/tries.py`: topic content (copy one as the starting point for a new topic)
+- `build/arrays.py`, `build/foundations.py`, `build/strings.py`, `build/linked_list.py`, `build/stack_queue.py`, `build/sorting_intervals.py`, `build/recursion_backtracking.py`, `build/bit_math.py`, `build/trees.py`, `build/heaps.py`, `build/graphs.py`, `build/graphs_advanced.py`, `build/tries.py`, `build/greedy.py`: topic content (copy one as the starting point for a new topic)
 - `build/build.py`: the topic catalogue and landing page
