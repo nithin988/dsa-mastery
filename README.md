@@ -48,7 +48,10 @@ Every topic page is generated from the same three shared files, so one edit rest
 
 - `build/style.css`: colours, spacing, cards, tables, animation styling
 - `build/engine.js`: page behaviour (theme toggle, progress ticks, download button, the animated stepper)
-- `build/lib.py`: the page structure (hero, sidebar, pattern cards)
+- `build/lib.py`: the page structure (top bar, hero, sidebar, pattern cards) and the shared icon set
+- `build/home.js` and `build/build.py`: the landing page (learning path, progress summary, search and filters)
+
+The tokens and components follow the Kimaru Platform design system; see [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md).
 
 After editing any of them run `python build/build.py` and commit the regenerated `index.html` and `topics/*.html`. Each page embeds the CSS and JS so it still works as a single downloaded file.
 
