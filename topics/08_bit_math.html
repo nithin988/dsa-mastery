@@ -1822,7 +1822,38 @@ editor:function(){var L=[],R=[],S=[];
  function right(k){var m=0;while(k>0&&R.length){L.push(R.pop());k--;m++}snap('cursorRight: move '+m+' character(s) from the right stack to the left stack.')}
  function del(k){var d=0;while(k>0&&L.length){L.pop();k--;d++}snap('deleteText: pop '+d+' character(s) from the left stack (like backspace).')}
  add('abc');add('de');left(2);add('X');del(1);right(1);
- S.push({a:cells(),ptr:{},ok:[L.length],aux:A(),note:'Text is now "'+L.join('')+R.slice().reverse().join('')+'" with the cursor after "'+L.join('')+'". Every operation costs O(characters moved). The same two-stack idea gives undo / redo and browser back / forward history.'});return S}};
+ S.push({a:cells(),ptr:{},ok:[L.length],aux:A(),note:'Text is now "'+L.join('')+R.slice().reverse().join('')+'" with the cursor after "'+L.join('')+'". Every operation costs O(characters moved). The same two-stack idea gives undo / redo and browser back / forward history.'});return S},
+framework:function(){var st=['Clarify','Examples','Brute force','Optimise','Code','Test'],S=[];
+ var say=[
+  ['Ask: can numbers repeat? negative? is there always exactly one answer? how large is n? may I modify the input?','Say it back: "So I get an integer array and a target, and return the indices of the two numbers that add up to it."'],
+  ['Make one normal example, one edge case (empty / one element / duplicates), and one tricky case.','Example: [2,7,11,15], target 9 → [0,1]. Edge: [3,3], target 6 → [0,1]. Tricky: negatives.'],
+  ['State the simple solution and its cost before improving it. It proves you understand the problem and gives you a fallback.','Brute force: check every pair, O(n²) time, O(1) space.'],
+  ['Name the bottleneck, then pick the pattern (hash map, two pointers, sorting, heap …) and say why.','Bottleneck: for each x we search for target − x in O(n). A hash map from value to index answers in O(1): O(n) time, O(n) space.'],
+  ['Write clean code with good names, narrating as you go. Handle the edge cases you listed.','Code: one pass; check the map for target − x before inserting x so an element is never paired with itself.'],
+  ['Dry-run your own example line by line, then an edge case. Fix bugs calmly. State the final complexity.','Trace [3,3], target 6: i=0 map {}, store 3→0; i=1 find 3 → return [0,1]. Time O(n), space O(n).']];
+ S.push({a:st,ptr:{},aux:{label:'six steps, in this order, out loud',items:['Interviewers grade the process as much as the result.']},note:'The interview framework: six steps, always in the same order. Most failures come from skipping step 1 (wrong problem), step 3 (no baseline) or step 6 (untested code). We walk through it with Two Sum.'});
+ for(var i=0;i<st.length;i++)S.push({a:st,ptr:{now:i},hi:[i],ok:i?rng(0,i-1):[],aux:{label:'step '+(i+1)+': '+st[i],items:say[i].slice(1)},note:say[i][0]});
+ S.push({a:st,ptr:{},ok:rng(0,5),aux:{label:'time budget for 45 minutes',items:['5 min clarify and examples','5 min brute force and plan','20 min code','10 min test and fix','5 min questions']},note:'A rough clock for a 45-minute round. If you are stuck for more than about 5 minutes, say what you have tried and ask for a hint: communicating is part of the evaluation.'});return S},
+budget:function(){var rows=[
+  ['n ≤ 10','O(n!)','permutations, backtracking, brute force (10! = 3.6 million)'],
+  ['n ≤ 20','O(2ⁿ) or O(2ⁿ·n)','subsets, bitmask DP, meet in the middle (2²⁰ = 1 million)'],
+  ['n ≤ 100','O(n³)','Floyd–Warshall, interval DP, triple loops (10⁶)'],
+  ['n ≤ 1 000','O(n²)','2D DP, all pairs, nested loops (10⁶)'],
+  ['n ≤ 100 000','O(n log n)','sorting, heaps, binary search, segment trees, sweep line'],
+  ['n ≤ 1 000 000','O(n)','hash maps, two pointers, prefix sums, monotonic stack'],
+  ['n up to 10⁹ or more','O(log n) or O(1)','binary search on the answer, math, fast exponentiation, bit tricks']],S=[],cells=rows.map(function(r){return r[0]});
+ S.push({a:cells,ptr:{},aux:{label:'budget: about 10⁸ simple steps per second in Java, 10⁷ in Python',items:['Read the constraints first: they tell you the intended complexity.']},note:'The constraints are a hint about the intended solution. A typical judge allows around 10⁸ simple operations: so match the input size to a complexity class and then to a technique.'});
+ rows.forEach(function(r,i){S.push({a:cells,ptr:{here:i},hi:[i],aux:{label:r[0]+' → '+r[1],items:['Typical techniques: '+r[2]]},note:'When '+r[0]+', aim for '+r[1]+'. '+(i<6?'If your idea is slower, look for the next structure that removes a factor of n.':'The input is too large to even read element by element: look for a formula or halve the search space.')})});
+ S.push({a:cells,ptr:{},ok:rng(0,6),aux:{label:'also check memory',items:['10⁶ ints ≈ 4 MB; an n × n table for n = 10⁴ is 400 MB (too big)']},note:'Do not forget memory: an n × n table is only fine for n up to a few thousand. And in Python, prefer O(n log n) or better beyond about 10⁵ elements.'});return S},
+selector:function(){var P=[
+  {t:'Find the longest substring without repeating characters.',c:['longest','substring','without repeating'],m:['optimise a length','contiguous piece','validity of a window'],ans:'Sliding window with a set / map (topics 02 and 03)'},
+  {t:'Count the ways to make an amount from coins (each coin reusable).',c:['count the ways','coins','amount'],m:['count → DP, not greedy','choices from a fixed set','a target total = DP state'],ans:'Dynamic programming: unbounded knapsack / coin change (topic 15)'},
+  {t:'Minimum number of steps from the start to the exit of a grid.',c:['minimum steps','grid','start to exit'],m:['unweighted shortest path','cells are nodes','source to target'],ans:'Breadth-first search on the grid (topic 12)'},
+  {t:'Order the courses so every prerequisite comes first.',c:['prerequisites','order','courses'],m:['directed dependencies','a valid sequence','nodes of a DAG'],ans:'Topological sort (topic 13)'}],S=[];
+ S.push({a:[],ptr:{},aux:{label:'method',items:['1) underline the clues  2) translate each clue  3) name the pattern  4) check the constraints']},note:'Pattern recognition is a skill you can train: underline the keywords of the statement, translate each one into a property of the problem, then name the pattern. Four examples.'});
+ P.forEach(function(p){S.push({a:p.c,ptr:{},hi:rng(0,2),aux:{label:'problem',items:[p.t]},note:'Underline the clues in: "'+p.t+'"'});
+  S.push({a:p.c,ptr:{},ok:rng(0,2),aux:{label:'what each clue tells you',items:p.c.map(function(c,i){return c+' → '+p.m[i]}).concat(['⇒ '+p.ans])},note:'Translate the clues: '+p.m.join('; ')+'. Together they point to: '+p.ans+'.'})});
+ S.push({a:['clues','properties','pattern','constraints'],ptr:{},ok:[0,1,2,3],aux:{label:'repeat on every problem',items:['Say the reasoning aloud: interviewers want to hear how you chose the approach.']},note:'The same four moves work everywhere. When two patterns fit, compare the constraints (previous chapter) and pick the simplest one that is fast enough.'});return S}};
 
 var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}

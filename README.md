@@ -28,7 +28,7 @@ Every page has a **Download** button (and the index has one per topic), so frien
 | 16 | [Dynamic Programming II](topics/16_dp_advanced.html) | done |
 | 17 | [Advanced Data Structures](topics/17_advanced_ds.html) | done |
 | 18 | [Design Problems](topics/18_design_problems.html) | done |
-| 19 | see [ROADMAP.md](ROADMAP.md) | planned |
+| 19 | [Interview Playbook](topics/19_interview_playbook.html) | done |
 
 ## For contributors
 

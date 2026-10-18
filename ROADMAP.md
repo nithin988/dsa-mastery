@@ -26,7 +26,7 @@ Each topic is one self-contained HTML file (`topics/NN_name.html`) with a built-
 | 16 | `16_dp_advanced` | Dynamic programming II | 0/1 and multi-dimensional knapsack, LCS, edit distance, palindromic DP, interval DP, bitmask DP, digit DP, monotonic-deque speed-ups | **done** (9 patterns, 47 problems) |
 | 17 | `17_advanced_ds` | Advanced data structures | Fenwick tree, segment tree, lazy propagation, sparse table, Fenwick over ranks, binary lifting and LCA, ordered sets, offline queries | **done** (8 patterns, 31 problems) |
 | 18 | `18_design_problems` | Design-style problems | LRU / LFU, O(1) random sets, iterators, rate limiters, time-based stores, feeds and leaderboards, frequency stacks, text editors | **done** (8 patterns, 31 problems) |
-| 19 | `19_interview_playbook` | Interview playbook | Pattern selector across all topics, communication script, edge-case checklist, company-wise lists, 12-week plan | planned |
+| 19 | `19_interview_playbook` | Interview playbook | Six-step framework, constraints to complexity, pattern selection, 12 tested code templates, edge-case checklist, company-style preparation, 12-week plan | **done** (8 chapters, 46 problems) |
 
 Suggested build order: 02 (upgrade, sets the template) -> 03 -> 04 -> 05 -> 09 -> 12 -> 15 -> remaining.
 

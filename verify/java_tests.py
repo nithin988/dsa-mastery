@@ -130,6 +130,20 @@ case(("18", 8, 1), 'TextEditor e = t.new TextEditor(); e.addText("leetcode"); ch
 case(("18", 8, 2), 'BrowserHistory b = t.new BrowserHistory("leetcode.com"); b.visit("google.com"); b.visit("facebook.com"); b.visit("youtube.com"); check(b.back(1).equals("facebook.com") && b.back(1).equals("google.com") && b.forward(1).equals("facebook.com"), "nav"); b.visit("linkedin.com"); check(b.forward(2).equals("linkedin.com") && b.back(2).equals("google.com") && b.back(7).equals("leetcode.com"), "nav2");')
 
 
+# ---- 19 interview playbook templates -----------------------------------------------------
+case(("19", 4, 1), 'int[] a = {1, 3, 3, 5, 8}; check(t.lowerBound(a, 3) == 1 && t.lowerBound(a, 4) == 3 && t.lowerBound(a, 9) == 5 && t.lowerBound(a, 0) == 0, "lowerBound"); check(t.firstTrue(0, 100, x -> x * x >= 50) == 8 && t.firstTrue(0, 10, x -> x >= 10) == 10, "firstTrue");')
+case(("19", 4, 2), 'check(t.longestAtMostKDistinct("eceba", 2) == 3 && t.longestAtMostKDistinct("aa", 1) == 2 && t.longestAtMostKDistinct("", 3) == 0 && t.longestAtMostKDistinct("abc", 0) == 0, "window");')
+case(("19", 4, 3), 'check(Arrays.toString(t.nextGreater(new int[]{2, 1, 2, 4, 3})).equals("[4, 2, 4, -1, -1]"), "next greater");')
+case(("19", 4, 4), 'check(t.subarraySum(new int[]{1, 1, 1}, 2) == 2 && t.subarraySum(new int[]{1, 2, 3}, 3) == 2 && t.subarraySum(new int[]{1, -1, 0}, 0) == 3, "subarray sum");')
+case(("19", 5, 1), 'check(t.shortestPath(new int[][]{{0, 0, 0}, {1, 1, 0}, {0, 0, 0}}) == 4 && t.shortestPath(new int[][]{{0}}) == 0 && t.shortestPath(new int[][]{{0, 1}, {1, 0}}) == -1 && t.shortestPath(new int[][]{{1, 0}, {0, 0}}) == -1, "bfs grid");')
+case(("19", 5, 2), 'check(t.countIslands(new int[][]{{1, 1, 0, 0}, {1, 0, 0, 1}, {0, 0, 1, 1}}) == 2 && t.countIslands(new int[][]{{0}}) == 0, "islands");')
+case(("19", 5, 3), 'UnionFind u = t.new UnionFind(5); check(u.union(0, 1) && u.union(1, 2) && !u.union(0, 2) && u.components == 3 && u.find(0) == u.find(2) && u.find(3) != u.find(0), "union find");')
+case(("19", 5, 4), 'int[] d = t.dijkstra(4, new int[][]{{0, 1, 1}, {1, 2, 2}, {0, 2, 5}}, 0); check(d[0] == 0 && d[1] == 1 && d[2] == 3 && d[3] == Integer.MAX_VALUE, "dijkstra");')
+case(("19", 5, 5), 'int[] o = t.topoOrder(4, new int[][]{{0, 1}, {0, 2}, {1, 3}, {2, 3}}); check(o.length == 4 && o[0] == 0 && o[3] == 3, "order"); check(t.topoOrder(2, new int[][]{{0, 1}, {1, 0}}).length == 0, "cycle");')
+case(("19", 6, 1), 'check(t.subsets(new int[]{1, 2, 3}).size() == 8 && t.subsets(new int[]{}).size() == 1 && t.permutations(new int[]{1, 2, 3, 4}).size() == 24, "enumerate");')
+case(("19", 6, 2), 'check(t.minCoinsTopDown(new int[]{1, 2, 5}, 11) == 3 && t.coinChange(new int[]{1, 2, 5}, 11) == 3 && t.coinChange(new int[]{2}, 3) == -1 && t.coinChange(new int[]{1}, 0) == 0 && t.minCoinsTopDown(new int[]{2}, 3) == -1, "coins");')
+
+
 def main():
     work = tempfile.mkdtemp(prefix="jrun")
     files = []

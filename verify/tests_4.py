@@ -809,3 +809,153 @@ def t18_editor():
     eq([b.back(1), b.back(1), b.forward(1)], ["facebook.com", "google.com", "facebook.com"])
     b.visit("linkedin.com")
     eq([b.forward(2), b.back(2), b.back(7)], ["linkedin.com", "google.com", "leetcode.com"])
+
+
+# ----------------------------------------------------------------------------- 19 interview playbook templates
+@test
+def t19_search_and_window():
+    d = defs(("19", 4, 1))
+    lb, ft = d["lower_bound"], d["first_true"]
+    import bisect
+    for _ in range(200):
+        a = sorted(R.randint(0, 12) for _ in range(R.randint(0, 10)))
+        x = R.randint(-1, 14)
+        eq(lb(a, x), bisect.bisect_left(a, x), "lower_bound %s %d" % (a, x))
+    eq(ft(0, 100, lambda x: x * x >= 50), 8)
+    eq(ft(0, 10, lambda x: True), 0)
+    eq(ft(0, 10, lambda x: x >= 10), 10)
+    w = defs(("19", 4, 2))["longest_at_most_k_distinct"]
+    eq([w("eceba", 2), w("aa", 1), w("", 3), w("abc", 0)], [3, 2, 0, 0])
+    for _ in range(200):
+        s = "".join(R.choice("abc") for _ in range(R.randint(0, 10)))
+        k = R.randint(0, 3)
+        best = 0
+        for i in range(len(s)):
+            for j in range(i, len(s) + 1):
+                if len(set(s[i:j])) <= k:
+                    best = max(best, j - i)
+        eq(w(s, k), best, "%s %d" % (s, k))
+    ng = defs(("19", 4, 3))["next_greater"]
+    eq(ng([2, 1, 2, 4, 3]), [4, 2, 4, -1, -1])
+    for _ in range(200):
+        a = [R.randint(0, 9) for _ in range(R.randint(0, 10))]
+        eq(ng(a), [next((y for y in a[i + 1:] if y > a[i]), -1) for i in range(len(a))], a)
+    ss = defs(("19", 4, 4))["subarray_sum"]
+    eq([ss([1, 1, 1], 2), ss([1, 2, 3], 3), ss([], 0)], [2, 2, 0])
+    for _ in range(200):
+        a = [R.randint(-4, 6) for _ in range(R.randint(0, 10))]
+        k = R.randint(-3, 8)
+        eq(ss(a, k), sum(1 for i in range(len(a)) for j in range(i, len(a)) if sum(a[i:j + 1]) == k), "%s %d" % (a, k))
+
+
+@test
+def t19_graph_templates():
+    sp = defs(("19", 5, 1))["shortest_path"]
+    eq(sp([[0, 0, 0], [1, 1, 0], [0, 0, 0]]), 4)
+    eq(sp([[0]]), 0)
+    eq(sp([[1, 0], [0, 0]]), -1)
+    eq(sp([[0, 1], [1, 0]]), -1)
+    for _ in range(200):
+        n, m = R.randint(1, 5), R.randint(1, 5)
+        g = [[1 if R.random() < 0.3 else 0 for _ in range(m)] for _ in range(n)]
+        # reference BFS with a visited set keyed by distance table
+        want = -1
+        if g[0][0] == 0 and g[n - 1][m - 1] == 0:
+            dist = {(0, 0): 0}
+            frontier = [(0, 0)]
+            while frontier:
+                nxt = []
+                for r, c in frontier:
+                    for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                        q = (r + dr, c + dc)
+                        if 0 <= q[0] < n and 0 <= q[1] < m and g[q[0]][q[1]] == 0 and q not in dist:
+                            dist[q] = dist[(r, c)] + 1
+                            nxt.append(q)
+                frontier = nxt
+            want = dist.get((n - 1, m - 1), -1)
+        eq(sp(g), want, g)
+    ci = defs(("19", 5, 2))["count_islands"]
+    eq(ci([[1, 1, 0, 0], [1, 0, 0, 1], [0, 0, 1, 1]]), 2)
+    eq(ci([[0]]), 0)
+    uf = defs(("19", 5, 3))["UnionFind"]
+    for _ in range(100):
+        n = R.randint(1, 10)
+        u = uf(n)
+        comp = list(range(n))
+        for _ in range(12):
+            a, b = R.randrange(n), R.randrange(n)
+            changed = comp[a] != comp[b]
+            eq(u.union(a, b), changed)
+            if changed:
+                old, new = comp[b], comp[a]
+                comp = [new if x == old else x for x in comp]
+            eq(u.components, len(set(comp)))
+            x, y = R.randrange(n), R.randrange(n)
+            eq(u.find(x) == u.find(y), comp[x] == comp[y])
+    dj = defs(("19", 5, 4))["dijkstra"]
+    INF = float("inf")
+    eq(dj(4, [(0, 1, 1), (1, 2, 2), (0, 2, 5)], 0), [0, 1, 3, INF])
+    for _ in range(100):
+        n = R.randint(1, 6)
+        edges = [(R.randrange(n), R.randrange(n), R.randint(1, 9)) for _ in range(R.randint(0, 12))]
+        d = [INF] * n
+        d[0] = 0
+        for _ in range(n):
+            for a, b, w in edges:
+                if d[a] + w < d[b]:
+                    d[b] = d[a] + w
+        eq(dj(n, edges, 0), d, "%d %s" % (n, edges))
+    tp = defs(("19", 5, 5))["topo_order"]
+    eq(tp(2, [(0, 1), (1, 0)]), [])
+    for _ in range(150):
+        n = R.randint(1, 7)
+        edges = [(R.randrange(n), R.randrange(n)) for _ in range(R.randint(0, 9))]
+        out = tp(n, edges)
+        acyclic = True
+        indeg = [0] * n
+        for a, b in edges:
+            indeg[b] += 1
+        q = [i for i in range(n) if indeg[i] == 0]
+        seen = 0
+        while q:
+            x = q.pop()
+            seen += 1
+            for a, b in edges:
+                if a == x:
+                    indeg[b] -= 1
+                    if indeg[b] == 0:
+                        q.append(b)
+        acyclic = seen == n
+        if acyclic:
+            pos = {v: i for i, v in enumerate(out)}
+            eq(len(out), n)
+            assert all(pos[a] < pos[b] for a, b in edges), (edges, out)
+        else:
+            eq(out, [])
+
+
+@test
+def t19_recursion_templates():
+    d = defs(("19", 6, 1))
+    ss, pm = d["subsets"], d["permutations"]
+    eq(sorted(map(tuple, ss([1, 2, 3]))), sorted(itertools.chain.from_iterable(itertools.combinations([1, 2, 3], r) for r in range(4))))
+    eq(len(ss([])), 1)
+    eq(sorted(map(tuple, pm([1, 2, 3]))), sorted(itertools.permutations([1, 2, 3])))
+    eq(len(pm([1, 2, 3, 4])), 24)
+    t = defs(("19", 6, 2))
+    eq([t["min_coins_top_down"]((1, 2, 5), 11), t["coin_change"]([1, 2, 5], 11), t["coin_change"]([2], 3), t["coin_change"]([1], 0)], [3, 3, -1, 0])
+    for _ in range(150):
+        coins = sorted(set(R.randint(1, 7) for _ in range(R.randint(1, 3))))
+        amt = R.randint(0, 20)
+        INF = 10 ** 9
+        ref = [0] + [INF] * amt
+        for a in range(1, amt + 1):
+            for c in coins:
+                if c <= a:
+                    ref[a] = min(ref[a], ref[a - c] + 1)
+        want = -1 if ref[amt] >= INF else ref[amt]
+        eq(t["coin_change"](coins, amt), want, "bottom-up")
+        eq(t["min_coins_top_down"](tuple(coins), amt), want, "top-down")
+    root = _TN(1, _TN(2, _TN(4), _TN(5)), _TN(3))
+    eq(defs(("19", 6, 3))["diameter"](root), 3)
+    eq(defs(("19", 6, 3))["diameter"](None), 0)
