@@ -260,3 +260,218 @@ def t16_deque():
         k = R.randint(1, 5)
         eq(f(a, k), brute_jump(a, k), "%s %s" % (a, k))
         eq(g(a, k), brute_sub(a, k), "%s %s" % (a, k))
+
+
+# ----------------------------------------------------------------------------- 17 advanced data structures
+@test
+def t17_fenwick():
+    F = defs(("17", 1, 1))["FenwickTree"]
+    d = defs(("17", 1, 2))
+    for _ in range(100):
+        n = R.randint(1, 20)
+        a = [R.randint(-9, 9) for _ in range(n)]
+        f = F(n)
+        for i, x in enumerate(a):
+            f.add(i, x)
+        for _ in range(30):
+            if R.random() < 0.4:
+                i, v = R.randrange(n), R.randint(-5, 5)
+                a[i] += v
+                f.add(i, v)
+            else:
+                l = R.randrange(n)
+                r = R.randrange(l, n)
+                eq(f.range(l, r), sum(a[l:r + 1]), "range %d %d" % (l, r))
+        t = d["build_fenwick"](a)
+        g = F(n)
+        for i, x in enumerate(a):
+            g.add(i, x)
+        eq(t[1:], g.t[1:], "O(n) build")
+    for _ in range(100):
+        n = R.randint(1, 12)
+        cnt = [R.randint(0, 3) for _ in range(n)]
+        if sum(cnt) == 0:
+            continue
+        t = d["build_fenwick"](cnt)
+        flat = [i + 1 for i, c in enumerate(cnt) for _ in range(c)]
+        for k in range(1, len(flat) + 1):
+            eq(d["kth_smallest"](t, n, k), flat[k - 1], "kth")
+
+
+@test
+def t17_segment_tree():
+    S = defs(("17", 2, 1))["SegmentTree"]
+    M = defs(("17", 2, 2))["MaxSegmentTree"]
+    a = [2, 1, 5, 3, 4, 2, 6, 1]
+    eq(S(a).query(2, 6), 20)
+    for _ in range(100):
+        n = R.randint(1, 17)
+        a = [R.randint(-9, 9) for _ in range(n)]
+        s, m = S(a), M(a)
+        for _ in range(30):
+            if R.random() < 0.4:
+                i, v = R.randrange(n), R.randint(-9, 9)
+                a[i] = v
+                s.update(i, v)
+                m.update(i, v)
+            else:
+                l = R.randrange(n)
+                r = R.randrange(l, n)
+                eq(s.query(l, r), sum(a[l:r + 1]), "sum %d %d n=%d" % (l, r, n))
+            x = R.randint(-10, 10)
+            want = next((i for i, v in enumerate(a) if v >= x), -1)
+            eq(m.first_at_least(x), want, "first >= %d in %s" % (x, a))
+
+
+@test
+def t17_lazy():
+    L = defs(("17", 3, 1))["LazySegmentTree"]
+    A = defs(("17", 3, 2))["AddMaxTree"]
+    a = [1, 2, 3, 4]
+    t = L(a)
+    t.add(0, 1, 10)
+    eq(t.query(1, 2), 15)
+    for _ in range(100):
+        n = R.randint(1, 15)
+        a = [R.randint(-9, 9) for _ in range(n)]
+        t = L(a)
+        for _ in range(30):
+            l = R.randrange(n)
+            r = R.randrange(l, n)
+            if R.random() < 0.5:
+                v = R.randint(-5, 5)
+                for i in range(l, r + 1):
+                    a[i] += v
+                t.add(l, r, v)
+            else:
+                eq(t.query(l, r), sum(a[l:r + 1]), "lazy sum")
+        n = R.randint(1, 15)
+        b = [0] * n
+        mt = A(n)
+        for _ in range(25):
+            l = R.randrange(n)
+            r = R.randrange(l, n)
+            v = R.randint(-3, 4)
+            for i in range(l, r + 1):
+                b[i] += v
+            mt.update(l, r, v)
+            eq(mt.max(), max(b), "max after add")
+
+
+@test
+def t17_sparse():
+    T = defs(("17", 4, 1))["SparseTable"]
+    G = defs(("17", 4, 2))["GcdTable"]
+    import math
+    for _ in range(100):
+        n = R.randint(1, 20)
+        a = [R.randint(1, 60) for _ in range(n)]
+        t, g = T(a), G(a)
+        for l in range(n):
+            for r in range(l, n):
+                eq(t.min(l, r), min(a[l:r + 1]), "min")
+                eq(g.query(l, r), math.gcd(*a[l:r + 1]), "gcd")
+
+
+@test
+def t17_rank_sweep():
+    d = defs(("17", 5, 1))
+    eq(d["count_smaller"]([5, 2, 6, 1]), [2, 1, 1, 0])
+    eq(d["count_smaller"]([-1, -1]), [0, 0])
+    rp = defs(("17", 5, 2))["reverse_pairs"]
+    eq(rp([1, 3, 2, 3, 1]), 2)
+    eq(rp([2, 4, 3, 5, 1]), 3)
+    for _ in range(200):
+        a = [R.randint(-8, 8) for _ in range(R.randint(1, 12))]
+        eq(d["count_smaller"](a), [sum(1 for y in a[i + 1:] if y < a[i]) for i in range(len(a))], a)
+        eq(rp(a), sum(1 for i in range(len(a)) for j in range(i + 1, len(a)) if a[i] > 2 * a[j]), a)
+
+
+class _TN:
+    def __init__(self, v, l=None, r=None):
+        self.val, self.left, self.right = v, l, r
+
+
+@test
+def t17_lca():
+    TA = defs(("17", 6, 1))["TreeAncestor"]
+    eq(TA(7, [-1, 0, 0, 1, 1, 2, 2]).get_kth_ancestor(3, 1), 1)
+    eq(TA(7, [-1, 0, 0, 1, 1, 2, 2]).get_kth_ancestor(5, 2), 0)
+    eq(TA(7, [-1, 0, 0, 1, 1, 2, 2]).get_kth_ancestor(6, 3), -1)
+    eq(TA(9, [-1, 0, 0, 1, 1, 2, 2, 3, 3]).lca(7, 6), 0)
+    for _ in range(100):
+        n = R.randint(1, 30)
+        par = [-1] + [R.randrange(i) for i in range(1, n)]
+        t = TA(n, par)
+
+        def anc(v):
+            out = []
+            while v >= 0:
+                out.append(v)
+                v = par[v]
+            return out
+        for _ in range(30):
+            u, v = R.randrange(n), R.randrange(n)
+            au, av = anc(u), anc(v)
+            sv = set(av)
+            want = next(x for x in au if x in sv)
+            eq(t.lca(u, v), want, "lca %d %d %s" % (u, v, par))
+            k = R.randint(0, 6)
+            eq(t.get_kth_ancestor(u, k), au[k] if k < len(au) else -1)
+    root = _TN(3, _TN(5, _TN(6), _TN(2, _TN(7), _TN(4))), _TN(1, _TN(0), _TN(8)))
+    f = defs(("17", 6, 2))["lowest_common_ancestor"]
+    eq(f(root, root.left, root.right).val, 3)
+    eq(f(root, root.left, root.left.right.right).val, 5)
+
+
+@test
+def t17_ordered():
+    C = defs(("17", 7, 1))["MyCalendar"]
+    c = C()
+    eq([c.book(10, 20), c.book(15, 25), c.book(20, 30)], [True, False, True])
+    for _ in range(100):
+        c, booked = C(), []
+        for _ in range(25):
+            s = R.randint(0, 40)
+            e = s + R.randint(1, 8)
+            ok = all(e <= bs or s >= be for bs, be in booked)
+            eq(c.book(s, e), ok)
+            if ok:
+                booked.append((s, e))
+    f = defs(("17", 7, 2))["contains_nearby_almost_duplicate"]
+    eq([f([1, 2, 3, 1], 3, 0), f([1, 0, 1, 1], 1, 2), f([1, 5, 9, 1, 5, 9], 2, 3)], [True, True, False])
+    for _ in range(300):
+        a = [R.randint(-20, 20) for _ in range(R.randint(1, 12))]
+        k, t = R.randint(1, 5), R.randint(0, 6)
+        want = any(abs(a[i] - a[j]) <= t for i in range(len(a)) for j in range(i + 1, min(len(a), i + k + 1)))
+        eq(f(a, k, t), want, "%s %d %d" % (a, k, t))
+
+
+@test
+def t17_offline():
+    mb = defs(("17", 8, 1))["maximum_beauty"]
+    eq(mb([[1, 2], [3, 2], [2, 4], [5, 6], [3, 5]], [1, 2, 3, 4, 5, 6]), [2, 4, 5, 5, 6, 6])
+    eq(mb([[1, 2], [2, 4], [3, 2], [3, 5], [5, 6]], [3, 1, 6, 2, 5, 4]), [5, 2, 6, 4, 6, 5])
+    for _ in range(100):
+        items = [[R.randint(1, 9), R.randint(1, 9)] for _ in range(R.randint(1, 8))]
+        qs = [R.randint(0, 10) for _ in range(R.randint(1, 8))]
+        eq(mb(items, qs), [max([b for p, b in items if p <= q] or [0]) for q in qs])
+    dl = defs(("17", 8, 2))["distance_limited_paths_exist"]
+    eq(dl(3, [[0, 1, 2], [1, 2, 4], [2, 0, 8], [1, 0, 16]], [[0, 1, 2], [0, 2, 5]]), [False, True])
+    for _ in range(100):
+        n = R.randint(2, 7)
+        edges = [[R.randrange(n), R.randrange(n), R.randint(1, 9)] for _ in range(R.randint(0, 9))]
+        qs = [[R.randrange(n), R.randrange(n), R.randint(1, 10)] for _ in range(R.randint(1, 6))]
+        want = []
+        for u, v, lim in qs:
+            seen, st = {u}, [u]
+            while st:
+                x = st.pop()
+                for a, b, w in edges:
+                    if w < lim:
+                        for p, q in ((a, b), (b, a)):
+                            if p == x and q not in seen:
+                                seen.add(q)
+                                st.append(q)
+            want.append(v in seen)
+        eq(dl(n, [e[:] for e in edges], qs), want, "%d %s %s" % (n, edges, qs))

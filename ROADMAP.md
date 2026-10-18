@@ -24,7 +24,7 @@ Each topic is one self-contained HTML file (`topics/NN_name.html`) with a built-
 | 14 | `14_greedy` | Greedy | Exchange argument and counterexamples, jump games, running balance with resets, stock trading, two-pass greedy, characters and digits, range tracking, ratio greedy | **done** (9 patterns, 38 problems) |
 | 15 | `15_dp_1d_2d` | Dynamic programming I | State/transition method, take-or-skip, coin change, LIS, grid paths, string-prefix DP, matrix DP (largest square), state machines, rolling arrays and reconstruction | **done** (9 patterns, 46 problems) |
 | 16 | `16_dp_advanced` | Dynamic programming II | 0/1 and multi-dimensional knapsack, LCS, edit distance, palindromic DP, interval DP, bitmask DP, digit DP, monotonic-deque speed-ups | **done** (9 patterns, 47 problems) |
-| 17 | `17_advanced_ds` | Advanced data structures | Segment tree, Fenwick (BIT), sparse table, monotonic deque optimisations | planned |
+| 17 | `17_advanced_ds` | Advanced data structures | Fenwick tree, segment tree, lazy propagation, sparse table, Fenwick over ranks, binary lifting and LCA, ordered sets, offline queries | **done** (8 patterns, 31 problems) |
 | 18 | `18_design_problems` | Design-style problems | LRU/LFU, iterators, rate limiter, Twitter feed, time-based key-value | planned |
 | 19 | `19_interview_playbook` | Interview playbook | Pattern selector across all topics, communication script, edge-case checklist, company-wise lists, 12-week plan | planned |
 

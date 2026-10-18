@@ -1713,7 +1713,111 @@ jump6:function(){var a=[1,-1,-2,4,-7,3],k=2,dp=[],dq=[],S=[];
  for(var i=0;i<a.length;i++){var msg;if(i===0){dp[0]=a[0];msg='dp[0] = a[0] = '+a[0]+'.'}else{while(dq.length&&dq[0]<i-k)dq.shift();var best=dp[dq[0]];dp[i]=a[i]+best;msg='Window dp['+Math.max(0,i-k)+'..'+(i-1)+']: best is dp['+dq[0]+'] = '+best+' (front of the deque). dp['+i+'] = '+a[i]+' + '+best+' = '+dp[i]+'.'}
   while(dq.length&&dp[dq[dq.length-1]]<=dp[i])dq.pop();dq.push(i);
   S.push({a:a,ptr:{i:i},hi:rng(Math.max(0,i-k),i),aux:A(),note:msg+' Push '+i+' on the deque after popping weaker (smaller or equal dp) indices from the back.'})}
- S.push({a:a,ptr:{},ok:[a.length-1],aux:A(),note:'Answer dp[5] = '+dp[5]+'. Each index enters and leaves the deque once: O(n) instead of O(n·k). Other DP speed-ups: prefix sums / BIT for range transitions, binary search for LIS-like dp, convex-hull trick for linear cost functions.'});return S}};
+ S.push({a:a,ptr:{},ok:[a.length-1],aux:A(),note:'Answer dp[5] = '+dp[5]+'. Each index enters and leaves the deque once: O(n) instead of O(n·k). Other DP speed-ups: prefix sums / BIT for range transitions, binary search for LIS-like dp, convex-hull trick for linear cost functions.'});return S},
+bit:function(){var a=[3,2,-1,6,5,4,-3,3],n=a.length,t=[],S=[],i,j;for(i=0;i<=n;i++)t.push(0);
+ function lb(x){return x&-x}
+ function add(p,v){for(var x=p;x<=n;x+=lb(x))t[x]+=v}
+ function A(extra){return {label:'Fenwick (1-indexed) | prefix sums of a',items:['BIT = ['+t.slice(1).join(', ')+']'].concat(extra||[])}}
+ S.push({a:a,ptr:{},note:'Goal: prefix sums with point updates, both in O(log n). A plain prefix array answers queries in O(1) but an update costs O(n); a plain array updates in O(1) but queries cost O(n). The Fenwick tree (binary indexed tree) balances both.'});
+ var cov=[];for(i=1;i<=n;i++)cov.push('BIT['+i+'] covers ('+(i-lb(i))+', '+i+']');
+ for(i=0;i<n;i++)add(i+1,a[i]);
+ S.push({a:t.slice(1),ptr:{},aux:{label:'what each cell stores (i − lowbit(i), i]',items:cov},note:'Cell i stores the sum of the last lowbit(i) elements ending at i, where lowbit(i) = i & −i (the lowest set bit). BIT[8] holds everything, BIT[4] holds positions 1-4, BIT[6] holds positions 5-6, BIT[7] holds position 7 only.'});
+ var sum=0,x=7,path=[];S.push({a:t.slice(1),ptr:{},aux:A(['sum = 0']),note:'prefix(7): start at i = 7 and repeatedly add BIT[i], then remove the lowest set bit: i −= i & −i. That jumps to the next block that is not yet counted.'});
+ while(x>0){sum+=t[x];path.push(x);S.push({a:t.slice(1),ptr:{['i='+x]:x-1},hi:path.map(function(p){return p-1}),aux:A(['sum = '+sum]),note:'i = '+x+' ('+x.toString(2)+'₂): add BIT['+x+'] = '+t[x]+' (covers ('+(x-lb(x))+', '+x+']). Running sum '+sum+'. Next i = '+x+' − '+lb(x)+' = '+(x-lb(x))+'.'});x-=lb(x)}
+ var tr=0;for(i=0;i<7;i++)tr+=a[i];
+ S.push({a:t.slice(1),ptr:{},ok:path.map(function(p){return p-1}),aux:A(['prefix(7) = '+sum+' (a[1..7] sums to '+tr+')']),note:'prefix(7) = '+sum+', visited only '+path.length+' cells (the number of set bits in 7). Range sum(l..r) = prefix(r) − prefix(l−1).'});
+ var up=[];x=3;S.push({a:t.slice(1),ptr:{},aux:A(),note:'update(3, +10): every block that contains position 3 must change. Start at i = 3 and move to the next covering block with i += i & −i.'});
+ while(x<=n){t[x]+=10;up.push(x);S.push({a:t.slice(1),ptr:{['i='+x]:x-1},hi:up.map(function(p){return p-1}),aux:A(),note:'i = '+x+': BIT['+x+'] += 10 → '+t[x]+'. Next i = '+x+' + '+lb(x)+' = '+(x+lb(x))+(x+lb(x)>n?' (past n, stop).':'.')});x+=lb(x)}
+ var s2=0;x=7;while(x>0){s2+=t[x];x-=lb(x)}
+ S.push({a:t.slice(1),ptr:{},ok:up.map(function(p){return p-1}),aux:A(['prefix(7) now = '+s2]),note:'After the update prefix(7) = '+s2+' ('+sum+' + 10). Both operations touch at most log₂ n + 1 cells: O(log n) time, O(n) space, tiny constant, very short code.'});return S},
+seg:function(){var a=[2,1,5,3,4,2,6,1],T=[],S=[],i;for(i=0;i<7;i++)T.push(0);for(i=0;i<8;i++)T.push(a[i]);for(i=6;i>=0;i--)T[i]=T[2*i+1]+T[2*i+2];
+ function A(extra){return {label:'array and range query',items:['a = ['+a.join(', ')+']'].concat(extra||[])}}
+ S.push({a:[],tree:T.slice(),ptr:{},aux:A(),note:'A segment tree stores the sum of every dynamic segment: leaves are the elements, each parent is the sum of its two children, the root is the whole array. It answers any range query in O(log n) and updates a value in O(log n).'});
+ var ok=[],dim=[],hi=[],total=0;
+ function q(k,l,r,ql,qr){var lab='['+l+','+r+']';
+  if(qr<l||r<ql){dim.push(k);S.push({a:[],tree:T.slice(),ptr:{[lab]:k},hi:hi.slice(),ok:ok.slice(),dim:dim.slice(),aux:A(['total = '+total]),note:'Node '+lab+' is completely outside the query [2, 6]: contributes 0 and we stop.'});return}
+  if(ql<=l&&r<=qr){ok.push(k);total+=T[k];S.push({a:[],tree:T.slice(),ptr:{[lab]:k},hi:hi.slice(),ok:ok.slice(),dim:dim.slice(),aux:A(['total = '+total]),note:'Node '+lab+' is completely inside [2, 6]: take its stored sum '+T[k]+' and stop (no need to look at its children). total = '+total+'.'});return}
+  hi.push(k);S.push({a:[],tree:T.slice(),ptr:{[lab]:k},hi:hi.slice(),ok:ok.slice(),dim:dim.slice(),aux:A(['total = '+total]),note:'Node '+lab+' overlaps the query only partly: split into its two children.'});
+  var m=(l+r)>>1;q(2*k+1,l,m,ql,qr);q(2*k+2,m+1,r,ql,qr)}
+ q(0,0,7,2,6);var tr=0;for(i=2;i<=6;i++)tr+=a[i];
+ S.push({a:[],tree:T.slice(),ptr:{},ok:ok.slice(),aux:A(['sum(2..6) = '+total+' (check: '+tr+')']),note:'sum(2..6) = '+total+'. At most two nodes per level are only partly covered, so a query visits O(log n) nodes.'});
+ var path=[];var k=7+4;a[4]+=5;S.push({a:[],tree:T.slice(),ptr:{},aux:A(),note:'update(4, +5): change the leaf, then recompute every ancestor on the way up to the root.'});
+ while(true){T[k]+=5;path.push(k);S.push({a:[],tree:T.slice(),ptr:{['+5']:k},hi:path.slice(),aux:A(),note:'Node '+k+' becomes '+T[k]+'.'});if(k===0)break;k=(k-1)>>1}
+ S.push({a:[],tree:T.slice(),ptr:{},ok:path.slice(),aux:A(['new total of all = '+T[0]]),note:'Only the '+path.length+' nodes on the leaf-to-root path changed: O(log n). Build is O(n), memory 2n (iterative) or 4n (recursive with arbitrary n). Swap + for min, max, gcd or xor and the same tree works for any associative operation.'});return S},
+lazy:function(){var sum=[0,0,0,1,2,3,4],lz=[0,0,0,0,0,0,0],S=[],a0=[1,2,3,4],i;sum[1]=3;sum[2]=7;sum[0]=10;
+ function A(extra){var t=[];for(var k=0;k<7;k++)if(lz[k])t.push('lazy['+k+'] = '+lz[k]);return {label:'pending lazy tags (add to every element of the node)',items:(t.length?t:['no pending tags']).concat(extra||[])}}
+ function snap(ptr,hi,ok,dim,note,ex){S.push({a:[],tree:sum.slice(),ptr:ptr,hi:hi.slice(),ok:ok.slice(),dim:dim.slice(),aux:A(ex),note:note})}
+ snap({},[],[],[],'Range updates break the plain segment tree: adding to 1000 elements would touch 1000 leaves. Lazy propagation stores a pending "add v to everything below" tag on a node that is fully covered and applies it to the children only when a later operation needs to look inside.',[]);
+ var hi=[],ok=[],dim=[];
+ function push(k,l,r){if(lz[k]){var m=(l+r)>>1;[[2*k+1,l,m],[2*k+2,m+1,r]].forEach(function(c){sum[c[0]]+=lz[k]*(c[2]-c[1]+1);lz[c[0]]+=lz[k]});lz[k]=0;return true}return false}
+ function upd(k,l,r,ql,qr,v){var lab='['+l+','+r+']';
+  if(qr<l||r<ql){dim.push(k);snap({[lab]:k},hi,ok,dim,'Node '+lab+' is outside [0, 1]: skip.');return}
+  if(ql<=l&&r<=qr){sum[k]+=v*(r-l+1);lz[k]+=v;ok.push(k);snap({[lab]:k},hi,ok,dim,'Node '+lab+' is fully inside [0, 1]: sum += '+v+' × '+(r-l+1)+' = '+sum[k]+', and store lazy tag +'+v+' instead of visiting the leaves.');return}
+  hi.push(k);var p=push(k,l,r);snap({[lab]:k},hi,ok,dim,'Node '+lab+' overlaps partly: '+(p?'push its tag down first, then ':'')+'split.');
+  var m=(l+r)>>1;upd(2*k+1,l,m,ql,qr,v);upd(2*k+2,m+1,r,ql,qr,v);sum[k]=sum[2*k+1]+sum[2*k+2];snap({['pull '+lab]:k},hi,ok,dim,'Pull up: sum of node '+lab+' = '+sum[2*k+1]+' + '+sum[2*k+2]+' = '+sum[k]+'.')}
+ upd(0,0,3,0,1,10);
+ snap({},[],[0,1],[],'range add(0..1, +10) is done after touching O(log n) nodes. Node [0,1] holds sum 23 and a pending tag +10: its leaves still say 1 and 2.',[]);
+ hi=[];ok=[];dim=[];var total=0;
+ function qry(k,l,r,ql,qr){var lab='['+l+','+r+']';
+  if(qr<l||r<ql){dim.push(k);snap({[lab]:k},hi,ok,dim,'Node '+lab+' is outside [1, 2]: skip.',['total = '+total]);return}
+  if(ql<=l&&r<=qr){total+=sum[k];ok.push(k);snap({[lab]:k},hi,ok,dim,'Node '+lab+' is inside [1, 2]: add '+sum[k]+'. total = '+total+'.',['total = '+total]);return}
+  hi.push(k);var p=push(k,l,r);snap({[lab]:k},hi,ok,dim,'Node '+lab+' overlaps partly: '+(p?'its pending tag is pushed to the children now (leaf values become real), then split.':'split.'),['total = '+total]);
+  var m=(l+r)>>1;qry(2*k+1,l,m,ql,qr);qry(2*k+2,m+1,r,ql,qr)}
+ qry(0,0,3,1,2);
+ snap({},[],ok,[],'sum(1..2) = '+total+' (the array is now [11, 12, 3, 4], so 12 + 3 = 15). Rule: before looking inside a node, push its tag down; after changing children, pull the sum up. Range update and range query are both O(log n); memory 4n.',['sum(1..2) = '+total]);return S},
+sparse:function(){var a=[5,2,4,7,6,3,1,8],n=8,tb=[a.slice()],S=[],i,j;
+ for(j=1;j<4;j++){var r=[];for(i=0;i+(1<<j)<=n;i++)r.push(Math.min(tb[j-1][i],tb[j-1][i+(1<<(j-1))]));tb.push(r)}
+ function flat(upto){var o=[];for(var q=0;q<4;q++)for(var c=0;c<n;c++)o.push(q<=upto&&c<tb[q].length?tb[q][c]:'·');return o}
+ function A(x){return {label:'sparse table: row j = minimum of windows of length 2^j',items:x}}
+ S.push({a:flat(0),cols:8,ptr:{},hi:rng(0,7),aux:A(['row 0 = the array itself (windows of length 1)']),note:'Sparse table: precompute the minimum of every window whose length is a power of two. After O(n log n) preprocessing, any range minimum is answered in O(1). It works for idempotent operations (min, max, gcd) on arrays that never change.'});
+ for(j=1;j<4;j++){var hs=[];tb[j].forEach(function(_,c){hs.push(j*8+c)});S.push({a:flat(j),cols:8,ptr:{},hi:hs,aux:A(['row '+j+': table['+j+'][i] = min(table['+(j-1)+'][i], table['+(j-1)+'][i + '+(1<<(j-1))+']) for windows of length '+(1<<j)]),note:'Row '+j+': each window of length '+(1<<j)+' is two windows of length '+(1<<(j-1))+' from the row above, so it costs O(1) per cell. Row '+j+' has '+(n-(1<<j)+1)+' entries.'})}
+ var l=1,r=6,len=r-l+1,k=Math.floor(Math.log2(len)),x=tb[k][l],y=tb[k][r-(1<<k)+1];
+ S.push({a:flat(3),cols:8,ptr:{},aux:A(['query min(1..6): length '+len+', k = ⌊log₂ '+len+'⌋ = '+k+' (window '+(1<<k)+')']),note:'Query min(a[1..6]): the length is 6, the largest power of two not above it is 4 (k = 2). Cover the range with two windows of length 4: one starting at 1 and one ending at 6. They overlap, which is harmless for min.'});
+ S.push({a:flat(3),cols:8,ptr:{},hi:[k*8+l,k*8+r-(1<<k)+1],aux:A(['table['+k+']['+l+'] = '+x+' covers a[1..4]','table['+k+']['+(r-(1<<k)+1)+'] = '+y+' covers a[3..6]']),note:'The two windows are table[2][1] = '+x+' (covers 1-4) and table[2][3] = '+y+' (covers 3-6).'});
+ S.push({a:flat(3),cols:8,ptr:{},ok:[k*8+(x<=y?l:r-(1<<k)+1)],aux:A(['min(1..6) = '+Math.min(x,y)]),note:'min(a[1..6]) = min('+x+', '+y+') = '+Math.min(x,y)+'. O(1) per query with two table reads. Overlap does not work for sums (counted twice): use prefix sums or a Fenwick tree there. Memory O(n log n); no updates allowed.'});return S},
+inv:function(){var a=[7,3,5,1],rk=[4,2,3,1],n=4,t=[0,0,0,0,0],S=[],inv=0,ins=0,i;
+ function lb(x){return x&-x}
+ function A(x){return {label:'array | ranks (coordinate compression) | inversions',items:['a = ['+a.join(', ')+']','rank = ['+rk.join(', ')+']'].concat(x||[])}}
+ S.push({a:t.slice(1),ptr:{},aux:A(['inversions = 0']),note:'Count inversions (pairs i < j with a[i] > a[j]) in O(n log n). Step 1: compress values to ranks 1..n so a Fenwick tree of size n can index them. Step 2: sweep left to right; the BIT stores how many earlier elements have each rank (cells below).'});
+ for(i=0;i<n;i++){var r=rk[i],s=0,x=r,path=[];while(x>0){s+=t[x];path.push(x-1);x-=lb(x)}
+  var g=ins-s;inv+=g;
+  S.push({a:t.slice(1),ptr:{['rank '+r]:r-1},hi:path,aux:A(['inversions = '+(inv-g)]),note:'Element '+a[i]+' (rank '+r+'): earlier elements with rank ≤ '+r+' = prefix('+r+') = '+s+'. Inserted so far = '+ins+', so earlier elements that are greater = '+ins+' − '+s+' = '+g+'.'});
+  x=r;var up=[];while(x<=n){t[x]++;up.push(x-1);x+=lb(x)}ins++;
+  S.push({a:t.slice(1),ptr:{},hi:up,aux:A(['inversions = '+inv]),note:'Insert rank '+r+' into the BIT (add 1 along the update path). inversions = '+inv+'.'})}
+ S.push({a:t.slice(1),ptr:{},ok:rng(0,3),aux:A(['inversions = '+inv]),note:'Total inversions = '+inv+': (7,3), (7,5), (7,1), (3,1), (5,1). The same sweep + BIT counts "smaller numbers after self", reverse pairs and range-sum queries. O(n log n) time, O(n) space.'});return S},
+lca:function(){var T=[0,1,2,3,4,5,6,7,8],S=[];
+ function par(k){return k===0?0:(k-1)>>1}function dep(k){return Math.floor(Math.log2(k+1))}
+ var up0=T.map(par),up1=T.map(function(k){return par(up0[k])});
+ function A(x){return {label:'binary lifting table: up[j][v] = 2^j-th ancestor of v (root points to itself)',items:['up[0] (parent)     = ['+up0.join(', ')+']','up[1] (2 steps)    = ['+up1.join(', ')+']'].concat(x||[])}}
+ S.push({a:[],tree:T,ptr:{},aux:A(),note:'LCA by binary lifting. Precompute up[j][v], the 2^j-th ancestor of v, from up[j][v] = up[j−1][up[j−1][v]] in O(n log n). Then any ancestor jump of k steps is a few table lookups, and an LCA query takes O(log n). Query: LCA(7, 6).'});
+ var u=7,v=6;S.push({a:[],tree:T,ptr:{u:u,v:v},hi:[u,v],aux:A(['depth(7) = '+dep(7)+', depth(6) = '+dep(6)]),note:'Depths differ by 1. Step 1: lift the deeper node by the depth difference, decomposed into powers of two.'});
+ u=up0[u];S.push({a:[],tree:T,ptr:{u:u,v:v},hi:[u,v],aux:A(['same depth ('+dep(u)+'): u = '+u+', v = '+v]),note:'Lifted 7 by 1 step (the bit 2⁰ of the difference): u = 3. Both nodes are at depth 2 now. If u == v the answer is u; here 3 ≠ 6.'});
+ S.push({a:[],tree:T,ptr:{u:u,v:v},hi:[u,v],aux:A(['j = 1: up[1][3] = '+up1[3]+', up[1][6] = '+up1[6]]),note:'Step 2: for j from high to low, if up[j][u] ≠ up[j][v] jump both. j = 1: up[1][3] = 0 and up[1][6] = 0 are equal, which means the jump would overshoot (or land on the LCA), so do not jump.'});
+ S.push({a:[],tree:T,ptr:{u:u,v:v},hi:[u,v],aux:A(['j = 0: up[0][3] = '+up0[3]+', up[0][6] = '+up0[6]]),note:'j = 0: up[0][3] = 1 and up[0][6] = 2 differ, so jump both: u = 1, v = 2.'});
+ u=1;v=2;S.push({a:[],tree:T,ptr:{u:u,v:v},hi:[u,v],aux:A(['u = 1, v = 2 (children of the LCA)']),note:'Now u and v are different nodes whose parents are equal: they are the two children of the LCA.'});
+ S.push({a:[],tree:T,ptr:{LCA:up0[u]},ok:[up0[u]],aux:A(['LCA(7, 6) = parent(1) = '+up0[u]]),note:'LCA = parent(u) = '+up0[u]+'. O(n log n) preprocessing, O(log n) per query. The same table gives the k-th ancestor and distances (dist = depth u + depth v − 2·depth LCA). Alternatives: Euler tour + sparse table for O(1) queries, Tarjan offline.'});return S},
+treemap:function(){var s=[10,30,50],e=[20,40,60],S=[],i;
+ function A(x){return {label:'ordered set of booking starts (TreeMap / sorted list + bisect)',items:['ends = ['+e.join(', ')+']'].concat(x||[])}}
+ S.push({a:s.slice(),ptr:{},aux:A(),note:'An ordered set keeps keys sorted and answers floor (largest key ≤ x), ceiling (smallest key ≥ x), insert and delete in O(log n). My Calendar I: book [start, end) if it overlaps nothing. Existing bookings: [10,20), [30,40), [50,60).'});
+ function book(st,en){var lo=0,hi=s.length;while(lo<hi){var m=(lo+hi)>>1;if(s[m]<st)lo=m+1;else hi=m}
+  var pos=lo,fl=pos>0?pos-1:-1,ce=pos<s.length?pos:-1;
+  S.push({a:s.slice(),ptr:{['start '+st]:Math.min(pos,s.length-1)},aux:A(['book ['+st+', '+en+')','binary search: insertion position '+pos]),note:'Book ['+st+', '+en+'): binary search for the insertion position of start '+st+' (index '+pos+'). The only possible conflicts are its two neighbours: the floor (previous booking) and the ceiling (next booking).'});
+  var bad=(fl>=0&&e[fl]>st)||(ce>=0&&s[ce]<en);
+  var h=[];if(fl>=0)h.push(fl);if(ce>=0)h.push(ce);
+  var ft=fl>=0?'['+s[fl]+', '+e[fl]+') ends at '+e[fl]+(e[fl]>st?' > '+st+' → overlap':' ≤ '+st+' ok'):'none';
+  var ct=ce>=0?'starts at '+s[ce]+(s[ce]<en?' < '+en+' → overlap':' ≥ '+en+' ok'):'none';
+  S.push({a:s.slice(),ptr:{},hi:h,aux:A(['floor: '+ft,'ceiling: '+ct]),note:bad?'Overlap found: reject the booking.':'No overlap with either neighbour, so the booking is valid: insert it.'});
+  if(!bad){s.splice(pos,0,st);e.splice(pos,0,en);S.push({a:s.slice(),ptr:{},ok:[pos],aux:A(['booked ['+st+', '+en+')']),note:'Inserted ['+st+', '+en+') at index '+pos+'. A real TreeMap does this in O(log n); a Python list needs bisect.insort (O(n) shifting) or the sortedcontainers package.'})}else S.push({a:s.slice(),ptr:{},dim:rng(0,s.length-1),aux:A(['rejected ['+st+', '+en+')']),note:'Rejected ['+st+', '+en+'). Nothing changed.'})}
+ book(20,30);book(35,45);
+ S.push({a:s.slice(),ptr:{},ok:rng(0,s.length-1),aux:A(['starts are always kept sorted']),note:'Ordered-set toolkit: floor / ceiling / lower / higher, first / last, range queries and deletions. Use it for calendars, "closest value" problems, sliding-window medians and order statistics. O(log n) per operation.'});return S},
+offline:function(){var items=[[1,2],[2,4],[3,2],[3,5],[5,6]],qs=[3,1,6,2,5,4],ans=[],S=[],order=[0,1,2,3,4,5].sort(function(x,y){return qs[x]-qs[y]}),p=0,best=0,i;
+ var cells=items.map(function(it){return it[0]+':'+it[1]});
+ function A(x){return {label:'queries (original order) | answers',items:['queries = ['+qs.join(', ')+']','answers = ['+qs.map(function(_,k){return ans[k]===undefined?'?':ans[k]}).join(', ')+']','best beauty so far = '+best].concat(x||[])}}
+ S.push({a:cells,ptr:{},aux:A(),note:'Offline queries: when answers do not depend on the order you ask them, sort the queries and sweep, so each query reuses the work of the previous one. Most Beautiful Item for Each Query: items are price:beauty, a query asks the best beauty among items with price ≤ q. Items are sorted by price.'});
+ order.forEach(function(qi){var q=qs[qi],took=[];while(p<items.length&&items[p][0]<=q){best=Math.max(best,items[p][1]);took.push(p);p++}
+  ans[qi]=best;
+  S.push({a:cells,ptr:{['next item']:Math.min(p,items.length-1)},hi:took,ok:rng(0,p-1),aux:A(['processing query '+q+' (sorted order)']),note:'Query '+q+(took.length?': absorb '+took.map(function(x){return cells[x]}).join(', ')+' (price ≤ '+q+').':': nothing new to absorb.')+' Best beauty so far = '+best+', so the answer for this query is '+best+' (written to its original position).'})});
+ S.push({a:cells,ptr:{},ok:rng(0,items.length-1),aux:A(['final answers are in the original order']),note:'Answers = ['+ans.join(', ')+']. Sorting costs O(q log q), the sweep O(n + q). The same idea with a DSU answers "is there a path using edges ≤ limit" queries, and with a BIT answers "count elements ≤ x in a prefix" queries.'});return S}};
 
 var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}

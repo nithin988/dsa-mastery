@@ -94,8 +94,26 @@ case(("16", 9, 1), 'check(t.maxResult(new int[]{1, -1, -2, 4, -7, 3}, 2) == 7 &&
 case(("16", 9, 2), 'check(t.constrainedSubsetSum(new int[]{10, 2, -10, 5, 20}, 2) == 37 && t.constrainedSubsetSum(new int[]{-1, -2, -3}, 1) == -1, "constrained");')
 
 
+# ---- 17 advanced data structures ---------------------------------------------------------
+case(("17", 1, 1), 'FenwickTree f = t.new FenwickTree(8); int[] a = {3, 2, -1, 6, 5, 4, -3, 3}; for (int i = 0; i < 8; i++) f.add(i, a[i]); check(f.prefix(6) == 16 && f.range(2, 5) == 14, "prefix"); f.add(2, 10); check(f.prefix(6) == 26, "update");')
+case(("17", 1, 2), 'long[] tr = t.buildFenwick(new int[]{3, 2, -1, 6, 5, 4, -3, 3}); check(tr[8] == 19 && tr[4] == 10 && tr[6] == 9, "build"); long[] c = t.buildFenwick(new int[]{0, 2, 1, 0, 3}); check(t.kthSmallest(c, 5, 1) == 2 && t.kthSmallest(c, 5, 3) == 3 && t.kthSmallest(c, 5, 4) == 5, "kth");')
+case(("17", 2, 1), 'SegmentTree s = t.new SegmentTree(new int[]{2, 1, 5, 3, 4, 2, 6, 1}); check(s.query(2, 6) == 20 && s.query(0, 7) == 24, "query"); s.update(4, 9); check(s.query(2, 6) == 25, "update");')
+case(("17", 2, 2), 'MaxSegmentTree m = t.new MaxSegmentTree(new int[]{1, 3, 2, 7, 4}); check(m.firstAtLeast(3) == 1 && m.firstAtLeast(5) == 3 && m.firstAtLeast(8) == -1, "first"); m.update(0, 9); check(m.firstAtLeast(8) == 0, "after update");')
+case(("17", 3, 1), 'LazySegmentTree z = t.new LazySegmentTree(new int[]{1, 2, 3, 4}); z.add(0, 1, 10); check(z.query(1, 2) == 15 && z.query(0, 3) == 30, "lazy");')
+case(("17", 3, 2), 'AddMaxTree a = t.new AddMaxTree(6); a.update(0, 2, 1); a.update(1, 4, 1); check(a.max() == 2, "two"); a.update(1, 1, 1); check(a.max() == 3, "three");')
+case(("17", 4, 1), 'SparseTable s = t.new SparseTable(new int[]{5, 2, 4, 7, 6, 3, 1, 8}); check(s.min(1, 6) == 1 && s.min(0, 3) == 2 && s.min(4, 5) == 3 && s.min(7, 7) == 8, "min");')
+case(("17", 4, 2), 'GcdTable g = t.new GcdTable(new int[]{12, 18, 24, 7, 14}); check(g.query(0, 2) == 6 && g.query(2, 4) == 1 && g.query(3, 4) == 7, "gcd");')
+case(("17", 5, 1), 'check(t.countSmaller(new int[]{5, 2, 6, 1}).toString().equals("[2, 1, 1, 0]"), "smaller");')
+case(("17", 5, 2), 'check(t.reversePairs(new int[]{1, 3, 2, 3, 1}) == 2 && t.reversePairs(new int[]{2, 4, 3, 5, 1}) == 3, "reverse pairs");')
+case(("17", 6, 1), 'TreeAncestor ta = t.new TreeAncestor(9, new int[]{-1, 0, 0, 1, 1, 2, 2, 3, 3}); check(ta.getKthAncestor(7, 2) == 1 && ta.getKthAncestor(7, 4) == -1 && ta.lca(7, 6) == 0 && ta.lca(7, 4) == 1 && ta.lca(8, 3) == 3, "lca");')
+case(("17", 7, 1), 'MyCalendar c = t.new MyCalendar(); check(c.book(10, 20) && !c.book(15, 25) && c.book(20, 30) && !c.book(5, 11), "calendar");')
+case(("17", 7, 2), 'check(t.containsNearbyAlmostDuplicate(new int[]{1, 2, 3, 1}, 3, 0) && t.containsNearbyAlmostDuplicate(new int[]{1, 0, 1, 1}, 1, 2) && !t.containsNearbyAlmostDuplicate(new int[]{1, 5, 9, 1, 5, 9}, 2, 3), "near dup");')
+case(("17", 8, 1), 'int[] r = t.maximumBeauty(new int[][]{{1, 2}, {3, 2}, {2, 4}, {5, 6}, {3, 5}}, new int[]{3, 1, 6, 2, 5, 4}); check(Arrays.toString(r).equals("[5, 2, 6, 4, 6, 5]"), Arrays.toString(r));')
+case(("17", 8, 2), 'boolean[] r = t.distanceLimitedPathsExist(3, new int[][]{{0, 1, 2}, {1, 2, 4}, {2, 0, 8}, {1, 0, 16}}, new int[][]{{0, 1, 2}, {0, 2, 5}}); check(!r[0] && r[1], "limited paths");')
+
+
 def main():
-    work =tempfile.mkdtemp(prefix="jrun")
+    work = tempfile.mkdtemp(prefix="jrun")
     files = []
     for i, (key, body, name) in enumerate(CASES):
         cls = "J%d" % i
