@@ -475,3 +475,337 @@ def t17_offline():
                                 st.append(q)
             want.append(v in seen)
         eq(dl(n, [e[:] for e in edges], qs), want, "%d %s %s" % (n, edges, qs))
+
+
+# ----------------------------------------------------------------------------- 18 design problems
+@test
+def t18_caches():
+    L = defs(("18", 1, 1))["LFUCache"]
+    c = L(2)
+    out = []
+    c.put(1, 1); c.put(2, 2); out.append(c.get(1)); c.put(3, 3); out.append(c.get(2)); out.append(c.get(3))
+    c.put(4, 4); out += [c.get(1), c.get(3), c.get(4)]
+    eq(out, [1, -1, 3, -1, 3, 4])
+
+    class Model:
+        def __init__(self, cap):
+            self.cap, self.d, self.t = cap, {}, 0
+
+        def get(self, k):
+            if k not in self.d:
+                return -1
+            self.t += 1
+            v, f, _ = self.d[k]
+            self.d[k] = [v, f + 1, self.t]
+            return v
+
+        def put(self, k, v):
+            if self.cap == 0:
+                return
+            self.t += 1
+            if k in self.d:
+                self.d[k] = [v, self.d[k][1] + 1, self.t]
+                return
+            if len(self.d) == self.cap:
+                victim = min(self.d, key=lambda x: (self.d[x][1], self.d[x][2]))
+                del self.d[victim]
+            self.d[k] = [v, 1, self.t]
+    for _ in range(200):
+        cap = R.randint(0, 4)
+        a, m = L(cap), Model(cap)
+        for _ in range(40):
+            k = R.randint(0, 5)
+            if R.random() < 0.5:
+                v = R.randint(0, 99)
+                a.put(k, v)
+                m.put(k, v)
+            else:
+                eq(a.get(k), m.get(k), "lfu get")
+    U = defs(("18", 1, 2))["LRUCache"]
+    for _ in range(100):
+        cap = R.randint(1, 4)
+        a, order = U(cap), []
+        vals = {}
+        for _ in range(40):
+            k = R.randint(0, 6)
+            if R.random() < 0.5:
+                v = R.randint(0, 99)
+                a.put(k, v)
+                vals[k] = v
+                if k in order:
+                    order.remove(k)
+                order.append(k)
+                if len(order) > cap:
+                    del vals[order.pop(0)]
+            else:
+                want = vals.get(k, -1)
+                eq(a.get(k), want, "lru get")
+                if k in order:
+                    order.remove(k)
+                    order.append(k)
+
+
+@test
+def t18_random_set():
+    S = defs(("18", 2, 1))["RandomizedSet"]
+    for _ in range(100):
+        s, ref = S(), set()
+        for _ in range(60):
+            v = R.randint(0, 8)
+            if R.random() < 0.5:
+                eq(s.insert(v), v not in ref)
+                ref.add(v)
+            else:
+                eq(s.remove(v), v in ref)
+                ref.discard(v)
+            eq(sorted(s.items), sorted(ref))
+            eq(all(s.items[s.index[x]] == x for x in s.index), True)
+            if ref:
+                assert s.get_random() in ref
+    W = defs(("18", 2, 2))["WeightedPicker"]
+    for _ in range(100):
+        w = [R.randint(1, 6) for _ in range(R.randint(1, 7))]
+        p = W(w)
+        flat = [i for i, x in enumerate(w) for _ in range(x)]
+        for r in range(sum(w)):
+            eq(p.pick_at(r), flat[r])
+        assert 0 <= p.pick() < len(w)
+
+
+class _Node:
+    def __init__(self, val):
+        self.val, self.left, self.right = val, None, None
+
+
+def _insert(root, v):
+    if root is None:
+        return _Node(v)
+    if v < root.val:
+        root.left = _insert(root.left, v)
+    else:
+        root.right = _insert(root.right, v)
+    return root
+
+
+@test
+def t18_iterators():
+    N = defs(("18", 3, 1))["NestedIterator"]
+
+    def flat(x):
+        out = []
+        for e in x:
+            out += flat(e) if isinstance(e, list) else [e]
+        return out
+
+    def gen(depth):
+        return [gen(depth - 1) if depth > 0 and R.random() < 0.4 else R.randint(-3, 9) for _ in range(R.randint(0, 4))]
+    cases = [[[1, [2, 3]], 4, [5]], [], [[], [[]]], [[], 0, [[], 0]]]
+    for _ in range(200):
+        cases.append(gen(3))
+    for c in cases:
+        it = N(c)
+        got = []
+        while it.has_next():
+            got.append(it.next())
+        eq(got, flat(c), c)
+    B = defs(("18", 3, 2))["BSTIterator"]
+    for _ in range(100):
+        vals = [R.randint(0, 30) for _ in range(R.randint(0, 12))]
+        root = None
+        for v in vals:
+            root = _insert(root, v)
+        it, got = B(root), []
+        while it.has_next():
+            got.append(it.next())
+        eq(got, sorted(vals))
+
+
+@test
+def t18_rate_limiters():
+    S = defs(("18", 4, 1))["SlidingWindowLimiter"]
+    s = S(3, 10)
+    eq([s.allow(t) for t in [1, 2, 3, 5, 11, 12, 13, 14]], [True, True, True, False, True, True, True, False])
+    for _ in range(100):
+        limit, win = R.randint(1, 4), R.randint(1, 8)
+        s, allowed, t = S(limit, win), [], 0
+        for _ in range(40):
+            t += R.randint(0, 4)
+            want = sum(1 for x in allowed if x > t - win) < limit
+            eq(s.allow(t), want, "limiter")
+            if want:
+                allowed.append(t)
+    T = defs(("18", 4, 2))["TokenBucket"]
+    b = T(2, 1)
+    eq([b.allow(0), b.allow(0), b.allow(0), b.allow(1), b.allow(1), b.allow(3.5), b.allow(3.5), b.allow(3.5)],
+       [True, True, False, True, False, True, True, False])
+
+
+@test
+def t18_time_stores():
+    M = defs(("18", 5, 1))["TimeMap"]
+    m = M()
+    m.set("foo", "bar", 1)
+    eq([m.get("foo", 1), m.get("foo", 3), m.get("none", 1)], ["bar", "bar", ""])
+    m.set("foo", "bar2", 4)
+    eq([m.get("foo", 4), m.get("foo", 5), m.get("foo", 0)], ["bar2", "bar2", ""])
+    for _ in range(100):
+        m, hist, t = M(), {}, 0
+        for _ in range(30):
+            k = R.choice("ab")
+            if R.random() < 0.5:
+                t += R.randint(1, 3)
+                v = "v%d" % t
+                m.set(k, v, t)
+                hist.setdefault(k, []).append((t, v))
+            else:
+                q = R.randint(0, t + 2)
+                want = ""
+                for ts, v in hist.get(k, []):
+                    if ts <= q:
+                        want = v
+                eq(m.get(k, q), want)
+    SA = defs(("18", 5, 2))["SnapshotArray"]
+    s = SA(3)
+    s.set(0, 5)
+    eq(s.snap(), 0)
+    s.set(0, 6)
+    eq([s.get(0, 0), s.get(1, 0)], [5, 0])
+    for _ in range(100):
+        n = R.randint(1, 4)
+        s, cur, snaps = SA(n), [0] * n, []
+        for _ in range(30):
+            r = R.random()
+            if r < 0.5:
+                i, v = R.randrange(n), R.randint(0, 9)
+                s.set(i, v)
+                cur[i] = v
+            elif r < 0.7:
+                eq(s.snap(), len(snaps))
+                snaps.append(cur[:])
+            elif snaps:
+                sid, i = R.randrange(len(snaps)), R.randrange(n)
+                eq(s.get(i, sid), snaps[sid][i])
+
+
+@test
+def t18_feed():
+    T = defs(("18", 6, 1))["Twitter"]
+    t = T()
+    t.post_tweet(1, 5)
+    eq(t.get_news_feed(1), [5])
+    t.follow(1, 2)
+    t.post_tweet(2, 6)
+    eq(t.get_news_feed(1), [6, 5])
+    t.unfollow(1, 2)
+    eq(t.get_news_feed(1), [5])
+    for _ in range(100):
+        t = T()
+        posts, follow, tid = [], {u: set() for u in range(4)}, 0
+        for _ in range(40):
+            r = R.random()
+            u = R.randrange(4)
+            if r < 0.5:
+                tid += 1
+                t.post_tweet(u, tid)
+                posts.append((u, tid))
+            elif r < 0.65:
+                v = R.randrange(4)
+                t.follow(u, v)
+                follow[u].add(v)
+            elif r < 0.8:
+                v = R.randrange(4)
+                t.unfollow(u, v)
+                follow[u].discard(v)
+            else:
+                vis = follow[u] | {u}
+                want = [i for (w, i) in reversed(posts) if w in vis][:10]
+                eq(t.get_news_feed(u), want, "feed")
+    Lb = defs(("18", 6, 2))["Leaderboard"]
+    lb = Lb()
+    for i, s in [(1, 73), (2, 56), (3, 39), (4, 51), (5, 4)]:
+        lb.add_score(i, s)
+    eq(lb.top(1), 73)
+    lb.reset(1)
+    lb.reset(2)
+    lb.add_score(2, 51)
+    eq(lb.top(3), 141)
+
+
+@test
+def t18_frequency_stack():
+    F = defs(("18", 7, 1))["FreqStack"]
+    f = F()
+    for x in [5, 7, 5, 7, 4, 5]:
+        f.push(x)
+    eq([f.pop() for _ in range(4)], [5, 7, 5, 4])
+    for _ in range(150):
+        f, items = F(), []
+        for _ in range(40):
+            if items and R.random() < 0.45:
+                cnt = {}
+                for x in items:
+                    cnt[x] = cnt.get(x, 0) + 1
+                mx = max(cnt.values())
+                idx = max(i for i, x in enumerate(items) if cnt[x] == mx)
+                want = items.pop(idx)
+                eq(f.pop(), want, "freq pop")
+            else:
+                x = R.randint(0, 4)
+                f.push(x)
+                items.append(x)
+    U = defs(("18", 7, 2))["UndergroundSystem"]
+    u = U()
+    u.check_in(45, "Leyton", 3)
+    u.check_in(32, "Paradise", 8)
+    u.check_in(27, "Leyton", 10)
+    u.check_out(45, "Waterloo", 15)
+    u.check_out(27, "Waterloo", 20)
+    u.check_out(32, "Cambridge", 22)
+    eq(u.get_average_time("Paradise", "Cambridge"), 14.0)
+    eq(u.get_average_time("Leyton", "Waterloo"), 11.0)
+
+
+@test
+def t18_editor():
+    E = defs(("18", 8, 1))["TextEditor"]
+    e = E()
+    e.add_text("leetcode")
+    eq(e.delete_text(4), 4)
+    e.add_text("practice")
+    eq(e.cursor_right(3), "etpractice")
+    eq(e.cursor_left(8), "leet")
+    eq(e.delete_text(10), 4)
+    eq(e.cursor_left(2), "")
+    eq(e.cursor_right(6), "practi")
+    for _ in range(150):
+        e, text, cur = E(), "", 0
+        for _ in range(40):
+            r = R.random()
+            if r < 0.3:
+                s = "".join(R.choice("abc") for _ in range(R.randint(1, 4)))
+                e.add_text(s)
+                text = text[:cur] + s + text[cur:]
+                cur += len(s)
+            elif r < 0.5:
+                k = R.randint(0, 5)
+                d = min(k, cur)
+                eq(e.delete_text(k), d)
+                text = text[:cur - d] + text[cur:]
+                cur -= d
+            elif r < 0.75:
+                cur = max(0, cur - R.randint(0, 5)) if False else cur
+                k = R.randint(0, 5)
+                cur = max(0, cur - k)
+                eq(e.cursor_left(k), text[max(0, cur - 10):cur])
+            else:
+                k = R.randint(0, 5)
+                cur = min(len(text), cur + k)
+                eq(e.cursor_right(k), text[max(0, cur - 10):cur])
+    B = defs(("18", 8, 2))["BrowserHistory"]
+    b = B("leetcode.com")
+    b.visit("google.com")
+    b.visit("facebook.com")
+    b.visit("youtube.com")
+    eq([b.back(1), b.back(1), b.forward(1)], ["facebook.com", "google.com", "facebook.com"])
+    b.visit("linkedin.com")
+    eq([b.forward(2), b.back(2), b.back(7)], ["linkedin.com", "google.com", "leetcode.com"])

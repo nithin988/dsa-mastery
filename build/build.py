@@ -25,6 +25,7 @@ import greedy  # noqa: E402
 import dp1  # noqa: E402
 import dp2  # noqa: E402
 import adv_ds  # noqa: E402
+import design  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -47,7 +48,7 @@ CATALOG = [
     ("15_dp_1d_2d", "Dynamic Programming I", "State and transition, take-or-skip, coin change, LIS, grids, string prefixes, matrix DP, state machines, rolling arrays", dp1.TOPIC),
     ("16_dp_advanced", "Dynamic Programming II", "0/1 and multi-dimensional knapsack, LCS, edit distance, palindromic and interval DP, bitmask DP, digit DP, monotonic-deque speed-ups", dp2.TOPIC),
     ("17_advanced_ds", "Advanced Data Structures", "Fenwick tree, segment trees with lazy propagation, sparse table, counting with ranks, binary lifting and LCA, ordered sets, offline queries", adv_ds.TOPIC),
-    ("18_design_problems", "Design Problems", "LRU/LFU, iterators, time-based stores", None),
+    ("18_design_problems", "Design Problems", "LRU and LFU caches, O(1) random sets, iterators, rate limiters, time-based stores, feeds and leaderboards, frequency stacks, text editors", design.TOPIC),
     ("19_interview_playbook", "Interview Playbook", "Pattern selector, communication, 12-week plan", None),
 ]
 

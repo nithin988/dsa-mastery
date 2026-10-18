@@ -1815,7 +1815,81 @@ offline:function(){var items=[[1,2],[2,4],[3,2],[3,5],[5,6]],qs=[3,1,6,2,5,4],an
  order.forEach(function(qi){var q=qs[qi],took=[];while(p<items.length&&items[p][0]<=q){best=Math.max(best,items[p][1]);took.push(p);p++}
   ans[qi]=best;
   S.push({a:cells,ptr:{['next item']:Math.min(p,items.length-1)},hi:took,ok:rng(0,p-1),aux:A(['processing query '+q+' (sorted order)']),note:'Query '+q+(took.length?': absorb '+took.map(function(x){return cells[x]}).join(', ')+' (price ≤ '+q+').':': nothing new to absorb.')+' Best beauty so far = '+best+', so the answer for this query is '+best+' (written to its original position).'})});
- S.push({a:cells,ptr:{},ok:rng(0,items.length-1),aux:A(['final answers are in the original order']),note:'Answers = ['+ans.join(', ')+']. Sorting costs O(q log q), the sweep O(n + q). The same idea with a DSU answers "is there a path using edges ≤ limit" queries, and with a BIT answers "count elements ≤ x in a prefix" queries.'});return S}};
+ S.push({a:cells,ptr:{},ok:rng(0,items.length-1),aux:A(['final answers are in the original order']),note:'Answers = ['+ans.join(', ')+']. Sorting costs O(q log q), the sweep O(n + q). The same idea with a DSU answers "is there a path using edges ≤ limit" queries, and with a BIT answers "count elements ≤ x in a prefix" queries.'});return S},
+lfu:function(){var cap=2,items=[],tick=0,S=[],log=[];
+ function ordered(){return items.slice().sort(function(a,b){return a.f-b.f||a.t-b.t})}
+ function cellsOf(){return ordered().map(function(o){return o.k+'='+o.v+' f'+o.f})}
+ function A(){return {label:'cells ordered by (frequency, recency): the first cell is the next eviction victim',items:['results so far: '+(log.length?log.join(', '):'none')]}}
+ function snap(note,hk){var o=ordered(),h=[];o.forEach(function(e,i){if(e.k===hk)h.push(i)});S.push({a:cellsOf(),ptr:{'victim':0},hi:h,aux:A(),note:note})}
+ function find(k){for(var i=0;i<items.length;i++)if(items[i].k===k)return items[i];return null}
+ function get(k){var e=find(k);if(!e){log.push(-1);snap('get('+k+') returns −1 (miss).');return}e.f++;e.t=++tick;log.push(e.v);snap('get('+k+') returns '+e.v+'. Its frequency becomes '+e.f+' and it is now the most recent key among those with that frequency.',k)}
+ function put(k,v){var e=find(k),msg='';if(e){e.v=v;e.f++;e.t=++tick;snap('put('+k+', '+v+'): key exists, update the value and count it as a use (frequency '+e.f+').',k);return}
+  if(items.length===cap){var o=ordered()[0];items.splice(items.indexOf(o),1);msg='Cache is full: evict key '+o.k+' (lowest frequency '+o.f+'; ties go to the least recently used). '}
+  items.push({k:k,v:v,f:1,t:++tick});snap(msg+'put('+k+', '+v+'): insert with frequency 1.',k)}
+ snap('LFU cache, capacity 2: evict the key used the fewest times; break ties by evicting the least recently used. The cells are sorted by (frequency, recency), so the first cell is always the next victim. The real structure keeps key → value, key → frequency, an insertion-ordered bucket of keys per frequency, and a minFreq pointer, so every operation is O(1).');
+ put(1,1);put(2,2);get(1);put(3,3);get(2);get(3);put(4,4);get(1);get(3);get(4);
+ S.push({a:cellsOf(),ptr:{},ok:rng(0,items.length-1),aux:A(),note:'Results: '+log.join(', ')+'. A touch moves the key from bucket[f] to bucket[f+1]; if bucket[minFreq] becomes empty, minFreq increases; eviction removes the oldest key of bucket[minFreq]. All O(1).'});return S},
+rset:function(){var arr=[],idx={},S=[];
+ function A(x){return {label:'index map: value → position in the array',items:[mapStr(idx)].concat(x||[])}}
+ S.push({a:[],ptr:{},aux:A(),note:'Insert, delete and getRandom all in O(1): store the values in an array (random access) and a hash map from value to array index (fast lookup). The trick is delete: swap the doomed element with the last one, then pop.'});
+ function ins(v){idx[v]=arr.length;arr.push(v);S.push({a:arr.slice(),ptr:{new:arr.length-1},hi:[arr.length-1],aux:A(),note:'insert('+v+'): append to the array and record its index in the map. O(1).'})}
+ ins(10);ins(20);ins(30);ins(40);
+ var v=20,i=idx[v],last=arr[arr.length-1];
+ S.push({a:arr.slice(),ptr:{['remove '+v]:i,last:arr.length-1},hi:[i],dim:[arr.length-1],aux:A(),note:'remove('+v+'): it sits at index '+i+'. Deleting from the middle of an array would shift everything, so overwrite it with the last element ('+last+') instead.'});
+ arr[i]=last;idx[last]=i;arr.pop();delete idx[v];
+ S.push({a:arr.slice(),ptr:{},ok:[i],aux:A(),note:'Moved '+last+' into index '+i+', updated its map entry, dropped the last slot and removed '+v+' from the map. Order does not matter for a random pick. O(1).'});
+ var r=1;S.push({a:arr.slice(),ptr:{random:r},hi:[r],aux:A(),note:'getRandom(): pick a uniform random index in [0, size) and return arr[index] = '+arr[r]+'. Every present value is equally likely because the array has no holes.'});
+ v=10;i=idx[v];last=arr[arr.length-1];arr[i]=last;idx[last]=i;arr.pop();delete idx[v];
+ S.push({a:arr.slice(),ptr:{},ok:rng(0,arr.length-1),aux:A(),note:'remove(10): swap with the last element (30), pop, delete from the map. Final set = ['+arr.join(', ')+']. When removing the last element itself, update the map before deleting, or the delete will resurrect it.'});return S},
+iter:function(){var nested=[[1,[2,3]],4,[5]],S=[],stack=[],out=[],i;
+ function str(x){return Array.isArray(x)?'['+x.map(str).join(',')+']':String(x)}
+ function A(x){return {label:'stack (the top is the last item) and output',items:['stack: '+(stack.length?stack.map(str).join('   '):'empty'),'output: ['+out.join(', ')+']'].concat(x||[])}}
+ function pushAll(l){for(i=l.length-1;i>=0;i--)stack.push(l[i])}
+ pushAll(nested);
+ S.push({a:[],ptr:{},aux:A(),note:'Flatten Nested List Iterator over [[1,[2,3]],4,[5]]. Keep a stack of pending items with the next item on top. hasNext() must make sure the top is an integer: while it is a list, pop it and push its elements in reverse order.'});
+ function hasNext(){while(stack.length&&Array.isArray(stack[stack.length-1])){var l=stack.pop();pushAll(l);S.push({a:out.slice(),ptr:{},aux:A(['unwrapped '+str(l)]),note:'hasNext(): the top is the list '+str(l)+'. Pop it and push its elements in reverse so the first one is on top.'})}return stack.length>0}
+ while(hasNext()){var v=stack.pop();out.push(v);S.push({a:out.slice(),ptr:{next:out.length-1},hi:[out.length-1],aux:A(),note:'next() returns '+v+' (the top is an integer).'})}
+ S.push({a:out.slice(),ptr:{},ok:rng(0,out.length-1),aux:A(),note:'hasNext() is false: the stack is empty. Output '+out.join(', ')+'. Each element is pushed and popped once: O(1) amortised per call and O(depth) extra memory; it is lazy, so a huge structure is never flattened up front. Same idea: BST iterator (stack of left spine), zigzag iterator (queue of iterators).'});return S},
+rate:function(){var reqs=[1,2,3,5,11,12,13,14],limit=3,win=10,w=[],res=[],S=[];
+ function A(x){return {label:'sliding window log: limit 3 requests per 10 seconds',items:['decisions: '+(res.length?reqs.slice(0,res.length).map(function(t,k){return t+(res[k]?' ok':' DENY')}).join(', '):'none'),'window (timestamps kept) = ['+w.join(', ')+']'].concat(x||[])}}
+ S.push({a:[],ptr:{},aux:A(),note:'Rate limiter, sliding window log: allow at most 3 requests in any 10-second window. Keep the timestamps of the allowed requests in a queue. On a request at time t, drop timestamps ≤ t − 10, then allow only if fewer than 3 remain.'});
+ reqs.forEach(function(t){var dropped=[];while(w.length&&w[0]<=t-win)dropped.push(w.shift());var ok=w.length<limit;if(ok)w.push(t);res.push(ok);
+  S.push({a:w.slice(),ptr:{},hi:ok?[w.length-1]:[],dim:ok?[]:rng(0,w.length-1),aux:A(),note:'Request at t = '+t+': '+(dropped.length?'drop expired timestamps '+dropped.join(', ')+' (≤ '+(t-win)+'). ':'nothing expired. ')+(ok?'Window has room ('+(w.length-1)+' < '+limit+'): ALLOW and record '+t+'.':'Window is full ('+w.length+' requests): DENY, nothing is recorded.')})});
+ S.push({a:w.slice(),ptr:{},ok:rng(0,w.length-1),aux:A(),note:'Exact and simple, but memory is O(limit) per client. Alternatives: fixed window counter (O(1), allows bursts at window edges), sliding window counter (weighted blend of two windows), token bucket (O(1), allows controlled bursts).'});return S},
+tkv:function(){var ts=[1,4,7,10],vs=['a','b','c','d'],S=[];
+ function A(x){return {label:'history for one key: timestamp → value (appended in increasing time)',items:ts.map(function(t,i){return t+' → '+vs[i]}).concat(x||[])}}
+ function query(q){var lo=0,hi=ts.length;S.push({a:ts.slice(),ptr:{},aux:A(['get(key, '+q+')']),note:'get(key, '+q+'): find the LAST timestamp ≤ '+q+'. Timestamps arrive in increasing order, so the list is sorted and binary search works: find the first index whose timestamp is greater than '+q+' (upper bound), then step back one.'});
+  while(lo<hi){var mid=(lo+hi)>>1,go=ts[mid]<=q;S.push({a:ts.slice(),ptr:{lo:lo,mid:mid,hi:Math.min(hi,ts.length-1)},hi:[mid],aux:A(['lo = '+lo+', hi = '+hi]),note:'mid = '+mid+': timestamp '+ts[mid]+(go?' ≤ ':' > ')+q+(go?', so the answer is after mid: lo = mid + 1.':', so the first greater index is mid or earlier: hi = mid.')});if(go)lo=mid+1;else hi=mid}
+  S.push({a:ts.slice(),ptr:{},ok:lo>0?[lo-1]:[],dim:lo===0?rng(0,ts.length-1):[],aux:A(['upper bound = '+lo]),note:lo===0?'Upper bound is 0: every timestamp is later than '+q+', so return the empty string.':'Upper bound = '+lo+', so the answer is index '+(lo-1)+': timestamp '+ts[lo-1]+' → "'+vs[lo-1]+'". O(log n) per get, O(1) per set.'})}
+ query(8);query(0);return S},
+twitter:function(){var T={A:[[1,'a1'],[4,'a2'],[9,'a3']],B:[[3,'b1'],[7,'b2']],C:[[2,'c0'],[6,'c1'],[8,'c2']]},heap=[],feed=[],S=[];
+ function hs(){return 'heap, newest first: '+heap.slice().sort(function(x,y){return y.t-x.t}).map(function(e){return e.id+'@'+e.t}).join(', ')}
+ Object.keys(T).forEach(function(u){var i=T[u].length-1;heap.push({t:T[u][i][0],id:T[u][i][1],u:u,i:i})});
+ S.push({a:[],ptr:{},aux:{label:'k-way merge of users newest tweets',items:[hs()]},note:'News feed = the 5 most recent tweets among the user and everyone they follow. Each user has a list of tweets (newest last). This is a k-way merge: put each followee newest tweet in a max-heap by time, pop the newest, then push that user next older tweet. Cost: O(k + 5 log k), no need to merge whole lists.'});
+ while(heap.length&&feed.length<5){heap.sort(function(x,y){return y.t-x.t});var top=heap.shift();feed.push(top.id);var msg='Pop the newest tweet in the heap: '+top.id+' (time '+top.t+', user '+top.u+').';
+  if(top.i>0){var j=top.i-1;heap.push({t:T[top.u][j][0],id:T[top.u][j][1],u:top.u,i:j});msg+=' Push that user next older tweet '+T[top.u][j][1]+'.'}else msg+=' That user has no older tweets.';
+  S.push({a:feed.slice(),ptr:{},hi:[feed.length-1],aux:{label:'k-way merge of users newest tweets',items:[hs()]},note:msg})}
+ S.push({a:feed.slice(),ptr:{},ok:rng(0,feed.length-1),aux:{label:'k-way merge of users newest tweets',items:[hs()]},note:'Feed = ['+feed.join(', ')+'] (newest first). The same shape solves merge k sorted lists, smallest range, and ugly numbers. Follow / unfollow are O(1) set operations; postTweet is an O(1) append with a global clock.'});return S},
+fstack:function(){var lv=[[],[],[]],freq={},mx=0,S=[],log=[];
+ function grid(){var o=[];for(var l=0;l<3;l++)for(var p=0;p<3;p++)o.push(lv[l][p]===undefined?'·':lv[l][p]);return o}
+ function A(){return {label:'rows = frequency levels 1, 2, 3 (stack per level, bottom to top)',items:['freq = '+mapStr(freq),'max frequency = '+mx,'popped so far: ['+log.join(', ')+']']}}
+ S.push({a:grid(),cols:3,ptr:{},aux:A(),note:'Frequency stack: pop the most frequent element; on a tie pop the one pushed most recently. Keep one stack per frequency level. A value of frequency f appears in rows 1..f, in the order it reached each level.'});
+ function push(x){freq[x]=(freq[x]||0)+1;var f=freq[x];mx=Math.max(mx,f);lv[f-1].push(x);S.push({a:grid(),cols:3,ptr:{},hi:[(f-1)*3+lv[f-1].length-1],aux:A(),note:'push('+x+'): its frequency is now '+f+', so put it on top of the stack of level '+f+' (row '+f+'). It stays in the lower rows too.'})}
+ function pop(){var row=lv[mx-1],cell=(mx-1)*3+row.length-1,x=row[row.length-1];S.push({a:grid(),cols:3,ptr:{},hi:[cell],aux:A(),note:'pop(): take the top of the highest non-empty level (row '+mx+'): '+x+'. That is the most frequent value and, among ties, the most recent.'});
+  var lvl=mx;row.pop();log.push(x);freq[x]--;if(!row.length)mx--;S.push({a:grid(),cols:3,ptr:{},ok:[],aux:A(),note:'Removed '+x+' from level '+lvl+'. Its frequency drops to '+freq[x]+' (its copies in lower rows stay). max frequency = '+mx+'.'})}
+ [5,7,5,7,4,5].forEach(push);pop();pop();pop();pop();
+ S.push({a:grid(),cols:3,ptr:{},ok:[],aux:A(),note:'Pop order 5, 7, 5, 4 matches the rule. push and pop are O(1): a frequency map, a stack per level and a maxFreq counter (decrease it when its level empties).'});return S},
+editor:function(){var L=[],R=[],S=[];
+ function cells(){return L.concat(['|']).concat(R.slice().reverse())}
+ function A(){return {label:'two stacks around the cursor',items:['left (before the cursor) = "'+L.join('')+'"','right (after the cursor, top = next character) = "'+R.slice().reverse().join('')+'"']}}
+ function snap(msg,h){S.push({a:cells(),ptr:{},hi:h||[],dim:[L.length],aux:A(),note:msg})}
+ snap('Text editor with a cursor: keep the characters before the cursor on one stack and the characters after it on another (top of the right stack = the character right after the cursor). Insert, delete and cursor moves touch only the cursor area. A single array would shift the whole tail on each insert in the middle.');
+ function add(s){s.split('').forEach(function(c){L.push(c)});snap('addText("'+s+'"): push each character on the left stack.',rng(L.length-s.length,L.length-1))}
+ function left(k){var m=0;while(k>0&&L.length){R.push(L.pop());k--;m++}snap('cursorLeft: move '+m+' character(s) from the left stack to the right stack.')}
+ function right(k){var m=0;while(k>0&&R.length){L.push(R.pop());k--;m++}snap('cursorRight: move '+m+' character(s) from the right stack to the left stack.')}
+ function del(k){var d=0;while(k>0&&L.length){L.pop();k--;d++}snap('deleteText: pop '+d+' character(s) from the left stack (like backspace).')}
+ add('abc');add('de');left(2);add('X');del(1);right(1);
+ S.push({a:cells(),ptr:{},ok:[L.length],aux:A(),note:'Text is now "'+L.join('')+R.slice().reverse().join('')+'" with the cursor after "'+L.join('')+'". Every operation costs O(characters moved). The same two-stack idea gives undo / redo and browser back / forward history.'});return S}};
 
 var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}

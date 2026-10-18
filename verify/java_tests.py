@@ -112,6 +112,24 @@ case(("17", 8, 1), 'int[] r = t.maximumBeauty(new int[][]{{1, 2}, {3, 2}, {2, 4}
 case(("17", 8, 2), 'boolean[] r = t.distanceLimitedPathsExist(3, new int[][]{{0, 1, 2}, {1, 2, 4}, {2, 0, 8}, {1, 0, 16}}, new int[][]{{0, 1, 2}, {0, 2, 5}}); check(!r[0] && r[1], "limited paths");')
 
 
+# ---- 18 design problems -------------------------------------------------------------------
+case(("18", 1, 1), 'LFUCache c = t.new LFUCache(2); c.put(1, 1); c.put(2, 2); check(c.get(1) == 1, "g1"); c.put(3, 3); check(c.get(2) == -1 && c.get(3) == 3, "evict 2"); c.put(4, 4); check(c.get(1) == -1 && c.get(3) == 3 && c.get(4) == 4, "evict 1");')
+case(("18", 1, 2), 'LRUCache c = t.new LRUCache(2); c.put(1, 1); c.put(2, 2); check(c.get(1) == 1, "g1"); c.put(3, 3); check(c.get(2) == -1, "evict 2"); c.put(4, 4); check(c.get(1) == -1 && c.get(3) == 3 && c.get(4) == 4, "lru");')
+case(("18", 2, 1), 'RandomizedSet s = t.new RandomizedSet(); check(s.insert(1) && !s.remove(2) && s.insert(2) && s.insert(3) && s.remove(1) && !s.insert(2), "ops"); for (int i = 0; i < 20; i++) { int r = s.getRandom(); check(r == 2 || r == 3, "random " + r); } check(s.remove(3) && s.remove(2) && s.insert(2), "drain");')
+case(("18", 2, 2), 'WeightedPicker p = t.new WeightedPicker(new int[]{1, 3, 2}); int[] want = {0, 1, 1, 1, 2, 2}; for (int r = 0; r < 6; r++) check(p.pickAt(r) == want[r], "pickAt " + r); int x = p.pick(); check(x >= 0 && x < 3, "pick");')
+case(("18", 3, 1), 'List<Object> data = List.of(List.of(1, List.of(2, 3)), 4, List.of(5), List.of()); NestedIterator it = t.new NestedIterator(data); StringBuilder sb = new StringBuilder(); while (it.hasNext()) sb.append(it.next()); check(sb.toString().equals("12345"), sb.toString());')
+case(("18", 4, 1), 'SlidingWindowLimiter s = t.new SlidingWindowLimiter(3, 10); int[] ts = {1, 2, 3, 5, 11, 12, 13, 14}; boolean[] want = {true, true, true, false, true, true, true, false}; for (int i = 0; i < ts.length; i++) check(s.allow(ts[i]) == want[i], "t=" + ts[i]);')
+case(("18", 4, 2), 'TokenBucket b = t.new TokenBucket(2, 1); double[] ts = {0, 0, 0, 1, 1, 3.5, 3.5, 3.5}; boolean[] want = {true, true, false, true, false, true, true, false}; for (int i = 0; i < ts.length; i++) check(b.allow(ts[i]) == want[i], "i=" + i);')
+case(("18", 5, 1), 'TimeMap m = t.new TimeMap(); m.set("foo", "bar", 1); check(m.get("foo", 1).equals("bar") && m.get("foo", 3).equals("bar") && m.get("zzz", 1).equals(""), "g"); m.set("foo", "bar2", 4); check(m.get("foo", 4).equals("bar2") && m.get("foo", 5).equals("bar2") && m.get("foo", 0).equals(""), "g2");')
+case(("18", 5, 2), 'SnapshotArray s = t.new SnapshotArray(3); s.set(0, 5); check(s.snap() == 0, "snap0"); s.set(0, 6); check(s.get(0, 0) == 5 && s.get(1, 0) == 0, "get"); check(s.snap() == 1 && s.get(0, 1) == 6, "snap1");')
+case(("18", 6, 1), 'Twitter tw = t.new Twitter(); tw.postTweet(1, 5); check(tw.getNewsFeed(1).toString().equals("[5]"), "f1"); tw.follow(1, 2); tw.postTweet(2, 6); check(tw.getNewsFeed(1).toString().equals("[6, 5]"), "f2"); tw.unfollow(1, 2); check(tw.getNewsFeed(1).toString().equals("[5]"), "f3");')
+case(("18", 6, 2), 'Leaderboard lb = t.new Leaderboard(); lb.addScore(1, 73); lb.addScore(2, 56); lb.addScore(3, 39); lb.addScore(4, 51); lb.addScore(5, 4); check(lb.top(1) == 73, "top1"); lb.reset(1); lb.reset(2); lb.addScore(2, 51); check(lb.top(3) == 141, "top3");')
+case(("18", 7, 1), 'FreqStack f = t.new FreqStack(); for (int x : new int[]{5, 7, 5, 7, 4, 5}) f.push(x); int[] want = {5, 7, 5, 4}; for (int w : want) check(f.pop() == w, "pop " + w);')
+case(("18", 7, 2), 'UndergroundSystem u = t.new UndergroundSystem(); u.checkIn(45, "Leyton", 3); u.checkIn(32, "Paradise", 8); u.checkIn(27, "Leyton", 10); u.checkOut(45, "Waterloo", 15); u.checkOut(27, "Waterloo", 20); u.checkOut(32, "Cambridge", 22); check(u.getAverageTime("Paradise", "Cambridge") == 14.0 && u.getAverageTime("Leyton", "Waterloo") == 11.0, "avg");')
+case(("18", 8, 1), 'TextEditor e = t.new TextEditor(); e.addText("leetcode"); check(e.deleteText(4) == 4, "d4"); e.addText("practice"); check(e.cursorRight(3).equals("etpractice"), "r3"); check(e.cursorLeft(8).equals("leet"), "l8"); check(e.deleteText(10) == 4, "d10"); check(e.cursorLeft(2).equals(""), "l2"); check(e.cursorRight(6).equals("practi"), "r6");')
+case(("18", 8, 2), 'BrowserHistory b = t.new BrowserHistory("leetcode.com"); b.visit("google.com"); b.visit("facebook.com"); b.visit("youtube.com"); check(b.back(1).equals("facebook.com") && b.back(1).equals("google.com") && b.forward(1).equals("facebook.com"), "nav"); b.visit("linkedin.com"); check(b.forward(2).equals("linkedin.com") && b.back(2).equals("google.com") && b.back(7).equals("leetcode.com"), "nav2");')
+
+
 def main():
     work = tempfile.mkdtemp(prefix="jrun")
     files = []
