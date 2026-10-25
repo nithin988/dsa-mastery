@@ -13,6 +13,7 @@ python verify/check_all.py
 | Java types | `check_java_types.py` | javac type-checks every Java snippet (errors other than "cannot find symbol", which excerpts are expected to produce) |
 | Python behaviour | `run_tests.py tests_1 tests_2 tests_3 tests_4` | The published Python code returns the right answers on known inputs and on randomised inputs compared with brute force |
 | Java behaviour | `java_tests.py` | The self-contained Java classes and methods run and return the right answers |
+| Planner | `check_planner.py` | The study-plan scheduler respects daily capacity and rest days, places reviews after learning, trims honestly when time is short, and parses assistant replies safely |
 | LeetCode links | `link_check.js` | Every problem slug exists, the number and difficulty match, and the problem is not premium-only |
 
 `link_check.js` must run inside a real `leetcode.com` page (LeetCode blocks scripts): open any problem page,

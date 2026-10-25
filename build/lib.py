@@ -48,6 +48,8 @@ ICONS = {
     "prev": '<path d="M10 3.5 5.5 8l4.5 4.5"/>',
     "next": '<path d="M6 3.5 10.5 8 6 12.5"/>',
     "reset": '<path d="M3 8a5 5 0 1 0 1.8-3.8M3 2.5v3h3"/>',
+    "key": '<circle cx="5.5" cy="10.5" r="3"/><path d="m8 8.5 5.5-5.5M11 5l1.5 1.5M9.5 6.5 11 8"/>',
+    "cal": '<rect x="2.5" y="3.5" width="11" height="10" rx="1.5"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/>',
     "share": '<circle cx="4" cy="8" r="1.8"/><circle cx="12" cy="4" r="1.8"/><circle cx="12" cy="12" r="1.8"/><path d="m5.7 7 4.6-2M5.7 9l4.6 2"/>',
     "book": '<path d="M2.5 3.5h4A1.5 1.5 0 0 1 8 5v8a1 1 0 0 0-1-1H2.5zM13.5 3.5h-4A1.5 1.5 0 0 0 8 5v8a1 1 0 0 1 1-1h4.5z"/>',
     "film": '<rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="m6.5 6 3.5 2-3.5 2z"/>',
@@ -254,7 +256,7 @@ def render_topic(t):
         side="".join(side), chips=chips, body="\n".join(b), desc=html.escape(desc, quote=True),
         url=SITE_URL + "topics/" + t["file"], favicon=FAVICON, cat=t.get("_catalog", "[]"),
         short=html.escape(t["title"].split(" — ")[0]),
-        i_menu=icon("menu"), i_theme=icon("theme"), i_down=icon("down"), i_right=icon("right"),
+        i_menu=icon("menu"), i_cal=icon("cal"), i_theme=icon("theme"), i_down=icon("down"), i_right=icon("right"),
     )
 
 
@@ -275,6 +277,7 @@ PAGE = """<!DOCTYPE html>
 <span class="seg" role="group" aria-label="Code language"><button id="b-java" class="on" aria-pressed="true">Java</button><button id="b-py" aria-pressed="false">Python</button></span>
 <span class="menu"><button id="b-topics" class="btn" aria-haspopup="true" aria-expanded="false" aria-controls="topics-panel">{i_menu}<span class="t-long">All topics</span></button>
 <div class="panel" id="topics-panel" role="menu" aria-label="All topics" hidden></div></span>
+<a class="btn" href="../plan.html" title="Build a study plan">{i_cal}<span class="t-long">Planner</span></a>
 <button id="b-theme" class="iconbtn" title="Toggle light / dark" aria-label="Toggle light or dark theme">{i_theme}</button>
 <button id="b-dl" class="btn pri" title="Save this page as a standalone HTML file">{i_down}<span class="t-long">Download</span></button></div>
 <div class="pbar" role="progressbar" aria-label="Problems solved on this page" aria-valuemin="0" aria-valuemax="100"><i id="pbar"></i></div></header>

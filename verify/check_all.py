@@ -10,6 +10,7 @@ STEPS = [
     ("Java types", ["check_java_types.py"]),
     ("Python behaviour", ["run_tests.py", "tests_1", "tests_2", "tests_3", "tests_4"]),
     ("Java behaviour", ["java_tests.py"]),
+    ("Planner scheduler", ["check_planner.py"]),
 ]
 
 
@@ -27,6 +28,8 @@ def main():
             bad = True
         if name == "syntax (Python + Java)" and ("failures: 0" not in out or "FAIL" in out):
             bad = bad or "failures: 0 (parsed" not in out
+        if name == "Planner scheduler" and "failed 0" not in out:
+            bad = True
         if name == "Java types" and "real type errors in 0 snippets" not in out:
             bad = True
         if bad:

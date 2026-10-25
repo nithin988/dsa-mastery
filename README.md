@@ -42,6 +42,17 @@ python build/build.py      # writes index.html and topics/*.html
 - `build/arrays.py`, `build/foundations.py`, `build/strings.py`, `build/linked_list.py`, `build/stack_queue.py`, `build/sorting_intervals.py`, `build/recursion_backtracking.py`, `build/bit_math.py`, `build/trees.py`, `build/heaps.py`, `build/graphs.py`, `build/graphs_advanced.py`, `build/tries.py`, `build/greedy.py`, `build/dp1.py`: topic content (copy one as the starting point for a new topic)
 - `build/build.py`: the topic catalogue and landing page
 
+## Study planner (`plan.html`)
+
+A page that builds a day-by-day study plan from the learner's time and the topics they pick, with a chat coach to adjust it.
+
+- **The schedule is computed by code** (`build/planner_core.js`), not by an AI: hours per day, rest day, level, depth, spaced reviews, weekly checkpoints and a final mock. If the time is not enough it trims in a fixed order (depth, secondary patterns) and says what it cut, or says how many more weeks are needed.
+- **The coach** (`build/planner.js`) works in two modes. With no key it understands simple requests ("6 weeks, 2 hours a day, only graphs and DP"). With a **Gemini API key that each learner pastes in themselves** it holds a normal conversation and changes the plan settings; the app recomputes the plan and shows exact dates and hours.
+- **The key is never in the repo or the site.** It is stored only in the learner's browser (`localStorage`, or in memory if they untick "Remember") and is sent only to Google. Never commit a key; the site is public.
+- Progress ticked in the plan is also written to the same progress store the topic pages use, so the landing page and topic menu stay in sync.
+
+Test the scheduler with `python verify/check_planner.py` (also part of `check_all.py`).
+
 ## Changing the look of every page
 
 Every topic page is generated from the same three shared files, so one edit restyles all of them:

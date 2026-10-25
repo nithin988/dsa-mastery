@@ -29,6 +29,8 @@ import adv_ds  # noqa: E402
 import design  # noqa: E402
 import playbook  # noqa: E402
 
+PLANNER_CORE = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "planner_core.js"), encoding="utf-8").read()
+PLANNER_JS = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "planner.js"), encoding="utf-8").read()
 HOME_JS = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "home.js"), encoding="utf-8").read()
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -94,6 +96,79 @@ def catalog_json():
     return json.dumps(rows, separators=(",", ":"))
 
 
+def planner_data():
+    """Compact topic data for the study planner (titles, patterns, problem ladders)."""
+    rows = []
+    for f, title, _b, topic in CATALOG:
+        if not topic:
+            continue
+        num = f.split("_")[0]
+        rows.append({
+            "id": topic["id"], "file": f, "num": num, "title": title, "phase": phase_of(int(num)),
+            "unit": topic.get("unit", "Pattern"),
+            "patterns": [
+                {"n": i + 1, "title": p["title"], "tier": p["tier"], "hasCode": bool(p["code"]),
+                 "problems": [[lc, name, d, slug] for (lc, name, d, slug, _l, _c) in p["problems"]]}
+                for i, p in enumerate(topic["patterns"])
+            ],
+        })
+    return rows
+
+
+def plan_html():
+    desc = "Build a realistic DSA study plan from your time, level and the topics you choose, and chat with a plan coach to adjust it."
+    icons_json = json.dumps(ICONS, separators=(",", ":"))
+    chips = ["I have 8 weeks, 2 hours a day, and I am a beginner", "My interviews are in 4 weeks, make it fast", "Only graphs and dynamic programming", "I fell behind, restart from today", "Why did you trim topics?"]
+    chip_html = "".join(f"<button type=\"button\">{html.escape(c)}</button>" for c in chips)
+    return f"""<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Study planner | DSA Mastery</title>
+<meta name="description" content="{desc}"><meta name="theme-color" content="#0f172a">
+<meta property="og:type" content="website"><meta property="og:site_name" content="DSA Mastery"><meta property="og:title" content="Study planner | DSA Mastery">
+<meta property="og:description" content="{desc}"><meta property="og:url" content="{SITE_URL}plan.html">
+<link rel="icon" href="{FAVICON}">
+<style>{CSS}</style></head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header class="bar"><div class="bar-in"><a class="brand" href="index.html" aria-label="DSA Mastery home"><span class="logo" aria-hidden="true">DSA</span><b>DSA <span>Mastery</span></b></a>
+<nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Topics</a>{icon("right")}<span class="cur">Study planner</span></nav>
+<button id="b-theme" class="iconbtn" title="Toggle light / dark" aria-label="Toggle light or dark theme">{icon("theme")}</button></div></header>
+<main id="content" class="home planner">
+<header class="hero"><div class="eyebrow"><span class="tag">Planner</span>Realistic, not aspirational</div>
+<h1>Plan your DSA study</h1>
+<p class="lead">Tell it how much time you really have and pick the topics. It builds a day-by-day schedule with spaced reviews and weekly checkpoints, trims what does not fit and says so. Chat with the coach to adjust the plan in plain language.</p></header>
+<div class="pl-grid">
+<div class="pl-col">
+<section class="card" aria-labelledby="h-set"><div class="card-h"><h2 id="h-set">1. Your time</h2></div><div class="card-b" id="settings"></div></section>
+<section class="card" aria-labelledby="h-top"><div class="card-h"><h2 id="h-top">2. Topics to cover</h2><span id="topics-sum"></span></div><div class="card-b" id="topics"></div></section>
+</div>
+<aside class="card chat" aria-label="Plan coach">
+<div class="card-h"><h2>Plan coach</h2><span id="coach-mode" class="st">Offline mode</span>
+<button id="clear-chat" class="btn iconbtn" title="Clear the chat" aria-label="Clear the chat">{icon("reset")}</button>
+<button id="key-toggle" class="btn" aria-expanded="false" aria-controls="key-panel" title="Add a Gemini API key">{icon("key")}<span>Key</span></button></div>
+<div id="key-panel" class="key-panel" hidden>
+<p class="muted">Optional: add your own free Gemini API key for a natural conversation (get one in <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>). The key is stored only in this browser and sent only to Google. Each message includes your plan settings and how many problems you have ticked per topic, nothing else.</p>
+<input id="key-input" type="password" autocomplete="off" spellcheck="false" aria-label="Gemini API key" placeholder="Paste your Gemini API key">
+<label><input type="checkbox" id="key-remember" checked> Remember on this device</label>
+<div class="row"><select id="model-select" aria-label="Gemini model"></select><button type="button" id="key-detect" class="btn">Detect models</button></div>
+<div class="row"><button type="button" id="key-save" class="btn pri">Save</button><button type="button" id="key-remove" class="btn" hidden>Remove key</button><span id="key-state" class="muted"></span></div>
+<p id="key-msg" class="muted" role="status"></p></div>
+<div id="msgs" class="msgs" role="log" aria-live="polite" aria-label="Conversation"></div>
+<div id="chips" class="chips2">{chip_html}</div>
+<form id="composer" class="composer"><textarea id="ask" rows="1" placeholder="Tell me about your time and goals" aria-label="Message to the plan coach"></textarea><button id="send" class="btn pri" type="submit"></button></form>
+</aside></div>
+<section aria-labelledby="h-plan"><h2 id="h-plan" class="sec-h">3. Your plan</h2><div id="plan-out" aria-live="polite"></div></section>
+</main>
+<footer class="site-foot"><span>DSA Mastery: free, open study sheets. Your plan and ticks are saved in this browser only.</span><span><a href="index.html">All topics</a> · <a href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener">GitHub</a></span></footer>
+<script>window.DSA_DATA={json.dumps(planner_data(), separators=(",", ":"))};</script>
+<script>(function(){{var IC={icons_json};
+{PLANNER_CORE}
+{PLANNER_JS}
+}})();</script>
+</body></html>
+"""
+
+
 def index_html():
     live = [(f, t, b, topic) for f, t, b, topic in CATALOG if topic]
     n_pat = sum(len(tp["patterns"]) for *_x, tp in live)
@@ -137,6 +212,7 @@ def index_html():
 <a class="skip" href="#content">Skip to content</a>
 <header class="bar"><div class="bar-in"><a class="brand" href="index.html" aria-label="DSA Mastery home"><span class="logo" aria-hidden="true">DSA</span><b>DSA <span>Mastery</span></b></a>
 <span style="margin-right:auto"></span>
+<a class="btn" href="plan.html">{icon("cal")}<span class="t-long">Planner</span></a>
 <a class="btn" href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener">{icon("ext")}<span class="t-long">GitHub</span></a>
 <button class="btn" data-share>{icon("share")}<span class="t-long">Share</span></button>
 <button id="b-theme" class="iconbtn" title="Toggle light / dark" aria-label="Toggle light or dark theme">{icon("theme")}</button></div></header>
@@ -147,6 +223,7 @@ def index_html():
 <p class="lead">Revision sheets built for product-company interviews. Every topic has the intuition, a step-by-step animation, code in Java and Python, complexity, common traps and a ladder of LeetCode problems from easy to hard.</p>
 <div class="cta"><a id="cta-start" class="btn pri lg" href="topics/{first}.html"><span>Start with topic 01</span>{icon("arr-r")}</a>
 <a id="cta-continue" class="btn lg" href="#" hidden><span>Continue</span>{icon("arr-r")}</a>
+<a class="btn lg" href="plan.html">{icon("cal")}<span>Plan my study</span></a>
 <button class="btn lg" data-share>{icon("share")}<span>Share with friends</span></button></div></div>
 <div class="kpis"><div class="kpi"><b>{len(live)}</b><span>topics in {len(PHASES)} phases</span></div><div class="kpi"><b>{n_pat}</b><span>patterns and chapters</span></div>
 <div class="kpi"><b>{n_sim}</b><span>step-by-step animations</span></div><div class="kpi"><b>{n_lc}</b><span>LeetCode problems</span></div>
@@ -187,6 +264,8 @@ def main():
             print("built", f)
     write(os.path.join(ROOT, "index.html"), index_html())
     print("built index.html")
+    write(os.path.join(ROOT, "plan.html"), plan_html())
+    print("built plan.html")
 
 
 if __name__ == "__main__":
