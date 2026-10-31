@@ -65,3 +65,41 @@ def svg(w, h, parts, title):
 
 def figure(w, h, parts, title, caption):
     return f'<figure class="viz">{svg(w, h, parts, title)}<figcaption>{html.escape(caption)}</figcaption></figure>'
+
+
+def seq(actors, msgs, title, caption, width=720):
+    """Sequence diagram. actors: names. msgs: ('a->b', from_i, to_i, label[, kind]) arrows (kind '' | 'reply' | 'bad'),
+    ('note', i, j, text) a note spanning lifelines i..j, ('gap', text) a small full-width heading."""
+    n = len(actors)
+    xs = [60 + i * (width - 120) / max(1, n - 1) for i in range(n)]
+    row, top = 36, 60
+    parts_arrows = []
+    y = top
+    for m in msgs:
+        if m[0] == "a->b":
+            _, a, b, label = m[:4]
+            kind = m[4] if len(m) > 4 else ""
+            x1, x2 = xs[a], xs[b]
+            cls = "dg-a " + ("dash " if kind == "reply" else "") + ("bad" if kind == "bad" else "")
+            off = 5 if x2 > x1 else -5
+            parts_arrows.append(f'<line class="{cls.strip()}" x1="{x1 + off:g}" y1="{y:g}" x2="{x2 - off:g}" y2="{y:g}" marker-end="url(#dga)"/>')
+            parts_arrows.append(f'<text class="dg-s" x="{(x1 + x2) / 2:g}" y="{y - 7:g}" text-anchor="middle">{html.escape(label)}</text>')
+            y += row
+        elif m[0] == "note":
+            _, i, j, txt = m
+            x1, x2 = min(xs[i], xs[j]) - 46, max(xs[i], xs[j]) + 46
+            parts_arrows.append(f'<rect class="dg-box acc" x="{x1:g}" y="{y - 15:g}" width="{x2 - x1:g}" height="26" rx="6"/>')
+            parts_arrows.append(f'<text class="dg-t acc" x="{(x1 + x2) / 2:g}" y="{y + 3:g}" text-anchor="middle" style="font-size:12px">{html.escape(txt)}</text>')
+            y += row
+        else:
+            parts_arrows.append(f'<text class="dg-t" x="{width / 2:g}" y="{y:g}" text-anchor="middle" style="font-size:12px">{html.escape(m[1])}</text>')
+            y += row - 8
+    height = y + 4
+    out = []
+    for i, name in enumerate(actors):
+        out.append(f'<line class="dg-life" x1="{xs[i]:g}" y1="40" x2="{xs[i]:g}" y2="{height - 10:g}"/>')
+    for i, name in enumerate(actors):
+        w = max(80, len(name) * 8 + 24)
+        out.append(f'<rect class="dg-box ink" x="{xs[i] - w / 2:g}" y="6" width="{w:g}" height="30" rx="6"/>')
+        out.append(f'<text class="dg-t ink" x="{xs[i]:g}" y="26" text-anchor="middle">{html.escape(name)}</text>')
+    return figure(width, int(height), out + parts_arrows, title, caption)

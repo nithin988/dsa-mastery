@@ -505,6 +505,30 @@ body.rail-pinned .rail-pin svg.ic{transform:rotate(180deg)}
 .hw ol,.hw ul{margin:6px 0 8px;padding-left:20px}.hw li{margin:3px 0}
 .hw .ex{margin-top:10px;padding:10px 14px;border-left:3px solid var(--info-line);background:var(--info-soft);border-radius:0 var(--r) var(--r) 0}
 .hw .ex p{margin:4px 0}
+
+.dg-life{stroke:var(--line);stroke-width:1.5;stroke-dasharray:4 4}
+.dg-a.dash{stroke-dasharray:5 4}
+.dg-a.bad{stroke:var(--warn-line)}
+.dg-t.acc{fill:var(--fg)}
+
+/* deep lessons: step-by-step flows, annotated real output, worked interview scenarios */
+.walk{list-style:none;counter-reset:w;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.walk li{counter-increment:w;position:relative;padding:10px 14px 10px 52px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+.walk li::before{content:counter(w);position:absolute;left:14px;top:10px;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--ink-fg);font:700 13px/26px system-ui,sans-serif;text-align:center}
+.walk li b{display:block;margin-bottom:2px}
+.walk li span{color:var(--txt);font-size:14px;line-height:1.55}
+.annot{margin:10px 0 0}
+.annot table{font-size:13px}
+.annot td:first-child{white-space:pre-wrap;word-break:break-word;min-width:160px}
+.scen{border:1px solid var(--info-line);background:var(--info-soft);border-radius:12px;padding:16px 18px;margin-top:18px}
+.scen h4{margin:6px 0 8px;font-size:17px}
+.scen .ask{font-size:15px;margin:0 0 6px}
+.scen-s{margin:12px 0}
+.scen-s ul,.scen-s ol{margin:6px 0 0;padding-left:22px}.scen-s li{margin:5px 0;line-height:1.55}
+.scen-s.warn{border-left:3px solid var(--warn-line);padding-left:12px}
+.scen details{background:var(--surf)}
+.scen details.more.scen-a{border:1px solid var(--line);border-left:3px solid var(--done);border-radius:var(--r);padding:0 14px;background:var(--surf)}
+.scen details.more.scen-a>summary{font-weight:700;color:var(--fg)}
 </style></head>
 <body class="has-rail" data-lang="java" data-file="05_stack_queue.html" data-topic="stack_queue">
 <a class="skip" href="#content">Skip to content</a>

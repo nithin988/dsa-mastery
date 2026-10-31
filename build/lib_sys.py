@@ -79,6 +79,9 @@ def first_sentence(paras_in):
     return first, items[1:]
 
 
+_DEEP = [False]
+
+
 def render_cmd(c, entry, env="Linux"):
     parts_tbl = ""
     if c.get("parts"):
@@ -92,12 +95,20 @@ def render_cmd(c, entry, env="Linux"):
     else:
         label = '<span class="stamp ill">Illustrative output · will differ on your machine</span>'
         out = f'<pre class="out ill"><code>{html.escape(c["o"].rstrip())}</code></pre>'
+    annot = ""
+    if c.get("annot"):
+        annot = ('<div class="annot"><span class="lbl">Read it line by line</span><div class="tw"><table><thead><tr><th>In the output</th><th>What it means</th></tr></thead><tbody>'
+                 + "".join(f"<tr><td><code>{html.escape(a)}</code></td><td>{md(b)}</td></tr>" for a, b in c["annot"]) + "</tbody></table></div></div>")
+    if _DEEP[0]:
+        more = f'<details class="more"><summary>Each part of the command</summary>{parts_tbl}</details>' if parts_tbl else ""
+        return (f'<div class="cmd"><pre class="sh"><code>{html.escape(c["c"])}</code></pre>'
+                f'<div class="cmd-b">{paras(c["e"])}<div class="out-l">{label}</div>{out}{annot}{more}</div></div>')
     head, rest = first_sentence(c["e"])
     more = ""
     if rest or parts_tbl:
         more = f'<details class="more"><summary>Explain in detail</summary>{paras(rest)}{parts_tbl}</details>'
     return (f'<div class="cmd"><pre class="sh"><code>{html.escape(c["c"])}</code></pre>'
-            f'<div class="cmd-b"><p>{md(head)}</p><div class="out-l">{label}</div>{out}{more}</div></div>')
+            f'<div class="cmd-b"><p>{md(head)}</p><div class="out-l">{label}</div>{out}{annot}{more}</div></div>')
 
 
 def render_lesson(mid, n, L, outputs, counter):
@@ -111,8 +122,13 @@ def render_lesson(mid, n, L, outputs, counter):
              '<div class="gi">' + slbl("You will learn", "list") + ul(L["learn"]) + "</div></div>")
     o.append(f'<div class="callout intu">{slbl("Mental model", "bulb")}{paras(L["model"])}'
              + (f'<p class="analogy"><b>Everyday analogy:</b> {md(L["analogy"])}</p>' if L.get("analogy") else "") + "</div>")
-    if L.get("visual"):
-        o.append(f'<div class="blk">{slbl("The picture", "layers")}{L["visual"]}</div>')
+    vis = L.get("visual")
+    if vis:
+        vis = "".join(vis) if isinstance(vis, (list, tuple)) else vis
+        o.append(f'<div class="blk">{slbl("The picture", "layers")}{vis}</div>')
+    if L.get("walk"):
+        items = "".join(f'<li><b>{md(h)}</b><span>{md(t)}</span></li>' for h, t in L["walk"])
+        o.append(f'<div class="blk">{slbl("How it works, step by step", "list")}<ol class="walk">{items}</ol></div>')
     if L.get("sim"):
         o.append(f'<div class="blk">{slbl("Watch it run", "film")}<p class="muted" style="margin:0 0 6px">Press play, or step with the buttons, the slider or the arrow keys.</p>'
                  f'<div class="stepper" data-sim="{L["sim"]}"></div></div>')
@@ -130,6 +146,8 @@ def render_lesson(mid, n, L, outputs, counter):
                 counter[0] += 1
             o.append(render_cmd(c, entry, outputs.get('_env', 'Linux')))
         o.append("</div>")
+    if L.get("scenario"):
+        o.append(render_scenario(L["scenario"]))
     if L.get("playbook"):
         pb = L["playbook"]
         o.append(f'<div class="blk"><details class="more"><summary>{icon("search")} {html.escape(pb["title"])}</summary>'
@@ -141,6 +159,25 @@ def render_lesson(mid, n, L, outputs, counter):
         o.append(f'<div class="blk warn"><details class="more"><summary>{icon("warn")} Traps to avoid ({len(L["traps"])})</summary>{ul(L["traps"])}</details></div>')
     o.append("</div></section>")
     return "\n".join(o)
+
+
+def render_scenario(sc):
+    h = [f'<div class="blk scen"><span class="lbl">{icon("target")}Interview in practice</span><h4>{html.escape(sc["title"])}</h4>']
+    h.append(f'<p class="ask"><b>The question:</b> {md(sc["ask"])}</p>')
+    h.append('<p class="muted">Pause for a minute and say how you would start, then compare with the walkthrough below.</p>')
+    if sc.get("clarify"):
+        h.append('<div class="scen-s"><b>1. Clarify first</b> <span class="muted">(what to ask, and why it matters)</span><ul>'
+                 + "".join(f"<li><b>{md(q)}</b> {md(a)}</li>" for q, a in sc["clarify"]) + "</ul></div>")
+    h.append('<div class="scen-s"><b>2. Think it through</b> <span class="muted">(the reasoning, step by step)</span><ol>'
+             + "".join(f"<li><b>{md(t)}</b> {md(r)}</li>" for t, r in sc["think"]) + "</ol></div>")
+    h.append(f'<details class="more scen-a" open><summary>3. A strong answer, said out loud</summary>{paras(sc["answer"])}</details>')
+    if sc.get("follow"):
+        h.append('<div class="scen-s"><b>4. Follow-ups you should expect</b>'
+                 + "".join(f'<details><summary>{md(q)}</summary><p>{md(a)}</p></details>' for q, a in sc["follow"]) + "</div>")
+    if sc.get("slips"):
+        h.append('<div class="scen-s warn"><b>Common slips</b>' + ul(sc["slips"]) + "</div>")
+    h.append("</div>")
+    return "".join(h)
 
 
 def render_lab(mid, i, lab):
@@ -196,6 +233,7 @@ def render_qa(q):
 
 def render_module(m):
     outputs = load_outputs()
+    _DEEP[0] = bool(m.get("deep"))
     mid, num = m["id"], m["num"]
     n_total = m.get("_n_total", 29)
     counter = [0]
