@@ -41,7 +41,7 @@ MODULES = [
     ("S24", "S24_architecture_patterns", "Architecture patterns: monoliths, services, events and CQRS", "Monolith versus services with real numbers, a strangler migration on real nginx, event sourcing, CQRS read models and data ownership.", 3, "sys_arch2"),
     ("S25", "S25_security_for_design", "Security for system design", "Real hashing and TOTP, JWT and OAuth, a certificate authority with TLS and mTLS, IDOR, injection and SSRF, secrets and envelope encryption, and layered design.", 3, "sys_sec"),
     ("S26", "S26_designing_for_reliability", "Designing for reliability and operations", "Availability arithmetic and failure domains, supervisors and failover, safe canary deployments, metrics and tracing, disaster recovery and overload with load shedding.", 3, "sys_rel2"),
-    ("S27", "S27_design_warmups", "Design warm-ups", "URL shortener, pastebin, rate limiter, ID generator, key-value store.", 4, "sys_design_warmups"),
+    ("S27", "S27_design_warmups", "Design warm-ups: five classic problems, worked end to end", "URL shortener, unique IDs, key-value store, pastebin and a distributed rate limiter, each with its key mechanism run for real, plus how to present a design in 45 minutes.", 4, "sys_warm2"),
     ("S28", "S28_feeds_chat_notifications", "Feeds, chat and notifications", "News feed, messaging, presence and notification systems.", 4, None),
     ("S29", "S29_media_files_streaming", "Media, files and streaming", "Video streaming, file sync and image services.", 4, None),
     ("S30", "S30_search_crawl_analytics", "Search, crawling and analytics pipelines", "Autocomplete, web crawler, log and metrics pipelines.", 4, None),
