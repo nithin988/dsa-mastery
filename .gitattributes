@@ -1,0 +1,3 @@
+*.sh text eol=lf
+systems/labs/linux/lab text eol=lf
+systems/labs/linux/Dockerfile text eol=lf

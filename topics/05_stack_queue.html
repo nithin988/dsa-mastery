@@ -40,6 +40,7 @@
  --sh:none;--sh-lg:0 10px 30px rgba(0,0,0,.5);color-scheme:dark}
 
 *{box-sizing:border-box}html{scroll-behavior:smooth}
+[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 a{color:var(--acc);text-underline-offset:2px}
 :focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:4px}
@@ -339,11 +340,81 @@ details.wk[open]{border-left:2px solid var(--info-line)}
 @media (max-width:1020px){.pl-grid{grid-template-columns:1fr}.chat{position:static;height:560px}.kpis4{grid-template-columns:1fr 1fr}}
 @media (max-width:640px){.fgrid{grid-template-columns:1fr}.field:nth-child(n){grid-column:auto}.task{grid-template-columns:20px 1fr auto}.task .kind{display:none}.wt{flex-basis:100%;order:3}.msg{max-width:100%}}
 @media print{.pl-grid,.hero,.plan-bar .pb-r,.chat{display:none}.wk{break-inside:avoid-page}details.wk>summary::before{display:none}}
+
+/* left rail */
+body.has-rail{padding-left:56px}
+.rail{position:fixed;inset:0 auto 0 0;width:56px;z-index:40;background:var(--surf);border-right:1px solid var(--line);padding:9px 8px;overflow:hidden;transition:width .18s ease;display:flex;flex-direction:column;gap:2px}
+.rail:hover,.rail:focus-within{width:240px;box-shadow:var(--sh-lg)}
+.rail-i{display:flex;align-items:center;gap:12px;height:38px;padding:0 10px;border-radius:var(--r);text-decoration:none;color:var(--txt);white-space:nowrap;font-size:14px}
+.rail-i:hover{background:var(--soft)}
+.rail-i[aria-current=page]{background:var(--soft);color:var(--fg);font-weight:600;box-shadow:inset 2px 0 0 var(--ink)}
+.rail-i .ic{width:18px;height:18px}
+.rail-logo{margin-bottom:6px;height:44px}.rail-logo .logo{width:24px;height:24px;flex:none}
+.rail .l{opacity:0;transition:opacity .12s}.rail:hover .l,.rail:focus-within .l{opacity:1}
+.rail-g{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);padding:14px 10px 4px;opacity:0;white-space:nowrap}
+.rail:hover .rail-g,.rail:focus-within .rail-g{opacity:1}
+.rail-sub{display:flex;flex-direction:column;margin:0 0 4px 22px;padding-left:12px;border-left:1px solid var(--line);opacity:0;max-height:0;overflow:hidden;transition:opacity .12s}
+.rail:hover .rail-sub,.rail:focus-within .rail-sub{opacity:1;max-height:260px}
+.rail-sub a{font-size:13px;color:var(--mut);text-decoration:none;padding:5px 8px;border-radius:var(--r);white-space:nowrap}.rail-sub a:hover{background:var(--soft);color:var(--fg)}
+.rail-bd{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:35}.rail-bd[hidden]{display:none}
+.rail-btn{display:none}
+@media (max-width:1020px){body.has-rail{padding-left:0}
+ .rail{transform:translateX(-100%);width:256px;transition:transform .2s ease;box-shadow:none}.rail.open{transform:none;box-shadow:var(--sh-lg)}
+ .rail:hover,.rail:focus-within{width:256px}.rail .l,.rail-g,.rail-sub{opacity:1}.rail-sub{max-height:260px}
+ .rail-btn{display:inline-flex}}
+@media print{.rail,.rail-bd{display:none}body.has-rail{padding-left:0}}
+
+/* systems pages and hub */
+pre.sh::before{content:"Command"}pre.out::before{content:"Output"}
+pre.sh{margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0;background:var(--ink);color:var(--ink-fg)}
+pre.sh::before{color:inherit;opacity:.65}
+pre.sh code{color:inherit;white-space:pre}
+pre.sh .cp{background:transparent;color:var(--ink-fg);border-color:rgba(248,250,252,.35)}pre.sh .cp:hover{background:rgba(248,250,252,.12);color:var(--ink-fg)}
+[data-theme=dark] pre.sh{background:#0b1324;color:#f1f5f9;border:1px solid var(--line)}
+pre.out{margin-top:0;border-top-left-radius:0;border-top-right-radius:0}
+.cmd{margin:14px 0 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);overflow:hidden}
+.cmd pre{margin:0;border-radius:0;border-left:0;border-right:0}.cmd>pre.sh{border-top:0}
+.cmd-b{padding:10px 14px 12px}.cmd-b p{margin:4px 0}
+.cmd-b pre.out{margin:6px 0 0;border:1px solid var(--line);border-radius:var(--r)}
+.out-l{margin-top:8px}
+.stamp{display:inline-block;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--done);background:var(--done-soft);border-radius:99px;padding:3px 9px}
+.stamp.ill{color:var(--warn);background:var(--warn-soft)}
+.noout{font-size:13px}
+.parts{margin:8px 0 0}.parts table{font-size:13px}.parts th,.parts td{padding:6px 10px}
+.analogy{margin:8px 0 2px}
+.tick{display:inline-flex;gap:7px;align-items:center;font-size:12.5px;color:var(--mut);cursor:pointer;margin-left:auto}
+.tick input{width:16px;height:16px;accent-color:var(--done);margin:0}.tick.is-done{color:var(--done);font-weight:600}
+.pat-h .tick{margin-left:auto}.pat-h .pp{margin-left:0}
+.lab .badge{background:var(--soft);color:var(--fg)}.lab .badge .ic{width:16px;height:16px}
+.lab{border-left:2px solid var(--info-line)}
+.case{border:1px solid var(--line);border-left:2px solid var(--warn-line);background:var(--hd);border-radius:var(--r);padding:12px 16px;margin:14px 0}
+.case h4{margin:4px 0 6px;font-size:16px;color:var(--fg)}.case p{margin:6px 0}
+.qa{padding:0 14px}.qa summary{font-weight:600}
+.qa-b{padding:0 0 12px}.qa-b ul{margin:4px 0 10px;padding-left:20px}.qa-b li{margin:3px 0}
+.angle{background:var(--hd);border:1px solid var(--line);border-left:2px solid var(--info-line);border-radius:var(--r);padding:8px 12px;font-size:14px}
+table.playbook td:first-child{font-weight:600;color:var(--fg)}
+table.cheat td:first-child{font-family:ui-monospace,Consolas,monospace;font-size:13px;white-space:pre-wrap;color:var(--fg)}
+/* hub */
+.courses{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ccard{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden}
+.ccard .tcard-h{min-height:52px}.ccard .tcard-h h2{margin:0;font-size:19px;margin-right:auto;color:var(--fg)}
+.ccard .tcard-h .no{padding:5px 8px;display:inline-flex}.ccard .tcard-h .no .ic{width:18px;height:18px}
+.ticks{margin:0;padding-left:20px;font-size:14px;color:var(--txt)}.ticks li{margin:3px 0}
+.tcard.planned{opacity:.7;background:var(--hd)}.tcard.planned .no{background:var(--soft);color:var(--mut)}
+@media (max-width:820px){.courses{grid-template-columns:1fr}}
+/* diagrams */
+.viz{margin:8px 0;padding:10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+.viz figcaption{font-size:13px;color:var(--mut);margin-top:6px;text-align:center}
+.dg{width:100%;height:auto;display:block}
+.dg-box{fill:var(--hd);stroke:var(--line);stroke-width:1.5}.dg-box.acc{fill:var(--acc-soft);stroke:var(--acc)}.dg-box.ok{fill:var(--done-soft);stroke:var(--done)}.dg-box.warn{fill:var(--warn-soft);stroke:var(--warn-line)}.dg-box.ink{fill:var(--ink);stroke:var(--ink)}
+.dg-t{font:600 13px system-ui,sans-serif;fill:var(--fg)}.dg-t.ink{fill:var(--ink-fg)}.dg-s{font:12px system-ui,sans-serif;fill:var(--mut)}
+.dg-a{stroke:var(--faint);stroke-width:2}.dg-a.acc{stroke:var(--acc)}.dg-m{fill:var(--faint)}
 </style></head>
-<body data-lang="java" data-file="05_stack_queue.html" data-topic="stack_queue">
+<body class="has-rail" data-lang="java" data-file="05_stack_queue.html" data-topic="stack_queue">
 <a class="skip" href="#content">Skip to content</a>
-<header class="bar"><div class="bar-in"><a class="brand" href="../index.html" aria-label="DSA Mastery home"><span class="logo" aria-hidden="true">DSA</span><b>DSA <span>Mastery</span></b></a>
-<nav class="crumbs" aria-label="Breadcrumb"><a href="../index.html">Topics</a><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3.5 4.5 4.5L6 12.5"/></svg><span class="cur">05 · Stacks, Queues and Deques</span></nav>
+<nav class="rail" id="rail" aria-label="Sections"><a class="rail-i rail-logo" href="../index.html" title="Mastery home"><span class="logo" aria-hidden="true">M</span><span class="l"><b>Mastery</b></span></a><div class="rail-g">Courses</div><a class="rail-i" href="../index.html" title="Home"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 7.5 8 2.5l5.5 5M4 6.5v7h8v-7"/></svg><span class="l">Home</span></a><a class="rail-i" href="../dsa.html" aria-current="page" title="DSA Mastery"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m5.5 4.5-3.5 3.5 3.5 3.5M10.5 4.5l3.5 3.5-3.5 3.5"/></svg><span class="l">DSA Mastery</span></a><a class="rail-i" href="../systems.html" title="Systems Mastery"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3" width="11" height="4" rx="1"/><rect x="2.5" y="9" width="11" height="4" rx="1"/><path d="M5 5h.01M5 11h.01"/></svg><span class="l">Systems Mastery</span></a><div class="rail-g">Tools</div><a class="rail-i" href="../plan.html" title="DSA study planner"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="10" rx="1.5"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/></svg><span class="l">DSA study planner</span></a><a class="rail-i" href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener" title="GitHub"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M9 2.5h4.5V7M13.5 2.5 7 9M12 9v4.5H2.5V4H7"/></svg><span class="l">GitHub</span></a></nav><div class="rail-bd" id="rail-bd" hidden></div>
+<header class="bar"><div class="bar-in"><button id="b-rail" class="iconbtn rail-btn" aria-label="Open the sections menu" aria-expanded="false" aria-controls="rail"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"/></svg></button><a class="brand" href="../index.html" aria-label="DSA Mastery home"><span class="logo" aria-hidden="true">DSA</span><b>DSA <span>Mastery</span></b></a>
+<nav class="crumbs" aria-label="Breadcrumb"><a href="../dsa.html">DSA topics</a><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3.5 4.5 4.5L6 12.5"/></svg><span class="cur">05 · Stacks, Queues and Deques</span></nav>
 <span class="prog" id="prog" aria-live="polite"></span>
 <span class="seg" role="group" aria-label="Code language"><button id="b-java" class="on" aria-pressed="true">Java</button><button id="b-py" aria-pressed="false">Python</button></span>
 <span class="menu"><button id="b-topics" class="btn" aria-haspopup="true" aria-expanded="false" aria-controls="topics-panel"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"/></svg><span class="t-long">All topics</span></button>
@@ -969,10 +1040,10 @@ return q[0]</code></pre></div>
 <h2 id="plan">Study plan</h2><ol><li><strong>Day 1:</strong> stack basics and expression evaluation (RPN, min stack, calculator II).</li><li><strong>Day 2:</strong> monotonic stack: next greater element, daily temperatures, circular variant.</li><li><strong>Day 3:</strong> monotonic stack for ranges: histogram first, then subarray minimums; redo without notes.</li><li><strong>Day 4:</strong> BFS: level order, rotting oranges, word ladder; write the template from memory.</li><li><strong>Day 5:</strong> monotonic deque: sliding window maximum, then the two-deque variant.</li><li><strong>Day 6:</strong> greedy stack (remove k digits, asteroid collision) and the design problems (queue from stacks, circular queue).</li></ol>
 <nav class="foot" aria-label="Previous and next topic"><a class="nxt" href="04_linked_list.html"><small><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8h-11M7 3.5 2.5 8 7 12.5"/></svg>Previous</small><strong>Linked Lists</strong></a><a class="nxt next r" href="06_sorting_intervals.html"><small>Next topic<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg></small><strong>Sorting and Intervals</strong></a></nav>
 </main></div>
-<footer class="site-foot"><span>DSA Mastery: free, open study sheets. Progress is saved in your browser only.</span><span><a href="../index.html">All topics</a> · <a href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener">GitHub</a></span></footer>
+<footer class="site-foot"><span>DSA Mastery: free, open study sheets. Progress is saved in your browser only.</span><span><a href="../dsa.html">All DSA topics</a> · <a href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener">GitHub</a></span></footer>
 <script>window.DSA_TOPICS=[{"id":"foundations","file":"01_complexity_foundations","num":"01","title":"Complexity and Problem-Solving Method","phase":"Foundations","total":44},{"id":"arrays","file":"02_arrays","num":"02","title":"Arrays, Hashing and Searching","phase":"Foundations","total":77},{"id":"strings","file":"03_strings","num":"03","title":"Strings","phase":"Foundations","total":51},{"id":"linked_list","file":"04_linked_list","num":"04","title":"Linked Lists","phase":"Core structures","total":35},{"id":"stack_queue","file":"05_stack_queue","num":"05","title":"Stacks, Queues and Deques","phase":"Core structures","total":44},{"id":"sorting_intervals","file":"06_sorting_intervals","num":"06","title":"Sorting and Intervals","phase":"Core structures","total":47},{"id":"backtracking","file":"07_recursion_backtracking","num":"07","title":"Recursion and Backtracking","phase":"Recursion and trees","total":40},{"id":"bit_math","file":"08_bit_math","num":"08","title":"Bit Manipulation and Math","phase":"Recursion and trees","total":51},{"id":"trees","file":"09_trees","num":"09","title":"Binary Trees and BST","phase":"Recursion and trees","total":56},{"id":"heaps","file":"10_heap_priority_queue","num":"10","title":"Heaps and Priority Queues","phase":"Heaps, tries and graphs","total":41},{"id":"trie","file":"11_trie","num":"11","title":"Tries","phase":"Heaps, tries and graphs","total":29},{"id":"graphs_traversal","file":"12_graphs_traversal","num":"12","title":"Graph Traversal","phase":"Heaps, tries and graphs","total":43},{"id":"graphs_advanced","file":"13_graphs_advanced","num":"13","title":"Advanced Graphs","phase":"Heaps, tries and graphs","total":37},{"id":"greedy","file":"14_greedy","num":"14","title":"Greedy","phase":"Greedy and dynamic programming","total":38},{"id":"dp1","file":"15_dp_1d_2d","num":"15","title":"Dynamic Programming I","phase":"Greedy and dynamic programming","total":45},{"id":"dp2","file":"16_dp_advanced","num":"16","title":"Dynamic Programming II","phase":"Greedy and dynamic programming","total":47},{"id":"ads","file":"17_advanced_ds","num":"17","title":"Advanced Data Structures","phase":"Advanced and interview","total":31},{"id":"design","file":"18_design_problems","num":"18","title":"Design Problems","phase":"Advanced and interview","total":31},{"id":"play","file":"19_interview_playbook","num":"19","title":"Interview Playbook","phase":"Advanced and interview","total":46}];</script>
 <script>(function(){
-var IC={"target":"<circle cx=\"8\" cy=\"8\" r=\"6\"/><circle cx=\"8\" cy=\"8\" r=\"2\"/>","search":"<circle cx=\"7\" cy=\"7\" r=\"4.5\"/><path d=\"m14 14-3.5-3.5\"/>","bulb":"<path d=\"M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z\"/>","up":"<path d=\"M4 12 12 4M6 4h6v6\"/>","spark":"<path d=\"M8 1.5 9.5 6.5 14.5 8 9.5 9.5 8 14.5 6.5 9.5 1.5 8 6.5 6.5z\"/>","list":"<path d=\"M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01\"/>","term":"<path d=\"m3 4.5 3.5 3.5L3 11.5M8 12h5\"/>","code":"<path d=\"m5.5 4.5-3.5 3.5 3.5 3.5M10.5 4.5l3.5 3.5-3.5 3.5\"/>","clock":"<circle cx=\"8\" cy=\"8\" r=\"6\"/><path d=\"M8 4.5V8l2.5 1.5\"/>","warn":"<path d=\"M8 2 14.5 13.5h-13z\"/><path d=\"M8 6.5v3M8 11.5h.01\"/>","layers":"<path d=\"m8 2 6.5 3.5L8 9 1.5 5.5z\"/><path d=\"m1.5 8.5 6.5 3.5 6.5-3.5\"/>","no":"<circle cx=\"8\" cy=\"8\" r=\"6\"/><path d=\"m5.8 5.8 4.4 4.4M10.2 5.8l-4.4 4.4\"/>","stairs":"<path d=\"M2.5 13.5h3v-3h3v-3h3v-3h2\"/>","flame":"<path d=\"M8 14.5c-2.5 0-4-1.7-4-3.8 0-2.2 2-3.2 2.4-5.2.9.6 1.6 1.5 1.8 2.6.6-.5.9-1.4.8-2.4 1.8 1.2 3 3 3 5 0 2-1.5 3.8-4 3.8z\"/>","mark":"<path d=\"M4 2.5h8v11L8 10.5 4 13.5z\"/>","down":"<path d=\"M8 2.5v8M4.5 7.5 8 11l3.5-3.5M2.5 13.5h11\"/>","menu":"<path d=\"M2.5 4h11M2.5 8h11M2.5 12h11\"/>","theme":"<circle cx=\"8\" cy=\"8\" r=\"5.5\"/><path d=\"M8 2.5a5.5 5.5 0 0 0 0 11z\" fill=\"currentColor\"/>","right":"<path d=\"m6 3.5 4.5 4.5L6 12.5\"/>","arr-r":"<path d=\"M2.5 8h11M9 3.5 13.5 8 9 12.5\"/>","arr-l":"<path d=\"M13.5 8h-11M7 3.5 2.5 8 7 12.5\"/>","check":"<path d=\"m3 8.5 3.2 3.2L13 4.8\"/>","ext":"<path d=\"M9 2.5h4.5V7M13.5 2.5 7 9M12 9v4.5H2.5V4H7\"/>","play":"<path d=\"M5 3.2v9.6L12.8 8z\"/>","pause":"<path d=\"M5 3.5v9M11 3.5v9\"/>","prev":"<path d=\"M10 3.5 5.5 8l4.5 4.5\"/>","next":"<path d=\"M6 3.5 10.5 8 6 12.5\"/>","reset":"<path d=\"M3 8a5 5 0 1 0 1.8-3.8M3 2.5v3h3\"/>","key":"<circle cx=\"5.5\" cy=\"10.5\" r=\"3\"/><path d=\"m8 8.5 5.5-5.5M11 5l1.5 1.5M9.5 6.5 11 8\"/>","cal":"<rect x=\"2.5\" y=\"3.5\" width=\"11\" height=\"10\" rx=\"1.5\"/><path d=\"M2.5 6.5h11M5.5 2v3M10.5 2v3\"/>","share":"<circle cx=\"4\" cy=\"8\" r=\"1.8\"/><circle cx=\"12\" cy=\"4\" r=\"1.8\"/><circle cx=\"12\" cy=\"12\" r=\"1.8\"/><path d=\"m5.7 7 4.6-2M5.7 9l4.6 2\"/>","book":"<path d=\"M2.5 3.5h4A1.5 1.5 0 0 1 8 5v8a1 1 0 0 0-1-1H2.5zM13.5 3.5h-4A1.5 1.5 0 0 0 8 5v8a1 1 0 0 1 1-1h4.5z\"/>","film":"<rect x=\"2\" y=\"3\" width=\"12\" height=\"10\" rx=\"1.5\"/><path d=\"m6.5 6 3.5 2-3.5 2z\"/>","pencil":"<path d=\"M2.5 13.5 3 10l7-7 3 3-7 7zM9 4l3 3\"/>"};
+var IC={"target":"<circle cx=\"8\" cy=\"8\" r=\"6\"/><circle cx=\"8\" cy=\"8\" r=\"2\"/>","search":"<circle cx=\"7\" cy=\"7\" r=\"4.5\"/><path d=\"m14 14-3.5-3.5\"/>","bulb":"<path d=\"M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z\"/>","up":"<path d=\"M4 12 12 4M6 4h6v6\"/>","spark":"<path d=\"M8 1.5 9.5 6.5 14.5 8 9.5 9.5 8 14.5 6.5 9.5 1.5 8 6.5 6.5z\"/>","list":"<path d=\"M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01\"/>","term":"<path d=\"m3 4.5 3.5 3.5L3 11.5M8 12h5\"/>","code":"<path d=\"m5.5 4.5-3.5 3.5 3.5 3.5M10.5 4.5l3.5 3.5-3.5 3.5\"/>","clock":"<circle cx=\"8\" cy=\"8\" r=\"6\"/><path d=\"M8 4.5V8l2.5 1.5\"/>","warn":"<path d=\"M8 2 14.5 13.5h-13z\"/><path d=\"M8 6.5v3M8 11.5h.01\"/>","layers":"<path d=\"m8 2 6.5 3.5L8 9 1.5 5.5z\"/><path d=\"m1.5 8.5 6.5 3.5 6.5-3.5\"/>","no":"<circle cx=\"8\" cy=\"8\" r=\"6\"/><path d=\"m5.8 5.8 4.4 4.4M10.2 5.8l-4.4 4.4\"/>","stairs":"<path d=\"M2.5 13.5h3v-3h3v-3h3v-3h2\"/>","flame":"<path d=\"M8 14.5c-2.5 0-4-1.7-4-3.8 0-2.2 2-3.2 2.4-5.2.9.6 1.6 1.5 1.8 2.6.6-.5.9-1.4.8-2.4 1.8 1.2 3 3 3 5 0 2-1.5 3.8-4 3.8z\"/>","mark":"<path d=\"M4 2.5h8v11L8 10.5 4 13.5z\"/>","down":"<path d=\"M8 2.5v8M4.5 7.5 8 11l3.5-3.5M2.5 13.5h11\"/>","menu":"<path d=\"M2.5 4h11M2.5 8h11M2.5 12h11\"/>","theme":"<circle cx=\"8\" cy=\"8\" r=\"5.5\"/><path d=\"M8 2.5a5.5 5.5 0 0 0 0 11z\" fill=\"currentColor\"/>","right":"<path d=\"m6 3.5 4.5 4.5L6 12.5\"/>","arr-r":"<path d=\"M2.5 8h11M9 3.5 13.5 8 9 12.5\"/>","arr-l":"<path d=\"M13.5 8h-11M7 3.5 2.5 8 7 12.5\"/>","check":"<path d=\"m3 8.5 3.2 3.2L13 4.8\"/>","ext":"<path d=\"M9 2.5h4.5V7M13.5 2.5 7 9M12 9v4.5H2.5V4H7\"/>","play":"<path d=\"M5 3.2v9.6L12.8 8z\"/>","pause":"<path d=\"M5 3.5v9M11 3.5v9\"/>","prev":"<path d=\"M10 3.5 5.5 8l4.5 4.5\"/>","next":"<path d=\"M6 3.5 10.5 8 6 12.5\"/>","reset":"<path d=\"M3 8a5 5 0 1 0 1.8-3.8M3 2.5v3h3\"/>","key":"<circle cx=\"5.5\" cy=\"10.5\" r=\"3\"/><path d=\"m8 8.5 5.5-5.5M11 5l1.5 1.5M9.5 6.5 11 8\"/>","cal":"<rect x=\"2.5\" y=\"3.5\" width=\"11\" height=\"10\" rx=\"1.5\"/><path d=\"M2.5 6.5h11M5.5 2v3M10.5 2v3\"/>","home":"<path d=\"M2.5 7.5 8 2.5l5.5 5M4 6.5v7h8v-7\"/>","branch":"<circle cx=\"4.5\" cy=\"3.5\" r=\"1.5\"/><circle cx=\"4.5\" cy=\"12.5\" r=\"1.5\"/><circle cx=\"11.5\" cy=\"6\" r=\"1.5\"/><path d=\"M4.5 5v6M11.5 7.5c0 2.5-3 2-7 3.5\"/>","server":"<rect x=\"2.5\" y=\"3\" width=\"11\" height=\"4\" rx=\"1\"/><rect x=\"2.5\" y=\"9\" width=\"11\" height=\"4\" rx=\"1\"/><path d=\"M5 5h.01M5 11h.01\"/>","flask":"<path d=\"M6 2.5h4M6.5 2.5v4L3 12.5a1 1 0 0 0 .9 1.5h8.2a1 1 0 0 0 .9-1.5L9.5 6.5v-4\"/><path d=\"M4.8 10h6.4\"/>","share":"<circle cx=\"4\" cy=\"8\" r=\"1.8\"/><circle cx=\"12\" cy=\"4\" r=\"1.8\"/><circle cx=\"12\" cy=\"12\" r=\"1.8\"/><path d=\"m5.7 7 4.6-2M5.7 9l4.6 2\"/>","book":"<path d=\"M2.5 3.5h4A1.5 1.5 0 0 1 8 5v8a1 1 0 0 0-1-1H2.5zM13.5 3.5h-4A1.5 1.5 0 0 0 8 5v8a1 1 0 0 1 1-1h4.5z\"/>","film":"<rect x=\"2\" y=\"3\" width=\"12\" height=\"10\" rx=\"1.5\"/><path d=\"m6.5 6 3.5 2-3.5 2z\"/>","pencil":"<path d=\"M2.5 13.5 3 10l7-7 3 3-7 7zM9 4l3 3\"/>"};
 function rng(x,y){var r=[];for(var i=x;i<=y;i++)r.push(i);return r}
 function mapStr(m){var k=Object.keys(m);return '{'+k.map(function(x){return x+':'+m[x]}).join(', ')+'}'}
 function bitsOf(x,n){var s=(x>>>0).toString(2);while(s.length<n)s='0'+s;return s.split('')}
@@ -2286,26 +2357,26 @@ selector:function(){var P=[
 
 var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
-var body=document.body,T=window.DSA_TOPICS||[],cur=(body.dataset.file||'').replace('.html','');
+var body=document.body,T=window.DSA_TOPICS||[],cur=(body.dataset.file||'').replace('.html',''),STORE=body.dataset.store||'dsa-progress',LASTK=body.dataset.last||'dsa-last',WORD=body.dataset.word||'solved';
 function ic(n,c){return '<svg class="ic '+(c||'')+'" viewBox="0 0 16 16" aria-hidden="true">'+IC[n]+'</svg>'}
 /* language + theme */
-function setLang(l){body.dataset.lang=l;$('#b-java').classList.toggle('on',l==='java');$('#b-py').classList.toggle('on',l==='py');$('#b-java').setAttribute('aria-pressed',l==='java');$('#b-py').setAttribute('aria-pressed',l==='py');ls('dsa-lang',l)}
+function setLang(l){body.dataset.lang=l;var j=$('#b-java'),y=$('#b-py');if(j){j.classList.toggle('on',l==='java');j.setAttribute('aria-pressed',l==='java')}if(y){y.classList.toggle('on',l==='py');y.setAttribute('aria-pressed',l==='py')}ls('dsa-lang',l)}
 setLang(ls('dsa-lang')||'java');
-$('#b-java').onclick=function(){setLang('java')};$('#b-py').onclick=function(){setLang('py')};
+if($('#b-java')){$('#b-java').onclick=function(){setLang('java')};$('#b-py').onclick=function(){setLang('py')}}
 var th=ls('dsa-theme');if(th)document.documentElement.dataset.theme=th;
 $('#b-theme').onclick=function(){var d=document.documentElement,dark=d.dataset.theme==='dark';d.dataset.theme=dark?'light':'dark';ls('dsa-theme',d.dataset.theme)};
 /* progress (saved in this browser only) */
-function load(){try{return JSON.parse(ls('dsa-progress')||'{}')}catch(e){return {}}}
+function load(){try{return JSON.parse(ls(STORE)||'{}')}catch(e){return {}}}
 var prog=load();
 function refresh(){var boxes=$$('.pk'),n=0;
- var keys={},all={};boxes.forEach(function(b){var on=!!prog[b.dataset.k];b.checked=on;b.closest('tr').classList.toggle('done',on);all[b.dataset.k]=1;if(on)keys[b.dataset.k]=1});n=Object.keys(keys).length;
- var tot=Object.keys(all).length,pc=tot?100*n/tot:0;$('#prog').textContent=n+' / '+tot+' solved';$('#pbar').style.width=pc+'%';$('.pbar').setAttribute('aria-valuenow',Math.round(pc));buildPanel();
+ var keys={},all={};boxes.forEach(function(b){var on=!!prog[b.dataset.k];b.checked=on;var tr=b.closest('tr');if(tr)tr.classList.toggle('done',on);var tk=b.closest('.tick');if(tk)tk.classList.toggle('is-done',on);all[b.dataset.k]=1;if(on)keys[b.dataset.k]=1});n=Object.keys(keys).length;
+ var tot=Object.keys(all).length,pc=tot?100*n/tot:0;$('#prog').textContent=n+' / '+tot+' '+WORD;$('#pbar').style.width=pc+'%';$('.pbar').setAttribute('aria-valuenow',Math.round(pc));buildPanel();
  $$('.pat').forEach(function(p){var bx=$$('.pk',p),d=bx.filter(function(c){return c.checked}).length,e=$('.pp',p),s=$('nav.side a[href="#'+p.id+'"] .cnt');
-  if(e)e.textContent=d+' / '+bx.length+' solved';if(s)s.textContent=d+'/'+bx.length})}
-$$('.pk').forEach(function(b){b.onchange=function(){if(b.checked)prog[b.dataset.k]=1;else delete prog[b.dataset.k];ls('dsa-progress',JSON.stringify(prog));refresh()}});
+  if(e)e.textContent=d+' / '+bx.length+' '+WORD;if(s)s.textContent=d+'/'+bx.length})}
+$$('.pk').forEach(function(b){b.onchange=function(){if(b.checked)prog[b.dataset.k]=1;else delete prog[b.dataset.k];ls(STORE,JSON.stringify(prog));refresh()}});
 refresh();
 /* topic switcher */
-ls('dsa-last',cur);
+ls(LASTK,cur);
 function solvedFor(id){var n=0;Object.keys(prog).forEach(function(k){if(k.indexOf(id+'-')===0)n++});return n}
 function buildPanel(){var p=$('#topics-panel');if(!p)return;p.textContent='';var last='';
  T.forEach(function(t){if(t.phase!==last){var h=document.createElement('h5');h.textContent=t.phase;p.appendChild(h);last=t.phase}
@@ -2393,6 +2464,15 @@ function stepper(el){
  el.onkeydown=function(e){if(e.target!==el)return;if(e.key==='ArrowRight'){stop();go(i+1);e.preventDefault()}else if(e.key==='ArrowLeft'){stop();go(i-1);e.preventDefault()}else if(e.key===' '){timer?stop():start();e.preventDefault()}};
  draw()}
 $$('.stepper').forEach(stepper);
+
+/* left section rail: mobile drawer behaviour (desktop is pure CSS: hover or focus expands it) */
+(function(){var r=document.getElementById('rail'),b=document.getElementById('b-rail'),bd=document.getElementById('rail-bd');if(!r)return;
+ function open(o){r.classList.toggle('open',o);if(bd)bd.hidden=!o;if(b)b.setAttribute('aria-expanded',o?'true':'false')}
+ if(b)b.onclick=function(){open(!r.classList.contains('open'))};
+ if(bd)bd.onclick=function(){open(false)};
+ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&r.classList.contains('open')){open(false);if(b)b.focus()}});
+ r.addEventListener('click',function(e){if(e.target.closest('a')&&innerWidth<=1020)open(false)});
+})();
 
 })();</script>
 </body></html>

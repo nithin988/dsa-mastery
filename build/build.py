@@ -8,7 +8,11 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
-from lib import render_topic, CSS, ICONS, icon, FAVICON, SITE_URL  # noqa: E402
+from lib import render_topic, CSS, ICONS, icon, FAVICON, SITE_URL, rail, rail_button  # noqa: E402
+from lib_sys import render_module, walk_cmds  # noqa: E402
+import sitepages  # noqa: E402
+import syscatalog  # noqa: E402
+import importlib  # noqa: E402
 import arrays  # noqa: E402
 import foundations  # noqa: E402
 import strings  # noqa: E402
@@ -31,6 +35,7 @@ import playbook  # noqa: E402
 
 PLANNER_CORE = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "planner_core.js"), encoding="utf-8").read()
 PLANNER_JS = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "planner.js"), encoding="utf-8").read()
+RAIL_JS = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "rail.js"), encoding="utf-8").read()
 HOME_JS = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "home.js"), encoding="utf-8").read()
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -128,10 +133,11 @@ def plan_html():
 <meta property="og:description" content="{desc}"><meta property="og:url" content="{SITE_URL}plan.html">
 <link rel="icon" href="{FAVICON}">
 <style>{CSS}</style></head>
-<body>
+<body class="has-rail">
 <a class="skip" href="#content">Skip to content</a>
-<header class="bar"><div class="bar-in"><a class="brand" href="index.html" aria-label="DSA Mastery home"><span class="logo" aria-hidden="true">DSA</span><b>DSA <span>Mastery</span></b></a>
-<nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Topics</a>{icon("right")}<span class="cur">Study planner</span></nav>
+{rail("plan")}
+<header class="bar"><div class="bar-in">{rail_button()}<a class="brand" href="dsa.html" aria-label="DSA Mastery home"><span class="logo" aria-hidden="true">DSA</span><b>DSA <span>Mastery</span></b></a>
+<nav class="crumbs" aria-label="Breadcrumb"><a href="dsa.html">DSA topics</a>{icon("right")}<span class="cur">Study planner</span></nav>
 <button id="b-theme" class="iconbtn" title="Toggle light / dark" aria-label="Toggle light or dark theme">{icon("theme")}</button></div></header>
 <main id="content" class="home planner">
 <header class="hero"><div class="eyebrow"><span class="tag">Planner</span>Realistic, not aspirational</div>
@@ -159,17 +165,18 @@ def plan_html():
 </aside></div>
 <section aria-labelledby="h-plan"><h2 id="h-plan" class="sec-h">3. Your plan</h2><div id="plan-out" aria-live="polite"></div></section>
 </main>
-<footer class="site-foot"><span>DSA Mastery: free, open study sheets. Your plan and ticks are saved in this browser only.</span><span><a href="index.html">All topics</a> · <a href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener">GitHub</a></span></footer>
+<footer class="site-foot"><span>DSA Mastery: free, open study sheets. Your plan and ticks are saved in this browser only.</span><span><a href="dsa.html">All DSA topics</a> · <a href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener">GitHub</a></span></footer>
 <script>window.DSA_DATA={json.dumps(planner_data(), separators=(",", ":"))};</script>
 <script>(function(){{var IC={icons_json};
 {PLANNER_CORE}
 {PLANNER_JS}
+{RAIL_JS}
 }})();</script>
 </body></html>
 """
 
 
-def index_html():
+def dsa_html():
     live = [(f, t, b, topic) for f, t, b, topic in CATALOG if topic]
     n_pat = sum(len(tp["patterns"]) for *_x, tp in live)
     n_sim = sum(1 for *_x, tp in live for p in tp["patterns"] if p.get("sim"))
@@ -208,9 +215,10 @@ def index_html():
 <meta property="og:description" content="{desc}"><meta property="og:url" content="{SITE_URL}">
 <link rel="icon" href="{FAVICON}">
 <style>{CSS}</style></head>
-<body>
+<body class="has-rail">
 <a class="skip" href="#content">Skip to content</a>
-<header class="bar"><div class="bar-in"><a class="brand" href="index.html" aria-label="DSA Mastery home"><span class="logo" aria-hidden="true">DSA</span><b>DSA <span>Mastery</span></b></a>
+{rail("dsa")}
+<header class="bar"><div class="bar-in">{rail_button()}<a class="brand" href="dsa.html" aria-label="DSA Mastery home"><span class="logo" aria-hidden="true">DSA</span><b>DSA <span>Mastery</span></b></a>
 <span style="margin-right:auto"></span>
 <a class="btn" href="plan.html">{icon("cal")}<span class="t-long">Planner</span></a>
 <a class="btn" href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener">{icon("ext")}<span class="t-long">GitHub</span></a>
@@ -244,9 +252,68 @@ def index_html():
 <script>window.DSA_TOPICS={catalog_json()};</script>
 <script>(function(){{var IC={icons_json};
 {HOME_JS}
+{RAIL_JS}
 }})();</script>
 </body></html>
 """
+
+
+def load_systems():
+    """Rows for every catalog module; live ones carry their MODULE dict."""
+    rows = []
+    for num, slug, title, blurb, track, modname in syscatalog.MODULES:
+        mod = None
+        if modname:
+            try:
+                mod = importlib.import_module(modname).MODULE
+            except ModuleNotFoundError as e:
+                if e.name != modname:
+                    raise
+        rows.append({"num": num, "slug": slug, "title": title, "blurb": blurb, "track": track, "module": mod})
+    return rows
+
+
+def sys_catalog_json(rows):
+    out = []
+    for r in rows:
+        m = r["module"]
+        if m:
+            out.append({"id": m["id"], "file": r["slug"], "num": r["num"], "title": r["title"], "phase": syscatalog.TRACKS[r["track"] - 1][0],
+                        "total": len(m["lessons"]) + len(m.get("labs", [])) + 1})
+    return json.dumps(out, separators=(",", ":"))
+
+
+def build_systems():
+    rows = load_systems()
+    live = [r for r in rows if r["module"]]
+    cat = sys_catalog_json(rows)
+    for k, r in enumerate(live):
+        m = r["module"]
+        m["file"] = r["slug"] + ".html"
+        m["num"] = r["num"]
+        m["track"] = syscatalog.TRACKS[r["track"] - 1][0]
+        m["prev"] = (live[k - 1]["slug"], live[k - 1]["title"]) if k else None
+        m["next"] = (live[k + 1]["slug"], live[k + 1]["title"]) if k + 1 < len(live) else None
+        m["_catalog"] = cat
+        m["_n_total"] = len(rows)
+        write(os.path.join(ROOT, "systems", r["slug"] + ".html"), render_module(m))
+        print("built", r["slug"])
+    stat_rows = []
+    for r in rows:
+        m = r["module"]
+        stat_rows.append({**{k: r[k] for k in ("num", "slug", "title", "blurb", "track", "module")},
+                          "lessons": len(m["lessons"]) if m else 0, "labs": len(m.get("labs", [])) if m else 0,
+                          "sims": sum(1 for L in m["lessons"] if L.get("sim")) if m else 0})
+    stats = {"live": len(live), "total": len(rows), "lessons": sum(x["lessons"] for x in stat_rows), "labs": sum(x["labs"] for x in stat_rows),
+             "questions": sum(len(r["module"].get("interview", [])) for r in live)}
+    write(os.path.join(ROOT, "systems.html"), sitepages.systems_html(stat_rows, cat, stats))
+    print("built systems.html")
+    # hub
+    dsa_live = [(f, t, b, topic) for f, t, b, topic in CATALOG if topic]
+    dsa = {"topics": len(dsa_live), "problems": len({lc for *_x, tp in dsa_live for p in tp["patterns"] for (lc, *_r) in p["problems"]}), "catalog": catalog_json()}
+    sysc = {"live": len(live), "total": len(rows), "labs": stats["labs"], "catalog": cat}
+    write(os.path.join(ROOT, "index.html"), sitepages.hub_html(dsa, sysc))
+    print("built index.html (hub)")
 
 
 def main():
@@ -262,8 +329,9 @@ def main():
             topic["_phase"] = phase_of(int(f.split("_")[0]))
             write(os.path.join(ROOT, "topics", f + ".html"), render_topic(topic))
             print("built", f)
-    write(os.path.join(ROOT, "index.html"), index_html())
-    print("built index.html")
+    write(os.path.join(ROOT, "dsa.html"), dsa_html())
+    print("built dsa.html")
+    build_systems()
     write(os.path.join(ROOT, "plan.html"), plan_html())
     print("built plan.html")
 

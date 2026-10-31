@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Linux shell fluency | Systems Mastery</title>
+<meta name="description" content="The shell is the fastest way to talk to a server. This module takes you from &quot;where am I?&quot; to pipelines, permissions and job control, with every command explained line by line and run for real.">
+<meta name="theme-color" content="#0f172a">
+<meta property="og:type" content="article"><meta property="og:site_name" content="Systems Mastery"><meta property="og:title" content="Linux shell fluency">
+<meta property="og:description" content="The shell is the fastest way to talk to a server. This module takes you from &quot;where am I?&quot; to pipelines, permissions and job control, with every command explained line by line and run for real."><meta property="og:url" content="https://nithin988.github.io/dsa-mastery/systems/S02_linux_shell.html">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f172a'/%3E%3Ctext x='16' y='21' font-family='monospace' font-size='13' font-weight='700' fill='%23f8fafc' text-anchor='middle'%3EDSA%3C/text%3E%3C/svg%3E">
+<style>/* DSA Mastery: shared stylesheet. Tokens and components follow the Kimaru Platform design system
+   (slate neutrals, semantic colour, rounded-md cards, shadow-sm, 16px stroke icons). See docs/DESIGN_SYSTEM.md. */
+:root{
+ --bg:#f8fafc;--surf:#fff;--hd:#f8fafc;--soft:#f1f5f9;--line:#e2e8f0;--line2:#f1f5f9;
+ --fg:#0f172a;--txt:#334155;--mut:#475569;--faint:#64748b;
+ --ink:#0f172a;--ink-fg:#f8fafc;
+ --acc:#3162b4;--acc-soft:#eaf0fa;--acc-line:#bcd0ee;
+ --ok:#15803d;--ok-soft:#f0fdf4;--ok-line:#86efac;
+ --warn:#b45309;--warn-soft:#fffbeb;--warn-line:#fbbf24;
+ --med:#a16207;--med-soft:#fefce8;
+ --bad:#b91c1c;--bad-soft:#fef2f2;--bad-line:#f87171;
+ --risk:#c2410c;--risk-soft:#fff7ed;
+ --info:#0369a1;--info-soft:#f0f9ff;--info-line:#38bdf8;
+ --done:#0f766e;--done-soft:#f0fdfa;--done-line:#5eead4;
+ --code:#f8fafc;--ring:#3162b4;
+ --sh:0 1px 2px rgba(15,23,42,.06);--sh-lg:0 10px 30px rgba(15,23,42,.12);
+ --r:6px;--r-lg:8px;
+ color-scheme:light}
+:root[data-theme=dark]{
+ --bg:#020617;--surf:#0f172a;--hd:#0b1324;--soft:#1e293b;--line:#1e293b;--line2:#172033;
+ --fg:#f1f5f9;--txt:#cbd5e1;--mut:#a3b1c6;--faint:#94a3b8;
+ --ink:#f1f5f9;--ink-fg:#0f172a;
+ --acc:#8db4f0;--acc-soft:#14233d;--acc-line:#2c4a7a;
+ --ok:#4ade80;--ok-soft:#0c2a18;--ok-line:#166534;
+ --warn:#fbbf24;--warn-soft:#2b2008;--warn-line:#a16207;
+ --med:#facc15;--med-soft:#2a2308;
+ --bad:#f87171;--bad-soft:#2d1214;--bad-line:#b91c1c;
+ --risk:#fb923c;--risk-soft:#2b1708;
+ --info:#38bdf8;--info-soft:#0a2233;--info-line:#0369a1;
+ --done:#2dd4bf;--done-soft:#0a2624;--done-line:#0f766e;
+ --code:#0b1324;--ring:#8db4f0;
+ --sh:none;--sh-lg:0 10px 30px rgba(0,0,0,.5);color-scheme:dark}
+
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:var(--acc);text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:4px}
+code{background:var(--soft);padding:1px 5px;border-radius:4px;font:0.88em ui-monospace,"Cascadia Code",Consolas,Menlo,monospace;color:var(--fg)}
+.mut,.muted{color:var(--mut)}.muted{font-size:13px;font-weight:400}
+.skip{position:absolute;left:12px;top:-60px;z-index:100;background:var(--ink);color:var(--ink-fg);padding:8px 14px;border-radius:var(--r);text-decoration:none;font-size:14px}.skip:focus{top:8px}
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.33;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-3px}
+.ic.fill{fill:currentColor;stroke:none}.ic.lg{width:20px;height:20px}
+
+/* buttons: primary = dark, secondary = light, confirmed = teal (design system section 5) */
+.btn,.bar button,.st-ctl button,.st-ctl select{font:inherit;font-size:13px;font-weight:500;line-height:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);cursor:pointer;text-decoration:none;box-shadow:var(--sh);transition:background .15s,border-color .15s}
+.btn:hover,.bar button:hover,.st-ctl button:hover{background:var(--soft)}
+.btn.pri,.bar button.on,.btn.on{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.btn.pri:hover{opacity:.9;background:var(--ink)}
+.btn.sec{background:var(--soft)}
+.btn.lg{height:40px;padding:0 18px;font-size:14px}
+.iconbtn{width:32px;padding:0!important}
+
+/* top bar (sticky 48px, like ReviewBar) */
+.bar{position:sticky;top:0;z-index:30;background:var(--surf);border-bottom:1px solid var(--line);box-shadow:var(--sh)}
+.bar-in{max-width:1280px;margin:0 auto;height:48px;display:flex;gap:8px;align-items:center;padding:0 16px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;text-decoration:none;color:var(--fg);letter-spacing:-.01em;margin-right:4px}
+.brand b{font-weight:700}.brand span{color:var(--faint);font-weight:600}
+.logo{width:24px;height:24px;border-radius:6px;background:var(--ink);color:var(--ink-fg);display:grid;place-items:center;font:700 11px ui-monospace,Consolas,monospace;letter-spacing:-.02em}
+.crumbs{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mut);min-width:0;margin-right:auto}
+.crumbs a{color:var(--mut);text-decoration:none}.crumbs a:hover{color:var(--fg)}
+.crumbs .cur{color:var(--fg);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crumbs .ic{color:var(--faint);width:14px;height:14px}
+.prog{font-size:12.5px;color:var(--mut);white-space:nowrap;padding:0 4px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.seg button{border:0!important;border-radius:0!important;box-shadow:none!important;background:var(--surf)}
+.seg button+button{border-left:1px solid var(--line)!important}
+.pbar{height:2px;background:var(--line)}.pbar i{display:block;height:100%;width:0;background:var(--acc);transition:width .4s}
+
+/* topic switcher panel */
+.menu{position:relative}
+.panel{position:absolute;right:0;top:40px;width:min(380px,92vw);max-height:min(70vh,640px);overflow:auto;background:var(--surf);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-lg);padding:6px;z-index:50}
+.panel[hidden]{display:none}
+.panel h5{margin:10px 8px 4px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.panel a{display:grid;grid-template-columns:26px 1fr auto;gap:8px;align-items:center;padding:7px 8px;border-radius:var(--r);text-decoration:none;color:var(--fg);font-size:13.5px}
+.panel a:hover{background:var(--soft)}.panel a[aria-current=page]{background:var(--soft);font-weight:600}
+.panel .n{font:600 11px ui-monospace,Consolas,monospace;color:var(--faint)}
+.panel .c{font-size:11.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.panel .c.done{color:var(--done);font-weight:600}
+
+/* layout */
+.wrap{max-width:1280px;margin:0 auto;padding:0 16px;display:grid;grid-template-columns:248px minmax(0,1fr);gap:32px}
+nav.side{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto;padding:20px 0;font-size:13.5px}
+nav.side h4{margin:16px 0 6px;padding:0 10px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+nav.side a{display:flex;gap:8px;align-items:center;padding:6px 10px;border-radius:var(--r);text-decoration:none;color:var(--txt)}
+nav.side a:hover{background:var(--soft)}nav.side a.act{background:var(--soft);color:var(--fg);font-weight:600;box-shadow:inset 2px 0 0 var(--ink)}
+nav.side .dot{width:8px;height:8px;border-radius:50%;flex:none}.dot.hot{background:var(--warn)}.dot.sec{background:var(--faint)}
+nav.side .cnt{margin-left:auto;font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}
+main{min-width:0;padding:24px 0 90px}
+.chips{display:none}
+
+/* page header (hero) */
+.hero{background:var(--surf);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh);padding:24px 26px;margin-bottom:20px}
+.eyebrow{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);display:flex;align-items:center;gap:8px}
+.eyebrow .tag{background:var(--soft);border-radius:99px;padding:3px 9px;color:var(--fg);letter-spacing:.06em}
+.hero h1{font-size:clamp(24px,3.4vw,32px);line-height:1.2;margin:10px 0 10px;letter-spacing:-.02em;color:var(--fg);font-weight:700}
+.lead{font-size:15.5px;color:var(--txt);margin:0;max-width:72ch}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.stat{display:inline-flex;gap:6px;align-items:center;background:var(--hd);border:1px solid var(--line);border-radius:99px;padding:3px 12px;font-size:12.5px;color:var(--mut)}.stat b{color:var(--fg);font-variant-numeric:tabular-nums}
+
+/* headings */
+h2{font-size:20px;font-weight:700;margin:40px 0 10px;letter-spacing:-.01em;scroll-margin-top:72px;color:var(--fg)}
+h3{margin:0;font-size:20px;font-weight:600;letter-spacing:-.01em;color:var(--fg)}
+
+/* callouts: neutral box + 2px left accent (design system section 6) */
+.callout{border:1px solid var(--line);border-left:2px solid var(--faint);background:var(--hd);padding:10px 14px;border-radius:var(--r);margin:14px 0}
+.callout.intu{border-left-color:var(--info-line)}.callout p{margin:4px 0}
+.callout .lbl{margin-bottom:2px}
+
+/* pattern card: header bar + body (design system section 6) */
+.pat{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);margin:22px 0;scroll-margin-top:72px;overflow:hidden}
+.pat-h{display:flex;gap:12px;align-items:center;flex-wrap:wrap;min-height:50px;padding:8px 16px;background:var(--hd);border-bottom:1px solid var(--line)}
+.pat-h h3{font-size:18px}
+.badge{width:28px;height:28px;border-radius:var(--r);background:var(--ink);color:var(--ink-fg);display:flex;align-items:center;justify-content:center;font:700 13px ui-monospace,Consolas,monospace;flex:none}
+.tier{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;white-space:nowrap}
+.tier.hot{background:var(--warn-soft);color:var(--warn)}.tier.sec{background:var(--soft);color:var(--mut)}
+.pp{margin-left:auto;font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.pat-b{padding:6px 16px 8px}
+.glance{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0;margin:8px 0 6px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.gi{padding:10px 14px;font-size:14px;border-left:1px solid var(--line2)}.gi:first-child{border-left:0}
+.lbl{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.lbl .ic{width:14px;height:14px}
+.blk{margin:16px 0}.blk p{margin:4px 0}
+.blk ol,.blk ul{margin:4px 0;padding-left:22px}.blk li{margin:4px 0}
+.blk.warn{border:1px solid var(--line);border-left:2px solid var(--warn-line);background:var(--warn-soft);border-radius:var(--r);padding:10px 14px}.blk.warn .lbl{color:var(--warn)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cx{display:flex;gap:8px;align-items:center;background:var(--ok-soft);color:var(--ok);border:1px solid var(--line);border-left:2px solid var(--ok-line);border-radius:var(--r);padding:8px 14px;font-weight:600;font-size:14px;margin:14px 0}
+
+/* code */
+pre{background:var(--code);border:1px solid var(--line);border-radius:var(--r);padding:34px 15px 13px;overflow-x:auto;margin:8px 0;position:relative;font-size:13px;line-height:1.55;color:var(--fg)}
+pre::before{position:absolute;left:12px;top:8px;font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+pre.code-java::before{content:"Java"}pre.code-py::before{content:"Python"}pre.trace::before{content:"Trace"}
+pre code{background:none;padding:0;font-size:inherit;color:inherit}
+.code-java,.code-py{display:none}body[data-lang=java] .code-java,body[data-lang=py] .code-py{display:block}
+.cp{position:absolute;top:5px;right:6px;font:500 12px system-ui,sans-serif;height:24px;padding:0 9px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--mut);cursor:pointer}
+.cp:hover{color:var(--fg);background:var(--soft)}
+.trace{border-left:2px solid var(--faint)}
+
+/* tables */
+.tw{overflow-x:auto;margin:10px 0;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:9px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line2)}
+th{background:var(--hd);font:600 11px/1.2 system-ui,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);border-bottom:1px solid var(--line);position:sticky;top:0}
+tbody tr:hover td{background:var(--hd)}tr:last-child td{border-bottom:0}
+.ladder td:first-child{width:36px;text-align:center}.ladder .t{white-space:nowrap}.ladder .c{white-space:nowrap;font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+input.pk{width:18px;height:18px;accent-color:var(--done);cursor:pointer;margin:0}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;white-space:nowrap}
+.dE{background:var(--ok-soft);color:var(--ok)}.dM{background:var(--med-soft);color:var(--med)}.dH{background:var(--bad-soft);color:var(--bad)}
+tr.done td{background:var(--done-soft)}tr.done td:nth-child(3){text-decoration:line-through;text-decoration-color:var(--faint)}
+details{border:1px solid var(--line);border-radius:var(--r);padding:0 14px;margin:8px 0;background:var(--surf)}
+summary{cursor:pointer;font-weight:600;padding:10px 0;color:var(--fg);list-style:none;display:flex;gap:8px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"";width:6px;height:6px;border-right:1.5px solid var(--faint);border-bottom:1.5px solid var(--faint);transform:rotate(-45deg);transition:transform .2s;flex:none}
+details[open] summary::before{transform:rotate(45deg)}
+details[open]{border-left:2px solid var(--info-line)}details p{margin:0 0 12px;color:var(--txt)}
+
+/* stepper (animation panel) */
+.stepper{border:1px solid var(--line);border-radius:var(--r-lg);margin:8px 0 14px;background:var(--surf);box-shadow:var(--sh);overflow:hidden}
+.stepper:focus-visible{outline-offset:0}
+.st-head{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--hd);border-bottom:1px solid var(--line);font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.st-head .st-count{margin-left:auto;font-size:11.5px;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.st-body{padding:12px 14px 4px}
+.st-prog{height:3px;background:var(--line);overflow:hidden}.st-prog i{display:block;height:100%;background:var(--acc);width:0;transition:width .3s}
+.st-view{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;padding:6px 0 2px;margin:0 auto}
+.cellw{display:flex;flex-direction:column;align-items:center;min-width:46px}
+.ptr{min-height:22px;font:600 11px ui-monospace,Consolas,monospace;margin-bottom:3px;display:flex;align-items:flex-end}
+.ptr b{background:var(--ink);color:var(--ink-fg);padding:1px 7px;border-radius:99px;white-space:nowrap;animation:drop .25s ease}
+.cell{min-width:46px;height:46px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:600 15px ui-monospace,Consolas,monospace;padding:0 7px;transition:background .25s,border-color .25s,transform .25s}
+.cell.in{background:var(--acc-soft);border-color:var(--acc);transform:translateY(-2px)}
+.cell.ok{background:var(--done-soft);border-color:var(--done)}
+.cell.dim{background:var(--soft);color:var(--mut);border-style:dashed;opacity:.65}
+.cell.pop{animation:pop .35s ease}
+.edge{align-self:flex-start;margin-top:31px;min-width:20px;text-align:center;color:var(--faint);font:700 16px ui-monospace,Consolas,monospace}
+.idx{font:11px ui-monospace,Consolas,monospace;color:var(--mut);margin-top:3px}
+.st-aux{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;min-height:30px;margin-top:8px}
+.st-aux .al{font:600 10px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}
+.chip{font:600 12.5px ui-monospace,Consolas,monospace;background:var(--hd);border:1px solid var(--line);border-radius:var(--r);padding:2px 9px;color:var(--fg)}
+.st-note{min-height:48px;margin:8px 0;font-size:14.5px;padding:10px 13px;background:var(--hd);border:1px solid var(--line);border-left:2px solid var(--info-line);border-radius:var(--r);color:var(--txt)}
+.st-ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 14px 12px}
+.st-ctl button{min-width:32px}
+.st-ctl button.pri{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.st-ctl input[type=range]{flex:1;min-width:90px;accent-color:var(--ink)}
+.st-ctl select{padding:0 8px}
+@keyframes pop{0%{transform:scale(.75)}60%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes drop{from{transform:translateY(-6px);opacity:0}to{transform:none;opacity:1}}
+
+/* previous / next */
+.foot{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.nxt{display:flex;flex-direction:column;gap:3px;padding:14px 16px;background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);text-decoration:none;color:var(--fg)}
+.nxt:hover{border-color:var(--faint)}.nxt.r{text-align:right;align-items:flex-end}.nxt small{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);display:flex;gap:6px;align-items:center}
+.nxt strong{font-size:15px;font-weight:600}
+.nxt.next{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}.nxt.next small{color:inherit;opacity:.75}
+.site-foot{max-width:1280px;margin:0 auto;padding:22px 16px 40px;display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between;color:var(--mut);font-size:13px;border-top:1px solid var(--line)}
+.site-foot a{color:var(--mut)}.site-foot a:hover{color:var(--fg)}
+
+/* landing page */
+.home{max-width:1120px;margin:0 auto;padding:28px 16px 60px}
+.home-hero{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:stretch}
+.home-hero .hero{margin:0;display:flex;flex-direction:column}
+.home-hero .hero h1{font-size:clamp(28px,4vw,40px)}
+.cta{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:14px 16px;display:flex;flex-direction:column;justify-content:center}
+.kpi b{font-size:26px;line-height:1.1;color:var(--fg);letter-spacing:-.02em;font-variant-numeric:tabular-nums}.kpi span{font-size:12.5px;color:var(--mut);margin-top:3px}
+.kpi.wide{grid-column:1/-1}
+.meter{height:6px;border-radius:99px;background:var(--soft);overflow:hidden;margin-top:10px}.meter i{display:block;height:100%;width:0;background:var(--done);border-radius:99px;transition:width .4s}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0 0}
+.how div{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;font-size:14px}
+.how b{display:flex;align-items:center;gap:8px;color:var(--fg);margin-bottom:4px}
+.how .no{width:22px;height:22px;border-radius:6px;background:var(--soft);display:grid;place-items:center;font:700 11px ui-monospace,monospace;color:var(--fg)}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:34px 0 4px}
+.tools h2{margin:0;margin-right:auto;font-size:20px}
+.search{position:relative}.search input{height:32px;width:220px;max-width:100%;padding:0 10px 0 32px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:13px}
+.search .ic{position:absolute;left:10px;top:8px;color:var(--faint)}
+.filters{display:inline-flex;gap:6px;flex-wrap:wrap}
+.filters button{height:32px;padding:0 12px;border:1px solid var(--line);border-radius:99px;background:var(--surf);color:var(--mut);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.filters button[aria-pressed=true]{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.phase{margin:26px 0 0}
+.phase-h{display:flex;align-items:baseline;gap:10px;margin:0 0 10px}
+.phase-h h2{margin:0;font-size:16px;scroll-margin-top:72px}.phase-h span{font-size:13px;color:var(--mut)}
+.phase-h .ph{font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;background:var(--soft);color:var(--fg);padding:4px 8px;border-radius:99px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.tcard{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden}
+.tcard[hidden]{display:none}
+.tcard-h{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 14px;background:var(--hd);border-bottom:1px solid var(--line)}
+.tcard-h .no{font:700 12px ui-monospace,Consolas,monospace;background:var(--ink);color:var(--ink-fg);border-radius:var(--r);padding:3px 7px}
+.tcard-h h3{font-size:16px;margin-right:auto}
+.st{font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--soft);color:var(--mut);white-space:nowrap}
+.st.doing{background:var(--warn-soft);color:var(--warn)}.st.done{background:var(--done-soft);color:var(--done)}
+.tcard-b{padding:12px 14px;display:flex;flex-direction:column;gap:10px;flex:1}
+.tcard-b p{margin:0;font-size:13.5px;color:var(--txt);flex:1}
+.meta{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--mut)}.meta span{display:inline-flex;gap:5px;align-items:center}
+.act{display:flex;gap:8px}
+.empty{text-align:center;color:var(--mut);padding:30px;border:1px dashed var(--line);border-radius:var(--r);margin-top:16px}
+
+@media (max-width:1020px){.wrap{display:block}nav.side{display:none}
+ .chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0;position:sticky;top:50px;z-index:10;background:var(--bg)}
+ .chips a{white-space:nowrap;font-size:12.5px;border:1px solid var(--line);background:var(--surf);padding:4px 11px;border-radius:99px;text-decoration:none;color:var(--fg)}
+ .home-hero{grid-template-columns:1fr}}
+@media (max-width:720px){.crumbs .cur,.crumbs .ic,.prog{display:none}.how{grid-template-columns:1fr}.foot{grid-template-columns:1fr}.btn .t-long{display:none}}
+@media (max-width:640px){body{font-size:15px}.hero{padding:18px 16px}.pat-b{padding:4px 12px 6px}.two{grid-template-columns:1fr}.cell{min-width:36px;height:38px;font-size:13px}.cellw{min-width:36px}.brand span{display:none}.pp{margin-left:0}.gi{border-left:0;border-top:1px solid var(--line2)}.gi:first-child{border-top:0}.search input{width:100%}.search{flex:1}.kpis{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media print{.bar,.pbar,nav.side,.chips,.st-ctl,.cp,.skip,.site-foot,.foot{display:none}.wrap{display:block}.code-java,.code-py{display:block!important}.pat{box-shadow:none;break-inside:avoid-page}body{background:#fff}}
+
+/* tree and graph drawings inside the stepper */
+.st-tree svg{display:block;margin:0 auto;height:auto}.st-tree line{stroke:var(--faint);stroke-width:1.75;opacity:.6}
+.tn circle{fill:var(--surf);stroke:var(--line);stroke-width:2;transition:fill .25s,stroke .25s}.tn.in circle{fill:var(--acc-soft);stroke:var(--acc)}.tn.ok circle{fill:var(--done-soft);stroke:var(--done)}.tn.dim circle{fill:var(--soft);stroke-dasharray:4 3;opacity:.7}
+.tn text{font:600 14px ui-monospace,Consolas,monospace;fill:var(--fg);text-anchor:middle;dominant-baseline:central}.tp{font:700 11px ui-monospace,Consolas,monospace;fill:var(--acc);text-anchor:middle}
+.ge{stroke:var(--faint);stroke-width:2;opacity:.5}.ge.on{stroke:var(--acc);stroke-width:3.5;opacity:1}.gw{font:600 11px ui-monospace,Consolas,monospace;fill:var(--mut);text-anchor:middle}.mk{fill:var(--faint);opacity:.7}.mk2{fill:var(--acc)}
+
+/* study planner page */
+.planner .hero{margin-bottom:18px}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:16px;overflow:hidden}
+.card-h{display:flex;align-items:center;gap:10px;min-height:46px;padding:6px 14px;background:var(--hd);border-bottom:1px solid var(--line)}
+.card-h h2{margin:0;font-size:15px;font-weight:600;margin-right:auto;color:var(--fg)}
+.card-h>span:not(.st){font-size:12.5px;color:var(--mut)}
+.card-b{padding:14px}
+.pl-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+.pl-col{min-width:0}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+.field{min-width:0}.field:nth-child(6),.field:nth-child(7){grid-column:1/-1}
+.flabel{display:block;font:600 11px/1.2 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+.field input[type=date],.field input[type=number],.field select{height:34px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:14px;max-width:100%}
+.field input[type=number]{width:96px}.field select{width:100%}.field input[type=date]{width:100%}
+.unit{font-size:13px;color:var(--mut);margin-left:8px}
+.fhint{font-size:12.5px;color:var(--mut);margin-top:6px}
+.qchips{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.qchips button,.presets button,.chips2 button{height:28px;padding:0 11px;border:1px solid var(--line);border-radius:99px;background:var(--surf);color:var(--fg);font:inherit;font-size:12.5px;cursor:pointer}
+.qchips button:hover,.presets button:hover,.chips2 button:hover{background:var(--soft)}
+.seg2{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;max-width:100%}
+.seg2 button{height:34px;padding:0 14px;border:0;background:var(--surf);color:var(--fg);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.seg2 button+button{border-left:1px solid var(--line)}
+.seg2 button[aria-pressed=true]{background:var(--ink);color:var(--ink-fg)}
+.toggles{display:grid;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line2);font-size:14px}
+.toggles label,.key-panel label{display:flex;gap:9px;align-items:center;cursor:pointer}
+.toggles input,.key-panel input[type=checkbox]{width:16px;height:16px;accent-color:var(--ink);margin:0}
+.presets{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.presets span{font-size:12.5px;color:var(--mut);margin-right:2px}
+#topics h5{margin:14px 0 4px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.trow{display:grid;grid-template-columns:20px 28px 1fr auto;gap:8px;align-items:center;padding:6px 6px;border-radius:var(--r);cursor:pointer;font-size:14px}
+.trow:hover{background:var(--soft)}.trow input{width:16px;height:16px;accent-color:var(--ink);margin:0}
+.trow .n{font:600 11.5px ui-monospace,Consolas,monospace;color:var(--faint)}.trow .est{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+/* coach */
+.chat{position:sticky;top:64px;display:flex;flex-direction:column;height:min(720px,calc(100vh - 84px));min-height:480px;margin-bottom:0}
+.chat .card-h .btn{height:28px}
+.key-panel{padding:12px 14px;border-bottom:1px solid var(--line);background:var(--surf);display:grid;gap:10px;font-size:13.5px}
+.key-panel[hidden]{display:none}
+.key-panel p{margin:0}.key-panel .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.key-panel input[type=password],.key-panel select{height:34px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:13.5px;min-width:0;flex:1}
+.msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;background:var(--bg)}
+.msg{max-width:92%}.msg.me{align-self:flex-end}
+.msg .who{font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:0 2px 4px}.msg.me .who{text-align:right}
+.msg .mb{padding:9px 12px;border-radius:var(--r-lg);font-size:14.5px;line-height:1.55;border:1px solid var(--line);background:var(--surf);color:var(--txt)}
+.msg.me .mb{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.msg .mb p{margin:0 0 6px}.msg .mb p:last-child{margin:0}.msg .mb ul,.msg .mb ol{margin:4px 0;padding-left:20px}.msg .mb code{font-size:.9em}
+.msg.sys{align-self:stretch;max-width:100%}.msg.sys .mb{background:var(--hd);border-left:2px solid var(--info-line);font-size:13.5px}
+.typing{display:flex;gap:4px;padding:6px 4px}.typing i{width:6px;height:6px;border-radius:50%;background:var(--faint);animation:blink 1.2s infinite}.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.chips2{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px 0;background:var(--surf);border-top:1px solid var(--line)}
+.composer{display:flex;gap:8px;align-items:flex-end;padding:10px 14px 14px;background:var(--surf)}
+.composer textarea{flex:1;resize:none;min-height:38px;max-height:120px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:14.5px;line-height:1.4}
+.composer .btn{height:38px}
+/* plan output */
+.sec-h{font-size:18px;margin:26px 0 10px}
+.kpis4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.kpis4 .kpi b{font-size:22px}
+.callout.alert{border-left-color:var(--warn-line);background:var(--warn-soft)}.callout.alert .lbl{color:var(--warn)}.callout ul{margin:4px 0;padding-left:20px}
+.warn-c{border-left-color:var(--warn-line)}
+.plan-bar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin:14px 0;box-shadow:var(--sh)}
+.pb-l{min-width:220px;flex:1;font-size:13.5px;color:var(--mut)}.pb-l b{color:var(--fg);font-size:15px}.pb-r{display:flex;gap:8px;flex-wrap:wrap}
+.wk{padding:0;margin:10px 0;border-left:1px solid var(--line)}
+details.wk[open]{border-left:2px solid var(--info-line)}
+.wk summary{padding:12px 14px;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.wk summary::before{align-self:center}
+.wn{font-weight:700;color:var(--fg)}.wd{font-size:13px;color:var(--mut)}.wt{font-size:13px;color:var(--mut);margin-right:auto}.wc{font-size:12.5px;font-weight:600;background:var(--soft);border-radius:99px;padding:2px 10px;color:var(--fg);font-variant-numeric:tabular-nums}
+.wk-b{padding:0 14px 12px}
+.day{border:1px solid var(--line);border-radius:var(--r);margin:8px 0;background:var(--surf);overflow:hidden}
+.day.today{border-color:var(--ink)}
+.day.rest{background:var(--hd);color:var(--mut)}
+.dh{display:flex;gap:10px;align-items:center;padding:7px 12px;background:var(--hd);border-bottom:1px solid var(--line2);font-size:13px}.dh b{color:var(--fg)}.dh span:last-child{margin-left:auto;color:var(--mut);font-variant-numeric:tabular-nums}
+.day.rest .dh{border-bottom:0}
+.pill-t{font-size:11px;font-weight:600;background:var(--ink);color:var(--ink-fg);padding:1px 8px;border-radius:99px}
+.task{display:grid;grid-template-columns:20px 84px 1fr auto;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line2);cursor:pointer;font-size:14px}
+.task:last-child{border-bottom:0}.task:hover{background:var(--hd)}
+.task input{width:17px;height:17px;accent-color:var(--done);margin:0}
+.task .kind{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;text-align:center;background:var(--soft);color:var(--mut)}
+.k-learn .kind{background:var(--info-soft);color:var(--info)}.k-code .kind{background:var(--soft);color:var(--fg)}.k-practice .kind{background:var(--med-soft);color:var(--med)}
+.k-review .kind{background:var(--done-soft);color:var(--done)}.k-checkpoint .kind,.k-mock .kind{background:var(--ink);color:var(--ink-fg)}
+.task .ttl{min-width:0;display:flex;flex-direction:column}.task .ttl a{color:var(--fg);text-decoration:none}.task .ttl a:hover{text-decoration:underline}
+.task .sub{font-size:12px;color:var(--mut)}.task .mins{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.task.is-done .ttl,.task.is-done .ttl a{text-decoration:line-through;text-decoration-color:var(--faint);color:var(--mut)}
+@media (max-width:1020px){.pl-grid{grid-template-columns:1fr}.chat{position:static;height:560px}.kpis4{grid-template-columns:1fr 1fr}}
+@media (max-width:640px){.fgrid{grid-template-columns:1fr}.field:nth-child(n){grid-column:auto}.task{grid-template-columns:20px 1fr auto}.task .kind{display:none}.wt{flex-basis:100%;order:3}.msg{max-width:100%}}
+@media print{.pl-grid,.hero,.plan-bar .pb-r,.chat{display:none}.wk{break-inside:avoid-page}details.wk>summary::before{display:none}}
+
+/* left rail */
+body.has-rail{padding-left:56px}
+.rail{position:fixed;inset:0 auto 0 0;width:56px;z-index:40;background:var(--surf);border-right:1px solid var(--line);padding:9px 8px;overflow:hidden;transition:width .18s ease;display:flex;flex-direction:column;gap:2px}
+.rail:hover,.rail:focus-within{width:240px;box-shadow:var(--sh-lg)}
+.rail-i{display:flex;align-items:center;gap:12px;height:38px;padding:0 10px;border-radius:var(--r);text-decoration:none;color:var(--txt);white-space:nowrap;font-size:14px}
+.rail-i:hover{background:var(--soft)}
+.rail-i[aria-current=page]{background:var(--soft);color:var(--fg);font-weight:600;box-shadow:inset 2px 0 0 var(--ink)}
+.rail-i .ic{width:18px;height:18px}
+.rail-logo{margin-bottom:6px;height:44px}.rail-logo .logo{width:24px;height:24px;flex:none}
+.rail .l{opacity:0;transition:opacity .12s}.rail:hover .l,.rail:focus-within .l{opacity:1}
+.rail-g{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);padding:14px 10px 4px;opacity:0;white-space:nowrap}
+.rail:hover .rail-g,.rail:focus-within .rail-g{opacity:1}
+.rail-sub{display:flex;flex-direction:column;margin:0 0 4px 22px;padding-left:12px;border-left:1px solid var(--line);opacity:0;max-height:0;overflow:hidden;transition:opacity .12s}
+.rail:hover .rail-sub,.rail:focus-within .rail-sub{opacity:1;max-height:260px}
+.rail-sub a{font-size:13px;color:var(--mut);text-decoration:none;padding:5px 8px;border-radius:var(--r);white-space:nowrap}.rail-sub a:hover{background:var(--soft);color:var(--fg)}
+.rail-bd{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:35}.rail-bd[hidden]{display:none}
+.rail-btn{display:none}
+@media (max-width:1020px){body.has-rail{padding-left:0}
+ .rail{transform:translateX(-100%);width:256px;transition:transform .2s ease;box-shadow:none}.rail.open{transform:none;box-shadow:var(--sh-lg)}
+ .rail:hover,.rail:focus-within{width:256px}.rail .l,.rail-g,.rail-sub{opacity:1}.rail-sub{max-height:260px}
+ .rail-btn{display:inline-flex}}
+@media print{.rail,.rail-bd{display:none}body.has-rail{padding-left:0}}
+
+/* systems pages and hub */
+pre.sh::before{content:"Command"}pre.out::before{content:"Output"}
+pre.sh{margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0;background:var(--ink);color:var(--ink-fg)}
+pre.sh::before{color:inherit;opacity:.65}
+pre.sh code{color:inherit;white-space:pre}
+pre.sh .cp{background:transparent;color:var(--ink-fg);border-color:rgba(248,250,252,.35)}pre.sh .cp:hover{background:rgba(248,250,252,.12);color:var(--ink-fg)}
+[data-theme=dark] pre.sh{background:#0b1324;color:#f1f5f9;border:1px solid var(--line)}
+pre.out{margin-top:0;border-top-left-radius:0;border-top-right-radius:0}
+.cmd{margin:14px 0 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);overflow:hidden}
+.cmd pre{margin:0;border-radius:0;border-left:0;border-right:0}.cmd>pre.sh{border-top:0}
+.cmd-b{padding:10px 14px 12px}.cmd-b p{margin:4px 0}
+.cmd-b pre.out{margin:6px 0 0;border:1px solid var(--line);border-radius:var(--r)}
+.out-l{margin-top:8px}
+.stamp{display:inline-block;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--done);background:var(--done-soft);border-radius:99px;padding:3px 9px}
+.stamp.ill{color:var(--warn);background:var(--warn-soft)}
+.noout{font-size:13px}
+.parts{margin:8px 0 0}.parts table{font-size:13px}.parts th,.parts td{padding:6px 10px}
+.analogy{margin:8px 0 2px}
+.tick{display:inline-flex;gap:7px;align-items:center;font-size:12.5px;color:var(--mut);cursor:pointer;margin-left:auto}
+.tick input{width:16px;height:16px;accent-color:var(--done);margin:0}.tick.is-done{color:var(--done);font-weight:600}
+.pat-h .tick{margin-left:auto}.pat-h .pp{margin-left:0}
+.lab .badge{background:var(--soft);color:var(--fg)}.lab .badge .ic{width:16px;height:16px}
+.lab{border-left:2px solid var(--info-line)}
+.case{border:1px solid var(--line);border-left:2px solid var(--warn-line);background:var(--hd);border-radius:var(--r);padding:12px 16px;margin:14px 0}
+.case h4{margin:4px 0 6px;font-size:16px;color:var(--fg)}.case p{margin:6px 0}
+.qa{padding:0 14px}.qa summary{font-weight:600}
+.qa-b{padding:0 0 12px}.qa-b ul{margin:4px 0 10px;padding-left:20px}.qa-b li{margin:3px 0}
+.angle{background:var(--hd);border:1px solid var(--line);border-left:2px solid var(--info-line);border-radius:var(--r);padding:8px 12px;font-size:14px}
+table.playbook td:first-child{font-weight:600;color:var(--fg)}
+table.cheat td:first-child{font-family:ui-monospace,Consolas,monospace;font-size:13px;white-space:pre-wrap;color:var(--fg)}
+/* hub */
+.courses{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ccard{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden}
+.ccard .tcard-h{min-height:52px}.ccard .tcard-h h2{margin:0;font-size:19px;margin-right:auto;color:var(--fg)}
+.ccard .tcard-h .no{padding:5px 8px;display:inline-flex}.ccard .tcard-h .no .ic{width:18px;height:18px}
+.ticks{margin:0;padding-left:20px;font-size:14px;color:var(--txt)}.ticks li{margin:3px 0}
+.tcard.planned{opacity:.7;background:var(--hd)}.tcard.planned .no{background:var(--soft);color:var(--mut)}
+@media (max-width:820px){.courses{grid-template-columns:1fr}}
+/* diagrams */
+.viz{margin:8px 0;padding:10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+.viz figcaption{font-size:13px;color:var(--mut);margin-top:6px;text-align:center}
+.dg{width:100%;height:auto;display:block}
+.dg-box{fill:var(--hd);stroke:var(--line);stroke-width:1.5}.dg-box.acc{fill:var(--acc-soft);stroke:var(--acc)}.dg-box.ok{fill:var(--done-soft);stroke:var(--done)}.dg-box.warn{fill:var(--warn-soft);stroke:var(--warn-line)}.dg-box.ink{fill:var(--ink);stroke:var(--ink)}
+.dg-t{font:600 13px system-ui,sans-serif;fill:var(--fg)}.dg-t.ink{fill:var(--ink-fg)}.dg-s{font:12px system-ui,sans-serif;fill:var(--mut)}
+.dg-a{stroke:var(--faint);stroke-width:2}.dg-a.acc{stroke:var(--acc)}.dg-m{fill:var(--faint)}
+</style></head>
+<body class="has-rail" data-file="S02_linux_shell.html" data-topic="sh" data-store="sys-progress" data-last="sys-last" data-word="done">
+<a class="skip" href="#content">Skip to content</a>
+<nav class="rail" id="rail" aria-label="Sections"><a class="rail-i rail-logo" href="../index.html" title="Mastery home"><span class="logo" aria-hidden="true">M</span><span class="l"><b>Mastery</b></span></a><div class="rail-g">Courses</div><a class="rail-i" href="../index.html" title="Home"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 7.5 8 2.5l5.5 5M4 6.5v7h8v-7"/></svg><span class="l">Home</span></a><a class="rail-i" href="../dsa.html" title="DSA Mastery"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m5.5 4.5-3.5 3.5 3.5 3.5M10.5 4.5l3.5 3.5-3.5 3.5"/></svg><span class="l">DSA Mastery</span></a><a class="rail-i" href="../systems.html" aria-current="page" title="Systems Mastery"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3" width="11" height="4" rx="1"/><rect x="2.5" y="9" width="11" height="4" rx="1"/><path d="M5 5h.01M5 11h.01"/></svg><span class="l">Systems Mastery</span></a><div class="rail-sub"><a href="../systems.html#track-1">Foundations</a><a href="../systems.html#track-2">Troubleshooting</a><a href="../systems.html#track-3">System design core</a><a href="../systems.html#track-4">Design problems</a><a href="../systems.html#track-5">Interview and career</a><a href="../systems.html#track-6">Extensions</a></div><div class="rail-g">Tools</div><a class="rail-i" href="../plan.html" title="DSA study planner"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="10" rx="1.5"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/></svg><span class="l">DSA study planner</span></a><a class="rail-i" href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener" title="GitHub"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M9 2.5h4.5V7M13.5 2.5 7 9M12 9v4.5H2.5V4H7"/></svg><span class="l">GitHub</span></a></nav><div class="rail-bd" id="rail-bd" hidden></div>
+<header class="bar"><div class="bar-in"><button id="b-rail" class="iconbtn rail-btn" aria-label="Open the sections menu" aria-expanded="false" aria-controls="rail"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"/></svg></button><a class="brand" href="../systems.html" aria-label="Systems Mastery home"><span class="logo" aria-hidden="true">SYS</span><b>Systems <span>Mastery</span></b></a>
+<nav class="crumbs" aria-label="Breadcrumb"><a href="../systems.html">Systems modules</a><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3.5 4.5 4.5L6 12.5"/></svg><span class="cur">S02 · Linux shell fluency</span></nav>
+<span class="prog" id="prog" aria-live="polite"></span>
+<span class="menu"><button id="b-topics" class="btn" aria-haspopup="true" aria-expanded="false" aria-controls="topics-panel"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"/></svg><span class="t-long">All modules</span></button>
+<div class="panel" id="topics-panel" role="menu" aria-label="All modules" hidden></div></span>
+<button id="b-theme" class="iconbtn" title="Toggle light / dark" aria-label="Toggle light or dark theme"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5a5.5 5.5 0 0 0 0 11z" fill="currentColor"/></svg></button>
+<button id="b-dl" class="btn pri" title="Save this page as a standalone HTML file"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8M4.5 7.5 8 11l3.5-3.5M2.5 13.5h11"/></svg><span class="t-long">Download</span></button></div>
+<div class="pbar" role="progressbar" aria-label="Steps done in this module" aria-valuemin="0" aria-valuemax="100"><i id="pbar"></i></div></header>
+<div class="wrap"><nav class="side" aria-label="On this page"><h4>Start here</h4><a href="#why">Why it matters</a><a href="#before">Before you start</a><h4>Lessons</h4><a href="#l1"><span class="dot hot"></span>1. Where am I? The filesystem and paths<span class="cnt"></span></a><a href="#l2"><span class="dot hot"></span>2. Reading, creating and removing files<span class="cnt"></span></a><a href="#l3"><span class="dot hot"></span>3. Finding things: find, grep and getting help<span class="cnt"></span></a><a href="#l4"><span class="dot hot"></span>4. Pipes, redirection and the three streams<span class="cnt"></span></a><a href="#l5"><span class="dot hot"></span>5. Permissions and users<span class="cnt"></span></a><a href="#l6"><span class="dot sec"></span>6. Variables, exit codes and job control<span class="cnt"></span></a><h4>Hands-on</h4><a href="#lab1"><span class="dot sec"></span>Lab 1. Find the real config file<span class="cnt"></span></a><a href="#lab2"><span class="dot sec"></span>Lab 2. Fix the permissions<span class="cnt"></span></a><a href="#lab3"><span class="dot sec"></span>Lab 3. Top clients with one pipeline<span class="cnt"></span></a><h4>Wrap up</h4><a href="#cases">Real-life cases</a><a href="#cheat">Cheat sheet</a><a href="#interview">Interview corner</a><a href="#selftest">Self-test</a><a href="#sources">Further reading</a></nav><main id="content"><div class="chips" aria-label="Jump to a lesson"><a href="#l1">1. Where am I? The filesystem and paths</a><a href="#l2">2. Reading, creating and removing files</a><a href="#l3">3. Finding things: find, grep and getting help</a><a href="#l4">4. Pipes, redirection and the three streams</a><a href="#l5">5. Permissions and users</a><a href="#l6">6. Variables, exit codes and job control</a></div>
+<header class="hero"><div class="eyebrow"><span class="tag">Module S02 of 29</span>Foundations</div><h1>Linux shell fluency</h1><p class="lead">The shell is the fastest way to talk to a server. This module takes you from "where am I?" to pipelines, permissions and job control, with every command explained line by line and run for real.</p><div class="stats"><span class="stat"><b>6</b> lessons</span><span class="stat"><b>3</b> labs</span><span class="stat"><b>3</b> animations</span><span class="stat"><b>8</b> interview questions</span><span class="stat">about <b>4 to 5 hours</b></span></div></header>
+<h2 id="why">Why this matters</h2><div class="callout"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>A real situation</span><p>It is 2 a.m. The web server has stopped answering and the alert says the disk is full. You have a terminal and nothing else. Someone asks: which directory is eating the space, which log file is the biggest, can we clear it without breaking anything, and how do we know it worked?</p><p>An engineer who is fluent in the shell answers in a minute: look around, find the big files, read the end of the log, fix it, check. Everyone else is stuck. Interviews test exactly this: find the largest files, count the errors in a log, explain what a pipeline does, say what happens when you run a command. They also test something quieter: how calm and methodical you are when something is broken.</p></div><div class="callout intu"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>After this module you can</span><ul><li>Move around the filesystem with absolute and relative paths without getting lost.</li><li>Read, create, copy, move and delete files, and know which of those actions cannot be undone.</li><li>Find any file or text on a machine with <code>find</code>, <code>grep</code> and friends.</li><li>Join small programs into pipelines and redirect output and errors on purpose.</li><li>Read and fix file permissions, and explain why <code>chmod 777</code> is a bad fix.</li><li>Run, pause, stop and recover long-running jobs, and read exit codes.</li></ul></div>
+<h2 id="before">Before you start</h2><p>No Linux experience is needed. You need a terminal on Linux, macOS or Windows with WSL. Git Bash on Windows works for the first lessons but lacks some tools.</p><p>Everything on this page that says <strong>Real output</strong> was produced by running the command in a real Debian system. Your numbers (dates, sizes, usernames) may differ slightly; the shape of the output is what matters.</p>
+<div class="callout"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Your practice shell</span><p>The practice area is a small folder called <code>~/workshop</code> full of safe files. Create it with one script. The script only ever creates or replaces <code>~/workshop</code>, and it refuses to run if you already have a folder of that name that it did not create.</p><p><code>curl -fsSLO https://nithin988.github.io/dsa-mastery/systems/labs/linux/workshop.sh</code> then <code>bash workshop.sh</code>. Read the script first if you like: <code>less workshop.sh</code>. No Linux machine? See the Docker option in the first lab.</p></div>
+<h2>The lessons</h2>
+<section class="pat hot" id="l1" aria-labelledby="l1-t">
+<div class="pat-h"><span class="badge">1</span><h3 id="l1-t">Where am I? The filesystem and paths</h3><span class="tier hot"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14.5c-2.5 0-4-1.7-4-3.8 0-2.2 2-3.2 2.4-5.2.9.6 1.6 1.5 1.8 2.6.6-.5.9-1.4.8-2.4 1.8 1.2 3 3 3 5 0 2-1.5 3.8-4 3.8z"/></svg> Must know</span><span class="pp"></span><label class="tick"><input type="checkbox" class="pk" data-k="sh-L1" aria-label="Mark done"><span>Mark done</span></label></div><div class="pat-b">
+<div class="glance"><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/></svg>Situation</span><p>You open a terminal on a server and the cursor is blinking. You are somewhere, but where? Every command you type is interpreted relative to that place.</p></div><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01"/></svg>You will learn</span><ul><li>What the current directory is and how to see it</li><li>Absolute and relative paths, <code>.</code>, <code>..</code> and <code>~</code></li><li>How to list files, including hidden ones, and what each column means</li></ul></div></div>
+<div class="callout intu"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>Mental model</span><p>Linux has one tree of directories that starts at a single root, written <code>/</code>. There are no drive letters. Everything, including your documents, programs and even devices, hangs off that tree.</p><p>The shell always has a <strong>current directory</strong>. A path that starts with <code>/</code> is <strong>absolute</strong>: it says how to get there from the root and works from anywhere. A path that does not start with <code>/</code> is <strong>relative</strong>: it starts from the current directory. Most "No such file or directory" errors are a relative path used from the wrong place.</p><p class="analogy"><b>Everyday analogy:</b> A path is like a postal address. An absolute path is the full address with country and city. A relative path is "two doors down from here", which only works if you are standing in the right street.</p></div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m8 2 6.5 3.5L8 9 1.5 5.5z"/><path d="m1.5 8.5 6.5 3.5 6.5-3.5"/></svg>The picture</span><figure class="viz"><svg class="dg" viewBox="0 0 720 200" role="img" aria-label="Layout of the Linux filesystem"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="dg-box ink" x="300" y="10" width="120" height="36" rx="6"/><text class="dg-t ink" x="360.0" y="26.0" text-anchor="middle">/</text><text class="dg-s" x="360.0" y="46.0" text-anchor="middle">root of everything</text><rect class="dg-box " x="110" y="80" width="110" height="36" rx="6"/><text class="dg-t " x="165.0" y="103.0" text-anchor="middle">/home</text><rect class="dg-box " x="300" y="80" width="110" height="36" rx="6"/><text class="dg-t " x="355.0" y="96.0" text-anchor="middle">/etc</text><text class="dg-s" x="355.0" y="116.0" text-anchor="middle">configuration</text><rect class="dg-box " x="490" y="80" width="110" height="36" rx="6"/><text class="dg-t " x="545.0" y="96.0" text-anchor="middle">/var</text><text class="dg-s" x="545.0" y="116.0" text-anchor="middle">logs, data that changes</text><line class="dg-a " x1="330" y1="46" x2="190" y2="80" marker-end="url(#dga)"/><line class="dg-a " x1="360" y1="46" x2="355" y2="80" marker-end="url(#dga)"/><line class="dg-a " x1="390" y1="46" x2="535" y2="80" marker-end="url(#dga)"/><rect class="dg-box acc" x="110" y="150" width="110" height="36" rx="6"/><text class="dg-t acc" x="165.0" y="166.0" text-anchor="middle">/home/me</text><text class="dg-s" x="165.0" y="186.0" text-anchor="middle">your home, ~</text><line class="dg-a " x1="165" y1="116" x2="165" y2="150" marker-end="url(#dga)"/><rect class="dg-box " x="490" y="150" width="110" height="36" rx="6"/><text class="dg-t " x="545.0" y="166.0" text-anchor="middle">/var/log</text><text class="dg-s" x="545.0" y="186.0" text-anchor="middle">system logs</text><line class="dg-a " x1="545" y1="116" x2="545" y2="150" marker-end="url(#dga)"/><text class="dg-s" x="360" y="195" text-anchor="middle">Also: /usr (programs), /tmp (scratch), /bin, /dev (devices), /proc (live system info)</text></svg><figcaption>One tree, one root. There are no drive letters.</figcaption></figure></div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="m6.5 6 3.5 2-3.5 2z"/></svg>Watch it run</span><p class="muted" style="margin:0 0 6px">Press play, or step with the buttons, the slider or the arrow keys.</p><div class="stepper" data-sim="cdtree"></div></div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>See where you are</span>
+<div class="cmd"><pre class="sh"><code>pwd</code></pre><div class="cmd-b"><p><strong>P</strong>rint <strong>w</strong>orking <strong>d</strong>irectory. It prints the absolute path of the directory you are in. A new terminal starts in your home directory, so this prints something like <code>/home/yourname</code>.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>/home/learner</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>ls workshop</code></pre><div class="cmd-b"><p><code>ls</code> lists the names inside a directory. Here we give it a path (relative, because it does not start with <code>/</code>) to look inside <code>workshop</code> without moving there.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>README.txt
+archive
+bin
+data
+logs
+notes</code></pre></div></div>
+</div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Move around</span>
+<div class="cmd"><pre class="sh"><code>cd workshop</code></pre><div class="cmd-b"><p><strong>C</strong>hange <strong>d</strong>irectory. Silence means it worked. A relative path: go down into <code>workshop</code>, which is inside where we already are.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>pwd</code></pre><div class="cmd-b"><p>Confirm the move. After <code>cd</code>, <code>pwd</code> is the quickest way to check where you are.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>/home/learner/workshop</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>ls -l</code></pre><div class="cmd-b"><p>List in long format: one line per entry with permissions, owner, size and modification date. The dates are the same for everyone because the setup script fixes them.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>ls</code></td><td>list directory contents</td></tr><tr><td><code>-l</code></td><td>long format</td></tr><tr><td><code>first column</code></td><td>type and permissions (<code>d</code> means directory, <code>-</code> means a plain file)</td></tr><tr><td><code>5th column</code></td><td>size in bytes</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>total 24
+-rw-r--r-- 1 learner learner   59 Jan 15  2026 README.txt
+drwxr-xr-x 2 learner learner 4096 Jan 15  2026 archive
+drwxr-xr-x 2 learner learner 4096 Jan 15  2026 bin
+drwxr-xr-x 2 learner learner 4096 Jan 15  2026 data
+drwxr-xr-x 2 learner learner 4096 Jan 15  2026 logs
+drwxr-xr-x 2 learner learner 4096 Jan 15  2026 notes</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>ls -la</code></pre><div class="cmd-b"><p>Add <code>-a</code> to include <strong>hidden</strong> entries: names that start with a dot. You will always see two special ones: <code>.</code> (this directory) and <code>..</code> (its parent).</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>-a</code></td><td>all, including names that start with a dot</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>total 32
+drwxr-xr-x 7 learner learner 4096 Jan 15  2026 .
+drwx------ 3 learner learner 4096 Jan 15  2026 ..
+-rw-r--r-- 1 learner learner   59 Jan 15  2026 README.txt
+drwxr-xr-x 2 learner learner 4096 Jan 15  2026 archive
+drwxr-xr-x 2 learner learner 4096 Jan 15  2026 bin
+drwxr-xr-x 2 learner learner 4096 Jan 15  2026 data
+drwxr-xr-x 2 learner learner 4096 Jan 15  2026 logs
+drwxr-xr-x 2 learner learner 4096 Jan 15  2026 notes</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>cd notes</code></pre><div class="cmd-b"><p>Down one level.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>pwd</code></pre><div class="cmd-b"><p>We are now in <code>workshop/notes</code>.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>/home/learner/workshop/notes</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>cd ..</code></pre><div class="cmd-b"><p><code>..</code> means the parent directory, so this goes one level up, back to <code>workshop</code>. Use <code>../..</code> to go up two levels.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>cd /etc</code></pre><div class="cmd-b"><p>A path starting with <code>/</code> is absolute. This works from anywhere and takes us to the system's configuration directory.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>pwd</code></pre><div class="cmd-b"><p>Confirm.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>/etc</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>cd ~/workshop/logs</code></pre><div class="cmd-b"><p><code>~</code> is shorthand for your home directory, so <code>~/workshop/logs</code> is an absolute path to the logs folder that works from anywhere.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>cd -</code></pre><div class="cmd-b"><p><code>cd -</code> jumps back to the <strong>previous</strong> directory (and prints it). It is the "back" button of the shell.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>/etc</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>cd</code></pre><div class="cmd-b"><p><code>cd</code> with no argument always goes home.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>pwd</code></pre><div class="cmd-b"><p>Home again.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>/home/learner</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>ls -R workshop</code></pre><div class="cmd-b"><p><code>-R</code> lists <strong>r</strong>ecursively: every directory and what is inside it. Handy for a quick look at a whole tree.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>-R</code></td><td>recurse into subdirectories</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>workshop:
+README.txt
+archive
+bin
+data
+logs
+notes
+
+workshop/archive:
+2025.tar.txt
+
+workshop/bin:
+hello.sh
+
+workshop/data:
+names.txt
+
+workshop/logs:
+access.log
+app.log
+
+workshop/notes:
+ideas.md
+todo.txt</code></pre></div></div>
+</div>
+<div class="blk warn"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Traps to avoid</span><ul><li><code>cd</code> with a relative path from the wrong directory is the most common cause of "No such file or directory". When in doubt run <code>pwd</code>.</li><li>Spaces split words: <code>cd My Documents</code> is two arguments. Quote it (<code>cd "My Documents"</code>) or escape the space.</li><li><code>cd</code> changes only the shell's current directory; it never moves or deletes anything.</li></ul></div>
+</div></section>
+<section class="pat hot" id="l2" aria-labelledby="l2-t">
+<div class="pat-h"><span class="badge">2</span><h3 id="l2-t">Reading, creating and removing files</h3><span class="tier hot"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14.5c-2.5 0-4-1.7-4-3.8 0-2.2 2-3.2 2.4-5.2.9.6 1.6 1.5 1.8 2.6.6-.5.9-1.4.8-2.4 1.8 1.2 3 3 3 5 0 2-1.5 3.8-4 3.8z"/></svg> Must know</span><span class="pp"></span><label class="tick"><input type="checkbox" class="pk" data-k="sh-L2" aria-label="Mark done"><span>Mark done</span></label></div><div class="pat-b">
+<div class="glance"><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/></svg>Situation</span><p>A deploy failed and you need to read the end of a log, make a safe copy of a config before editing it, and clean up a scratch directory.</p></div><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01"/></svg>You will learn</span><ul><li>View files: <code>cat</code>, <code>head</code>, <code>tail</code>, <code>less</code>, <code>wc</code>, <code>file</code></li><li>Create, copy, move and rename: <code>mkdir</code>, <code>touch</code>, <code>cp</code>, <code>mv</code></li><li>Delete: <code>rm</code>, <code>rmdir</code>, and why there is no undo</li></ul></div></div>
+<div class="callout intu"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>Mental model</span><p>In Linux almost everything is a file, and most files are plain text. Small programs read and write them: <code>cat</code> prints a whole file, <code>head</code> the first lines, <code>tail</code> the last lines (the end of a log is usually what you want), <code>less</code> lets you scroll a long file.</p><p><code>mv</code> both moves and renames (renaming is just moving to a new name in the same place). <code>cp</code> makes a copy. <code>rm</code> deletes immediately: <strong>there is no recycle bin</strong>. The only safety net is your habit of checking before you press Enter.</p><p class="analogy"><b>Everyday analogy:</b> <code>rm</code> is like shredding a paper instead of putting it in the bin. <code>ls</code> and <code>echo</code> first, then <code>rm</code>: look at exactly what the shell will hand to the command before it can hurt anything.</p></div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Look inside files</span>
+<div class="cmd"><pre class="sh"><code>cd ~/workshop</code></pre><div class="cmd-b"><p>Go back to the workshop so the rest of this lesson uses the same relative paths.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>cat README.txt</code></pre><div class="cmd-b"><p><code>cat</code> prints the whole file. Good for short files.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>Welcome to the workshop.
+Everything here is safe to break.</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>head -n 2 logs/access.log</code></pre><div class="cmd-b"><p>Show only the first 2 lines. <code>head</code> is for peeking at big files.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>-n 2</code></td><td>number of lines to show</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>200 /home
+500 /pay</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>tail -n 3 logs/access.log</code></pre><div class="cmd-b"><p>Show the last 3 lines. For live logs you will meet <code>tail -f</code>, which keeps following new lines as they are written.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>500 /cart
+200 /cart
+500 /pay</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>wc -l logs/access.log</code></pre><div class="cmd-b"><p><strong>W</strong>ord <strong>c</strong>ount with <code>-l</code>: count lines. You will use this constantly to answer "how many?".</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>-l</code></td><td>lines</td></tr><tr><td><code>-w</code></td><td>words</td></tr><tr><td><code>-c</code></td><td>bytes</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>8 logs/access.log</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>file bin/hello.sh</code></pre><div class="cmd-b"><p><code>file</code> guesses what kind of data a file holds, by looking inside it, not at its name.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>bin/hello.sh: Bourne-Again shell script, ASCII text executable</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>less logs/app.log</code></pre><div class="cmd-b"><p><code>less</code> opens a pager: Space scrolls down, <code>b</code> scrolls up, <code>/word</code> searches, <code>q</code> quits. It is interactive, so we cannot record it here. Use it whenever a file is longer than a screen.</p><div class="out-l"><span class="stamp ill">Illustrative output · will differ on your machine</span></div><pre class="out ill"><code>2026-01-15 ERROR disk almost full
+2026-01-15 INFO backup finished
+2026-01-16 ERROR disk almost full
+(END)</code></pre></div></div>
+</div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Create, copy, move, remove</span>
+<p>We work in a scratch folder so nothing important is touched.</p>
+<div class="cmd"><pre class="sh"><code>mkdir -p scratch/deep/er</code></pre><div class="cmd-b"><p>Make a directory. <code>-p</code> makes missing parent directories too and does not complain if it already exists.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>-p</code></td><td>create parents as needed</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>touch scratch/a.txt</code></pre><div class="cmd-b"><p><code>touch</code> creates an empty file (or updates the modification time of an existing one).</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>cp README.txt scratch/readme-copy.txt</code></pre><div class="cmd-b"><p>Copy a file. Syntax is always <code>cp SOURCE DESTINATION</code>. Use <code>cp -r</code> to copy a directory.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>mv scratch/a.txt scratch/b.txt</code></pre><div class="cmd-b"><p><code>mv SOURCE DESTINATION</code>: because both are in the same directory, this is a rename.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>ls scratch</code></pre><div class="cmd-b"><p>Check what is there now: the copy, the renamed file and the nested directory.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>b.txt
+deep
+readme-copy.txt</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>rm scratch/b.txt</code></pre><div class="cmd-b"><p>Delete a file. No question asked, no undo.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>rmdir scratch/deep/er</code></pre><div class="cmd-b"><p><code>rmdir</code> removes only <strong>empty</strong> directories, which makes it a safe way to remove one. It fails if anything is inside.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>rmdir scratch/deep</code></pre><div class="cmd-b"><p>Now <code>deep</code> is empty too, so this works.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>ls -R scratch</code></pre><div class="cmd-b"><p>What is left.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>scratch:
+readme-copy.txt</code></pre></div></div>
+</div>
+<div class="blk warn"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Traps to avoid</span><ul><li><code>rm -rf</code> deletes a directory and everything in it with no confirmation. Before running it, run the same command with <code>ls</code> instead and read what you would delete.</li><li><code>mv</code> and <code>cp</code> silently overwrite an existing destination. Add <code>-i</code> to be asked first.</li><li>A <code>*</code> is expanded by the shell before the command runs. <code>rm *</code> in the wrong directory removes everything in it. Quote or check with <code>echo *</code> first.</li></ul></div>
+</div></section>
+<section class="pat hot" id="l3" aria-labelledby="l3-t">
+<div class="pat-h"><span class="badge">3</span><h3 id="l3-t">Finding things: find, grep and getting help</h3><span class="tier hot"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14.5c-2.5 0-4-1.7-4-3.8 0-2.2 2-3.2 2.4-5.2.9.6 1.6 1.5 1.8 2.6.6-.5.9-1.4.8-2.4 1.8 1.2 3 3 3 5 0 2-1.5 3.8-4 3.8z"/></svg> Must know</span><span class="pp"></span><label class="tick"><input type="checkbox" class="pk" data-k="sh-L3" aria-label="Mark done"><span>Mark done</span></label></div><div class="pat-b">
+<div class="glance"><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/></svg>Situation</span><p>A teammate says "the setting is in some config file on that machine". You do not know where. You have two questions: which file, and which line in it.</p></div><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01"/></svg>You will learn</span><ul><li><code>find</code> locates files by name, type, size and age</li><li><code>grep</code> locates text inside files</li><li>How to read built-in help when you do not remember a flag</li></ul></div></div>
+<div class="callout intu"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>Mental model</span><p><code>find</code> walks a directory tree and prints the paths that match your conditions. <code>grep</code> reads lines of text and prints the ones that match a pattern. Together they answer "which file?" and "which line?".</p><p>You will never remember every flag. Professionals rely on three sources: <code>command --help</code> (quick summary), <code>man command</code> (the full manual), and the shell itself telling you what a name is with <code>type</code>.</p><p class="analogy"><b>Everyday analogy:</b> <code>find</code> is asking the librarian to bring every book with a red cover. <code>grep</code> is opening each book and reading only the lines that contain a word.</p></div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>find: search by file properties</span>
+<div class="cmd"><pre class="sh"><code>cd ~/workshop</code></pre><div class="cmd-b"><p>Start from the workshop.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>find . -name &quot;*.log&quot; | sort</code></pre><div class="cmd-b"><p>Find files whose name ends in <code>.log</code>. The dot means "start in the current directory". The quotes stop the shell from expanding <code>*</code> itself so <code>find</code> receives the pattern. <code>sort</code> just puts the results in a stable order.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>find .</code></td><td>search starting here</td></tr><tr><td><code>-name &quot;*.log&quot;</code></td><td>name matches the pattern</td></tr><tr><td><code>| sort</code></td><td>pipe the result into sort (next lesson)</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>./logs/access.log
+./logs/app.log</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>find . -type d | sort</code></pre><div class="cmd-b"><p><code>-type d</code> matches directories only (<code>f</code> is files).</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>-type d</code></td><td>directories only</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>.
+./archive
+./bin
+./data
+./logs
+./notes
+./scratch</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>find notes -name &quot;*.md&quot; -exec cat {} \;</code></pre><div class="cmd-b"><p><code>-exec</code> runs a command on every match; <code>{}</code> is replaced by the file name and <code>\;</code> ends the command. Here it prints each matching markdown file.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>-exec ... \;</code></td><td>run the command once per match</td></tr><tr><td><code>{}</code></td><td>placeholder for the matched path</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code># Ideas
+- learn awk
+- build a blog</code></pre></div></div>
+</div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>grep: search inside files</span>
+<div class="cmd"><pre class="sh"><code>grep ERROR logs/app.log</code></pre><div class="cmd-b"><p>Print every line that contains <code>ERROR</code>. Case matters: use <code>-i</code> to ignore case.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>2026-01-15 ERROR disk almost full
+2026-01-16 ERROR disk almost full</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>grep -c ERROR logs/app.log</code></pre><div class="cmd-b"><p><code>-c</code> prints only the <strong>count</strong> of matching lines.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>-c</code></td><td>count matching lines</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>2</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>grep -rn &quot;disk&quot; logs</code></pre><div class="cmd-b"><p><code>-r</code> searches a whole directory recursively and <code>-n</code> shows the line number. Output starts with the file name, so you learn which file and which line at once.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>-r</code></td><td>recursive</td></tr><tr><td><code>-n</code></td><td>show line numbers</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>logs/app.log:1:2026-01-15 ERROR disk almost full
+logs/app.log:3:2026-01-16 ERROR disk almost full</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>grep -v &quot;^200&quot; logs/access.log</code></pre><div class="cmd-b"><p><code>-v</code> inverts the match: print lines that do <strong>not</strong> match. <code>^</code> means "start of the line". This shows every request that was not a 200.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>-v</code></td><td>invert: lines that do NOT match</td></tr><tr><td><code>^200</code></td><td>regular expression: line starts with 200</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>500 /pay
+404 /old
+500 /pay
+500 /cart
+500 /pay</code></pre></div></div>
+</div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>What is this command, and how do I use it?</span>
+<div class="cmd"><pre class="sh"><code>type cd</code></pre><div class="cmd-b"><p><code>type</code> tells you what the shell will do with a name. <code>cd</code> is a <strong>builtin</strong>: part of the shell itself, not a separate program.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>cd is a shell builtin</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>type ls</code></pre><div class="cmd-b"><p><code>ls</code> is a program found on disk. <code>which ls</code> would show the same path. The shell finds programs by searching the directories listed in the <code>PATH</code> variable, in order.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>ls is hashed (/usr/bin/ls)</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>ls --help | head -n 3</code></pre><div class="cmd-b"><p>Most programs print a short summary with <code>--help</code>. We pipe it to <code>head</code> to keep it short here.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>Usage: ls [OPTION]... [FILE]...
+List information about the FILEs (the current directory by default).
+Sort entries alphabetically if none of -cftuvSUX nor --sort is specified.</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>man ls</code></pre><div class="cmd-b"><p><code>man</code> opens the full manual page in a pager. Press <code>/</code> to search inside it and <code>q</code> to quit. When someone says RTFM, this is the M.</p><div class="out-l"><span class="stamp ill">Illustrative output · will differ on your machine</span></div><pre class="out ill"><code>LS(1)                       User Commands                      LS(1)
+
+NAME
+       ls - list directory contents
+
+SYNOPSIS
+       ls [OPTION]... [FILE]...</code></pre></div></div>
+</div>
+<div class="blk warn"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Traps to avoid</span><ul><li>Forgetting to quote a pattern: <code>find . -name *.log</code> lets the shell expand <code>*.log</code> first, which can silently break the search.</li><li><code>grep</code> is case sensitive and treats some characters (<code>.</code>, <code>*</code>, <code>[</code>) as regular expression syntax. Use <code>grep -F</code> for a plain text match.</li><li><code>find</code> without a starting directory is an error on some systems. Always give one, even if it is <code>.</code>.</li></ul></div>
+</div></section>
+<section class="pat hot" id="l4" aria-labelledby="l4-t">
+<div class="pat-h"><span class="badge">4</span><h3 id="l4-t">Pipes, redirection and the three streams</h3><span class="tier hot"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14.5c-2.5 0-4-1.7-4-3.8 0-2.2 2-3.2 2.4-5.2.9.6 1.6 1.5 1.8 2.6.6-.5.9-1.4.8-2.4 1.8 1.2 3 3 3 5 0 2-1.5 3.8-4 3.8z"/></svg> Must know</span><span class="pp"></span><label class="tick"><input type="checkbox" class="pk" data-k="sh-L4" aria-label="Mark done"><span>Mark done</span></label></div><div class="pat-b">
+<div class="glance"><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/></svg>Situation</span><p>The access log has thousands of lines. You do not need to read it: you need to know which pages fail with HTTP 500 and how often. One line of shell does it.</p></div><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01"/></svg>You will learn</span><ul><li>stdin, stdout and stderr, and how to redirect each</li><li>Pipes: connecting programs</li><li>The classic trap: reading and writing the same file in one command</li></ul></div></div>
+<div class="callout intu"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>Mental model</span><p>Every program starts with three streams open. <strong>stdin</strong> (0) is where it reads input, <strong>stdout</strong> (1) is where normal output goes, and <strong>stderr</strong> (2) is where error messages go. By default stdin is your keyboard and the other two are your screen.</p><p>Redirection changes where a stream goes: <code>&gt;</code> sends stdout to a file (replacing it), <code>&gt;&gt;</code> appends, <code>2&gt;</code> sends only errors, <code>&lt;</code> reads input from a file. A <strong>pipe</strong> <code>|</code> connects the stdout of one program straight to the stdin of the next. That is the Unix idea: tiny programs, each doing one job, joined into something bigger.</p><p class="analogy"><b>Everyday analogy:</b> Think of plumbing: a pipe joins one tap's output to the next machine's input. Redirection is putting a bucket under the pipe instead of letting the water run down the drain.</p></div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m8 2 6.5 3.5L8 9 1.5 5.5z"/><path d="m1.5 8.5 6.5 3.5 6.5-3.5"/></svg>The picture</span><figure class="viz"><svg class="dg" viewBox="0 0 720 150" role="img" aria-label="Three standard streams"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="dg-box ink" x="280" y="45" width="160" height="60" rx="6"/><text class="dg-t ink" x="360.0" y="80.0" text-anchor="middle">your command</text><rect class="dg-box " x="10" y="20" width="130" height="40" rx="6"/><text class="dg-t " x="75.0" y="38.0" text-anchor="middle">stdin (0)</text><text class="dg-s" x="75.0" y="58.0" text-anchor="middle">keyboard or a pipe</text><line class="dg-a " x1="140" y1="40" x2="280" y2="65" marker-end="url(#dga)"/><rect class="dg-box ok" x="580" y="20" width="130" height="40" rx="6"/><text class="dg-t ok" x="645.0" y="38.0" text-anchor="middle">stdout (1)</text><text class="dg-s" x="645.0" y="58.0" text-anchor="middle">normal output</text><line class="dg-a " x1="440" y1="65" x2="580" y2="40" marker-end="url(#dga)"/><rect class="dg-box warn" x="580" y="90" width="130" height="40" rx="6"/><text class="dg-t warn" x="645.0" y="108.0" text-anchor="middle">stderr (2)</text><text class="dg-s" x="645.0" y="128.0" text-anchor="middle">error messages</text><line class="dg-a " x1="440" y1="90" x2="580" y2="110" marker-end="url(#dga)"/><text class="dg-s" x="500" y="138" text-anchor="middle">both usually go to your screen; &gt; and 2&gt; send them to files</text></svg><figcaption>Every program has three streams. Redirection changes where they go.</figcaption></figure></div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="m6.5 6 3.5 2-3.5 2z"/></svg>Watch it run</span><p class="muted" style="margin:0 0 6px">Press play, or step with the buttons, the slider or the arrow keys.</p><div class="stepper" data-sim="pipe"></div></div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Redirect to and from files</span>
+<div class="cmd"><pre class="sh"><code>cd ~/workshop</code></pre><div class="cmd-b"><p>Start from the workshop.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>mkdir -p scratch</code></pre><div class="cmd-b"><p>A scratch folder for the experiments (it exists already if you did the last lesson; <code>-p</code> does not mind).</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>echo hello &gt; scratch/out.txt</code></pre><div class="cmd-b"><p><code>echo</code> prints its arguments. <code>&gt;</code> sends that output to a file instead of the screen, <strong>creating or replacing</strong> the file.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>cat scratch/out.txt</code></pre><div class="cmd-b"><p>Check what was written.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>hello</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>echo again &gt;&gt; scratch/out.txt</code></pre><div class="cmd-b"><p><code>&gt;&gt;</code> <strong>appends</strong> instead of replacing.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>cat scratch/out.txt</code></pre><div class="cmd-b"><p>Both lines are there now.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>hello
+again</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>ls /nonexistent 2&gt; scratch/err.txt; cat scratch/err.txt</code></pre><div class="cmd-b"><p><code>2&gt;</code> redirects only stderr (stream number 2). The error message went into the file, not the screen. The <code>;</code> just runs the second command after the first.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>2&gt;</code></td><td>redirect stderr to a file</td></tr><tr><td><code>;</code></td><td>run the next command afterwards</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>ls: cannot access &#x27;/nonexistent&#x27;: No such file or directory</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>ls /nonexistent 2&gt;/dev/null; echo &quot;exit code: $?&quot;</code></pre><div class="cmd-b"><p><code>/dev/null</code> is a black hole: anything written to it disappears. <code>$?</code> holds the <strong>exit code</strong> of the last command: 0 means success, anything else means failure. Here <code>ls</code> failed, so we see 2.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>exit code: 2</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>ls README.txt /nonexistent &gt; scratch/both.txt 2&gt;&amp;1; cat scratch/both.txt</code></pre><div class="cmd-b"><p><code>2&gt;&amp;1</code> means "send stderr to wherever stdout is going". Now one file collects the error and the normal output.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>&gt; scratch/both.txt</code></td><td>stdout to the file</td></tr><tr><td><code>2&gt;&amp;1</code></td><td>and stderr to the same place as stdout</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>ls: cannot access &#x27;/nonexistent&#x27;: No such file or directory
+README.txt</code></pre></div></div>
+</div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Pipes</span>
+<div class="cmd"><pre class="sh"><code>sort data/names.txt | head -n 2</code></pre><div class="cmd-b"><p><code>sort</code> prints the file in order and <code>head</code> keeps the first two lines. The pipe hands one program's output to the other with no temporary file.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>alice
+bob</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>echo &quot;first run&quot; | tee scratch/tee.txt</code></pre><div class="cmd-b"><p><code>tee</code> copies its input to a file <strong>and</strong> passes it on, like a T-junction. Useful to save a command's output while still seeing it.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>first run</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>grep &quot;^500&quot; logs/access.log | cut -d&quot; &quot; -f2 | sort | uniq -c | sort -rn</code></pre><div class="cmd-b"><p>The pipeline from the animation. Keep the 500 lines, take the second space-separated field (the path), sort so duplicates are adjacent, count duplicates with <code>uniq -c</code>, sort numerically with the biggest first. Read it left to right, one stage at a time.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>grep &quot;^500&quot;</code></td><td>lines that start with 500</td></tr><tr><td><code>cut -d&quot; &quot; -f2</code></td><td>split on spaces, keep field 2</td></tr><tr><td><code>sort</code></td><td>put identical lines next to each other</td></tr><tr><td><code>uniq -c</code></td><td>collapse neighbours and count</td></tr><tr><td><code>sort -rn</code></td><td>numeric, reverse: biggest first</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>      3 /pay
+      1 /cart</code></pre></div></div>
+</div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>A trap everyone falls into once</span>
+<div class="cmd"><pre class="sh"><code>cp data/names.txt scratch/n.txt; sort -r scratch/n.txt &gt; scratch/n.txt; wc -c scratch/n.txt</code></pre><div class="cmd-b"><p>We try to sort a file back into itself. The shell opens (and <strong>empties</strong>) <code>scratch/n.txt</code> for the <code>&gt;</code> before <code>sort</code> even starts reading, so <code>sort</code> reads an empty file. The result is 0 bytes: the data is gone. Always write to a different file, or use <code>sort -o file file</code> or <code>sponge</code>.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>0 scratch/n.txt</code></pre></div></div>
+</div>
+<div class="blk warn"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Traps to avoid</span><ul><li><code>&gt; file</code> truncates the file immediately, even if the command then fails. <code>command &lt; file &gt; file</code> and <code>sort file &gt; file</code> destroy the input.</li><li><code>2&gt;&amp;1</code> must come <strong>after</strong> <code>&gt; file</code>: <code>cmd 2&gt;&amp;1 &gt; file</code> sends errors to the screen and only stdout to the file.</li><li>A pipe only carries stdout. Errors still go to the screen unless you add <code>2&gt;&amp;1</code> before the pipe.</li></ul></div>
+</div></section>
+<section class="pat hot" id="l5" aria-labelledby="l5-t">
+<div class="pat-h"><span class="badge">5</span><h3 id="l5-t">Permissions and users</h3><span class="tier hot"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14.5c-2.5 0-4-1.7-4-3.8 0-2.2 2-3.2 2.4-5.2.9.6 1.6 1.5 1.8 2.6.6-.5.9-1.4.8-2.4 1.8 1.2 3 3 3 5 0 2-1.5 3.8-4 3.8z"/></svg> Must know</span><span class="pp"></span><label class="tick"><input type="checkbox" class="pk" data-k="sh-L5" aria-label="Mark done"><span>Mark done</span></label></div><div class="pat-b">
+<div class="glance"><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/></svg>Situation</span><p>A deploy script says "Permission denied", and a teammate suggests chmod 777 on the whole folder to "make it work". You should be able to say why that is a bad idea and what the right fix is.</p></div><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01"/></svg>You will learn</span><ul><li>Read the nine characters in <code>ls -l</code> and the numeric form (755, 644, 600)</li><li>Change permissions with <code>chmod</code></li><li>What the execute bit means on files and directories</li></ul></div></div>
+<div class="callout intu"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>Mental model</span><p>Every file has an <strong>owner</strong>, a <strong>group</strong> and three sets of permission bits: what the owner may do, what the group may do, and what everyone else may do. Each set is made of read (<code>r</code>), write (<code>w</code>) and execute (<code>x</code>).</p><p>The kernel checks these bits on every access. For a file, <code>x</code> means "may run it as a program". For a directory, <code>r</code> means "may list the names" and <code>x</code> means "may enter it and reach things inside". Numbers are just shorthand: r = 4, w = 2, x = 1, added together per group, so <code>rwxr-xr--</code> is 7, 5, 4 and the mode is <code>754</code>.</p><p class="analogy"><b>Everyday analogy:</b> Think of a building: the owner has all the keys, the group (the team) has a key card for some rooms, and everyone else only gets into the lobby. <code>chmod 777</code> hands a master key to every visitor.</p></div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="m6.5 6 3.5 2-3.5 2z"/></svg>Watch it run</span><p class="muted" style="margin:0 0 6px">Press play, or step with the buttons, the slider or the arrow keys.</p><div class="stepper" data-sim="perm"></div></div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Read permissions</span>
+<div class="cmd"><pre class="sh"><code>cd ~/workshop</code></pre><div class="cmd-b"><p>Start from the workshop.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>ls -l bin/hello.sh</code></pre><div class="cmd-b"><p>Read the first column: <code>-</code> (a plain file), then <code>rwx</code> for the owner, <code>r-x</code> for the group, <code>r-x</code> for others. That is mode 755: the classic mode for a program everyone may run.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>-rwxr-xr-x</code></td><td>type and permissions</td></tr><tr><td><code>learner learner</code></td><td>owner and group</td></tr><tr><td><code>46</code></td><td>size in bytes</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>-rwxr-xr-x 1 learner learner 43 Jan 15  2026 bin/hello.sh</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>id -un</code></pre><div class="cmd-b"><p>Who am I? <code>id -un</code> prints your user name (<code>whoami</code> does the same).</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>learner</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>umask</code></pre><div class="cmd-b"><p>The <strong>umask</strong> is the set of bits that new files do <strong>not</strong> get. <code>0022</code> means new files are 644 and new directories 755: others cannot write by default.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>0022</code></pre></div></div>
+</div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Change permissions</span>
+<div class="cmd"><pre class="sh"><code>bin/hello.sh</code></pre><div class="cmd-b"><p>Run the script. It works because it has the execute bit and <code>bin/hello.sh</code> is a path (a name with a slash is run from that location, not searched in <code>PATH</code>).</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>Hello from the workshop</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>chmod -x bin/hello.sh; bin/hello.sh</code></pre><div class="cmd-b"><p><code>chmod -x</code> removes the execute bit for everyone. Running it now fails with "Permission denied". This is the exact error you see when you copy a script and forget to make it executable.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>chmod</code></td><td>change mode</td></tr><tr><td><code>-x</code></td><td>take away execute (use +x to add)</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>bash: bin/hello.sh: Permission denied</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>chmod 755 bin/hello.sh; bin/hello.sh</code></pre><div class="cmd-b"><p><code>chmod 755</code> sets the mode with numbers: owner 7 (rwx), group 5 (r-x), others 5 (r-x). The script runs again.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>Hello from the workshop</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>chmod 600 notes/todo.txt; stat -c &#x27;%a %A %n&#x27; notes/todo.txt</code></pre><div class="cmd-b"><p><code>600</code> means only the owner can read or write. This is the right mode for private files such as SSH keys. <code>stat -c</code> prints chosen fields: the numeric mode, the symbolic mode and the name.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>%a</code></td><td>mode in numbers</td></tr><tr><td><code>%A</code></td><td>mode as rwx text</td></tr><tr><td><code>%n</code></td><td>file name</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>600 -rw------- notes/todo.txt</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>chmod u+x,g-w,o-rwx notes/ideas.md; stat -c &#x27;%a %A %n&#x27; notes/ideas.md</code></pre><div class="cmd-b"><p>The symbolic form: <code>u</code> = owner, <code>g</code> = group, <code>o</code> = others, <code>+</code> adds, <code>-</code> removes. Handy for small changes without recalculating the number.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>740 -rwxr----- notes/ideas.md</code></pre></div></div>
+</div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Running things as an administrator</span>
+<div class="cmd"><pre class="sh"><code>sudo systemctl restart nginx</code></pre><div class="cmd-b"><p><code>sudo</code> runs one command with administrator (root) rights after asking for your password. Use it only for the exact command that needs it. Habitually working as root is how people delete the wrong thing, which is why many systems log every <code>sudo</code> use.</p><div class="out-l"><span class="stamp ill">Illustrative output · will differ on your machine</span></div><pre class="out ill"><code>[sudo] password for learner:</code></pre></div></div>
+</div>
+<div class="blk warn"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Traps to avoid</span><ul><li><code>chmod 777</code> makes a file or directory writable by every user and every program on the machine. It hides the real problem (wrong owner, missing <code>x</code>) and creates a security hole. Fix the owner or the specific bit instead.</li><li><code>chmod -R</code> on a directory changes everything under it, including files that should stay private.</li><li>A directory without <code>x</code> cannot be entered even if you can read its name: this explains many confusing "Permission denied" messages.</li></ul></div>
+</div></section>
+<section class="pat sec" id="l6" aria-labelledby="l6-t">
+<div class="pat-h"><span class="badge">6</span><h3 id="l6-t">Variables, exit codes and job control</h3><span class="tier sec"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5h8v11L8 10.5 4 13.5z"/></svg> Good to know</span><span class="pp"></span><label class="tick"><input type="checkbox" class="pk" data-k="sh-L6" aria-label="Mark done"><span>Mark done</span></label></div><div class="pat-b">
+<div class="glance"><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/></svg>Situation</span><p>You started a long backup in your terminal and now need the terminal back, or the network dropped and you are not sure the command finished. You need to know how to run things in the background and how to tell success from failure.</p></div><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01"/></svg>You will learn</span><ul><li>Shell variables, <code>export</code> and the <code>PATH</code></li><li>Exit codes and <code>&amp;&amp;</code>, <code>||</code></li><li>Background jobs, <code>Ctrl-C</code>, <code>Ctrl-Z</code>, <code>kill</code>, and surviving a closed terminal</li></ul></div></div>
+<div class="callout intu"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>Mental model</span><p>A shell variable is a named piece of text: <code>NAME=value</code> sets it and <code>$NAME</code> reads it. A variable is only visible to programs you start if you <strong>export</strong> it. The most important one is <code>PATH</code>: the ordered list of directories the shell searches when you type a program name.</p><p>Every command ends with an <strong>exit code</strong>: 0 is success, non-zero is failure (the number says why). <code>&amp;&amp;</code> runs the next command only if the first succeeded, and <code>||</code> only if it failed. Scripts, CI systems and monitoring all rely on exit codes, not on how the output looks.</p><p class="analogy"><b>Everyday analogy:</b> Exit codes are the thumbs-up or thumbs-down a coworker gives when they finish a task. You can read the message they wrote (the output), but automation only looks at the thumb.</p></div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Variables and exit codes</span>
+<div class="cmd"><pre class="sh"><code>GREETING=hello; echo &quot;$GREETING world&quot;</code></pre><div class="cmd-b"><p>Set a variable and read it back with <code>$</code>. No spaces around <code>=</code>.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>hello world</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>export COLOUR=blue; bash -c &#x27;echo &quot;child sees: $COLOUR&quot;&#x27;</code></pre><div class="cmd-b"><p><code>export</code> makes the variable visible to programs started from here. The inner <code>bash -c</code> is a child process, and it can see <code>COLOUR</code>. Without <code>export</code> it would print an empty value.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>child sees: blue</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>true; echo &quot;true gives $?&quot;; false; echo &quot;false gives $?&quot;</code></pre><div class="cmd-b"><p><code>true</code> and <code>false</code> are tiny programs that only return an exit code. <code>$?</code> is the exit code of the previous command.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>true gives 0
+false gives 1</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>mkdir -p scratch2 &amp;&amp; echo &quot;created&quot;</code></pre><div class="cmd-b"><p><code>&amp;&amp;</code>: run the second command <strong>only if</strong> the first succeeded.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>created</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>cd /nonexistent 2&gt;/dev/null || echo &quot;could not change directory&quot;</code></pre><div class="cmd-b"><p><code>||</code>: run the second command <strong>only if</strong> the first failed. We silenced the error message with <code>2&gt;/dev/null</code>.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>could not change directory</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>echo &quot;$PATH&quot;</code></pre><div class="cmd-b"><p>The directories searched for programs, separated by colons, left to right. If two directories hold a program of the same name, the first one wins. This is how a wrong version of a tool ends up running.</p><div class="out-l"><span class="stamp ill">Illustrative output · will differ on your machine</span></div><pre class="out ill"><code>/usr/local/bin:/usr/bin:/bin:/usr/local/games</code></pre></div></div>
+</div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Jobs and signals</span>
+<p>Job control works in an interactive terminal, so these are shown as illustrations rather than recorded runs.</p>
+<div class="cmd"><pre class="sh"><code>sleep 300 &amp;</code></pre><div class="cmd-b"><p>A trailing <code>&amp;</code> starts the command in the <strong>background</strong>. The shell prints a job number and the process id and gives the prompt back.</p><div class="out-l"><span class="stamp ill">Illustrative output · will differ on your machine</span></div><pre class="out ill"><code>[1] 4821</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>jobs</code></pre><div class="cmd-b"><p>List background jobs.</p><div class="out-l"><span class="stamp ill">Illustrative output · will differ on your machine</span></div><pre class="out ill"><code>[1]+  Running                 sleep 300 &amp;</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>kill %1</code></pre><div class="cmd-b"><p><code>kill</code> sends a signal; by default <code>SIGTERM</code>, a polite "please stop". <code>%1</code> refers to job 1. If a process ignores it, <code>kill -9</code> (<code>SIGKILL</code>) cannot be ignored, but it gives the program no chance to clean up.</p><div class="out-l"><span class="stamp ill">Illustrative output · will differ on your machine</span></div><pre class="out ill"><code>[1]+  Terminated              sleep 300</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>nohup ./backup.sh &gt; backup.log 2&gt;&amp;1 &amp;</code></pre><div class="cmd-b"><p><code>nohup</code> makes the command ignore the hangup signal sent when your terminal closes, so it keeps running after you disconnect. For serious long-running work use <code>tmux</code> or a service manager.</p><div class="out-l"><span class="stamp ill">Illustrative output · will differ on your machine</span></div><pre class="out ill"><code>[1] 4902</code></pre></div></div>
+</div>
+<div class="blk warn"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Traps to avoid</span><ul><li><code>Ctrl-C</code> stops (interrupts) the foreground command. <code>Ctrl-Z</code> only <strong>suspends</strong> it; it is still in memory until you <code>fg</code> (resume in front) or <code>bg</code> (resume behind) or kill it.</li><li><code>kill -9</code> should be the last resort. It skips cleanup, so locks, temporary files and half-written data can remain.</li><li>A script that ignores exit codes will happily carry on after a failure. That is how a failed <code>cd</code> leads to deleting the wrong directory.</li></ul></div>
+</div></section>
+<h2>Hands-on labs</h2><p class="muted">Reading is not enough for this material. Each lab sets up a realistic mess for you to fix.</p>
+<section class="pat lab" id="lab1" aria-labelledby="lab1-t"><div class="pat-h"><span class="badge"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5h4M6.5 2.5v4L3 12.5a1 1 0 0 0 .9 1.5h8.2a1 1 0 0 0 .9-1.5L9.5 6.5v-4"/><path d="M4.8 10h6.4"/></svg></span><h3 id="lab1-t">Lab 1: Find the real config file</h3><span class="tier sec"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5h4M6.5 2.5v4L3 12.5a1 1 0 0 0 .9 1.5h8.2a1 1 0 0 0 .9-1.5L9.5 6.5v-4"/><path d="M4.8 10h6.4"/></svg> Hands-on</span><span class="pp"></span><label class="tick"><input type="checkbox" class="pk" data-k="sh-lab1" aria-label="I completed this lab"><span>I completed this lab</span></label></div><div class="pat-b">
+<div class="glance"><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/></svg>Goal</span><p>Practise <code>find</code>, <code>grep</code> and counting, and prove you can answer three precise questions about a messy tree.</p></div><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>The situation</span><p>A project folder has several lookalike files: <code>app.conf</code>, <code>app.conf.bak</code>, <code>old_app.conf</code> and more, buried in subfolders. Only one is the live config, and logs of different sizes are scattered around.</p></div></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Set it up</span><p>Choose one option. Docker gives you a throwaway system you can break freely; type exit to leave and everything is deleted. The plain route runs the same script in your own shell, in a folder called ~/sys-lab.</p><pre class="sh"><code># Option A: a disposable Debian container (nothing on your computer changes)
+docker build -t sys-lab https://github.com/nithin988/dsa-mastery.git#main:systems/labs/linux
+docker run --rm -it sys-lab lab find-config
+
+# Option B: any Linux, macOS or WSL shell (the script only touches ~/sys-lab)
+curl -fsSLO https://nithin988.github.io/dsa-mastery/systems/labs/linux/find-config.sh
+less find-config.sh      # read it first
+bash find-config.sh
+cd ~/sys-lab</code></pre></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01"/></svg>Your tasks</span><ol><li>Find the path of the file named <strong>exactly</strong> <code>app.conf</code> (not the <code>.bak</code> or <code>old_</code> ones).</li><li>Count how many <code>.log</code> files are larger than 1 KiB.</li><li>Read the port number set in the live config.</li><li>Write your three answers, one per line, as <code>conf=...</code> (path relative to the <code>mess</code> folder), <code>bigfiles=...</code> and <code>port=...</code>, into <code>~/sys-lab/answers.txt</code>.</li></ol></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>Check your work</span><p>Run the check script. It prints PASS or FAIL for each answer.</p><pre class="sh"><code>bash ~/sys-lab/check-find-config.sh</code></pre></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>Hints (try first, then open one at a time)</span><details><summary>Hint 1</summary><p><code>find . -name app.conf</code> matches the name exactly. A pattern like <code>app.conf*</code> would also match the backups.</p></details><details><summary>Hint 2</summary><p><code>find . -name "*.log" -size +1k</code> lists large logs. Pipe it into <code>wc -l</code> to count.</p></details><details><summary>Hint 3</summary><p><code>grep</code> prints the line you need. <code>grep '^port' file</code> finds lines that start with port.</p></details></div>
+<div class="blk"><details><summary>Show the solution</summary><p><code>cd ~/sys-lab/mess</code>, then <code>find . -name app.conf</code> gives <code>./projects/blog/deploy/app.conf</code>.</p><p><code>find . -name '*.log' -size +1k | wc -l</code> gives 3.</p><p><code>grep '^port' projects/blog/deploy/app.conf</code> gives <code>port=8080</code>.</p><p>Write the answers: <code>printf 'conf=projects/blog/deploy/app.conf\nbigfiles=3\nport=8080\n' &gt; ~/sys-lab/answers.txt</code>.</p></details></div>
+</div></section>
+<section class="pat lab" id="lab2" aria-labelledby="lab2-t"><div class="pat-h"><span class="badge"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5h4M6.5 2.5v4L3 12.5a1 1 0 0 0 .9 1.5h8.2a1 1 0 0 0 .9-1.5L9.5 6.5v-4"/><path d="M4.8 10h6.4"/></svg></span><h3 id="lab2-t">Lab 2: Fix the permissions</h3><span class="tier sec"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5h4M6.5 2.5v4L3 12.5a1 1 0 0 0 .9 1.5h8.2a1 1 0 0 0 .9-1.5L9.5 6.5v-4"/><path d="M4.8 10h6.4"/></svg> Hands-on</span><span class="pp"></span><label class="tick"><input type="checkbox" class="pk" data-k="sh-lab2" aria-label="I completed this lab"><span>I completed this lab</span></label></div><div class="pat-b">
+<div class="glance"><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/></svg>Goal</span><p>Read permission problems and fix each with the smallest correct change, without <code>chmod 777</code>.</p></div><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>The situation</span><p>A deploy folder was copied from a laptop and everything arrived with the wrong modes: the script will not run, the private key is readable by everyone, the team folder is closed to the team, and the website file is unreadable.</p></div></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Set it up</span><p>Choose one option. Docker gives you a throwaway system you can break freely; type exit to leave and everything is deleted. The plain route runs the same script in your own shell, in a folder called ~/sys-lab.</p><pre class="sh"><code># Option A: a disposable Debian container (nothing on your computer changes)
+docker build -t sys-lab https://github.com/nithin988/dsa-mastery.git#main:systems/labs/linux
+docker run --rm -it sys-lab lab fix-permissions
+
+# Option B: any Linux, macOS or WSL shell (the script only touches ~/sys-lab)
+curl -fsSLO https://nithin988.github.io/dsa-mastery/systems/labs/linux/fix-permissions.sh
+less fix-permissions.sh      # read it first
+bash fix-permissions.sh
+cd ~/sys-lab</code></pre></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01"/></svg>Your tasks</span><ol><li>Make <code>deploy.sh</code> runnable by its owner and readable and runnable by others (755).</li><li>Make <code>secret.key</code> private to the owner (600).</li><li>Give <code>shared/</code> full access to owner and group and none to others (770).</li><li>Make <code>public/index.html</code> readable by everyone but writable only by the owner (644).</li></ol></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>Check your work</span><p>Run the check script. It prints the mode it found for each item.</p><pre class="sh"><code>bash ~/sys-lab/check-fix-permissions.sh</code></pre></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>Hints (try first, then open one at a time)</span><details><summary>Hint 1</summary><p>Use <code>ls -l</code> and <code>ls -ld shared</code> to see the current modes.</p></details><details><summary>Hint 2</summary><p><code>chmod 755 deploy.sh</code> sets a mode with numbers.</p></details><details><summary>Hint 3</summary><p>Remember r=4, w=2, x=1. 770 is rwx for owner and group, nothing for others.</p></details></div>
+<div class="blk"><details><summary>Show the solution</summary><p><code>cd ~/sys-lab/perm</code></p><p><code>chmod 755 deploy.sh</code></p><p><code>chmod 600 secret.key</code></p><p><code>chmod 770 shared</code></p><p><code>chmod 644 public/index.html</code></p></details></div>
+</div></section>
+<section class="pat lab" id="lab3" aria-labelledby="lab3-t"><div class="pat-h"><span class="badge"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5h4M6.5 2.5v4L3 12.5a1 1 0 0 0 .9 1.5h8.2a1 1 0 0 0 .9-1.5L9.5 6.5v-4"/><path d="M4.8 10h6.4"/></svg></span><h3 id="lab3-t">Lab 3: Top clients with one pipeline</h3><span class="tier sec"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5h4M6.5 2.5v4L3 12.5a1 1 0 0 0 .9 1.5h8.2a1 1 0 0 0 .9-1.5L9.5 6.5v-4"/><path d="M4.8 10h6.4"/></svg> Hands-on</span><span class="pp"></span><label class="tick"><input type="checkbox" class="pk" data-k="sh-lab3" aria-label="I completed this lab"><span>I completed this lab</span></label></div><div class="pat-b">
+<div class="glance"><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/></svg>Goal</span><p>Build a pipeline from scratch to answer a real operations question.</p></div><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>The situation</span><p>Traffic spiked and you suspect one client is hammering the site. The log has one request per line, starting with the client's IP address.</p></div></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Set it up</span><p>Choose one option. Docker gives you a throwaway system you can break freely; type exit to leave and everything is deleted. The plain route runs the same script in your own shell, in a folder called ~/sys-lab.</p><pre class="sh"><code># Option A: a disposable Debian container (nothing on your computer changes)
+docker build -t sys-lab https://github.com/nithin988/dsa-mastery.git#main:systems/labs/linux
+docker run --rm -it sys-lab lab top-ips
+
+# Option B: any Linux, macOS or WSL shell (the script only touches ~/sys-lab)
+curl -fsSLO https://nithin988.github.io/dsa-mastery/systems/labs/linux/top-ips.sh
+less top-ips.sh      # read it first
+bash top-ips.sh
+cd ~/sys-lab</code></pre></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01"/></svg>Your tasks</span><ol><li>Using only a pipeline (no editor), list the <strong>three clients with the most requests</strong>, most first.</li><li>Save the result in <code>~/sys-lab/top3.txt</code>. Each line should be the count followed by the IP (what <code>uniq -c</code> prints).</li></ol></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>Check your work</span><p>Run the check script.</p><pre class="sh"><code>bash ~/sys-lab/check-top-ips.sh</code></pre></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>Hints (try first, then open one at a time)</span><details><summary>Hint 1</summary><p>The IP is the first space-separated field: <code>cut -d' ' -f1</code>.</p></details><details><summary>Hint 2</summary><p><code>uniq</code> only collapses neighbouring duplicates, so <code>sort</code> first.</p></details><details><summary>Hint 3</summary><p><code>sort -rn</code> sorts numbers biggest first, and <code>head -3</code> keeps three lines.</p></details></div>
+<div class="blk"><details><summary>Show the solution</summary><p><code>cut -d' ' -f1 ~/sys-lab/weblogs/web.log | sort | uniq -c | sort -rn | head -3 &gt; ~/sys-lab/top3.txt</code></p></details></div>
+</div></section>
+<h2 id="cases">Real-life cases</h2><div class="case"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m8 2 6.5 3.5L8 9 1.5 5.5z"/><path d="m1.5 8.5 6.5 3.5 6.5-3.5"/></svg>Real-life case</span><h4>The command that ran on the wrong server</h4><p>In January 2017 an engineer at GitLab was fixing a broken database replica. Tired and late at night, they ran a command to wipe a data directory, believing they were on the replica. They were on the primary. They noticed within a second or two, but about 300 GB of production data was already gone.</p><p>Recovery was made worse by something unrelated to the typo: several of the backup mechanisms were not working, and the failures had gone unnoticed. GitLab published a detailed, blameless postmortem and even streamed the recovery publicly.</p><p><b>What to take from it:</b> Destructive commands deserve a pause to confirm <strong>which machine and which directory</strong> you are on (check the prompt, <code>hostname</code> and <code>pwd</code>). The postmortem's larger lesson: backups you have never restored are a hope, not a safety net.</p><p><a href="https://about.gitlab.com/blog/2017/02/10/postmortem-of-database-outage-of-january-31/" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M9 2.5h4.5V7M13.5 2.5 7 9M12 9v4.5H2.5V4H7"/></svg> Read the original public write-up</a></p></div><div class="case"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m8 2 6.5 3.5L8 9 1.5 5.5z"/><path d="m1.5 8.5 6.5 3.5 6.5-3.5"/></svg>Real-life case</span><h4>An empty variable in an rm -rf</h4><p>In January 2015 a user reported that launching Steam on Linux deleted a large amount of their files after they had moved Steam's folder. Commenters on the public issue pointed at a line in Steam's start-up script of the form <code>rm -rf "$STEAMROOT/"*</code>, and discussed how an empty variable would turn that into a deletion starting at the filesystem root.</p><p>Be careful with the facts: the user's account and the commenters' theory are what the issue records; Valve's own explanation is not on that page. The pattern, however, is real and well known.</p><p><b>What to take from it:</b> In scripts, never run a recursive delete on a path built from a variable that might be empty. Use <code>set -u</code> (error on unset variables), check the value first, and quote the variable. This is why careful engineers write <code>rm -rf -- "${DIR:?}/"*</code>.</p><p><a href="https://github.com/ValveSoftware/steam-for-linux/issues/3671" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M9 2.5h4.5V7M13.5 2.5 7 9M12 9v4.5H2.5V4H7"/></svg> Read the original public write-up</a></p></div>
+<h2 id="cheat">Cheat sheet</h2><p class="muted">Print this section or keep it open next to your terminal.</p><div class="tw"><table class="cheat"><thead><tr><th>Command or idea</th><th>What it does</th></tr></thead><tbody><tr><td>pwd</td><td>print the current directory</td></tr><tr><td>ls -la</td><td>list everything, long format, including hidden files</td></tr><tr><td>cd dir / cd .. / cd ~ / cd -</td><td>enter dir / go up / go home / go back</td></tr><tr><td>cat f / head -n 5 f / tail -n 5 f</td><td>whole file / first 5 lines / last 5 lines</td></tr><tr><td>less f</td><td>scroll a file (q quits, /word searches)</td></tr><tr><td>wc -l f</td><td>count lines</td></tr><tr><td>mkdir -p a/b / touch f</td><td>make directories / make an empty file</td></tr><tr><td>cp src dst / cp -r dir dst</td><td>copy a file / copy a directory</td></tr><tr><td>mv src dst</td><td>move or rename</td></tr><tr><td>rm f / rm -r dir / rmdir dir</td><td>delete a file / a directory tree / an empty directory</td></tr><tr><td>find . -name "*.log"</td><td>find files by name</td></tr><tr><td>find . -type f -size +10M</td><td>find files bigger than 10 MiB</td></tr><tr><td>grep -rn text dir</td><td>search text in files, show line numbers</td></tr><tr><td>grep -v text f</td><td>lines that do not match</td></tr><tr><td>cmd &gt; f / cmd &gt;&gt; f</td><td>send output to a file (replace / append)</td></tr><tr><td>cmd 2&gt; f / cmd 2&gt;&amp;1</td><td>send errors to a file / merge errors into output</td></tr><tr><td>cmd1 | cmd2</td><td>feed the output of cmd1 into cmd2</td></tr><tr><td>sort | uniq -c | sort -rn</td><td>count duplicates, biggest first</td></tr><tr><td>ls -l / stat -c '%a %n' f</td><td>see permissions / numeric mode</td></tr><tr><td>chmod 755 f / chmod +x f</td><td>set the mode / add execute</td></tr><tr><td>echo $?</td><td>exit code of the last command (0 = success)</td></tr><tr><td>cmd1 &amp;&amp; cmd2 / cmd1 || cmd2</td><td>run cmd2 only if cmd1 succeeds / fails</td></tr><tr><td>cmd &amp;  /  jobs  /  kill %1</td><td>run in background / list jobs / stop job 1</td></tr><tr><td>type name / which name</td><td>what will the shell run for this name?</td></tr><tr><td>man cmd / cmd --help</td><td>manual / quick help</td></tr></tbody></table></div>
+<h2 id="interview">Interview corner</h2><p class="muted">Shell questions are asked in two ways: directly ("how would you find...") and through scenarios ("a disk is full, what do you do?"). Say the commands out loud and explain what each does.</p><details class="qa"><summary>Explain the difference between an absolute and a relative path. When does it matter?</summary><div class="qa-b"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>Shape of a strong answer</span><ul><li>Absolute starts at the root <code>/</code> and means the same thing everywhere. Relative starts from the current directory.</li><li>It matters in scripts and cron jobs: their current directory is often not what you expect, so absolute paths are safer.</li><li>Mention <code>.</code> <code>..</code> and <code>~</code> as shortcuts.</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg>Follow-ups to expect</span><ul><li>What does <code>cd -</code> do?</li><li>Why does a cron job fail with a relative path that works in your terminal?</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Common mistakes</span><ul><li>Treating <code>~</code> as a magic path that works in every context (it is expanded by the shell, so not inside quotes or some programs).</li></ul></div></details><details class="qa"><summary>What are stdin, stdout and stderr? How do you save only the errors of a command to a file?</summary><div class="qa-b"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>Shape of a strong answer</span><ul><li>Three streams every process has: input (0), normal output (1), error output (2).</li><li><code>command 2&gt; errors.txt</code> sends only stderr. <code>command &gt; out.txt 2&gt;&amp;1</code> sends both to one file.</li><li>Say why they are separate: so you can pipe real results while errors still reach a human.</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg>Follow-ups to expect</span><ul><li>What does <code>2&gt;&amp;1 &gt; file</code> do differently from <code>&gt; file 2&gt;&amp;1</code>?</li><li>How do you throw errors away?</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Common mistakes</span><ul><li>Writing <code>2&gt;&amp;1</code> before the file redirection and expecting both to land in the file.</li></ul></div></details><details class="qa"><summary>You run <code>sort data.txt &gt; data.txt</code> and the file is empty. Why?</summary><div class="qa-b"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>Shape of a strong answer</span><ul><li>The shell processes the redirection first: it opens and truncates <code>data.txt</code> before <code>sort</code> starts.</li><li><code>sort</code> therefore reads an empty file and writes an empty file.</li><li>Fixes: write to a temporary file then <code>mv</code> it back, or <code>sort -o data.txt data.txt</code>.</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg>Follow-ups to expect</span><ul><li>How would you edit a file in place safely?</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Common mistakes</span><ul><li>Blaming <code>sort</code>; the trap is in how the shell handles redirection.</li></ul></div></details><details class="qa"><summary>A disk is 100% full. How do you find what is using the space?</summary><div class="qa-b"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>Shape of a strong answer</span><ul><li><code>df -h</code> to see which filesystem is full.</li><li><code>du -sh /path/* | sort -rh | head</code> to find the biggest directories, then repeat one level down.</li><li><code>find / -xdev -type f -size +500M</code> for single huge files.</li><li>Check deleted-but-open files (<code>lsof +L1</code>) and inodes (<code>df -i</code>) if numbers do not add up.</li><li>Fix, then verify with <code>df -h</code>, and say how you would prevent it (log rotation, alerts).</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg>Follow-ups to expect</span><ul><li>Free space did not change after deleting a big log, why?</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Common mistakes</span><ul><li>Deleting things before knowing what they are.</li><li>Forgetting inode exhaustion.</li></ul><p class="angle"><b>Company angle:</b> Amazon-style interviews often turn this into "how would you operate it": which alarm should have fired earlier, and how would you stop it recurring? Google SRE-style rounds expect a hypothesis-driven order (reported by candidates, not official).</p></div></details><details class="qa"><summary>What does <code>chmod 755</code> mean? Why is <code>chmod 777</code> discouraged?</summary><div class="qa-b"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>Shape of a strong answer</span><ul><li>Owner rwx (7), group r-x (5), others r-x (5): everyone may run or read, only the owner may change.</li><li>777 lets any user or process write, which hides the real fix (owner or execute bit) and is a security hole.</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg>Follow-ups to expect</span><ul><li>What do the execute and read bits mean on a directory?</li><li>What are setuid and the sticky bit (briefly)?</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Common mistakes</span><ul><li>Saying <code>x</code> on a directory means "run"; it means "may enter".</li></ul></div></details><details class="qa"><summary>You type <code>ls</code> and it works, but <code>./script.sh</code> says "Permission denied". What happened and how do you fix it?</summary><div class="qa-b"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>Shape of a strong answer</span><ul><li><code>ls</code> is found via <code>PATH</code>. A path with a slash runs the file directly, which needs the execute bit.</li><li><code>ls -l script.sh</code> shows no <code>x</code>; fix with <code>chmod +x script.sh</code>.</li><li>Alternative: <code>bash script.sh</code> runs it as an argument to bash, which only needs read permission.</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg>Follow-ups to expect</span><ul><li>What if the filesystem is mounted <code>noexec</code>?</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Common mistakes</span><ul><li>Using <code>sudo</code> to "fix" it.</li></ul></div></details><details class="qa"><summary>How do you keep a command running after you close your SSH session? How do you stop it?</summary><div class="qa-b"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>Shape of a strong answer</span><ul><li><code>nohup cmd &amp;</code> (ignores hangup), or run inside <code>tmux</code> or <code>screen</code> and detach, or make it a systemd service for anything permanent.</li><li>Stop with <code>kill PID</code> (SIGTERM first), then <code>kill -9</code> only if it ignores that.</li><li>Find the PID with <code>pgrep -f name</code> or <code>ps aux | grep name</code>.</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg>Follow-ups to expect</span><ul><li>What is the difference between SIGTERM and SIGKILL?</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Common mistakes</span><ul><li>Reaching for <code>kill -9</code> first.</li></ul></div></details><details class="qa"><summary>What happens when you type <code>ls -l</code> and press Enter, at the level of the shell and the system?</summary><div class="qa-b"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>Shape of a strong answer</span><ul><li>The shell reads the line, splits it into words and expands variables and wildcards.</li><li>It looks for <code>ls</code>: a builtin? an alias? otherwise it searches the directories in <code>PATH</code>.</li><li>It starts a child process (fork) that runs the program (exec) with the arguments.</li><li><code>ls</code> reads the directory through system calls, formats the result, and writes it to stdout; the shell waits and then shows the prompt, remembering the exit code.</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg>Follow-ups to expect</span><ul><li>Hard link vs symbolic link?</li><li>What is a system call?</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Common mistakes</span><ul><li>Skipping the PATH lookup and the child process.</li></ul><p class="angle"><b>Company angle:</b> Reported by candidates as a Google SRE-style question that probes Unix internals; the next module goes deeper. Treat as a likely probe, not a guaranteed question.</p></div></details><div style="margin-top:10px"><label class="tick"><input type="checkbox" class="pk" data-k="sh-iv" aria-label="I can answer these out loud"><span>I can answer these out loud</span></label></div>
+<h2 id="selftest">Self-test</h2><p class="muted">Answer in your head first, then open the question.</p><details><summary>What is the difference between <code>cd work</code> and <code>cd /work</code>?</summary><p><code>cd work</code> is relative: it goes into a <code>work</code> directory inside the current one. <code>cd /work</code> is absolute: it goes to a <code>work</code> directory directly under the root.</p></details><details><summary>Why does <code>find . -name *.log</code> sometimes behave strangely and how do you fix it?</summary><p>The shell expands <code>*.log</code> against the current directory before <code>find</code> runs. Quote the pattern: <code>find . -name "*.log"</code>.</p></details><details><summary>What is the exit code of a successful command, and how do you read it?</summary><p>0. Read it with <code>$?</code> immediately after the command.</p></details><details><summary>What does <code>cmd 2&gt;&amp;1 | tee out.txt</code> do?</summary><p>Sends stderr to stdout, then pipes the combined stream into <code>tee</code>, which shows it on screen and saves it in <code>out.txt</code>.</p></details><details><summary>What permissions does mode 640 give?</summary><p>Owner read and write, group read, others nothing.</p></details><details><summary>Why can you not enter a directory that you can list?</summary><p>Entering a directory needs the execute bit; listing only needs read. Without <code>x</code> you cannot reach anything inside.</p></details><details><summary>Why does <code>rm</code> not ask for confirmation, and what is the safe habit?</summary><p>Unix assumes you mean what you type; there is no recycle bin. Run <code>ls</code> with the same arguments first, use <code>rm -i</code>, or move files to a temporary folder before deleting.</p></details><details><summary>What is the difference between <code>&amp;&amp;</code> and <code>;</code>?</summary><p><code>;</code> always runs the next command. <code>&amp;&amp;</code> runs it only if the previous one succeeded.</p></details>
+<h2 id="recall">One-line recall</h2><div class="tw"><table class=""><thead><tr><th>Idea</th><th>In one line</th></tr></thead><tbody><tr><td>Path</td><td>Absolute starts with /, relative starts from here</td></tr><tr><td>Pipe</td><td>stdout of one program becomes stdin of the next</td></tr><tr><td><code>&gt;</code> vs <code>&gt;&gt;</code></td><td>replace the file vs append to it</td></tr><tr><td><code>2&gt;&amp;1</code></td><td>send errors to the same place as normal output</td></tr><tr><td>Exit code</td><td>0 is success, anything else is failure</td></tr><tr><td>755 / 644 / 600</td><td>program or directory / normal file / private file</td></tr><tr><td><code>x</code> on a directory</td><td>permission to enter it</td></tr><tr><td><code>rm</code></td><td>deletes at once; there is no undo</td></tr></tbody></table></div>
+<h2 id="sources">Further reading</h2><p class="muted">Every explanation in this module is written for this course. These are the best free sources to go deeper; where a licence forbids copying, we only link.</p><div class="tw"><table><thead><tr><th>Resource</th><th>Best for</th><th>Licence or terms</th><th>How this module uses it</th></tr></thead><tbody><tr><td><a href="https://linuxcommand.org/tlcl.php" target="_blank" rel="noopener">The Linux Command Line (William Shotts)</a></td><td>A complete, readable book on the shell</td><td>Free PDF, CC BY-NC-ND 3.0 (no derivatives)</td><td>Link only; we wrote our own explanations</td></tr><tr><td><a href="https://missing.csail.mit.edu/" target="_blank" rel="noopener">MIT: The Missing Semester of Your CS Education</a></td><td>Shell, editors, version control and debugging lectures</td><td>CC BY-NC-SA</td><td>Link only</td></tr><tr><td><a href="https://linuxjourney.com/" target="_blank" rel="noopener">Linux Journey</a></td><td>Gentle interactive lessons for beginners</td><td>Free to use; licence not stated on the page</td><td>Link only</td></tr><tr><td><a href="https://overthewire.org/wargames/bandit/" target="_blank" rel="noopener">OverTheWire: Bandit</a></td><td>A game that teaches the shell by solving levels over SSH</td><td>Free to play</td><td>Recommended practice after the labs</td></tr><tr><td><a href="https://www.kernel.org/doc/man-pages/" target="_blank" rel="noopener">The Linux man-pages project</a></td><td>The official manual for Linux commands and system calls</td><td>See the project page</td><td>Link only</td></tr></tbody></table></div>
+<h2 id="plan">Study plan</h2><ol><li><strong>Hour 1:</strong> lessons 1 and 2. Run every command yourself in the workshop folder.</li><li><strong>Hour 2:</strong> lesson 3 (find and grep), then Lab 1.</li><li><strong>Hour 3:</strong> lesson 4 (pipes and redirection), then Lab 3. Re-read the trap about <code>&gt; file</code>.</li><li><strong>Hour 4:</strong> lessons 5 and 6, then Lab 2. Read both real-life cases.</li><li><strong>Hour 5:</strong> the interview corner out loud, the self-test, then print the cheat sheet.</li></ol>
+<nav class="foot" aria-label="Previous and next module"><a class="nxt" href="../systems.html"><small><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8h-11M7 3.5 2.5 8 7 12.5"/></svg>Back</small><strong>All Systems modules</strong></a><a class="nxt next r" href="../systems.html"><small>More coming<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg></small><strong>Back to the Systems course</strong></a></nav>
+</main></div>
+<footer class="site-foot"><span>Systems Mastery: free, open study sheets. Progress is saved in your browser only.</span><span><a href="../systems.html">All Systems modules</a> · <a href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener">GitHub</a></span></footer>
+<script>window.DSA_TOPICS=[{"id":"sh","file":"S02_linux_shell","num":"S02","title":"Linux shell fluency","phase":"Foundations","total":10}];</script>
+<script>(function(){
+var IC={"target":"<circle cx=\"8\" cy=\"8\" r=\"6\"/><circle cx=\"8\" cy=\"8\" r=\"2\"/>","search":"<circle cx=\"7\" cy=\"7\" r=\"4.5\"/><path d=\"m14 14-3.5-3.5\"/>","bulb":"<path d=\"M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z\"/>","up":"<path d=\"M4 12 12 4M6 4h6v6\"/>","spark":"<path d=\"M8 1.5 9.5 6.5 14.5 8 9.5 9.5 8 14.5 6.5 9.5 1.5 8 6.5 6.5z\"/>","list":"<path d=\"M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01\"/>","term":"<path d=\"m3 4.5 3.5 3.5L3 11.5M8 12h5\"/>","code":"<path d=\"m5.5 4.5-3.5 3.5 3.5 3.5M10.5 4.5l3.5 3.5-3.5 3.5\"/>","clock":"<circle cx=\"8\" cy=\"8\" r=\"6\"/><path d=\"M8 4.5V8l2.5 1.5\"/>","warn":"<path d=\"M8 2 14.5 13.5h-13z\"/><path d=\"M8 6.5v3M8 11.5h.01\"/>","layers":"<path d=\"m8 2 6.5 3.5L8 9 1.5 5.5z\"/><path d=\"m1.5 8.5 6.5 3.5 6.5-3.5\"/>","no":"<circle cx=\"8\" cy=\"8\" r=\"6\"/><path d=\"m5.8 5.8 4.4 4.4M10.2 5.8l-4.4 4.4\"/>","stairs":"<path d=\"M2.5 13.5h3v-3h3v-3h3v-3h2\"/>","flame":"<path d=\"M8 14.5c-2.5 0-4-1.7-4-3.8 0-2.2 2-3.2 2.4-5.2.9.6 1.6 1.5 1.8 2.6.6-.5.9-1.4.8-2.4 1.8 1.2 3 3 3 5 0 2-1.5 3.8-4 3.8z\"/>","mark":"<path d=\"M4 2.5h8v11L8 10.5 4 13.5z\"/>","down":"<path d=\"M8 2.5v8M4.5 7.5 8 11l3.5-3.5M2.5 13.5h11\"/>","menu":"<path d=\"M2.5 4h11M2.5 8h11M2.5 12h11\"/>","theme":"<circle cx=\"8\" cy=\"8\" r=\"5.5\"/><path d=\"M8 2.5a5.5 5.5 0 0 0 0 11z\" fill=\"currentColor\"/>","right":"<path d=\"m6 3.5 4.5 4.5L6 12.5\"/>","arr-r":"<path d=\"M2.5 8h11M9 3.5 13.5 8 9 12.5\"/>","arr-l":"<path d=\"M13.5 8h-11M7 3.5 2.5 8 7 12.5\"/>","check":"<path d=\"m3 8.5 3.2 3.2L13 4.8\"/>","ext":"<path d=\"M9 2.5h4.5V7M13.5 2.5 7 9M12 9v4.5H2.5V4H7\"/>","play":"<path d=\"M5 3.2v9.6L12.8 8z\"/>","pause":"<path d=\"M5 3.5v9M11 3.5v9\"/>","prev":"<path d=\"M10 3.5 5.5 8l4.5 4.5\"/>","next":"<path d=\"M6 3.5 10.5 8 6 12.5\"/>","reset":"<path d=\"M3 8a5 5 0 1 0 1.8-3.8M3 2.5v3h3\"/>","key":"<circle cx=\"5.5\" cy=\"10.5\" r=\"3\"/><path d=\"m8 8.5 5.5-5.5M11 5l1.5 1.5M9.5 6.5 11 8\"/>","cal":"<rect x=\"2.5\" y=\"3.5\" width=\"11\" height=\"10\" rx=\"1.5\"/><path d=\"M2.5 6.5h11M5.5 2v3M10.5 2v3\"/>","home":"<path d=\"M2.5 7.5 8 2.5l5.5 5M4 6.5v7h8v-7\"/>","branch":"<circle cx=\"4.5\" cy=\"3.5\" r=\"1.5\"/><circle cx=\"4.5\" cy=\"12.5\" r=\"1.5\"/><circle cx=\"11.5\" cy=\"6\" r=\"1.5\"/><path d=\"M4.5 5v6M11.5 7.5c0 2.5-3 2-7 3.5\"/>","server":"<rect x=\"2.5\" y=\"3\" width=\"11\" height=\"4\" rx=\"1\"/><rect x=\"2.5\" y=\"9\" width=\"11\" height=\"4\" rx=\"1\"/><path d=\"M5 5h.01M5 11h.01\"/>","flask":"<path d=\"M6 2.5h4M6.5 2.5v4L3 12.5a1 1 0 0 0 .9 1.5h8.2a1 1 0 0 0 .9-1.5L9.5 6.5v-4\"/><path d=\"M4.8 10h6.4\"/>","share":"<circle cx=\"4\" cy=\"8\" r=\"1.8\"/><circle cx=\"12\" cy=\"4\" r=\"1.8\"/><circle cx=\"12\" cy=\"12\" r=\"1.8\"/><path d=\"m5.7 7 4.6-2M5.7 9l4.6 2\"/>","book":"<path d=\"M2.5 3.5h4A1.5 1.5 0 0 1 8 5v8a1 1 0 0 0-1-1H2.5zM13.5 3.5h-4A1.5 1.5 0 0 0 8 5v8a1 1 0 0 1 1-1h4.5z\"/>","film":"<rect x=\"2\" y=\"3\" width=\"12\" height=\"10\" rx=\"1.5\"/><path d=\"m6.5 6 3.5 2-3.5 2z\"/>","pencil":"<path d=\"M2.5 13.5 3 10l7-7 3 3-7 7zM9 4l3 3\"/>"};
+/* Animations for Systems Mastery modules. Same step format as sims.js:
+   {a:[cells], ptr:{label:idx}, hi:[], ok:[], dim:[], aux:{label,items}, note, cols?, graph?:{nodes,edges,directed,w,h}, eok?} */
+function rng(x,y){var r=[];for(var i=x;i<=y;i++)r.push(i);return r}
+function mapStr(m){var k=Object.keys(m);return '{'+k.map(function(x){return x+':'+m[x]}).join(', ')+'}'}
+var SIM={
+/* ---- S02: Linux shell ---- */
+cdtree:function(){var S=[];
+ var nodes=[{x:210,y:25,label:'/'},{x:110,y:75,label:'home'},{x:310,y:75,label:'etc'},{x:110,y:125,label:'me'},{x:110,y:175,label:'work'},{x:50,y:228,label:'logs'},{x:110,y:228,label:'notes'},{x:170,y:228,label:'bin'}];
+ var edges=[[0,1],[0,2],[1,3],[3,4],[4,5],[4,6],[4,7]];
+ var G={nodes:nodes,edges:edges,w:420,h:255};
+ function st(at,cmd,pwd,note,ok){S.push({a:[],graph:G,ptr:{'you are here':at},ok:ok||[],aux:{label:'terminal',items:['$ '+cmd,'pwd → '+pwd]},note:note})}
+ st(3,'(shell starts)','/home/me','Every shell session has a current directory ("cwd"). A new session starts in your home directory, written ~ for short. The tree shows the directories we will visit: / is the root of everything.');
+ st(4,'cd work','/home/me/work','cd work is a relative path: it starts from where you are now (/home/me) and goes down into work. No leading slash means "relative to here".');
+ st(5,'cd logs','/home/me/work/logs','Another relative step. Each cd changes only your current directory, never the files.');
+ st(4,'cd ..','/home/me/work','.. always means "the parent directory", one step up the tree. A single . means "here".');
+ st(2,'cd /etc','/etc','A path that starts with / is absolute: it starts at the root and works from anywhere, whatever your current directory is.');
+ st(3,'cd ~   (or just cd)','/home/me','~ is shorthand for your home directory, and cd with no argument takes you home. Absolute paths never depend on where you are; relative paths always do. That difference explains most "No such file or directory" errors.',[3]);
+ return S},
+perm:function(){var S=[];
+ function row(sym,oct,note,hi,aux){var a=sym.split('');S.push({a:a,ptr:{},hi:hi||[],aux:{label:'permissions',items:aux},note:note})}
+ S.push({a:['r','w','x','r','-','x','r','-','-'],ptr:{owner:0,group:3,others:6},aux:{label:'ls -l shows',items:['-rwxr-xr-- 1 me team report.sh']},note:'ls -l prints nine permission characters after the file type. They are three groups of three: what the owner may do, what members of the file group may do, and what everyone else may do. r = read, w = write, x = execute (run, or enter for a directory). A dash means "not allowed".'});
+ S.push({a:['r','w','x','r','-','x','r','-','-'],ptr:{owner:0,group:3,others:6},hi:[0,1,2],aux:{label:'owner',items:['r=4 w=2 x=1','4+2+1 = 7']},note:'Each permission has a value: r is 4, w is 2, x is 1. Add up what is allowed in a group to get one digit. The owner has all three: 4+2+1 = 7.'});
+ S.push({a:['r','w','x','r','-','x','r','-','-'],ptr:{owner:0,group:3,others:6},hi:[3,4,5],aux:{label:'group',items:['r=4 x=1, no w','4+0+1 = 5']},note:'The group may read and execute but not write: 4+0+1 = 5.'});
+ S.push({a:['r','w','x','r','-','x','r','-','-'],ptr:{owner:0,group:3,others:6},hi:[6,7,8],aux:{label:'others',items:['r=4 only','4+0+0 = 4']},note:'Everyone else may only read: 4. Put the three digits together and this file is mode 754: chmod 754 report.sh sets exactly these permissions.'});
+ S.push({a:['r','w','-','r','-','-','-','-','-'],ptr:{owner:0,group:3,others:6},hi:[0,1,2,3,4,5,6,7,8],aux:{label:'chmod 640 notes.txt',items:['6 = rw-','4 = r--','0 = ---']},note:'A common pair to remember: 640 (owner reads and writes, group reads, others nothing) for private files, and 755 for programs and directories that everyone may run or enter. Never "fix" an error with chmod 777: it lets everyone write.'});
+ S.push({a:['r','w','x','r','-','x','r','-','x'],ptr:{owner:0,group:3,others:6},ok:[2,5,8],aux:{label:'directories',items:['x on a directory = may enter it','r on a directory = may list it']},note:'On a directory, x means you may enter it (cd into it or reach files inside) and r means you may list its names. Missing x on a directory is the classic reason "Permission denied" appears for a file that looks fine.'});
+ return S},
+pipe:function(){var S=[],raw=['200 /home','500 /pay','200 /home','404 /old','500 /pay','500 /cart','200 /cart','500 /pay'];
+ function st(a,cmd,note,hi,dim,ok){S.push({a:a,ptr:{},hi:hi||[],dim:dim||[],ok:ok||[],aux:{label:'pipeline so far',items:[cmd]},note:note})}
+ st(raw,'cat access.log','Each program in a pipeline does one small job and passes its output to the next with the | symbol. Here is a tiny web log: a status code and a path per line. Question: which paths fail with status 500, and how often?');
+ var g=raw.map(function(x,i){return x.indexOf('500')===0?-1:i}).filter(function(i){return i>=0});
+ st(raw,'cat access.log | grep "^500"','grep keeps only the lines that match. The five lines that do not start with 500 are dropped.',[1,4,5,7],g);
+ var k=['500 /pay','500 /pay','500 /cart','500 /pay'];
+ st(['500 /pay','500 /pay','500 /cart','500 /pay'],'… | grep "^500"','Only four lines are passed on. The next program receives exactly these.',rng(0,3));
+ st(['/pay','/pay','/cart','/pay'],'… | cut -d" " -f2','cut splits each line on spaces (-d" ") and keeps the 2nd field (-f2): the path.',rng(0,3));
+ st(['/cart','/pay','/pay','/pay'],'… | sort','uniq only compares neighbouring lines, so identical lines must be next to each other first. sort puts them in order.',[1,2,3]);
+ st(['1 /cart','3 /pay'],'… | uniq -c','uniq -c collapses neighbouring duplicates and prefixes a count: /pay failed 3 times, /cart once.',[1],[],[1]);
+ st(['3 /pay','1 /cart'],'… | sort -rn','sort -rn sorts numerically, biggest first. Four tiny tools, one pipeline: "top failing paths". This is the Unix idea: small tools that do one thing, joined together.',[0],[],[0]);
+ return S}
+};
+
+var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+var body=document.body,T=window.DSA_TOPICS||[],cur=(body.dataset.file||'').replace('.html',''),STORE=body.dataset.store||'dsa-progress',LASTK=body.dataset.last||'dsa-last',WORD=body.dataset.word||'solved';
+function ic(n,c){return '<svg class="ic '+(c||'')+'" viewBox="0 0 16 16" aria-hidden="true">'+IC[n]+'</svg>'}
+/* language + theme */
+function setLang(l){body.dataset.lang=l;var j=$('#b-java'),y=$('#b-py');if(j){j.classList.toggle('on',l==='java');j.setAttribute('aria-pressed',l==='java')}if(y){y.classList.toggle('on',l==='py');y.setAttribute('aria-pressed',l==='py')}ls('dsa-lang',l)}
+setLang(ls('dsa-lang')||'java');
+if($('#b-java')){$('#b-java').onclick=function(){setLang('java')};$('#b-py').onclick=function(){setLang('py')}}
+var th=ls('dsa-theme');if(th)document.documentElement.dataset.theme=th;
+$('#b-theme').onclick=function(){var d=document.documentElement,dark=d.dataset.theme==='dark';d.dataset.theme=dark?'light':'dark';ls('dsa-theme',d.dataset.theme)};
+/* progress (saved in this browser only) */
+function load(){try{return JSON.parse(ls(STORE)||'{}')}catch(e){return {}}}
+var prog=load();
+function refresh(){var boxes=$$('.pk'),n=0;
+ var keys={},all={};boxes.forEach(function(b){var on=!!prog[b.dataset.k];b.checked=on;var tr=b.closest('tr');if(tr)tr.classList.toggle('done',on);var tk=b.closest('.tick');if(tk)tk.classList.toggle('is-done',on);all[b.dataset.k]=1;if(on)keys[b.dataset.k]=1});n=Object.keys(keys).length;
+ var tot=Object.keys(all).length,pc=tot?100*n/tot:0;$('#prog').textContent=n+' / '+tot+' '+WORD;$('#pbar').style.width=pc+'%';$('.pbar').setAttribute('aria-valuenow',Math.round(pc));buildPanel();
+ $$('.pat').forEach(function(p){var bx=$$('.pk',p),d=bx.filter(function(c){return c.checked}).length,e=$('.pp',p),s=$('nav.side a[href="#'+p.id+'"] .cnt');
+  if(e)e.textContent=d+' / '+bx.length+' '+WORD;if(s)s.textContent=d+'/'+bx.length})}
+$$('.pk').forEach(function(b){b.onchange=function(){if(b.checked)prog[b.dataset.k]=1;else delete prog[b.dataset.k];ls(STORE,JSON.stringify(prog));refresh()}});
+refresh();
+/* topic switcher */
+ls(LASTK,cur);
+function solvedFor(id){var n=0;Object.keys(prog).forEach(function(k){if(k.indexOf(id+'-')===0)n++});return n}
+function buildPanel(){var p=$('#topics-panel');if(!p)return;p.textContent='';var last='';
+ T.forEach(function(t){if(t.phase!==last){var h=document.createElement('h5');h.textContent=t.phase;p.appendChild(h);last=t.phase}
+  var s=solvedFor(t.id),done=t.total>0&&s>=t.total,a=document.createElement('a');a.href=t.file+'.html';a.setAttribute('role','menuitem');if(t.file===cur)a.setAttribute('aria-current','page');
+  var n=document.createElement('span');n.className='n';n.textContent=t.num;var m=document.createElement('span');m.textContent=t.title;var c=document.createElement('span');c.className='c'+(done?' done':'');c.textContent=done?'Done':s+'/'+t.total;
+  a.appendChild(n);a.appendChild(m);a.appendChild(c);p.appendChild(a)})}
+(function(){var b=$('#b-topics'),p=$('#topics-panel');if(!b||!p)return;
+ function close(f){p.hidden=true;b.setAttribute('aria-expanded','false');if(f)b.focus()}
+ function open(){buildPanel();p.hidden=false;b.setAttribute('aria-expanded','true');var a=$('a[aria-current=page]',p)||$('a',p);if(a){a.focus();a.scrollIntoView({block:'center'})}}
+ b.onclick=function(){p.hidden?open():close()};
+ document.addEventListener('click',function(e){if(!p.hidden&&!p.contains(e.target)&&!b.contains(e.target))close()});
+ document.addEventListener('keydown',function(e){if(p.hidden)return;var items=$$('a',p),i=items.indexOf(document.activeElement);
+  if(e.key==='Escape'){close(true)}else if(e.key==='ArrowDown'){items[Math.min(items.length-1,i+1)].focus();e.preventDefault()}else if(e.key==='ArrowUp'){items[Math.max(0,i-1)].focus();e.preventDefault()}else if(e.key==='Home'){items[0].focus();e.preventDefault()}else if(e.key==='End'){items[items.length-1].focus();e.preventDefault()}})})();
+/* copy buttons */
+$$('.cp').forEach(function(e){e.remove()});
+$$('pre').forEach(function(p){var b=document.createElement('button');b.className='cp';b.textContent='Copy';b.onclick=function(){var t=p.querySelector('code').textContent;try{navigator.clipboard.writeText(t);b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1200)}catch(e){}};p.appendChild(b)});
+/* scroll spy */
+var links=$$('nav.side a');
+if('IntersectionObserver' in window&&links.length){var map={};links.forEach(function(a){map[a.getAttribute('href').slice(1)]=a});
+ var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(a){a.classList.remove('act')});var a=map[e.target.id];if(a)a.classList.add('act')}})},{rootMargin:'-70px 0px -70% 0px'});
+ Object.keys(map).forEach(function(id){var t=document.getElementById(id);if(t)io.observe(t)})}
+/* download */
+$('#b-dl').onclick=function(){
+ var clone=document.documentElement.cloneNode(true);
+ $$('.stepper',clone).forEach(function(e){e.innerHTML=''});$$('.cp',clone).forEach(function(e){e.remove()});
+ $$('.pk',clone).forEach(function(e){e.removeAttribute('checked')});$$('tr.done',clone).forEach(function(e){e.classList.remove('done')});
+ $$('a.act',clone).forEach(function(e){e.classList.remove('act')});var tp=$('#topics-panel',clone);if(tp){tp.innerHTML='';tp.hidden=true}var tb=$('#b-topics',clone);if(tb)tb.setAttribute('aria-expanded','false');
+ var h='<!DOCTYPE html>\n'+clone.outerHTML,blob=new Blob([h],{type:'text/html'}),a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);a.download=body.dataset.file||'topic.html';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)};
+/* animated stepper */
+function graphSVG(s){var g=s.graph,W=g.w||360,H=g.h||210,R=17,lines='',nodes='',lab={};
+ Object.keys(s.ptr||{}).forEach(function(k){(lab[s.ptr[k]]=lab[s.ptr[k]]||[]).push(k)});
+ function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+ g.edges.forEach(function(e,k){var a=g.nodes[e[0]],b=g.nodes[e[1]],on=(s.eok||[]).indexOf(k)>=0,x1=a.x,y1=a.y,x2=b.x,y2=b.y,mk='';
+  if(g.directed){var dx=x2-x1,dy=y2-y1,L=Math.sqrt(dx*dx+dy*dy)||1;x1+=dx/L*R;y1+=dy/L*R;x2-=dx/L*(R+4);y2-=dy/L*(R+4);mk=' marker-end="url(#'+(on?'garrOn':'garr')+')"'}
+  lines+='<line class="ge'+(on?' on':'')+'" x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'"'+mk+'/>';
+  if(e[2]!==undefined)lines+='<text class="gw" x="'+((a.x+b.x)/2)+'" y="'+((a.y+b.y)/2-6)+'">'+esc(e[2])+'</text>'});
+ g.nodes.forEach(function(n,i){var c='tn'+((s.hi||[]).indexOf(i)>=0?' in':'')+((s.ok||[]).indexOf(i)>=0?' ok':'')+((s.dim||[]).indexOf(i)>=0?' dim':'');
+  nodes+='<g class="'+c+'"><circle cx="'+n.x+'" cy="'+n.y+'" r="'+R+'"/><text x="'+n.x+'" y="'+n.y+'">'+esc(n.label===undefined?i:n.label)+'</text></g>';
+  if(lab[i])nodes+='<text class="tp" x="'+n.x+'" y="'+(n.y-R-7)+'">'+esc(lab[i].join(', '))+'</text>'});
+ var defs='<defs><marker id="garr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="mk" d="M0,0 L10,5 L0,10 z"/></marker><marker id="garrOn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="mk2" d="M0,0 L10,5 L0,10 z"/></marker></defs>';
+ return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:'+W+'px" role="img" aria-label="Graph">'+defs+lines+nodes+'</svg>'}
+
+function treeSVG(s){var T=s.tree,n=T.length,last=0,i;for(i=0;i<n;i++)if(T[i]!==null&&T[i]!==undefined)last=i;
+ var D=Math.floor(Math.log2(last+1))+1,W=Math.max(300,Math.pow(2,D-1)*56),H=D*64+30,R=18;
+ function pos(k){var d=Math.floor(Math.log2(k+1)),j=k-(Math.pow(2,d)-1),w=Math.pow(2,d);return {x:(j+0.5)/w*W,y:d*64+40}}
+ var lines='',nodes='',lab={};Object.keys(s.ptr||{}).forEach(function(k){(lab[s.ptr[k]]=lab[s.ptr[k]]||[]).push(k)});
+ for(i=0;i<=last;i++){if(T[i]===null||T[i]===undefined)continue;var p=pos(i);
+  if(i>0){var par=Math.floor((i-1)/2);if(T[par]!==null&&T[par]!==undefined){var q=pos(par);lines+='<line x1="'+q.x+'" y1="'+q.y+'" x2="'+p.x+'" y2="'+p.y+'"/>'}}
+  var c='tn'+((s.hi||[]).indexOf(i)>=0?' in':'')+((s.ok||[]).indexOf(i)>=0?' ok':'')+((s.dim||[]).indexOf(i)>=0?' dim':'');
+  nodes+='<g class="'+c+'"><circle cx="'+p.x+'" cy="'+p.y+'" r="'+R+'"/><text x="'+p.x+'" y="'+p.y+'">'+String(T[i]).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</text></g>';
+  if(lab[i])nodes+='<text class="tp" x="'+p.x+'" y="'+(p.y-R-7)+'">'+lab[i].join(', ').replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</text>'}
+ return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:'+W+'px" role="img" aria-label="Binary tree">'+lines+nodes+'</svg>'}
+
+function stepper(el){
+ var steps=SIM[el.dataset.sim](),i=0,timer=null,speed=1300,max=0;
+ steps.forEach(function(s){max=Math.max(max,(s.a||[]).length)});
+ el.setAttribute('tabindex','0');el.setAttribute('aria-label','Step-by-step animation');
+ el.innerHTML='<div class="st-head">'+ic('film')+'<span>Step by step</span><span class="st-count"></span></div><div class="st-prog"><i></i></div><div class="st-body"><div class="st-view"></div><div class="st-tree" style="display:none"></div><div class="st-aux"></div><div class="st-note" aria-live="polite"></div></div>'+
+  '<div class="st-ctl"><button data-a="prev" title="Previous (←)" aria-label="Previous step">'+ic('prev')+'</button><button class="pri" data-a="play" title="Play / pause (space)" aria-label="Play">'+ic('play','fill')+'<span>Play</span></button><button data-a="next" title="Next (→)" aria-label="Next step">'+ic('next')+'</button><button data-a="reset" title="Restart" aria-label="Restart">'+ic('reset')+'</button>'+
+  '<input type="range" min="0" max="'+(steps.length-1)+'" value="0" aria-label="Step"><select aria-label="Speed"><option value="2200">Slow</option><option value="1300" selected>Normal</option><option value="600">Fast</option></select></div>';
+ var view=$('.st-view',el),aux=$('.st-aux',el),note=$('.st-note',el),cnt=$('.st-count',el),play=$('[data-a=play]',el),bar=$('.st-prog i',el),rg=$('input',el),sel=$('select',el);
+ var cells=[],h='';for(var k=0;k<max;k++)h+='<div class="cellw"><div class="ptr"></div><div class="cell"></div><div class="idx">'+k+'</div></div>'+(k<max-1?'<div class="edge"></div>':'');
+ view.innerHTML=h;$$('.cellw',view).forEach(function(w){cells.push({w:w,p:$('.ptr',w),c:$('.cell',w),v:null})});var edges=$$('.edge',view);
+ var tb=$('.st-tree',el);
+ function draw(){var s=steps[i],lab={};
+  if(s.tree||s.graph){view.style.display='none';tb.style.display='block';tb.innerHTML=s.tree?treeSVG(s):graphSVG(s)}else{view.style.display='';tb.style.display='none';tb.innerHTML=''}
+  s.a=s.a||[];Object.keys(s.ptr||{}).forEach(function(k){var ix=s.ptr[k];(lab[ix]=lab[ix]||[]).push(k)});
+  cells.forEach(function(o,ix){if(ix>=s.a.length){o.w.style.display='none';return}o.w.style.display='';
+   var v=String(s.a[ix]);if(o.v!==null&&o.v!==v){o.c.classList.remove('pop');void o.c.offsetWidth;o.c.classList.add('pop')}
+   o.v=v;o.c.textContent=v;
+   o.c.className='cell'+((s.hi||[]).indexOf(ix)>=0?' in':'')+((s.ok||[]).indexOf(ix)>=0?' ok':'')+((s.dim||[]).indexOf(ix)>=0?' dim':'')+(o.c.classList.contains('pop')?' pop':'');
+   o.p.innerHTML=lab[ix]?'<b>'+lab[ix].join(', ')+'</b>':''});
+  view.style.maxWidth=s.cols?(s.cols*53)+'px':'';
+  edges.forEach(function(g,k){var t=k<s.a.length-1?(s.edges?(s.edges[k]||''):(s.link?'→':'')):'';g.textContent=t;g.style.display=t?'':'none'});
+  if(s.aux){aux.innerHTML='<span class="al">'+s.aux.label+'</span>'+s.aux.items.map(function(t){return '<span class="chip">'+String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span>'}).join('')}else aux.innerHTML='';
+  note.textContent=s.note;cnt.textContent=(i+1)+' / '+steps.length;bar.style.width=(100*(i+1)/steps.length)+'%';rg.value=i}
+ function setPlay(on){play.innerHTML=ic(on?'pause':'play',on?'':'fill')+'<span>'+(on?'Pause':'Play')+'</span>';play.setAttribute('aria-label',on?'Pause':'Play')}
+ function stop(){if(timer){clearInterval(timer);timer=null;setPlay(0)}}
+ function go(n){i=Math.max(0,Math.min(steps.length-1,n));draw()}
+ function start(){if(i>=steps.length-1)i=0;setPlay(1);draw();timer=setInterval(function(){if(i<steps.length-1){i++;draw()}else stop()},speed)}
+ $('[data-a=prev]',el).onclick=function(){stop();go(i-1)};$('[data-a=next]',el).onclick=function(){stop();go(i+1)};
+ $('[data-a=reset]',el).onclick=function(){stop();go(0)};play.onclick=function(){timer?stop():start()};
+ rg.oninput=function(){stop();go(+rg.value)};sel.onchange=function(){speed=+sel.value;if(timer){stop();start()}};
+ el.onkeydown=function(e){if(e.target!==el)return;if(e.key==='ArrowRight'){stop();go(i+1);e.preventDefault()}else if(e.key==='ArrowLeft'){stop();go(i-1);e.preventDefault()}else if(e.key===' '){timer?stop():start();e.preventDefault()}};
+ draw()}
+$$('.stepper').forEach(stepper);
+
+/* left section rail: mobile drawer behaviour (desktop is pure CSS: hover or focus expands it) */
+(function(){var r=document.getElementById('rail'),b=document.getElementById('b-rail'),bd=document.getElementById('rail-bd');if(!r)return;
+ function open(o){r.classList.toggle('open',o);if(bd)bd.hidden=!o;if(b)b.setAttribute('aria-expanded',o?'true':'false')}
+ if(b)b.onclick=function(){open(!r.classList.contains('open'))};
+ if(bd)bd.onclick=function(){open(false)};
+ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&r.classList.contains('open')){open(false);if(b)b.focus()}});
+ r.addEventListener('click',function(e){if(e.target.closest('a')&&innerWidth<=1020)open(false)});
+})();
+
+})();</script>
+</body></html>

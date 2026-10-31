@@ -50,6 +50,10 @@ ICONS = {
     "reset": '<path d="M3 8a5 5 0 1 0 1.8-3.8M3 2.5v3h3"/>',
     "key": '<circle cx="5.5" cy="10.5" r="3"/><path d="m8 8.5 5.5-5.5M11 5l1.5 1.5M9.5 6.5 11 8"/>',
     "cal": '<rect x="2.5" y="3.5" width="11" height="10" rx="1.5"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/>',
+    "home": '<path d="M2.5 7.5 8 2.5l5.5 5M4 6.5v7h8v-7"/>',
+    "branch": '<circle cx="4.5" cy="3.5" r="1.5"/><circle cx="4.5" cy="12.5" r="1.5"/><circle cx="11.5" cy="6" r="1.5"/><path d="M4.5 5v6M11.5 7.5c0 2.5-3 2-7 3.5"/>',
+    "server": '<rect x="2.5" y="3" width="11" height="4" rx="1"/><rect x="2.5" y="9" width="11" height="4" rx="1"/><path d="M5 5h.01M5 11h.01"/>',
+    "flask": '<path d="M6 2.5h4M6.5 2.5v4L3 12.5a1 1 0 0 0 .9 1.5h8.2a1 1 0 0 0 .9-1.5L9.5 6.5v-4"/><path d="M4.8 10h6.4"/>',
     "share": '<circle cx="4" cy="8" r="1.8"/><circle cx="12" cy="4" r="1.8"/><circle cx="12" cy="12" r="1.8"/><path d="m5.7 7 4.6-2M5.7 9l4.6 2"/>',
     "book": '<path d="M2.5 3.5h4A1.5 1.5 0 0 1 8 5v8a1 1 0 0 0-1-1H2.5zM13.5 3.5h-4A1.5 1.5 0 0 0 8 5v8a1 1 0 0 1 1-1h4.5z"/>',
     "film": '<rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="m6.5 6 3.5 2-3.5 2z"/>',
@@ -65,7 +69,7 @@ def icon(name, cls=""):
 CSS = _read("style.css")
 JS = (
     "(function(){\nvar IC=" + json.dumps(ICONS, separators=(",", ":")) + ";\n"
-    + _read("sims.js") + "\n" + _read("engine.js") + "\n})();"
+    + _read("sims.js") + "\n" + _read("engine.js") + "\n" + _read("rail.js") + "\n})();"
 )
 
 DIFF = {"E": ("Easy", "dE"), "M": ("Medium", "dM"), "H": ("Hard", "dH")}
@@ -85,6 +89,36 @@ FAVICON = (
     "%3Ctext x='16' y='21' font-family='monospace' font-size='13' font-weight='700' fill='%23f8fafc' text-anchor='middle'%3EDSA%3C/text%3E%3C/svg%3E"
 )
 SITE_URL = "https://nithin988.github.io/dsa-mastery/"
+
+
+SYS_TRACKS = [("track-1", "Foundations"), ("track-2", "Troubleshooting"), ("track-3", "System design core"), ("track-4", "Design problems"), ("track-5", "Interview and career"), ("track-6", "Extensions")]
+
+
+def rail(section, root=""):
+    """Left section navigation (collapsed icons, expands on hover or focus). section: home | dsa | systems | plan."""
+    def item(key, href, ic, label, ext=False):
+        cur = ' aria-current="page"' if key == section else ""
+        tgt = ' target="_blank" rel="noopener"' if ext else ""
+        return f'<a class="rail-i" href="{href}"{cur}{tgt} title="{label}">{icon(ic)}<span class="l">{label}</span></a>'
+    subs = ""
+    if section == "systems":
+        subs = '<div class="rail-sub">' + "".join(f'<a href="{root}systems.html#{a}">{html.escape(n)}</a>' for a, n in SYS_TRACKS) + "</div>"
+    return (
+        '<nav class="rail" id="rail" aria-label="Sections">'
+        f'<a class="rail-i rail-logo" href="{root}index.html" title="Mastery home"><span class="logo" aria-hidden="true">M</span><span class="l"><b>Mastery</b></span></a>'
+        '<div class="rail-g">Courses</div>'
+        + item("home", root + "index.html", "home", "Home")
+        + item("dsa", root + "dsa.html", "code", "DSA Mastery")
+        + item("systems", root + "systems.html", "server", "Systems Mastery") + subs
+        + '<div class="rail-g">Tools</div>'
+        + item("plan", root + "plan.html", "cal", "DSA study planner")
+        + item("gh", "https://github.com/nithin988/dsa-mastery", "ext", "GitHub", True)
+        + "</nav><div class=\"rail-bd\" id=\"rail-bd\" hidden></div>"
+    )
+
+
+def rail_button():
+    return f'<button id="b-rail" class="iconbtn rail-btn" aria-label="Open the sections menu" aria-expanded="false" aria-controls="rail">{icon("menu")}</button>'
 
 
 def md(s):
@@ -242,11 +276,11 @@ def render_topic(t):
     if prev:
         foot += f'<a class="nxt" href="{prev[0]}.html"><small>{icon("arr-l")}Previous</small><strong>{html.escape(prev[1])}</strong></a>'
     else:
-        foot += f'<a class="nxt" href="../index.html"><small>{icon("arr-l")}Back</small><strong>All topics</strong></a>'
+        foot += f'<a class="nxt" href="../dsa.html"><small>{icon("arr-l")}Back</small><strong>All topics</strong></a>'
     if nxt:
         foot += f'<a class="nxt next r" href="{nxt[0]}.html"><small>Next topic{icon("arr-r")}</small><strong>{html.escape(nxt[1])}</strong></a>'
     else:
-        foot += f'<a class="nxt next r" href="../index.html"><small>Finished{icon("check")}</small><strong>Back to all topics</strong></a>'
+        foot += f'<a class="nxt next r" href="../dsa.html"><small>Finished{icon("check")}</small><strong>Back to all topics</strong></a>'
     foot += "</nav>"
     b.append(foot)
 
@@ -256,7 +290,7 @@ def render_topic(t):
         side="".join(side), chips=chips, body="\n".join(b), desc=html.escape(desc, quote=True),
         url=SITE_URL + "topics/" + t["file"], favicon=FAVICON, cat=t.get("_catalog", "[]"),
         short=html.escape(t["title"].split(" — ")[0]),
-        i_menu=icon("menu"), i_cal=icon("cal"), i_theme=icon("theme"), i_down=icon("down"), i_right=icon("right"),
+        rail=rail("dsa", "../"), rail_btn=rail_button(), i_menu=icon("menu"), i_cal=icon("cal"), i_theme=icon("theme"), i_down=icon("down"), i_right=icon("right"),
     )
 
 
@@ -269,10 +303,11 @@ PAGE = """<!DOCTYPE html>
 <meta property="og:description" content="{desc}"><meta property="og:url" content="{url}">
 <link rel="icon" href="{favicon}">
 <style>{css}</style></head>
-<body data-lang="java" data-file="{fname}" data-topic="{tid}">
+<body class="has-rail" data-lang="java" data-file="{fname}" data-topic="{tid}">
 <a class="skip" href="#content">Skip to content</a>
-<header class="bar"><div class="bar-in"><a class="brand" href="../index.html" aria-label="DSA Mastery home"><span class="logo" aria-hidden="true">DSA</span><b>DSA <span>Mastery</span></b></a>
-<nav class="crumbs" aria-label="Breadcrumb"><a href="../index.html">Topics</a>{i_right}<span class="cur">{num} · {short}</span></nav>
+{rail}
+<header class="bar"><div class="bar-in">{rail_btn}<a class="brand" href="../index.html" aria-label="DSA Mastery home"><span class="logo" aria-hidden="true">DSA</span><b>DSA <span>Mastery</span></b></a>
+<nav class="crumbs" aria-label="Breadcrumb"><a href="../dsa.html">DSA topics</a>{i_right}<span class="cur">{num} · {short}</span></nav>
 <span class="prog" id="prog" aria-live="polite"></span>
 <span class="seg" role="group" aria-label="Code language"><button id="b-java" class="on" aria-pressed="true">Java</button><button id="b-py" aria-pressed="false">Python</button></span>
 <span class="menu"><button id="b-topics" class="btn" aria-haspopup="true" aria-expanded="false" aria-controls="topics-panel">{i_menu}<span class="t-long">All topics</span></button>
@@ -284,7 +319,7 @@ PAGE = """<!DOCTYPE html>
 <div class="wrap">{side}<main id="content">{chips}
 {body}
 </main></div>
-<footer class="site-foot"><span>DSA Mastery: free, open study sheets. Progress is saved in your browser only.</span><span><a href="../index.html">All topics</a> · <a href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener">GitHub</a></span></footer>
+<footer class="site-foot"><span>DSA Mastery: free, open study sheets. Progress is saved in your browser only.</span><span><a href="../dsa.html">All DSA topics</a> · <a href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener">GitHub</a></span></footer>
 <script>window.DSA_TOPICS={cat};</script>
 <script>{js}</script>
 </body></html>

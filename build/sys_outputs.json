@@ -1,0 +1,281 @@
+{
+ "sh": [
+  {
+   "cmd": "pwd",
+   "out": "/home/learner\n"
+  },
+  {
+   "cmd": "ls workshop",
+   "out": "README.txt\narchive\nbin\ndata\nlogs\nnotes\n"
+  },
+  {
+   "cmd": "cd workshop",
+   "out": ""
+  },
+  {
+   "cmd": "pwd",
+   "out": "/home/learner/workshop\n"
+  },
+  {
+   "cmd": "ls -l",
+   "out": "total 24\n-rw-r--r-- 1 learner learner   59 Jan 15  2026 README.txt\ndrwxr-xr-x 2 learner learner 4096 Jan 15  2026 archive\ndrwxr-xr-x 2 learner learner 4096 Jan 15  2026 bin\ndrwxr-xr-x 2 learner learner 4096 Jan 15  2026 data\ndrwxr-xr-x 2 learner learner 4096 Jan 15  2026 logs\ndrwxr-xr-x 2 learner learner 4096 Jan 15  2026 notes\n"
+  },
+  {
+   "cmd": "ls -la",
+   "out": "total 32\ndrwxr-xr-x 7 learner learner 4096 Jan 15  2026 .\ndrwx------ 3 learner learner 4096 Jan 15  2026 ..\n-rw-r--r-- 1 learner learner   59 Jan 15  2026 README.txt\ndrwxr-xr-x 2 learner learner 4096 Jan 15  2026 archive\ndrwxr-xr-x 2 learner learner 4096 Jan 15  2026 bin\ndrwxr-xr-x 2 learner learner 4096 Jan 15  2026 data\ndrwxr-xr-x 2 learner learner 4096 Jan 15  2026 logs\ndrwxr-xr-x 2 learner learner 4096 Jan 15  2026 notes\n"
+  },
+  {
+   "cmd": "cd notes",
+   "out": ""
+  },
+  {
+   "cmd": "pwd",
+   "out": "/home/learner/workshop/notes\n"
+  },
+  {
+   "cmd": "cd ..",
+   "out": ""
+  },
+  {
+   "cmd": "cd /etc",
+   "out": ""
+  },
+  {
+   "cmd": "pwd",
+   "out": "/etc\n"
+  },
+  {
+   "cmd": "cd ~/workshop/logs",
+   "out": ""
+  },
+  {
+   "cmd": "cd -",
+   "out": "/etc\n"
+  },
+  {
+   "cmd": "cd",
+   "out": ""
+  },
+  {
+   "cmd": "pwd",
+   "out": "/home/learner\n"
+  },
+  {
+   "cmd": "ls -R workshop",
+   "out": "workshop:\nREADME.txt\narchive\nbin\ndata\nlogs\nnotes\n\nworkshop/archive:\n2025.tar.txt\n\nworkshop/bin:\nhello.sh\n\nworkshop/data:\nnames.txt\n\nworkshop/logs:\naccess.log\napp.log\n\nworkshop/notes:\nideas.md\ntodo.txt\n"
+  },
+  {
+   "cmd": "cd ~/workshop",
+   "out": ""
+  },
+  {
+   "cmd": "cat README.txt",
+   "out": "Welcome to the workshop.\nEverything here is safe to break.\n"
+  },
+  {
+   "cmd": "head -n 2 logs/access.log",
+   "out": "200 /home\n500 /pay\n"
+  },
+  {
+   "cmd": "tail -n 3 logs/access.log",
+   "out": "500 /cart\n200 /cart\n500 /pay\n"
+  },
+  {
+   "cmd": "wc -l logs/access.log",
+   "out": "8 logs/access.log\n"
+  },
+  {
+   "cmd": "file bin/hello.sh",
+   "out": "bin/hello.sh: Bourne-Again shell script, ASCII text executable\n"
+  },
+  {
+   "cmd": "mkdir -p scratch/deep/er",
+   "out": ""
+  },
+  {
+   "cmd": "touch scratch/a.txt",
+   "out": ""
+  },
+  {
+   "cmd": "cp README.txt scratch/readme-copy.txt",
+   "out": ""
+  },
+  {
+   "cmd": "mv scratch/a.txt scratch/b.txt",
+   "out": ""
+  },
+  {
+   "cmd": "ls scratch",
+   "out": "b.txt\ndeep\nreadme-copy.txt\n"
+  },
+  {
+   "cmd": "rm scratch/b.txt",
+   "out": ""
+  },
+  {
+   "cmd": "rmdir scratch/deep/er",
+   "out": ""
+  },
+  {
+   "cmd": "rmdir scratch/deep",
+   "out": ""
+  },
+  {
+   "cmd": "ls -R scratch",
+   "out": "scratch:\nreadme-copy.txt\n"
+  },
+  {
+   "cmd": "cd ~/workshop",
+   "out": ""
+  },
+  {
+   "cmd": "find . -name \"*.log\" | sort",
+   "out": "./logs/access.log\n./logs/app.log\n"
+  },
+  {
+   "cmd": "find . -type d | sort",
+   "out": ".\n./archive\n./bin\n./data\n./logs\n./notes\n./scratch\n"
+  },
+  {
+   "cmd": "find notes -name \"*.md\" -exec cat {} \\;",
+   "out": "# Ideas\n- learn awk\n- build a blog\n"
+  },
+  {
+   "cmd": "grep ERROR logs/app.log",
+   "out": "2026-01-15 ERROR disk almost full\n2026-01-16 ERROR disk almost full\n"
+  },
+  {
+   "cmd": "grep -c ERROR logs/app.log",
+   "out": "2\n"
+  },
+  {
+   "cmd": "grep -rn \"disk\" logs",
+   "out": "logs/app.log:1:2026-01-15 ERROR disk almost full\nlogs/app.log:3:2026-01-16 ERROR disk almost full\n"
+  },
+  {
+   "cmd": "grep -v \"^200\" logs/access.log",
+   "out": "500 /pay\n404 /old\n500 /pay\n500 /cart\n500 /pay\n"
+  },
+  {
+   "cmd": "type cd",
+   "out": "cd is a shell builtin\n"
+  },
+  {
+   "cmd": "type ls",
+   "out": "ls is hashed (/usr/bin/ls)\n"
+  },
+  {
+   "cmd": "ls --help | head -n 3",
+   "out": "Usage: ls [OPTION]... [FILE]...\nList information about the FILEs (the current directory by default).\nSort entries alphabetically if none of -cftuvSUX nor --sort is specified.\n"
+  },
+  {
+   "cmd": "cd ~/workshop",
+   "out": ""
+  },
+  {
+   "cmd": "mkdir -p scratch",
+   "out": ""
+  },
+  {
+   "cmd": "echo hello > scratch/out.txt",
+   "out": ""
+  },
+  {
+   "cmd": "cat scratch/out.txt",
+   "out": "hello\n"
+  },
+  {
+   "cmd": "echo again >> scratch/out.txt",
+   "out": ""
+  },
+  {
+   "cmd": "cat scratch/out.txt",
+   "out": "hello\nagain\n"
+  },
+  {
+   "cmd": "ls /nonexistent 2> scratch/err.txt; cat scratch/err.txt",
+   "out": "ls: cannot access '/nonexistent': No such file or directory\n"
+  },
+  {
+   "cmd": "ls /nonexistent 2>/dev/null; echo \"exit code: $?\"",
+   "out": "exit code: 2\n"
+  },
+  {
+   "cmd": "ls README.txt /nonexistent > scratch/both.txt 2>&1; cat scratch/both.txt",
+   "out": "ls: cannot access '/nonexistent': No such file or directory\nREADME.txt\n"
+  },
+  {
+   "cmd": "sort data/names.txt | head -n 2",
+   "out": "alice\nbob\n"
+  },
+  {
+   "cmd": "echo \"first run\" | tee scratch/tee.txt",
+   "out": "first run\n"
+  },
+  {
+   "cmd": "grep \"^500\" logs/access.log | cut -d\" \" -f2 | sort | uniq -c | sort -rn",
+   "out": "      3 /pay\n      1 /cart\n"
+  },
+  {
+   "cmd": "cp data/names.txt scratch/n.txt; sort -r scratch/n.txt > scratch/n.txt; wc -c scratch/n.txt",
+   "out": "0 scratch/n.txt\n"
+  },
+  {
+   "cmd": "cd ~/workshop",
+   "out": ""
+  },
+  {
+   "cmd": "ls -l bin/hello.sh",
+   "out": "-rwxr-xr-x 1 learner learner 43 Jan 15  2026 bin/hello.sh\n"
+  },
+  {
+   "cmd": "id -un",
+   "out": "learner\n"
+  },
+  {
+   "cmd": "umask",
+   "out": "0022\n"
+  },
+  {
+   "cmd": "bin/hello.sh",
+   "out": "Hello from the workshop\n"
+  },
+  {
+   "cmd": "chmod -x bin/hello.sh; bin/hello.sh",
+   "out": "bash: bin/hello.sh: Permission denied\n"
+  },
+  {
+   "cmd": "chmod 755 bin/hello.sh; bin/hello.sh",
+   "out": "Hello from the workshop\n"
+  },
+  {
+   "cmd": "chmod 600 notes/todo.txt; stat -c '%a %A %n' notes/todo.txt",
+   "out": "600 -rw------- notes/todo.txt\n"
+  },
+  {
+   "cmd": "chmod u+x,g-w,o-rwx notes/ideas.md; stat -c '%a %A %n' notes/ideas.md",
+   "out": "740 -rwxr----- notes/ideas.md\n"
+  },
+  {
+   "cmd": "GREETING=hello; echo \"$GREETING world\"",
+   "out": "hello world\n"
+  },
+  {
+   "cmd": "export COLOUR=blue; bash -c 'echo \"child sees: $COLOUR\"'",
+   "out": "child sees: blue\n"
+  },
+  {
+   "cmd": "true; echo \"true gives $?\"; false; echo \"false gives $?\"",
+   "out": "true gives 0\nfalse gives 1\n"
+  },
+  {
+   "cmd": "mkdir -p scratch2 && echo \"created\"",
+   "out": "created\n"
+  },
+  {
+   "cmd": "cd /nonexistent 2>/dev/null || echo \"could not change directory\"",
+   "out": "could not change directory\n"
+  }
+ ],
+ "_env": "Debian GNU/Linux 13 (trixie)"
+}
