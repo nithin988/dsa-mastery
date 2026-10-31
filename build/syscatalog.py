@@ -37,7 +37,7 @@ MODULES = [
     ("S20", "S20_queues_streams_async", "Queues, streams and asynchronous work", "Real Redis and PostgreSQL: queues, delivery guarantees, the outbox, logs and consumer groups, ordering, retries, dead letters, back-pressure and sizing.", 3, "sys_queues"),
     ("S21", "S21_search_blob_special_stores", "Search, blob storage and specialised stores", "Inverted indexes, object storage, time-series and geospatial stores, and when to use each.", 3, None),
     ("S22", "S22_distributed_systems", "Distributed systems essentials", "CAP and PACELC, consistency, consensus, clocks, retries, idempotency.", 3, "sys_dist2"),
-    ("S23", "S23_architecture_api_patterns", "APIs and architecture patterns (overview)", "Overview of REST, events, CQRS, sagas, rate limiting and auth. Being split into deeper modules S23, S24 and S25.", 3, "sys_architecture"),
+    ("S23", "S23_architecture_api_patterns", "APIs and contracts: HTTP, pagination, rate limits and reliable interfaces", "A real teaching API: verbs and status codes, cursor pagination, versioning and deprecation, rate limiting, REST versus gRPC versus GraphQL, idempotency keys, async jobs and webhooks.", 3, "sys_apis"),
     ("S24", "S24_architecture_patterns", "Architecture patterns: monoliths to events", "Monolith versus microservices, event-driven design, CQRS, sagas, the outbox and migration patterns.", 3, None),
     ("S25", "S25_security_for_design", "Security for system design", "Authentication, authorisation, TLS and mTLS, secrets, common attacks, DDoS and data protection.", 3, None),
     ("S26", "S26_designing_for_reliability", "Designing for reliability and operations", "Availability math, multi-region, disaster recovery, safe deployments, observability.", 3, "sys_reliability_design"),
