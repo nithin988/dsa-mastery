@@ -51,7 +51,7 @@ $('#b-dl').onclick=function(){
  a.href=URL.createObjectURL(blob);a.download=body.dataset.file||'topic.html';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)};
 /* animated stepper */
 function graphSVG(s){var g=s.graph,W=g.w||360,H=g.h||210,R=17,lines='',nodes='',lab={};
- var rad=g.nodes.map(function(n,i){var t=String(n.label===undefined?i:n.label);return Math.max(R,Math.min(34,5.8*t.length+7))});
+ var rad=g.nodes.map(function(n,i){var t=String(n.label===undefined?i:n.label);return Math.max(R,Math.min(30,5.2*t.length+8))});
  Object.keys(s.ptr||{}).forEach(function(k){(lab[s.ptr[k]]=lab[s.ptr[k]]||[]).push(k)});
  function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
  g.edges.forEach(function(e,k){var a=g.nodes[e[0]],b=g.nodes[e[1]],on=(s.eok||[]).indexOf(k)>=0,x1=a.x,y1=a.y,x2=b.x,y2=b.y,mk='';

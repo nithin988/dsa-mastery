@@ -5,9 +5,9 @@ function mapStr(m){var k=Object.keys(m);return '{'+k.map(function(x){return x+':
 var SIM={
 /* ---- S02: Linux shell ---- */
 cdtree:function(){var S=[];
- var nodes=[{x:210,y:25,label:'/'},{x:110,y:75,label:'home'},{x:310,y:75,label:'etc'},{x:110,y:125,label:'me'},{x:110,y:175,label:'work'},{x:50,y:228,label:'logs'},{x:110,y:228,label:'notes'},{x:170,y:228,label:'bin'}];
+ var nodes=[{x:240,y:30,label:'/'},{x:130,y:88,label:'home'},{x:350,y:88,label:'etc'},{x:130,y:148,label:'me'},{x:130,y:208,label:'work'},{x:40,y:275,label:'logs'},{x:130,y:275,label:'notes'},{x:220,y:275,label:'bin'}];
  var edges=[[0,1],[0,2],[1,3],[3,4],[4,5],[4,6],[4,7]];
- var G={nodes:nodes,edges:edges,w:420,h:255};
+ var G={nodes:nodes,edges:edges,w:480,h:310};
  function st(at,cmd,pwd,note,ok){S.push({a:[],graph:G,ptr:{'you are here':at},ok:ok||[],aux:{label:'terminal',items:['$ '+cmd,'pwd → '+pwd]},note:note})}
  st(3,'(shell starts)','/home/me','Every shell session has a current directory ("cwd"). A new session starts in your home directory, written ~ for short. The tree shows the directories we will visit: / is the root of everything.');
  st(4,'cd work','/home/me/work','cd work is a relative path: it starts from where you are now (/home/me) and goes down into work. No leading slash means "relative to here".');

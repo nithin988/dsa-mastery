@@ -408,7 +408,18 @@ table.cheat td:first-child{font-family:ui-monospace,Consolas,monospace;font-size
 .dg{width:100%;height:auto;display:block}
 .dg-box{fill:var(--hd);stroke:var(--line);stroke-width:1.5}.dg-box.acc{fill:var(--acc-soft);stroke:var(--acc)}.dg-box.ok{fill:var(--done-soft);stroke:var(--done)}.dg-box.warn{fill:var(--warn-soft);stroke:var(--warn-line)}.dg-box.ink{fill:var(--ink);stroke:var(--ink)}
 .dg-t{font:600 13px system-ui,sans-serif;fill:var(--fg)}.dg-t.ink{fill:var(--ink-fg)}.dg-s{font:12px system-ui,sans-serif;fill:var(--mut)}
+.dg-s.ink{fill:#cbd5e1}
 .dg-a{stroke:var(--faint);stroke-width:2}.dg-a.acc{stroke:var(--acc)}.dg-m{fill:var(--faint)}
+
+/* short view: folded detail inside lessons */
+details.more{border:0;border-left:2px solid var(--line);border-radius:0;padding:0 0 0 12px;margin:8px 0;background:none}
+details.more>summary{font-size:13px;font-weight:600;color:var(--info);display:inline-flex;align-items:center;gap:6px}
+details.more>summary svg{width:14px;height:14px}
+details.more[open]{border-left-color:var(--info-line)}
+.blk.warn details.more>summary{color:var(--warn-ink,var(--fg))}
+.quick details summary{font-weight:500}
+#b-density .t-short{display:none}
+@media(max-width:700px){#b-density .t-long{display:none}#b-density .t-short{display:inline}}
 </style></head>
 <body class="has-rail" data-lang="java" data-file="08_bit_math.html" data-topic="bit_math">
 <a class="skip" href="#content">Skip to content</a>
@@ -2215,7 +2226,7 @@ $('#b-dl').onclick=function(){
  a.href=URL.createObjectURL(blob);a.download=body.dataset.file||'topic.html';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)};
 /* animated stepper */
 function graphSVG(s){var g=s.graph,W=g.w||360,H=g.h||210,R=17,lines='',nodes='',lab={};
- var rad=g.nodes.map(function(n,i){var t=String(n.label===undefined?i:n.label);return Math.max(R,Math.min(34,5.8*t.length+7))});
+ var rad=g.nodes.map(function(n,i){var t=String(n.label===undefined?i:n.label);return Math.max(R,Math.min(30,5.2*t.length+8))});
  Object.keys(s.ptr||{}).forEach(function(k){(lab[s.ptr[k]]=lab[s.ptr[k]]||[]).push(k)});
  function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
  g.edges.forEach(function(e,k){var a=g.nodes[e[0]],b=g.nodes[e[1]],on=(s.eok||[]).indexOf(k)>=0,x1=a.x,y1=a.y,x2=b.x,y2=b.y,mk='';
@@ -2280,6 +2291,18 @@ $$('.stepper').forEach(stepper);
  if(bd)bd.onclick=function(){open(false)};
  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&r.classList.contains('open')){open(false);if(b)b.focus()}});
  r.addEventListener('click',function(e){if(e.target.closest('a')&&innerWidth<=1020)open(false)});
+})();
+
+/* density switch: short view by default, "Show all details" opens every folded explanation */
+(function(){var b=document.getElementById('b-density');if(!b)return;var K='sys-density';
+ function apply(on,save){document.body.classList.toggle('full',on);b.setAttribute('aria-pressed',on?'true':'false');
+  b.firstChild.textContent=on?'Short view':'Show all details';b.classList.toggle('on',on);
+  [].forEach.call(document.querySelectorAll('details.more'),function(d){d.open=on});
+  if(save)try{localStorage.setItem(K,on?'full':'short')}catch(e){}}
+ b.onclick=function(){apply(!document.body.classList.contains('full'),true)};
+ var v=null;try{v=localStorage.getItem(K)}catch(e){}
+ if(v==='full')apply(true,false);
+ window.addEventListener('beforeprint',function(){[].forEach.call(document.querySelectorAll('details'),function(d){d.open=true})});
 })();
 
 })();</script>

@@ -166,3 +166,15 @@ Requirements and scale assumptions stated; estimation shown (writes per second, 
 - **Licence limits:** several best sources forbid derivatives, which is why we write original explanations and link out.
 - **Lab safety:** labs run in disposable containers only; no script touches the learner's own system.
 - **Accuracy of troubleshooting advice:** commands differ across distributions and versions; we test on a named distribution and say which.
+
+## 8. Presentation principles (added after reviewing takeUforward and learning-science results)
+
+What takeUforward does that we copy: one clear path with counts per topic (for example 20 modules, 495 problems in three tiers), short lesson pages (a few hundred words, one idea each), a visible progress counter, a planner, notes and revision lists. What the learning research says (worked examples with labelled steps reduce load; examples must sit next to the explanation they illustrate; spaced retrieval beats rereading) shapes the rest.
+
+Our measured starting point: about 7,000 words and 30,000+ px per module, roughly 3 times a takeUforward lesson. Decisions:
+
+1. **Short view by default.** Each command shows its recorded output and one explaining sentence; the rest of the explanation, the part-by-part table, the traps list and the playbooks are folded (`details.more`). The top-bar button "Show all details" opens everything and remembers the choice. Printing opens everything.
+2. **Content budget for new modules:** visible prose per lesson of about 300 words, at most 6 commands per lesson, one picture and one animation, everything else folded.
+3. **Quick check** (1 to 3 questions with answers hidden) at the end of every lesson (field `quick`), in addition to the module self-test. Back-fill the S02 to S06 lessons.
+4. **Hands-on first:** labs stay fully visible; they are the part no other free course offers with automatic checks.
+5. **To do:** a "Quick path" filter (Must know lessons and labs only), a streak and "continue where you left off" on the landing page, and a module planner on the Systems landing page like the DSA one.

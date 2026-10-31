@@ -2,11 +2,11 @@
 import sysviz as v
 
 AREAS_VIZ = v.figure(
-    720, 150,
-    [v.box(10, 40, 190, 60, "Working directory", "", "the files you edit"),
-     v.arrow(200, 70, 270, 70, "git add"), v.box(270, 40, 190, 60, "Staging area", "acc", "a draft of the next commit"),
-     v.arrow(460, 70, 530, 70, "git commit"), v.box(530, 40, 180, 60, "Repository", "ink", "permanent history"),
-     v.arrow(530, 118, 200, 118, "git restore / git switch"), v.text(360, 142, "Edit, choose what to record, record it.", "dg-s")],
+    720, 160,
+    [v.box(10, 36, 190, 60, "Working directory", "", "the files you edit"),
+     v.arrow(200, 66, 270, 66, "git add"), v.box(270, 36, 190, 60, "Staging area", "acc", "a draft of the next commit"),
+     v.arrow(460, 66, 530, 66, "git commit"), v.box(530, 36, 180, 60, "Repository", "ink", "permanent history"),
+     v.arrow(530, 122, 200, 122, "git restore / git switch"), v.text(360, 152, "Edit, choose what to record, record it.", "dg-s")],
     "The three areas of Git", "Git's three areas: edit, stage, commit")
 
 OBJECTS_VIZ = v.figure(

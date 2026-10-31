@@ -2,13 +2,13 @@
 import sysviz as v
 
 KERNEL_VIZ = v.figure(
-    720, 220,
-    [v.box(230, 10, 260, 42, "your programs (user space)", "acc", "ls, nginx, python"),
-     v.arrow(360, 52, 360, 82, "system calls"),
-     v.box(230, 82, 260, 42, "the kernel", "ink", "processes, memory, files, network"),
-     v.arrow(360, 124, 360, 154, "drivers"),
-     v.box(100, 154, 130, 42, "CPU", ""), v.box(250, 154, 130, 42, "memory", ""), v.box(400, 154, 130, 42, "disks", ""), v.box(550, 154, 130, 42, "network", ""),
-     v.text(130, 40, "Everything", "dg-s"), v.text(130, 56, "you run", "dg-s")],
+    720, 250,
+    [v.box(230, 8, 260, 50, "your programs (user space)", "acc", "ls, nginx, python"),
+     v.arrow(360, 58, 360, 100, "system calls"),
+     v.box(230, 100, 260, 50, "the kernel", "ink", "processes, memory, files, network"),
+     v.arrow(360, 150, 360, 192, "drivers"),
+     v.box(100, 192, 130, 44, "CPU", ""), v.box(250, 192, 130, 44, "memory", ""), v.box(400, 192, 130, 44, "disks", ""), v.box(550, 192, 130, 44, "network", ""),
+     v.text(130, 30, "Everything", "dg-s"), v.text(130, 46, "you run", "dg-s")],
     "User space, kernel and hardware", "Programs never touch hardware directly: they ask the kernel through system calls")
 
 MODULE = dict(

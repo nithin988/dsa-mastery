@@ -61,6 +61,24 @@ def tick(key, text):
     return f'<label class="tick"><input type="checkbox" class="pk" data-k="{key}" aria-label="{html.escape(text)}"><span>{html.escape(text)}</span></label>'
 
 
+_ABBR = ("e.g.", "i.e.", "vs.", "etc.", "approx.", "no.")
+
+
+def first_sentence(paras_in):
+    """Split explanation paragraphs into (first sentence, remaining paragraphs)."""
+    items = [paras_in] if isinstance(paras_in, str) else list(paras_in)
+    if not items:
+        return "", []
+    first = items[0]
+    for mt in re.finditer(r"(?<=[.!?:])\s+(?=[A-Z`*(])", first):
+        head = first[:mt.start()]
+        if head.lower().endswith(_ABBR) or len(head) < 25:
+            continue
+        rest = [first[mt.end():]] + items[1:]
+        return head, rest
+    return first, items[1:]
+
+
 def render_cmd(c, entry, env="Linux"):
     parts_tbl = ""
     if c.get("parts"):
@@ -74,8 +92,12 @@ def render_cmd(c, entry, env="Linux"):
     else:
         label = '<span class="stamp ill">Illustrative output · will differ on your machine</span>'
         out = f'<pre class="out ill"><code>{html.escape(c["o"].rstrip())}</code></pre>'
+    head, rest = first_sentence(c["e"])
+    more = ""
+    if rest or parts_tbl:
+        more = f'<details class="more"><summary>Explain in detail</summary>{paras(rest)}{parts_tbl}</details>'
     return (f'<div class="cmd"><pre class="sh"><code>{html.escape(c["c"])}</code></pre>'
-            f'<div class="cmd-b">{paras(c["e"])}{parts_tbl}<div class="out-l">{label}</div>{out}</div></div>')
+            f'<div class="cmd-b"><p>{md(head)}</p><div class="out-l">{label}</div>{out}{more}</div></div>')
 
 
 def render_lesson(mid, n, L, outputs, counter):
@@ -110,9 +132,13 @@ def render_lesson(mid, n, L, outputs, counter):
         o.append("</div>")
     if L.get("playbook"):
         pb = L["playbook"]
-        o.append(sblk(pb["title"], "search", paras(pb.get("intro", [])) + table(["Symptom", "Check", "What the output means", "Fix"], pb["rows"], "playbook")))
+        o.append(f'<div class="blk"><details class="more"><summary>{icon("search")} {html.escape(pb["title"])}</summary>'
+                 + paras(pb.get("intro", [])) + table(["Symptom", "Check", "What the output means", "Fix"], pb["rows"], "playbook") + "</details></div>")
+    if L.get("quick"):
+        o.append('<div class="blk quick">' + slbl("Quick check", "check") + '<p class="muted" style="margin:0 0 4px">Answer in your head first, then open it.</p>'
+                 + "".join(f"<details><summary>{md(q)}</summary><p>{md(a)}</p></details>" for q, a in L["quick"]) + "</div>")
     if L.get("traps"):
-        o.append(sblk("Traps to avoid", "warn", ul(L["traps"]), "warn"))
+        o.append(f'<div class="blk warn"><details class="more"><summary>{icon("warn")} Traps to avoid ({len(L["traps"])})</summary>{ul(L["traps"])}</details></div>')
     o.append("</div></section>")
     return "\n".join(o)
 
@@ -264,6 +290,7 @@ PAGE_SYS = """<!DOCTYPE html>
 <span class="prog" id="prog" aria-live="polite"></span>
 <span class="menu"><button id="b-topics" class="btn" aria-haspopup="true" aria-expanded="false" aria-controls="topics-panel">{i_menu}<span class="t-long">All modules</span></button>
 <div class="panel" id="topics-panel" role="menu" aria-label="All modules" hidden></div></span>
+<button id="b-density" class="btn" aria-pressed="false" title="Show every detailed explanation, or keep the short view"><span class="t-long">Show all details</span><span class="t-short">Details</span></button>
 <button id="b-theme" class="iconbtn" title="Toggle light / dark" aria-label="Toggle light or dark theme">{i_theme}</button>
 <button id="b-dl" class="btn pri" title="Save this page as a standalone HTML file">{i_down}<span class="t-long">Download</span></button></div>
 <div class="pbar" role="progressbar" aria-label="Steps done in this module" aria-valuemin="0" aria-valuemax="100"><i id="pbar"></i></div></header>

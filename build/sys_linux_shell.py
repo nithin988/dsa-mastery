@@ -15,22 +15,22 @@ PIPE_VIZ = v.figure(
     "A pipeline of four programs", "A pipeline: small programs joined by the | symbol")
 
 STREAMS_VIZ = v.figure(
-    720, 150,
+    720, 165,
     [v.box(280, 45, 160, 60, "your command", "ink"),
      v.box(10, 20, 130, 40, "stdin (0)", "", "keyboard or a pipe"), v.arrow(140, 40, 280, 65),
      v.box(580, 20, 130, 40, "stdout (1)", "ok", "normal output"), v.arrow(440, 65, 580, 40),
      v.box(580, 90, 130, 40, "stderr (2)", "warn", "error messages"), v.arrow(440, 90, 580, 110),
-     v.text(500, 138, "both usually go to your screen; > and 2> send them to files", "dg-s")],
+     v.text(500, 156, "both usually go to your screen; > and 2> send them to files", "dg-s")],
     "Three standard streams", "Every program has three streams. Redirection changes where they go.")
 
 FS_VIZ = v.figure(
-    720, 200,
-    [v.box(300, 10, 120, 36, "/", "ink", "root of everything"),
-     v.box(110, 80, 110, 36, "/home", ""), v.box(300, 80, 110, 36, "/etc", "", "configuration"), v.box(490, 80, 110, 36, "/var", "", "logs, data that changes"),
-     v.arrow(330, 46, 190, 80), v.arrow(360, 46, 355, 80), v.arrow(390, 46, 535, 80),
-     v.box(110, 150, 110, 36, "/home/me", "acc", "your home, ~"), v.arrow(165, 116, 165, 150),
-     v.box(490, 150, 110, 36, "/var/log", "", "system logs"), v.arrow(545, 116, 545, 150),
-     v.text(360, 195, "Also: /usr (programs), /tmp (scratch), /bin, /dev (devices), /proc (live system info)")],
+    720, 262,
+    [v.box(290, 8, 140, 52, "/", "ink", "root of everything"),
+     v.box(90, 94, 130, 52, "/home", "", "user files"), v.box(295, 94, 130, 52, "/etc", "", "configuration"), v.box(500, 94, 150, 52, "/var", "", "logs, data that changes"),
+     v.arrow(330, 60, 175, 94), v.arrow(360, 60, 360, 94), v.arrow(390, 60, 560, 94),
+     v.box(90, 180, 130, 52, "/home/me", "acc", "your home, ~"), v.arrow(155, 146, 155, 180),
+     v.box(500, 180, 150, 52, "/var/log", "", "system logs"), v.arrow(575, 146, 575, 180),
+     v.text(360, 254, "Also: /usr (programs), /tmp (scratch), /bin, /dev (devices), /proc (live system info)")],
     "Layout of the Linux filesystem", "One tree, one root. There are no drive letters.")
 
 MODULE = dict(
