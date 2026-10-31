@@ -21,6 +21,8 @@ def check(url, tries=2):
         with urllib.request.urlopen(req, timeout=25) as r:
             return r.status
     except urllib.error.HTTPError as e:
+        if e.code >= 500 and tries > 1:  # transient server trouble: try once more
+            return check(url, tries - 1)
         return e.code
     except Exception as e:  # network trouble: retry once
         if tries > 1:

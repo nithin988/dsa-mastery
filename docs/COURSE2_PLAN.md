@@ -179,3 +179,9 @@ Our measured starting point: about 7,000 words and 30,000+ px per module, roughl
 4. **Hands-on first:** labs stay fully visible; they are the part no other free course offers with automatic checks.
 5. **Step-by-step reader (our own design, not a copy of anyone's):** a module is a path of steps (Start here, each lesson, each lab, each wrap-up section). One step is shown at a time (page height drops from about 30,000 px to about 3,500 px); the sidebar and top chips follow along; "Done, next" ticks the lesson and moves on; "All on one page" restores the long view for searching and printing. The URL hash selects the step, so links and the back button work. Implemented in `build/view.js`.
 6. **To do:** a "Quick path" filter (Must know lessons and labs only), a streak and "continue where you left off" on the landing page, and a module planner on the Systems landing page like the DSA one.
+
+## 9. Navigation and revision (added after UI review)
+
+- **Top bar:** the three-line button appears only on small screens, where it opens the left menu. The module dropdown uses a list icon. On desktop the left menu can be pinned open (the page content makes room for it).
+- **Wide layout:** the content area uses the room it is given (up to 1680 px) instead of sitting in a fixed centred column. At 1480 px and wider a right-hand **progress tracker** shows a progress ring, every lesson and lab with done and current marks, a "Continue" button and a link to quick revision.
+- **Quick revision (`revise.html`):** built from the live modules. Interview questions with the shape of a strong answer, follow-ups and common mistakes (filter by module and by company angle), flashcards from the self-tests and recall lines (progress saved in the browser), one-page cheat sheets, and a "How to answer" guide (situation, concept and behavioural questions, plus what is publicly known about Amazon and Google). Company notes are labelled as what candidates report, not official.

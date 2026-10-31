@@ -18,3 +18,9 @@
  if(v==='full')apply(true,false);
  window.addEventListener('beforeprint',function(){[].forEach.call(document.querySelectorAll('details'),function(d){d.open=true})});
 })();
+
+/* pin the left menu open so the page content makes room for it */
+(function(){var b=document.getElementById('rail-pin');if(!b)return;var K='rail-pin';
+ function ap(on,save){document.body.classList.toggle('rail-pinned',on);b.setAttribute('aria-pressed',on?'true':'false');var l=b.querySelector('.l');if(l)l.textContent=on?'Unpin menu':'Pin menu';if(save)try{localStorage.setItem(K,on?'1':'0')}catch(e){}}
+ b.onclick=function(){ap(!document.body.classList.contains('rail-pinned'),true)};
+ var v=null;try{v=localStorage.getItem(K)}catch(e){}if(v==='1')ap(true,false)})();

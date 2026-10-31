@@ -47,6 +47,8 @@ Linux, Git, troubleshooting, system design and interviews, kept separate from DS
 - `python verify/sys_links.py` checks that every source link still responds.
 - Learners run labs either with Docker (`systems/labs/linux/Dockerfile`) or by downloading a lab script and running it with `bash`; lab scripts only touch `~/sys-lab` and refuse to touch folders they did not create.
 - Hashes and dates in Git examples come from a fixed clock; learners will see different ones, with identical behaviour.
+- **Quick revision:** `revise.html` (built by `build/revise.py` and `build/revise.js`) collects every module's interview questions, flashcards and cheat sheets in one place.
+- **Reader:** `build/view.js` turns a module into a path of steps with a right-hand progress tracker; the left menu can be pinned (`build/rail.js`).
 - Content: `build/sys_*.py` (one per module), `build/syscatalog.py` (catalogue), `build/lib_sys.py` (renderer), `build/sims_sys.js` (animations), `build/sysviz.py` (diagrams).
 
 ## For contributors

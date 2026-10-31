@@ -120,7 +120,7 @@ def systems_html(rows, catalog_json, stats):
 <p class="lead">Practical systems skills, taught from first principles: every command with real output, labs that break things on purpose, troubleshooting playbooks, real outages, and system design with numbers. Written for engineering interviews at large companies and for the job itself.</p>
 <div class="cta"><a id="cta-start" class="btn pri lg" href="systems/{first['slug']}.html"><span>Start with {first['num']}</span>{icon("arr-r")}</a>
 <a id="cta-continue" class="btn lg" href="#" hidden><span>Continue</span>{icon("arr-r")}</a>
-<button class="btn lg" data-share>{icon("share")}<span>Share with friends</span></button></div></div>
+<a class="btn lg" href="revise.html">{icon("check")}<span>Quick revision</span></a><button class="btn lg" data-share>{icon("share")}<span>Share with friends</span></button></div></div>
 <div class="kpis"><div class="kpi"><b>{stats['live']} / {stats['total']}</b><span>modules ready</span></div><div class="kpi"><b>{stats['lessons']}</b><span>lessons</span></div>
 <div class="kpi"><b>{stats['labs']}</b><span>hands-on labs</span></div><div class="kpi"><b>{stats['questions']}</b><span>interview questions</span></div>
 <div class="kpi wide"><span>Your progress</span><b id="k-pct">0%</b><div class="meter" id="k-meter" role="progressbar" aria-label="Overall progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="k-bar"></i></div>

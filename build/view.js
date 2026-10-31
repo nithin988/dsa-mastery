@@ -28,7 +28,21 @@
  });
  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
  function find(h){if(!h||h==='content')return 0;for(var i=0;i<views.length;i++)if(views[i].ids[h]||views[i].key===h)return i;return 0}
- function mark(i){[].forEach.call(side.querySelectorAll('a'),function(a){a.classList.remove('act');a.removeAttribute('aria-current')});
+ var tk=document.getElementById('track'),tkItems=[];
+ function boxOf(v){var sec=v.els.filter(function(x){return x.matches&&x.matches('section.pat')})[0];return sec?sec.querySelector('.pk'):null}
+ function buildTrack(){if(!tk)return;var mid=document.body.getAttribute('data-topic')||'';
+  var items=views.filter(function(v){return v.kind==='lesson'||v.kind==='lab'});
+  var h='<div class="tk"><div class="tk-top"><svg class="tk-ring" viewBox="0 0 64 64" aria-hidden="true"><circle class="bg" cx="32" cy="32" r="26"/><circle class="fg" cx="32" cy="32" r="26" transform="rotate(-90 32 32)" stroke-dasharray="163.4" stroke-dashoffset="163.4"/><text x="32" y="37" text-anchor="middle" id="tk-pct">0%</text></svg><div><b>Your progress</b><span id="tk-txt"></span></div></div><h4>Steps</h4><ol class="tk-list">';
+  items.forEach(function(v,i){tkItems.push({v:v,box:boxOf(v)});h+='<li><a href="#'+v.key+'" data-k="'+i+'"><span class="d"></span><span>'+esc(v.title.replace(/^Lab \d+: /,'Lab: '))+'</span></a></li>'});
+  h+='</ol><a class="tk-go" href="#" id="tk-next">Continue</a><a class="tk-rev" href="../revise.html#'+esc(mid)+'">Quick revision for this module</a></div>';
+  tk.innerHTML=h;paintTrack()}
+ function paintTrack(){if(!tk||!tkItems.length)return;var done=0,next=null;
+  [].forEach.call(tk.querySelectorAll('.tk-list a'),function(a,i){var it=tkItems[i],d=it.box&&it.box.checked;if(d)done++;else if(!next)next=it;
+   a.classList.toggle('done',!!d);a.classList.toggle('cur',views[idx]===it.v&&document.body.classList.contains('focus'))});
+  var pct=Math.round(done*100/tkItems.length);tk.querySelector('.fg').setAttribute('stroke-dashoffset',(163.4*(1-pct/100)).toFixed(1));
+  document.getElementById('tk-pct').textContent=pct+'%';document.getElementById('tk-txt').textContent=done+' of '+tkItems.length+' steps done';
+  var go=document.getElementById('tk-next');if(go){if(next){go.textContent=(done?'Continue: ':'Start: ')+next.v.title.replace(/^Lab \d+: /,'Lab: ');go.setAttribute('href','#'+next.v.key)}else{go.textContent='All steps done: revise the interview questions';go.setAttribute('href','#interview')}}}
+ function mark(i){paintTrack();[].forEach.call(side.querySelectorAll('a'),function(a){a.classList.remove('act');a.removeAttribute('aria-current')});
   var a=side.querySelector('a[href="#'+views[i].key+'"]')||(i===0?side.querySelector('a[href="#why"]'):null);if(a){a.classList.add('act');a.setAttribute('aria-current','step')}
   [].forEach.call(document.querySelectorAll('.chips a'),function(c){c.classList.toggle('on',c.getAttribute('href')==='#'+views[i].key)});
   var pr=document.getElementById('vpos');if(pr)pr.textContent='Step '+(i+1)+' of '+views.length}
@@ -46,6 +60,9 @@
  window.addEventListener('afterprint',function(){if(document.body.classList.contains('focus'))show(idx)});
  if(btn)btn.onclick=function(){var f=!document.body.classList.contains('focus');apply(f,true);if(f)go(false)};
  var pref='focus';try{pref=localStorage.getItem(K)||'focus'}catch(e){}
+ buildTrack();
+ document.addEventListener('change',function(e){if(e.target&&e.target.classList&&e.target.classList.contains('pk'))setTimeout(paintTrack,0)});
  apply(pref!=='all',false);
+ setTimeout(paintTrack,50);
  if(location.hash)setTimeout(function(){go(true)},0);
 })();

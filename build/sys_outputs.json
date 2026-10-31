@@ -1298,5 +1298,166 @@
    "out": " 06:24:06 up 1 min,  1 user,  load average: 0.46, 0.14, 0.04\n 0  0      0 3129564  46536 359412    0    0     0     0  209  126  0  0 99  0  0  0\n 0  0      0 3129564  46536 359412    0    0     0     0   92   78  0  0 100  0  0  0\n               total        used        free      shared  buff/cache   available\nMem:            3791         472        3056           4         396        3319\n",
    "volatile": true
   }
+ ],
+ "dt": [
+  {
+   "cmd": "mkdir -p ~/deep && cd ~/deep && printf 'one\\ntwo\\n' > data.txt && strace -o t1.txt cat data.txt > /dev/null; wc -l < t1.txt",
+   "out": "46\n",
+   "volatile": true
+  },
+  {
+   "cmd": "strace -c -o sum.txt ls ~ > /dev/null; head -5 sum.txt",
+   "out": "% time     seconds  usecs/call     calls    errors syscall\n------ ----------- ----------- --------- --------- ----------------\n 61.19    0.003118         389         8           openat\n  5.77    0.000294          29        10           read\n  5.18    0.000264          26        10           close\n",
+   "volatile": true
+  },
+  {
+   "cmd": "strace -T -e trace=openat,read -o t2.txt cat data.txt > /dev/null; grep -A1 data.txt t2.txt",
+   "out": "openat(AT_FDCWD, \"data.txt\", O_RDONLY)  = 3 <0.000075>\nread(3, \"one\\ntwo\\n\", 262144)           = 8 <0.000142>\n",
+   "volatile": true
+  },
+  {
+   "cmd": "strace -e trace=%file -e status=failed cat nothere 2>&1 | tail -3",
+   "out": "openat(AT_FDCWD, \"nothere\", O_RDONLY)   = -1 ENOENT (No such file or directory)\ncat: nothere: No such file or directory\n+++ exited with 1 +++\n",
+   "volatile": true
+  },
+  {
+   "cmd": "strace -f -e trace=network curl -s -m 3 http://127.0.0.1:9/ 2>&1 | grep ECONNREFUSED | head -1",
+   "out": "getsockopt(4, SOL_SOCKET, SO_ERROR, [ECONNREFUSED], [4]) = 0\n",
+   "volatile": true
+  },
+  {
+   "cmd": "cd ~/deep && (python3 -m http.server 8083 --bind 127.0.0.1 >/dev/null 2>&1 &); sleep 1; lsof -nP -iTCP:8083 -sTCP:LISTEN | awk 'NR>1{print $1, $5, $9, $10}'",
+   "out": "python3 IPv4 127.0.0.1:8083 (LISTEN)\n",
+   "volatile": true
+  },
+  {
+   "cmd": "lsof -p $$ | wc -l; ls /proc/$$/fd | wc -l",
+   "out": "16\n7\n",
+   "volatile": true
+  },
+  {
+   "cmd": "cd ~/deep && exec 4>held.log && echo data >&4 && rm held.log; ls -l /proc/$$/fd/4 | awk '{print $9, $10, $11, $12}'; lsof +L1 2>/dev/null | grep held.log | head -1 | awk '{print $1, $4, $8}'; exec 4>&-",
+   "out": "/proc/4839/fd/4 -> /home/learner/deep/held.log (deleted)\nbash 4w 0\n",
+   "volatile": true
+  },
+  {
+   "cmd": "pkill -f 'http.server 8083'; echo stopped",
+   "out": "stopped\n"
+  },
+  {
+   "cmd": "cd ~/deep && (python3 -m http.server 8084 --bind 127.0.0.1 >/dev/null 2>&1 &); sleep 1; timeout 8 tcpdump -i lo -n -t -c 8 'tcp port 8084' > cap.txt 2>/dev/null & tp=$!; sleep 1; curl -s -o /dev/null http://127.0.0.1:8084/; wait $tp; cut -c1-95 cap.txt",
+   "out": "IP 127.0.0.1.53384 > 127.0.0.1.8084: Flags [S], seq 4160596026, win 65495, options [mss 65495,s\nIP 127.0.0.1.8084 > 127.0.0.1.53384: Flags [S.], seq 579678126, ack 4160596027, win 65483, opti\nIP 127.0.0.1.53384 > 127.0.0.1.8084: Flags [.], ack 1, win 128, options [nop,nop,TS val 1213966\nIP 127.0.0.1.53384 > 127.0.0.1.8084: Flags [P.], seq 1:79, ack 1, win 128, options [nop,nop,TS \nIP 127.0.0.1.8084 > 127.0.0.1.53384: Flags [.], ack 79, win 128, options [nop,nop,TS val 417261\nIP 127.0.0.1.8084 > 127.0.0.1.53384: Flags [P.], seq 1:156, ack 79, win 128, options [nop,nop,T\nIP 127.0.0.1.53384 > 127.0.0.1.8084: Flags [.], ack 156, win 128, options [nop,nop,TS val 12139\nIP 127.0.0.1.8084 > 127.0.0.1.53384: Flags [P.], seq 156:536, ack 79, win 128, options [nop,nop\n",
+   "volatile": true
+  },
+  {
+   "cmd": "grep -o 'Flags \\[[^]]*\\]' ~/deep/cap.txt | tr '\\n' ' '; echo",
+   "out": "Flags [S] Flags [S.] Flags [.] Flags [P.] Flags [.] Flags [P.] Flags [.] Flags [P.] \n",
+   "volatile": true
+  },
+  {
+   "cmd": "pkill -f 'http.server 8084'; echo stopped",
+   "out": "stopped\n"
+  },
+  {
+   "cmd": "cd ~/deep && cat > crash.c <<'EOF'\nvoid copy_name(char *dst, const char *src) {\n    dst[0] = src[0];\n}\nvoid parse_line(const char *line) {\n    char *name = 0;\n    copy_name(name, line);\n}\nvoid run_job(void) {\n    parse_line(\"alice\");\n}\nint main(void) {\n    run_job();\n    return 0;\n}\nEOF\ngcc -g -O0 crash.c -o crash && ls crash",
+   "out": "crash\n"
+  },
+  {
+   "cmd": "sh -c './crash; echo \"exit status: $?\"' 2>/dev/null",
+   "out": "exit status: 139\n"
+  },
+  {
+   "cmd": "rm -f core*; ulimit -c unlimited; sh -c './crash; true' 2>/dev/null; ls core* 2>&1 | head -1",
+   "out": "core.4917\n",
+   "volatile": true
+  },
+  {
+   "cmd": "gdb -q -batch -ex bt ./crash core.* 2>&1 | grep -E '^#' | uniq",
+   "out": "#0  0x0000629de98d3140 in copy_name (dst=0x0, src=0x629de98d4004 \"alice\") at crash.c:2\n#1  0x0000629de98d316c in parse_line (line=0x629de98d4004 \"alice\") at crash.c:6\n#2  0x0000629de98d3182 in run_job () at crash.c:9\n#3  0x0000629de98d318e in main () at crash.c:12\n",
+   "volatile": true
+  },
+  {
+   "cmd": "gdb -q -batch -ex run -ex bt ./crash 2>&1 | grep -E '^#|SIGSEGV'",
+   "out": "Program received signal SIGSEGV, Segmentation fault.\n#0  0x0000555555555140 in copy_name (dst=0x0, src=0x555555556004 \"alice\") at crash.c:2\n#1  0x000055555555516c in parse_line (line=0x555555556004 \"alice\") at crash.c:6\n#2  0x0000555555555182 in run_job () at crash.c:9\n#3  0x000055555555518e in main () at crash.c:12\n",
+   "volatile": true
+  }
+ ],
+ "pb": [
+  {
+   "cmd": "mkdir -p ~/pb/disk && cd ~/pb/disk && for i in $(seq 1 3000); do : > f$i; done; dd if=/dev/zero of=big bs=1M count=15 status=none; ls | wc -l; du -sh .",
+   "out": "3001\n16M\t.\n"
+  },
+  {
+   "cmd": "cd ~/pb/disk && find . -type f -printf '%s %p\\n' | sort -rn | head -2",
+   "out": "15728640 ./big\n0 ./f999\n"
+  },
+  {
+   "cmd": "cd ~/pb && du -a disk | sort -rn | head -3",
+   "out": "15428\tdisk\n15360\tdisk/big\n0\tdisk/f999\n",
+   "volatile": true
+  },
+  {
+   "cmd": "df -i ~/pb | tail -1 | awk '{print \"inodes used:\", $5}'",
+   "out": "inodes used: 1%\n",
+   "volatile": true
+  },
+  {
+   "cmd": "rm -rf ~/pb/disk; echo cleaned",
+   "out": "cleaned\n"
+  },
+  {
+   "cmd": "python3 -c \"import os,time; [os._exit(0) for _ in range(2) if os.fork()==0]; time.sleep(3)\" & sleep 1; ps -o stat,comm --ppid $! ; wait",
+   "out": "STAT COMMAND\nZ+   python3\nZ+   python3\n",
+   "volatile": true
+  },
+  {
+   "cmd": "ps -eo stat= | grep -c '^Z'",
+   "out": "0\n",
+   "volatile": true
+  },
+  {
+   "cmd": "(ulimit -v 200000; python3 -c \"x = bytearray(300*1024*1024)\") 2>&1 | tail -1",
+   "out": "MemoryError\n"
+  },
+  {
+   "cmd": "sh -c 'bash -c \"kill -9 \\$\\$\"; echo \"exit status: $?\"' 2>/dev/null",
+   "out": "exit status: 137\n"
+  },
+  {
+   "cmd": "grep '^hosts' /etc/nsswitch.conf",
+   "out": "hosts:          files dns\n"
+  },
+  {
+   "cmd": "getent hosts nonexistent.invalid; echo \"exit status: $?\"",
+   "out": "exit status: 2\n"
+  },
+  {
+   "cmd": "dig @127.0.0.1 -p 5399 example.com +time=1 +tries=1 2>&1 | grep -iE 'refused|timed out|no servers' | head -1",
+   "out": ";; communications error to 127.0.0.1#5399: connection refused\n",
+   "volatile": true
+  },
+  {
+   "cmd": "dig +short example.com A | head -2",
+   "out": "104.20.23.154\n172.66.147.243\n",
+   "volatile": true
+  },
+  {
+   "cmd": "mkdir -p ~/pb && cd ~/pb && openssl req -x509 -newkey rsa:2048 -nodes -keyout /dev/null -out cert.pem -days 2 -subj '/CN=demo.test' 2>/dev/null; openssl x509 -in cert.pem -noout -enddate",
+   "out": "notAfter=Nov  2 06:53:55 2026 GMT\n",
+   "volatile": true
+  },
+  {
+   "cmd": "cd ~/pb && openssl x509 -in cert.pem -noout -checkend 86400; echo \"exit: $?\"; openssl x509 -in cert.pem -noout -checkend 604800; echo \"exit: $?\"",
+   "out": "Certificate will not expire\nexit: 0\nCertificate will expire\nexit: 1\n"
+  },
+  {
+   "cmd": "curl -sS -m 2 -o /dev/null http://127.0.0.1:1/ 2>&1; echo \"exit: $?\"",
+   "out": "curl: (7) Failed to connect to 127.0.0.1 port 1 after 1 ms: Could not connect to server\nexit: 7\n",
+   "volatile": true
+  },
+  {
+   "cmd": "rm -rf ~/pb; echo cleaned",
+   "out": "cleaned\n"
+  }
  ]
 }

@@ -111,8 +111,10 @@ def rail(section, root=""):
         + item("dsa", root + "dsa.html", "code", "DSA Mastery")
         + item("systems", root + "systems.html", "server", "Systems Mastery") + subs
         + '<div class="rail-g">Tools</div>'
+        + item("revise", root + "revise.html", "check", "Quick revision")
         + item("plan", root + "plan.html", "cal", "DSA study planner")
         + item("gh", "https://github.com/nithin988/dsa-mastery", "ext", "GitHub", True)
+        + '<button class="rail-i rail-pin" id="rail-pin" type="button" aria-pressed="false" title="Keep the menu open"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg><span class="l">Pin menu</span></button>'
         + "</nav><div class=\"rail-bd\" id=\"rail-bd\" hidden></div>"
     )
 
@@ -290,7 +292,7 @@ def render_topic(t):
         side="".join(side), chips=chips, body="\n".join(b), desc=html.escape(desc, quote=True),
         url=SITE_URL + "topics/" + t["file"], favicon=FAVICON, cat=t.get("_catalog", "[]"),
         short=html.escape(t["title"].split(" — ")[0]),
-        rail=rail("dsa", "../"), rail_btn=rail_button(), i_menu=icon("menu"), i_cal=icon("cal"), i_theme=icon("theme"), i_down=icon("down"), i_right=icon("right"),
+        rail=rail("dsa", "../"), rail_btn=rail_button(), i_menu=icon("list"), i_cal=icon("cal"), i_theme=icon("theme"), i_down=icon("down"), i_right=icon("right"),
     )
 
 

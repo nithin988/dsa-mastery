@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from lib import render_topic, CSS, ICONS, icon, FAVICON, SITE_URL, rail, rail_button  # noqa: E402
 from lib_sys import render_module, walk_cmds  # noqa: E402
 import sitepages  # noqa: E402
+import revise  # noqa: E402
 import syscatalog  # noqa: E402
 import importlib  # noqa: E402
 import arrays  # noqa: E402
@@ -308,6 +309,8 @@ def build_systems():
              "questions": sum(len(r["module"].get("interview", [])) for r in live)}
     write(os.path.join(ROOT, "systems.html"), sitepages.systems_html(stat_rows, cat, stats))
     print("built systems.html")
+    write(os.path.join(ROOT, "revise.html"), revise.revise_html([r["module"] for r in live], cat))
+    print("built revise.html")
     # hub
     dsa_live = [(f, t, b, topic) for f, t, b, topic in CATALOG if topic]
     dsa = {"topics": len(dsa_live), "problems": len({lc for *_x, tp in dsa_live for p in tp["patterns"] for (lc, *_r) in p["problems"]}), "catalog": catalog_json()}

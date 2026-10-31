@@ -289,5 +289,40 @@ triage60:function(){var S=[],C=['uptime','dmesg','vmstat','mpstat','pidstat','io
  s(5,['iostat -xz 1','await, %util per device'],'iostat -xz: per-disk utilization and wait time. Large await with high %util means the disk is the bottleneck.',[0,1,2,3,4]);
  s(6,['free -m','available, swap used'],'free: how much memory can still be handed out (available) and whether swap is in use.',[0,1,2,3,4,5]);
  s(7,['ss -s','sockets by state, retransmits via sar -n'],'ss -s: socket totals and odd states; a pile in TIME-WAIT or CLOSE-WAIT or many retransmits points to the network or the application. Now pick the resource that is saturated and dig in only there.',[0,1,2,3,4,5,6]);
+ return S},
+/* ---- S11: deep debugging tools ---- */
+straceread:function(){var S=[],T=['execve(...)','openat(config) = -1 ENOENT','openat(data) = 3','read(3, ...) = 4096','connect(db) ...','write(1, ...) = 12'];
+ function s(at,aux,note,ok,dim){S.push({a:T,ptr:{'last line':at},hi:[at],ok:ok||[],dim:dim||[],aux:{label:'strace output, newest at the right',items:aux},note:note})}
+ s(0,['the program asked to be started','everything after is its behaviour'],'strace prints one line per system call, in order. The first lines are the program loading itself. Focus on what comes after: which files it opens, which sockets it talks to, and what the kernel answers.');
+ s(1,['ENOENT = no such file','the program wanted a config that is missing'],'A call that returns -1 with an error name is a clue. ENOENT means a file it wanted does not exist; EACCES means permission denied; ECONNREFUSED means nothing listened on that port. This one line explains most "it fails with no message" bugs.',[0]);
+ s(2,['openat(data) = 3','descriptor 3 now means the data file'],'A successful open returns a file descriptor (3). Later calls refer to it by number, so reading the trace means following the numbers.',[0,1]);
+ s(3,['read(3) returned 4096 bytes','progress is being made'],'The program reads its data in chunks. Many fast reads in a row mean it is busy; the interesting case is when one call never returns.',[0,1,2]);
+ s(4,['connect(db) ... no result yet','the last line did not finish'],'HANG: if the final line is a call without a result, the program is blocked inside it. Here it waits for a connection to the database. That is your answer: the process is not busy, it is waiting on the network, and the next question is why the database does not answer.',[0,1,2,3],[5]);
+ s(5,['write(1, ...) = 12','output reached stdout'],'In a healthy run the trace ends with writes and an exit. With -T you also see how long each call took, which shows slow calls. With -c you get a summary table of counts and time per system call.',[0,1,2,3,4]);
+ return S},
+backtrace:function(){var S=[],F=['main()','run_job()','parse_line()','copy_name()'];
+ function s(at,aux,note,ok){S.push({a:F,ptr:{'frame #0':at},hi:[at],ok:ok||[],aux:{label:'gdb backtrace (bt)',items:aux},note:note})}
+ s(3,['Program received signal SIGSEGV','#0 copy_name() crash.c:2'],'The program crashed with a segmentation fault. gdb stops at the exact place: frame #0, the function that was running, with file and line. That is where the bad memory access happened.');
+ s(2,['#1 parse_line() crash.c:6','called copy_name(NULL)'],'Frame #1 is the caller. It passed a null pointer into copy_name. Often the real bug is here, in who passed the bad value, not where it blew up.',[3]);
+ s(1,['#2 run_job() crash.c:9','called parse_line(buf)'],'Each frame up the stack shows how the program got there. Use `up` and `info locals` in gdb to inspect variables at each level.',[3,2]);
+ s(0,['#3 main() crash.c:12','the program started here'],'The bottom of the stack is main. Reading the backtrace from frame #0 upwards answers three questions: what failed, who called it with what, and where to look first. A core dump lets you do this after the crash, on a different machine.',[3,2,1]);
+ return S},
+/* ---- S12: troubleshooting playbooks ---- */
+zombie:function(){var S=[];
+ function st(nodes,edges,ptr,aux,note,ok,dim){S.push({a:[],graph:{nodes:nodes,edges:edges,directed:true,w:460,h:150},ptr:ptr,ok:ok||[],dim:dim||[],aux:{label:'ps shows',items:aux},note:note})}
+ var P={x:80,y:75,label:'parent'},C1={x:260,y:30,label:'c1 Z'},C2={x:260,y:75,label:'c2 Z'},C3={x:260,y:120,label:'c3 Z'},I={x:400,y:75,label:'init'};
+ st([P,C1,C2,C3],[[0,1],[0,2],[0,3]],{'PID 500':0},['parent 500 S sleeping','three children: STAT Z, <defunct>'],'A buggy parent starts children and never calls wait(). Each child finishes, but the kernel keeps a small record (the exit status) until the parent collects it. These records are zombies: no CPU, no memory, just a process-table slot. ps shows them as Z or <defunct>.');
+ st([P,C1,C2,C3],[[0,1],[0,2],[0,3]],{'kill -9 c1 ?':1},['kill -9 on a zombie: no effect','it is already dead'],'You cannot kill a zombie: it is already dead. Sending signals to it does nothing, which is why people think they are stuck. The record waits for its parent to call wait().',[],[1,2,3]);
+ st([P,C1,C2,C3],[[0,1],[0,2],[0,3]],{'who is PPID?':0},['ps -o pid,ppid,stat','all three have PPID 500'],'Look at the PPID column: it names the guilty parent. The fix is in that process (call wait(), or handle SIGCHLD), not in the zombies.',[0]);
+ st([P,I],[[0,1]],{'kill 500':0},['parent 500 stopped','children re-parented to init'],'Stopping the parent (SIGTERM first) orphans the children. PID 1 (init or systemd) adopts orphans and always calls wait(), so the zombies vanish at once. A handful of short-lived zombies is normal; a growing pile means the parent has a bug that needs fixing.',[1]);
+ return S},
+incident:function(){var S=[],L=['Detect','Triage','Mitigate','Diagnose','Fix','Review'];
+ function s(at,aux,note,ok){S.push({a:L,ptr:{now:at},hi:[at],ok:ok||[],aux:{label:'incident flow',items:aux},note:note})}
+ s(0,['alert or user report','what is broken, since when?'],'Something tells you: an alert, a customer, a graph. Write down the time and the exact symptom. Detection speed is a property of your monitoring, which is why alerts should fire before customers write in.');
+ s(1,['scope: all users or some?','severity and owner'],'Triage: how bad is it and who is affected? A broken checkout for everyone is not the same as a single slow export. Pick one person to lead and one channel to talk in.',[0]);
+ s(2,['roll back the deploy','failover, disable the flag'],'Mitigate first: stop the damage with the quickest safe action (roll back, fail over, switch off a feature flag, add capacity). Understanding can wait; customers cannot.',[0,1]);
+ s(3,['playbook: DNS, TCP, TLS, HTTP','USE method, strace, logs'],'Now diagnose calmly with the method from the earlier modules: observe, hypothesise, test, narrow. Keep a running timeline of what you tried and saw.',[0,1,2]);
+ s(4,['permanent fix','verify with the original symptom'],'Fix the cause, then prove it fixed the original symptom, not a nearby one. Remove the temporary mitigation only when you are sure.',[0,1,2,3]);
+ s(5,['blameless postmortem','actions with owners and dates'],'Review: write what happened, why it was possible, and what changes so it cannot recur (a test, an alert, a runbook entry). Blameless means asking how the system allowed the mistake, not who made it.',[0,1,2,3,4]);
  return S}
 };

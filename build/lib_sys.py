@@ -269,7 +269,7 @@ def render_module(m):
         title=html.escape(m["title"]), fname=m["file"], mid=mid, css=CSS, js=JS, num=num, side="".join(side), chips=chips, body="\n".join(b),
         desc=html.escape(desc, quote=True), url=SITE_URL + "systems/" + m["file"], favicon=FAVICON, cat=m.get("_catalog", "[]"),
         short=html.escape(m["title"]), rail=rail("systems", "../"), rail_btn=rail_button(),
-        i_menu=icon("menu"), i_theme=icon("theme"), i_down=icon("down"), i_right=icon("right"),
+        i_menu=icon("list"), i_theme=icon("theme"), i_down=icon("down"), i_right=icon("right"),
     )
 
 
@@ -295,9 +295,9 @@ PAGE_SYS = """<!DOCTYPE html>
 <button id="b-theme" class="iconbtn" title="Toggle light / dark" aria-label="Toggle light or dark theme">{i_theme}</button>
 <button id="b-dl" class="btn pri" title="Save this page as a standalone HTML file">{i_down}<span class="t-long">Download</span></button></div>
 <div class="pbar" role="progressbar" aria-label="Steps done in this module" aria-valuemin="0" aria-valuemax="100"><i id="pbar"></i></div></header>
-<div class="wrap">{side}<main id="content">{chips}
+<div class="wrap has-track">{side}<main id="content">{chips}
 {body}
-</main></div>
+</main><aside class="track" id="track" aria-label="Module progress"></aside></div>
 <footer class="site-foot"><span>Systems Mastery: free, open study sheets. Progress is saved in your browser only.</span><span><a href="../systems.html">All Systems modules</a> · <a href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener">GitHub</a></span></footer>
 <script>window.DSA_TOPICS={cat};</script>
 <script>{js}</script>
