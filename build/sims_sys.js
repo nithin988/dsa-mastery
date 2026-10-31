@@ -507,5 +507,28 @@ dr:function(){var S=[],L=['last backup','disaster','restored','back in service']
  s(1,['disaster at 07:30','5.5 hours of changes since the backup'],'A region fails at 07:30. Everything written since the last backup (5.5 hours here) exists only in the failed place. A shorter RPO needs more frequent backups or continuous replication.',[0]);
  s(2,['restore finished at 10:00','2.5 hours of outage'],'RTO (recovery time objective) is how long you can afford to be down. It covers detecting the failure, deciding, restoring data and starting services. Untested restores are the usual reason real RTO is far worse than the plan.',[0,1]);
  s(3,['strategies, cheapest to fastest','backup and restore, pilot light, warm standby, active-active'],'Choose a strategy by RPO and RTO and cost: backup and restore (cheap, hours), pilot light (minimal core always running), warm standby (a scaled-down copy), active-active in several regions (minutes or seconds, most expensive and complex). Practise the failover; a plan that was never run is a hope.',[0,1,2]);
+ return S},
+/* ---- S21: design warm-ups ---- */
+shorten:function(){var S=[];
+ function st(nodes,edges,ptr,aux,note,ok,dim){S.push({a:[],graph:{nodes:nodes,edges:edges,directed:true,w:480,h:190},ptr:ptr||{},ok:ok||[],dim:dim||[],aux:{label:'GET /aB3xK9q',items:aux},note:note})}
+ var U={x:40,y:95,label:'user'},LB={x:140,y:95,label:'lb'},A={x:240,y:95,label:'app'},C={x:350,y:50,label:'cache'},D={x:350,y:145,label:'db'};
+ st([U,LB,A,C,D],[[0,1],[1,2],[2,3],[2,4]],{},['read path: code to long URL','reads are 100x writes'],'The redirect is the hot path: a user opens a short link and the service must find the long URL. Reads far outnumber writes, so the read path is built for speed: load balancer, stateless app servers, a cache in front of the database.');
+ st([U,LB,A,C,D],[[0,1],[1,2],[2,3]],{'hit':3},['cache hit: answered from memory','HTTP 301/302 to the long URL'],'Most requests hit the cache (a small set of links gets most of the traffic) and are answered in about a millisecond with a redirect. 301 lets browsers cache the redirect forever (less load, but you lose click counts); 302 keeps every click visible to you.',[3]);
+ st([U,LB,A,C,D],[[0,1],[1,2],[2,3],[2,4],[4,3]],{'miss':3},['cache miss: read the db','then fill the cache'],'On a miss the app reads the database by the short code (the primary key, so a single indexed lookup), returns the redirect and stores the result in the cache for the next request.',[4]);
+ st([U,LB,A,C,D],[[0,1],[1,2],[2,4]],{'write':4},['write path: create a short link','get a unique id, encode it, store it'],'Creating a link is rare and simple: get a unique number (an ID generator or a counter range), encode it in base62 to a short code, store (code, long URL, expiry) in the database and return it. No collisions are possible, because every number is used once.',[4]);
+ return S},
+snowbits:function(){var S=[],L=['sign 1','timestamp 41','machine 10','sequence 12'];
+ function s(at,aux,note,ok){S.push({a:L,ptr:{field:at},hi:[at],ok:ok||[],aux:{label:'a 64-bit Snowflake-style ID',items:aux},note:note})}
+ s(0,['1 bit: always 0','keeps the number positive'],'The ID is a 64-bit number built from fields. The first bit is unused so that the value stays positive in signed integer types.');
+ s(1,['41 bits: milliseconds since a custom epoch','about 69 years of range'],'The high bits hold the time in milliseconds since a chosen start date. Because time is in the high bits, IDs generated later are numerically larger: they sort by creation time, which is friendly to database indexes.',[0]);
+ s(2,['10 bits: machine id','up to 1,024 generators'],'Ten bits identify which generator made the ID, so machines never need to talk to each other to avoid clashes. Assign machine IDs carefully; two machines with the same ID can produce duplicates.',[0,1]);
+ s(3,['12 bits: sequence','4,096 ids per ms per machine'],'Twelve bits count the IDs made within the same millisecond on the same machine: up to 4,096 per millisecond, about 4 million per second per machine. If the sequence overflows, the generator waits for the next millisecond. Danger: if the clock moves backwards, IDs could repeat, so generators refuse to issue IDs until time catches up.',[0,1,2]);
+ return S},
+kvlsm:function(){var S=[],L=['put','memory table','log on disk','compaction'];
+ function s(at,aux,note,ok){S.push({a:L,ptr:{step:at},hi:[at],ok:ok||[],aux:{label:'a simple key-value store',items:aux},note:note})}
+ s(0,['put(user:7, "Asha")','write goes to two places'],'A write is first appended to a log file on disk, then stored in an in-memory table. The log is the durable record; the memory table makes reads fast.');
+ s(1,['memory table: user:7 = Asha','reads are a hash lookup'],'Reads look in the memory table (a hash map), so they take microseconds. Writes do not rewrite data in place.',[0]);
+ s(2,['append-only log: sequential writes','replay it after a crash'],'Appending to the end of a file is the fastest thing a disk can do. After a crash the store replays the log from the start and rebuilds the memory table, so no acknowledged write is lost.',[0,1]);
+ s(3,['log grows with old versions and deletes','compaction rewrites only the latest values'],'The log keeps every old version and delete marker, so it grows forever. Compaction rewrites it keeping only the newest value of each key, shrinking the file. Real systems (LSM trees) add sorted files on disk, but the idea is the same: append fast, merge later.',[0,1,2]);
  return S}
 };

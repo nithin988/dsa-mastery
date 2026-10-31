@@ -35,7 +35,7 @@ MODULES = [
     ("S18", "S18_distributed_systems", "Distributed systems essentials", "CAP and PACELC, consistency, consensus, clocks, retries, idempotency.", 3, "sys_distributed"),
     ("S19", "S19_architecture_api_patterns", "Architecture and API patterns", "Microservices, events, CQRS, sagas, REST and gRPC, rate limiting, auth.", 3, "sys_architecture"),
     ("S20", "S20_designing_for_reliability", "Designing for reliability", "Availability math, multi-region, disaster recovery, safe deployments, observability.", 3, "sys_reliability_design"),
-    ("S21", "S21_design_warmups", "Design warm-ups", "URL shortener, pastebin, rate limiter, ID generator, key-value store.", 4, None),
+    ("S21", "S21_design_warmups", "Design warm-ups", "URL shortener, pastebin, rate limiter, ID generator, key-value store.", 4, "sys_design_warmups"),
     ("S22", "S22_feeds_chat_notifications", "Feeds, chat and notifications", "News feed, messaging and notification systems.", 4, None),
     ("S23", "S23_media_storage_search", "Media, storage and search", "Video streaming, file sync, autocomplete and web crawling.", 4, None),
     ("S24", "S24_location_money_inventory", "Location, money and inventory", "Ride hailing, payments ledger, ticketing, metrics monitoring, ad click aggregation.", 4, None),
