@@ -1459,5 +1459,28 @@
    "cmd": "rm -rf ~/pb; echo cleaned",
    "out": "cleaned\n"
   }
+ ],
+ "dm": [
+  {
+   "cmd": "mkdir -p ~/dsg && cd ~/dsg && cat > lat.py <<'EOF'\nimport time, socket, threading, os\ndef t(f, n):\n    s = time.perf_counter()\n    for _ in range(n):\n        f()\n    return (time.perf_counter() - s) / n * 1e9\nd = {i: i for i in range(1000)}\nprint('memory lookup      %8.0f ns' % t(lambda: d[500], 200000))\nopen('x.bin', 'wb').write(os.urandom(4096))\ndef rd():\n    with open('x.bin', 'rb') as f:\n        f.read()\nprint('file read, 4 KB   %8.0f ns' % t(rd, 20000))\nsrv = socket.socket(); srv.bind(('127.0.0.1', 0)); srv.listen()\nport = srv.getsockname()[1]\ndef echo():\n    c, _ = srv.accept()\n    while True:\n        b = c.recv(64)\n        if not b:\n            break\n        c.sendall(b)\nthreading.Thread(target=echo, daemon=True).start()\ncl = socket.create_connection(('127.0.0.1', port))\ndef rt():\n    cl.sendall(b'x'); cl.recv(64)\nprint('local TCP round trip %6.0f ns' % t(rt, 20000))\nEOF\npython3 lat.py",
+   "out": "memory lookup            96 ns\nfile read, 4 KB       6720 ns\nlocal TCP round trip  69140 ns\n",
+   "volatile": true
+  },
+  {
+   "cmd": "echo \"avg requests/s: $(( 40000000 * 25 / 86400 ))\"; echo \"peak (x3):       $(( 40000000 * 25 / 86400 * 3 ))\"",
+   "out": "avg requests/s: 11574\npeak (x3):       34722\n"
+  },
+  {
+   "cmd": "python3 -c \"msgs=40_000_000*25; tb=msgs*150*365/1e12; print('messages/day: %d' % msgs); print('storage per year: %.1f TB' % tb)\"",
+   "out": "messages/day: 1000000000\nstorage per year: 54.8 TB\n"
+  },
+  {
+   "cmd": "python3 -c \"import math; peak=34722; per_server=2000; util=0.6; print('servers:', math.ceil(peak/(per_server*util)))\"",
+   "out": "servers: 29\n"
+  },
+  {
+   "cmd": "python3 -c \"print('1M requests/day = %.1f per second' % (1e6/86400)); print('1B requests/day = %.0f per second' % (1e9/86400))\"",
+   "out": "1M requests/day = 11.6 per second\n1B requests/day = 11574 per second\n"
+  }
  ]
 }

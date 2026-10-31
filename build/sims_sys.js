@@ -324,5 +324,23 @@ incident:function(){var S=[],L=['Detect','Triage','Mitigate','Diagnose','Fix','R
  s(3,['playbook: DNS, TCP, TLS, HTTP','USE method, strace, logs'],'Now diagnose calmly with the method from the earlier modules: observe, hypothesise, test, narrow. Keep a running timeline of what you tried and saw.',[0,1,2]);
  s(4,['permanent fix','verify with the original symptom'],'Fix the cause, then prove it fixed the original symptom, not a nearby one. Remove the temporary mitigation only when you are sure.',[0,1,2,3]);
  s(5,['blameless postmortem','actions with owners and dates'],'Review: write what happened, why it was possible, and what changes so it cannot recur (a test, an alert, a runbook entry). Blameless means asking how the system allowed the mistake, not who made it.',[0,1,2,3,4]);
+ return S},
+/* ---- S15: design method and estimation ---- */
+designflow:function(){var S=[],L=['Requirements','Estimate','API and data','High-level design','Deep dive','Trade-offs'];
+ function s(at,aux,note,ok){S.push({a:L,ptr:{now:at},hi:[at],ok:ok||[],aux:{label:'a 45-minute design discussion',items:aux},note:note})}
+ s(0,['about 5 min','what must it do? how well? for whom?'],'Start by narrowing the problem. Functional requirements say what the system does ("shorten a URL, redirect"). Non-functional ones say how well: latency, availability, consistency, scale. Ask questions and write down the answers; an unclear problem cannot be designed well.');
+ s(1,['about 5 min','users, QPS, storage, bandwidth'],'Do a rough calculation: requests per second, data per year, network. You are not after precision; you want the order of magnitude, because 100 requests per second and 100,000 lead to completely different designs.',[0]);
+ s(2,['about 10 min','endpoints, entities, tables'],'Sketch the API (a few endpoints with inputs and outputs) and the main data: what is stored, how big each record is, how it is looked up. This is also where read-versus-write heaviness becomes concrete.',[0,1]);
+ s(3,['about 10 min','boxes and arrows'],'Draw the simplest design that meets the requirements: client, load balancer, application servers, database, cache. Say what each box is for and what flows between them. Start simple and add components only when a number or requirement demands them.',[0,1,2]);
+ s(4,['about 10 min','the one or two hard parts'],'Pick the parts that matter most for this problem (generating unique IDs, a hot key, a fan-out, consistency) and go deep: data structures, partitioning, failure cases. The interviewer will often steer you here.',[0,1,2,3]);
+ s(5,['about 5 min','bottlenecks, failures, alternatives'],'Finish by naming bottlenecks, single points of failure and what you would do next, and by saying what you traded away. Good designs are not perfect; they are explained trade-offs.',[0,1,2,3,4]);
+ return S},
+estimate:function(){var S=[],L=['DAU','x actions','/ 86,400 s','x peak factor','= peak QPS'];
+ function s(at,aux,note,ok){S.push({a:L,ptr:{step:at},hi:[at],ok:ok||[],aux:{label:'chat app: 40 million daily users',items:aux},note:note})}
+ s(0,['40,000,000 daily active users'],'Start from something you can state: the number of daily active users (DAU). The interviewer gives it or you propose a reasonable figure and say so.');
+ s(1,['x 25 messages per user per day','= 1,000,000,000 messages per day'],'Multiply by how often each user acts. One billion messages a day sounds huge, but a day is long.',[0]);
+ s(2,['/ 86,400 seconds in a day','= about 11,600 messages per second'],'Divide by the seconds in a day (86,400, which you can round to 100,000 in your head). That gives the average rate: about 11,600 per second.',[0,1]);
+ s(3,['x 3 for peak hours','= about 35,000 per second'],'Traffic is not flat. A common rule of thumb is peak equals two to five times the average. Design for the peak, because that is when the system fails.',[0,1,2]);
+ s(4,['peak is about 35,000 requests per second','one server may handle a few thousand'],'Now the number means something: tens of thousands of requests per second needs a fleet of servers behind a load balancer, not one machine. Storage works the same way: messages per day times bytes per message times days.',[0,1,2,3]);
  return S}
 };

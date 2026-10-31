@@ -29,7 +29,7 @@ MODULES = [
     ("S12", "S12_troubleshooting_playbooks", "Troubleshooting playbooks", "DNS, TLS, timeouts, full disks, OOM kills, zombies and Kubernetes crash loops.", 2, "sys_playbooks"),
     ("S13", "S13_reliability_practice", "Reliability practice", "SLIs, SLOs, error budgets, alerting, on-call, incident command and postmortems.", 2, None),
     ("S14", "S14_case_files_outages", "Case files: real outages", "Well-known public outages: what failed, how it was found, the lesson.", 2, None),
-    ("S15", "S15_design_method_estimation", "The design method and estimation", "Requirements, back-of-envelope math, latency numbers and a repeatable framework.", 3, None),
+    ("S15", "S15_design_method_estimation", "The design method and estimation", "Requirements, back-of-envelope math, latency numbers and a repeatable framework.", 3, "sys_design_method"),
     ("S16", "S16_scaling_building_blocks", "Scaling building blocks", "Load balancing, caching, CDN, reverse proxies and queues.", 3, None),
     ("S17", "S17_data_storage", "Data storage", "SQL and NoSQL, indexes, replication, sharding, consistent hashing, transactions.", 3, None),
     ("S18", "S18_distributed_systems", "Distributed systems essentials", "CAP and PACELC, consistency, consensus, clocks, retries, idempotency.", 3, None),
