@@ -1153,5 +1153,150 @@
    "cmd": "cd ~/net && (python3 -m http.server 8082 --bind 127.0.0.1 >/dev/null 2>&1 &); sleep 1; getent hosts localhost | head -1; nc -zv 127.0.0.1 8082 2>&1; curl -s -o /dev/null -w 'http %{http_code}\\n' http://127.0.0.1:8082/; pkill -f 'http.server 8082'",
    "out": "::1             localhost\nConnection to 127.0.0.1 8082 port [tcp/*] succeeded!\nhttp 200\n"
   }
+ ],
+ "db": [
+  {
+   "cmd": "mkdir -p ~/dbg && cd ~/dbg && printf '%s\\n' '#!/bin/bash' 'n=$1' 'echo \"average: $((total / n))\"' > avg.sh && bash avg.sh 0; echo \"exit: $?\"",
+   "out": "avg.sh: line 3: total / n: division by 0 (error token is \"n\")\nexit: 1\n"
+  },
+  {
+   "cmd": "bash avg.sh 4; echo \"exit: $?\"",
+   "out": "average: 0\nexit: 0\n"
+  },
+  {
+   "cmd": "bash -x avg.sh 4 2>&1",
+   "out": "+ n=4\n+ echo 'average: 0'\naverage: 0\n"
+  },
+  {
+   "cmd": "cd ~/dbg && printf '%s\\n' '09:06:11 INFO  ok /home' '09:07:02 WARN  slow /checkout 2310ms' '09:07:03 ERROR failed /checkout' 'Traceback (most recent call last):' '  File \"pricing.py\", line 41, in compute_total' \"KeyError: 'NZ'\" '09:08:19 ERROR failed /checkout' '09:09:20 ERROR failed /checkout' > app.log; grep -n ERROR app.log",
+   "out": "3:09:07:03 ERROR failed /checkout\n7:09:08:19 ERROR failed /checkout\n8:09:09:20 ERROR failed /checkout\n"
+  },
+  {
+   "cmd": "grep -B1 -A3 'ERROR failed' app.log | head -6",
+   "out": "09:07:02 WARN  slow /checkout 2310ms\n09:07:03 ERROR failed /checkout\nTraceback (most recent call last):\n  File \"pricing.py\", line 41, in compute_total\nKeyError: 'NZ'\n09:08:19 ERROR failed /checkout\n"
+  },
+  {
+   "cmd": "tail -n 2 app.log | head -1; grep -c ERROR app.log",
+   "out": "09:08:19 ERROR failed /checkout\n3\n"
+  },
+  {
+   "cmd": "python3 -c \"d = {}; d['x']\" 2>&1 | tail -3",
+   "out": "    d = {}; d['x']\n            ~^^^^^\nKeyError: 'x'\n"
+  },
+  {
+   "cmd": "cd ~/dbg && seq 1 16 | sed '11s/.*/x/' > list.txt; chk() { grep -q '[a-z]' \"$1\" && echo FAIL || echo ok; }; chk list.txt",
+   "out": "FAIL\n"
+  },
+  {
+   "cmd": "sed -n 1,8p list.txt > h.txt; chk h.txt",
+   "out": "ok\n"
+  },
+  {
+   "cmd": "sed -n 9,12p list.txt > h.txt; chk h.txt",
+   "out": "FAIL\n"
+  },
+  {
+   "cmd": "sed -n 9,10p list.txt > h.txt; chk h.txt",
+   "out": "ok\n"
+  },
+  {
+   "cmd": "sed -n 11p list.txt",
+   "out": "x\n"
+  },
+  {
+   "cmd": "cd ~/dbg && diff <(printf 'PATH=/usr/bin\\nLANG=C\\nMODE=prod\\n') <(printf 'PATH=/usr/bin\\nLANG=en_US.UTF-8\\nMODE=test\\n')",
+   "out": "2,3c2,3\n< LANG=C\n< MODE=prod\n---\n> LANG=en_US.UTF-8\n> MODE=test\n"
+  },
+  {
+   "cmd": "env -i /usr/bin/bash -c 'echo \"HOME is ${HOME:-unset}\"'",
+   "out": "HOME is unset\n"
+  },
+  {
+   "cmd": "type -a python3 | head -2",
+   "out": "python3 is /usr/bin/python3\npython3 is /bin/python3\n"
+  },
+  {
+   "cmd": "cd ~/dbg && printf '%s\\n' '#!/bin/bash' 'f=$HOME/dbg/count; n=$(( $(cat $f 2>/dev/null || echo 0) + 1 )); echo $n > $f' '[ $((n % 4)) -eq 0 ] && { echo \"run $n: timeout talking to db\" >&2; exit 1; }' 'echo \"run $n ok\"' > flaky.sh; rm -f count; for i in $(seq 1 12); do bash flaky.sh >/dev/null 2>&1 && printf . || printf F; done; echo",
+   "out": "...F...F...F\n"
+  },
+  {
+   "cmd": "rm -f count; tries=0; until ! out=$(bash flaky.sh 2>&1); do tries=$((tries+1)); done; echo \"failed after $tries passing runs: $out\"",
+   "out": "failed after 3 passing runs: run 4: timeout talking to db\n"
+  },
+  {
+   "cmd": "timeout 1 sleep 5; echo \"exit status: $?\"",
+   "out": "exit status: 124\n"
+  }
+ ],
+ "pt": [
+  {
+   "cmd": "nproc; cat /proc/loadavg",
+   "out": "8\n0.36 0.11 0.03 1/195 1356\n",
+   "volatile": true
+  },
+  {
+   "cmd": "cat /proc/pressure/cpu; cat /proc/pressure/memory",
+   "out": "some avg10=0.00 avg60=0.16 avg300=0.06 total=368510\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\nsome avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\n",
+   "volatile": true
+  },
+  {
+   "cmd": "(yes > /dev/null &); sleep 2; ps -eo pid,pcpu,comm --sort=-pcpu | head -3; pkill yes",
+   "out": "    PID %CPU COMMAND\n   1360 99.5 yes\n   1255  5.6 sleep\n",
+   "volatile": true
+  },
+  {
+   "cmd": "vmstat 1 3",
+   "out": "procs -----------memory---------- ---swap-- -----io---- -system-- -------cpu-------\n r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st gu\n 0  0      0 3127356  46524 359336    0    0  4457  1538 2007    2  1  4 94  0  0  0\n 0  0      0 3129104  46524 359336    0    0     0     0  163  118  0  0 100  0  0  0\n 0  0      0 3129104  46524 359336    0    0     0     0  105   61  0  0 100  0  0  0\n",
+   "volatile": true
+  },
+  {
+   "cmd": "mpstat -P ALL 1 1 | tail -n +4 | head -4",
+   "out": "06:24:04     all    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00\n06:24:04       0    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00\n06:24:04       1    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00\n06:24:04       2    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00  100.00\n",
+   "volatile": true
+  },
+  {
+   "cmd": "free -m",
+   "out": "               total        used        free      shared  buff/cache   available\nMem:            3791         473        3055           4         396        3318\nSwap:           1024           0        1024\n",
+   "volatile": true
+  },
+  {
+   "cmd": "ps -eo rss,pmem,comm --sort=-rss | head -4",
+   "out": "  RSS %MEM COMMAND\n25740  0.6 systemd-journal\n14216  0.3 systemd\n12276  0.3 systemd\n",
+   "volatile": true
+  },
+  {
+   "cmd": "vmstat 1 2 | tail -1 | awk '{print \"swap in:\", $7, \"swap out:\", $8}'",
+   "out": "swap in: 0 swap out: 0\n",
+   "volatile": true
+  },
+  {
+   "cmd": "df -h / | tail -1; df -i / | tail -1",
+   "out": "/dev/sdd       1007G  1.1G  955G   1% /\n/dev/sdd       67108864 28016 67080848    1% /\n",
+   "volatile": true
+  },
+  {
+   "cmd": "mkdir -p ~/perf && dd if=/dev/zero of=~/perf/big bs=1M count=50 status=none && du -sh ~/perf; rm -r ~/perf",
+   "out": "51M\t/home/learner/perf\n"
+  },
+  {
+   "cmd": "iostat -dx 1 2 | awk '/^Device/{n=split($0,h)} /^sd/{for(i=1;i<=n;i++) if(h[i]==\"r/s\"||h[i]==\"w/s\"||h[i]~/await/||h[i]==\"%util\") printf \"%s=%s \", h[i], $i; print $1}' | tail -n 2",
+   "out": "r/s=0.00 r_await=0.00 w/s=0.00 w_await=0.00 d_await=0.00 f_await=0.00 %util=0.00 sdc\nr/s=0.00 r_await=0.00 w/s=0.00 w_await=0.00 d_await=0.00 f_await=0.00 %util=0.00 sdd\n",
+   "volatile": true
+  },
+  {
+   "cmd": "ip -s link show lo | head -6",
+   "out": "1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000\n    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00\n    RX:  bytes packets errors dropped  missed   mcast           \n          9175     122      0       0       0       0 \n    TX:  bytes packets errors dropped carrier collsns           \n          9175     122      0       0       0       0 \n",
+   "volatile": true
+  },
+  {
+   "cmd": "ss -s | head -4",
+   "out": "Total: 153\nTCP:   13 (estab 0, closed 12, orphaned 0, timewait 12)\n\nTransport Total     IP        IPv6\n",
+   "volatile": true
+  },
+  {
+   "cmd": "uptime; vmstat 1 3 | tail -2; free -m | head -2",
+   "out": " 06:24:06 up 1 min,  1 user,  load average: 0.46, 0.14, 0.04\n 0  0      0 3129564  46536 359412    0    0     0     0  209  126  0  0 99  0  0  0\n 0  0      0 3129564  46536 359412    0    0     0     0   92   78  0  0 100  0  0  0\n               total        used        free      shared  buff/cache   available\nMem:            3791         472        3056           4         396        3319\n",
+   "volatile": true
+  }
  ]
 }

@@ -252,5 +252,42 @@ url:function(){var S=[],L=['DNS','TCP','TLS','HTTP','Render'];
  s(2,['ClientHello ... Finished','certificate checked'],'Then TLS: agree on keys and check the server\'s certificate. One more round trip. Errors here (expired certificate, wrong name) are certificate problems, not application problems.',[0,1]);
  s(3,['GET /cart HTTP/1.1','Host: shop.example.com','200 OK + HTML'],'Now the actual request: a method, a path and headers, answered by a status line, headers and a body. The status code is your first clue: 2xx fine, 3xx redirect, 4xx the request was wrong, 5xx the server failed. Keep-alive and HTTP/2 reuse the connection so later requests skip the earlier steps.',[0,1,2]);
  s(4,['parse HTML','fetch CSS, JS, images (repeat 1-4)','paint'],'The browser parses the HTML, finds more resources and repeats the cycle for each (often over the same connection), then paints the page. When someone says "the site is slow", this is the chain to walk: which step is slow?',[0,1,2,3]);
+ return S},
+/* ---- S09: debugging method ---- */
+dbgloop:function(){var S=[],L=['Observe','Hypothesise','Predict','Test','Conclude'];
+ function s(at,aux,note,ok){S.push({a:L,ptr:{now:at},hi:[at],ok:ok||[],aux:{label:'checkout returns 500',items:aux},note:note})}
+ s(0,['what exactly happens?','when did it start?','who is affected?'],'Start with facts, not theories: the exact error, the time it began, who and what is affected, and what changed just before (a deploy, a config edit, a traffic spike). Write them down. Most wasted debugging hours come from skipping this step and fixing a guess.');
+ s(1,['H1: the database is down','H2: last deploy broke the payment call'],'Turn the facts into one or two specific, testable guesses. A good hypothesis can be proven wrong. "Something is broken in the backend" is not testable; "the payment call times out since the 14:05 deploy" is.',[0]);
+ s(2,['if H2 is true: errors start at 14:05','and only the payment path fails'],'Before you test, predict what you would see if the hypothesis were true. This is the discipline that stops you reading results to fit your theory.',[0,1]);
+ s(3,['grep errors by minute','check one path at a time'],'Run the cheapest test that can separate the hypotheses: one grep, one curl, one diff. Change ONE thing at a time, otherwise you cannot tell what mattered.',[0,1,2]);
+ s(4,['errors began 14:05, payment path only','H2 confirmed, H1 rejected'],'Compare the result with the prediction. If it matches, act (roll back, fix); if not, you have eliminated a cause, which is progress, so go back to Hypothesise with the new facts. Finish by writing what you learned.',[0,1,2,3]);
+ return S},
+halve:function(){var S=[],n=16,c=[];for(var i=1;i<=n;i++)c.push('L'+i);
+ function s(lo,hi,aux,note,ok){var dim=[],h=[];for(var i=0;i<n;i++){if(i<lo||i>hi)dim.push(i);else h.push(i)}S.push({a:c,ptr:{},hi:h,dim:dim,ok:ok||[],aux:{label:'config with 16 lines, one is bad',items:aux},note:note})}
+ s(0,15,['16 suspects','app fails with the full file'],'The app rejects a 16-line config but does not say which line is wrong. Reading all 16 is slow; guessing is unreliable. Halving finds the culprit in at most four tests.');
+ s(0,7,['keep lines 1-8 only','app still fails'],'Test the first half. It still fails, so the bad line is in lines 1 to 8. Eight suspects remain.');
+ s(0,3,['keep lines 1-4 only','app works'],'Keep only lines 1 to 4: it works, so the bad line is NOT here. It must be in lines 5 to 8.');
+ s(4,5,['lines 1-4 plus 5-6','app fails'],'Add lines 5 and 6 to the good lines 1 to 4: it fails again. The culprit is line 5 or 6.');
+ s(4,4,['lines 1-4 plus 5','app fails: line 5 is the culprit'],'Add just line 5: it fails. Found it in four tests instead of up to sixteen. The same idea powers git bisect (over commits), disabling half the plugins, or removing half of a failing test.',[4]);
+ return S},
+/* ---- S10: performance triage ---- */
+usegrid:function(){var S=[],R=['CPU','Memory','Disk','Network'];
+ function s(at,aux,note,ok){S.push({a:R,ptr:{check:at},hi:[at],ok:ok||[],aux:{label:'USE method',items:aux},note:note})}
+ S.push({a:R,ptr:{},aux:{label:'for every resource ask 3 questions',items:['Utilization: how busy is it?','Saturation: is work queueing?','Errors: is anything failing?']},note:'The USE method (Brendan Gregg) turns "the server is slow" into a checklist. For each resource ask: how busy is it (utilization), is work waiting in a queue (saturation), and is it reporting errors? A resource can be only 60% utilized and still saturated in bursts, which is why you check all three.'});
+ s(0,['U: mpstat, top (%us + %sy)','S: load average above core count, vmstat r column','E: rarely: dmesg for throttling'],'CPU: utilization is the busy percentage per core. Saturation shows as runnable tasks waiting: load average well above the core count, or a high r column in vmstat. One core pegged at 100% while others idle usually means a single-threaded bottleneck.');
+ s(1,['U: free -m (available, not free)','S: swap in/out (vmstat si/so), PSI memory','E: dmesg: Out of memory: Killed process'],'Memory: low "free" is normal because of the page cache; look at available. Saturation is swapping (si and so above zero for a while) or memory pressure; the extreme error is the OOM killer in the kernel log.',[0]);
+ s(2,['U: iostat -x %util, df -h','S: avgqu-sz / await rising, vmstat wa','E: dmesg I/O errors, df -i (inodes)'],'Disk: %util near 100 and a rising await means requests queue. A full filesystem or exhausted inodes is an "error" even when the disk is idle: writes fail.',[0,1]);
+ s(3,['U: bandwidth vs link speed','S: ss -s, retransmits, drops','E: ip -s link (errors, dropped)'],'Network: compare throughput with the link capacity, look for retransmissions and dropped packets (saturation and errors) and for sockets piling up in odd states with ss -s.',[0,1,2]);
+ return S},
+triage60:function(){var S=[],C=['uptime','dmesg','vmstat','mpstat','pidstat','iostat','free','ss'];
+ function s(at,aux,note,ok){S.push({a:C,ptr:{run:at},hi:[at],ok:ok||[],aux:{label:'first 60 seconds',items:aux},note:note})}
+ s(0,['load averages 1, 5, 15 min','is it rising or falling?'],'uptime: three load averages. If the 1-minute number is far above the 15-minute one the problem is recent and getting worse; far below means it already passed. Compare with the number of cores.');
+ s(1,['dmesg -T | tail','OOM kills, disk errors, link flaps'],'dmesg: the kernel\'s own complaints. Out-of-memory kills, I/O errors and network resets all show up here, and they are quick to rule in or out.',[0]);
+ s(2,['vmstat 1 5','r b si so us sy id wa'],'vmstat: one line per second. r (runnable) above the core count means CPU queueing, b blocked on I/O, si/so swapping, wa time waiting on disk, id idle. Ignore the first line: it is an average since boot.',[0,1]);
+ s(3,['mpstat -P ALL 1','one core busy or all?'],'mpstat per core: reveals a single saturated core that the overall average hides.',[0,1,2]);
+ s(4,['pidstat 1 5','which process uses CPU?'],'pidstat: CPU per process over time, better than a single top snapshot for spotting a burst.',[0,1,2,3]);
+ s(5,['iostat -xz 1','await, %util per device'],'iostat -xz: per-disk utilization and wait time. Large await with high %util means the disk is the bottleneck.',[0,1,2,3,4]);
+ s(6,['free -m','available, swap used'],'free: how much memory can still be handed out (available) and whether swap is in use.',[0,1,2,3,4,5]);
+ s(7,['ss -s','sockets by state, retransmits via sar -n'],'ss -s: socket totals and odd states; a pile in TIME-WAIT or CLOSE-WAIT or many retransmits points to the network or the application. Now pick the resource that is saturated and dig in only there.',[0,1,2,3,4,5,6]);
  return S}
 };
