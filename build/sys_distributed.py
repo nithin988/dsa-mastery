@@ -1,0 +1,270 @@
+"""Systems Mastery S18: distributed systems essentials."""
+import sysviz as v
+
+FALLACY_VIZ = v.figure(
+    720, 190,
+    [v.box(10, 18, 160, 52, "The network", "warn", "drops, delays, reorders"),
+     v.box(190, 18, 160, 52, "The clocks", "warn", "disagree with each other"),
+     v.box(370, 18, 160, 52, "The machines", "warn", "crash at the worst time"),
+     v.box(550, 18, 160, 52, "Your assumptions", "warn", "\"it will just work\""),
+     v.text(360, 108, "On one machine a call returns or crashes. Across machines there is a third outcome: you do not know.", "dg-s"),
+     v.text(360, 132, "Every technique in this module is a way of living with that third outcome.", "dg-s"),
+     v.text(360, 164, "Replication, quorums, consensus, idempotency and backoff all exist because of it.", "dg-s")],
+    "Why distributed systems are hard", "Partial failure, unreliable clocks and a network that lies by silence")
+
+MODULE = dict(
+    id="dd",
+    title="Distributed systems essentials",
+    lead="The moment a system spans more than one machine, a timeout no longer means \"it failed\", only \"I do not know\". This module explains what that does to your design: the CAP and PACELC trade-offs, consistency and quorums, consensus and leader election, why clocks cannot be trusted, and how retries, backoff and idempotency keep a system correct when messages are lost or repeated.",
+    time="6 to 7 hours",
+    why=[
+        "A customer is charged twice. The payment service did its job; the network dropped the reply, the client retried, and nothing made the second request harmless. One idempotency key would have prevented it. That single idea (safe repetition) is worth more than most clever architecture.",
+        "Interviewers love this topic because shallow answers are easy to spot. \"What is CAP?\" is an opener; the follow-ups (\"what does a partition look like?\", \"how many nodes can a 5-node cluster lose?\", \"what happens when a client retries?\") separate people who understand from people who memorised.",
+    ],
+    outcomes=[
+        "Explain partial failure and why a timeout means \"unknown\".",
+        "State CAP and PACELC correctly and give examples of CP and AP systems.",
+        "Use quorum arithmetic (W + R > N) to reason about consistency and fault tolerance.",
+        "Explain leader election and consensus at the level of Raft, and why majorities matter.",
+        "Explain why wall clocks disagree and how logical clocks order events.",
+        "Design retries with backoff, jitter and idempotency keys.",
+    ],
+    before=[
+        "The data storage module (S17) and the scaling blocks (S16).",
+        "Experiments are small seeded simulations in `python3`, so their output repeats exactly.",
+    ],
+    env=["Scratch folder: `mkdir -p ~/dist && cd ~/dist`."],
+    lessons=[
+        dict(
+            title="Partial failure: when a timeout means \"I do not know\"",
+            tier="hot",
+            situation="The client sent a payment request and the connection timed out. Did the charge happen?",
+            learn=["Why distributed failures are different", "The three outcomes of a remote call", "Why retries need care"],
+            model=[
+                "On one machine a function call returns or crashes. Over a network there is a third outcome: **no answer**. The request may have been lost, the server may have processed it and the **reply** been lost, or the server may be slow. From the client these look identical, so a timeout means **\"I do not know\"**. That is **partial failure**: some parts work while others fail, and you cannot tell which. The consequence is simple and far-reaching: any operation that might be retried must be safe to repeat.",
+            ],
+            analogy="You post a letter asking someone to pay a bill and hear nothing back. Either the letter was lost, or it arrived and their reply was lost. Posting a second letter might make them pay twice.",
+            visual=FALLACY_VIZ,
+            sim="partial",
+            quick=[
+                ("What does a timeout tell you about a remote operation?", "Only that no answer arrived in time; it may or may not have happened."),
+                ("Why is retrying a payment request dangerous?", "The first attempt may have succeeded and only the reply was lost, so a retry could charge twice."),
+            ],
+            traps=[
+                "Treating a timeout as proof of failure and, say, refunding or re-ordering automatically.",
+                "Assuming the network is reliable, latency is zero and clocks agree: the classic fallacies of distributed computing.",
+            ],
+        ),
+        dict(
+            title="CAP and PACELC: the trade-off under a partition",
+            tier="hot",
+            situation="\"Pick two of three\" is the usual one-liner, and it is mostly misleading. What does the trade-off really say?",
+            learn=["What a partition is and why it is not optional", "CP versus AP behaviour", "PACELC: the trade-off when nothing is broken"],
+            model=[
+                "The **CAP** theorem says that when a **network partition** happens, a replicated system cannot be both **consistent** (every read sees the latest write) and **available** (every request gets an answer). Partitions are a fact of networks, so the real choice is what to do **during** one: refuse some requests to stay consistent (**CP**: banking, coordination services such as ZooKeeper or etcd) or keep answering and reconcile later (**AP**: shopping carts, feeds, DNS). **PACELC** adds the everyday case: if there is a **P**artition choose **A** or **C**; **E**lse (normal operation) choose between **L**atency and **C**onsistency. Waiting for more replicas costs latency even when nothing is broken.",
+            ],
+            analogy="Two bank branches lose their phone line. They can refuse withdrawals until it is restored (consistent, unavailable) or keep serving and risk both paying out the last dollar (available, inconsistent).",
+            sim="cap",
+            groups=[
+                dict(title="A partition, both ways", cmds=[
+                    dict(c="mkdir -p ~/dist && cd ~/dist && cat > cap.py <<'EOF'\n# Three replicas A, B, C. A partition cuts C off. Two clients write to different sides.\ndef run(mode):\n    value = {'A': 1, 'B': 1, 'C': 1}\n    written = []\n    side_ab, side_c = ['A', 'B'], ['C']\n    print('--', mode, 'mode --')\n    # client 1 writes x=2 through A (majority side), client 2 writes x=3 through C (isolated)\n    for name, nodes, v in (('client1 via A', side_ab, 2), ('client2 via C', side_c, 3)):\n        has_majority = len(nodes) >= 2\n        if mode == 'CP' and not has_majority:\n            print('  %-14s write x=%d  REJECTED (no majority, stays consistent)' % (name, v))\n        else:\n            for n in nodes:\n                value[n] = v\n            written.append(v)\n            print('  %-14s write x=%d  accepted' % (name, v))\n    print('  values during partition:', value)\n    if len(written) > 1:\n        print('  after healing: conflict, two different writes; last write wins keeps x=3 and loses x=2')\n    else:\n        print('  after healing: C catches up, every replica has x=%d, nothing lost' % written[0])\nrun('CP')\nrun('AP')\nEOF\npython3 cap.py", e="In CP mode the isolated replica C rejects client 2's write, so after healing C simply catches up to x=2 and nothing conflicts, at the price that client 2 got an error. In AP mode both writes are accepted, so for a while A and B say 2 while C says 3. Reconciliation (here last-write-wins) silently loses a write: availability was bought with consistency."),
+                ]),
+            ],
+            quick=[
+                ("What does CAP say you must give up during a partition?", "Either consistency (keep answering, risk conflicts) or availability (refuse some requests)."),
+                ("What does the 'ELC' in PACELC add?", "When there is no partition you still trade latency against consistency, for example by waiting for more replicas."),
+            ],
+            traps=[
+                "\"We chose CA\" is not a real option for a distributed system: partitions will occur.",
+                "CAP consistency (linearizability) is not the same as ACID consistency (constraints are respected).",
+                "Most systems are tunable per operation, not simply \"CP\" or \"AP\" forever.",
+            ],
+        ),
+        dict(
+            title="Consistency and quorums",
+            tier="hot",
+            situation="A write returned success. A moment later a read from another replica returns the old value. How many replicas must you talk to for that not to happen?",
+            learn=["Strong versus eventual consistency", "The quorum rule W + R > N", "Fault tolerance of a quorum"],
+            model=[
+                "**Strong consistency** means a read always sees the latest acknowledged write; **eventual consistency** means replicas converge if writes stop, but a read may briefly be stale. With **N** copies, a write waiting for **W** acknowledgements and a read asking **R** copies, the read set and the write set must overlap in at least one copy when **W + R > N**, so the read sees the latest value. Writes keep working while at most **N - W** copies are down. Lowering W or R makes things faster and more available but allows stale reads.",
+            ],
+            analogy="A club decides by asking members. If every decision needs 2 of 3 signatures and every check asks 2 of 3 members, at least one member who signed will always be asked.",
+            groups=[
+                dict(title="Measure stale reads", cmds=[
+                    dict(c="cd ~/dist && cat > quorum.py <<'EOF'\nimport random\nN, trials = 3, 20000\nrng = random.Random(3)\nprint('N=3: W copies acknowledge a write, a read asks R copies')\nfor W, R in ((1, 1), (2, 1), (1, 2), (2, 2), (3, 1)):\n    stale = 0\n    for _ in range(trials):\n        written = set(rng.sample(range(N), W))\n        asked = set(rng.sample(range(N), R))\n        if not (written & asked):\n            stale += 1\n    print('W=%d R=%d  W+R>N: %-5s  stale reads: %5.1f%%' % (W, R, W + R > N, 100 * stale / trials))\nEOF\npython3 quorum.py", e="A write lands on W random replicas and a read asks R random replicas; a stale read happens when they do not overlap. Whenever W + R > N (3 here) the sets must overlap, so the stale rate is exactly zero. With W=1 and R=1 about two reads in three are stale, and with W=2, R=1 about one in three.", parts=[("rng.sample(range(N), W)", "which W replicas received the write"), ("written & asked", "the overlap: replicas that know the latest value")]),
+                ]),
+            ],
+            quick=[
+                ("With N=5, W=3 and R=3, does a read always see the latest write?", "Yes: 3 + 3 > 5, so the read and write sets overlap."),
+                ("How many copies can be down for writes to keep working with N=5, W=3?", "N - W = 2."),
+            ],
+            traps=[
+                "Quorums give consistency for single values only if writes and reads really use the stated W and R, and clocks or ordering of concurrent writes still need resolving.",
+                "W = N makes writes fail as soon as any copy is down, losing availability.",
+            ],
+        ),
+        dict(
+            title="Consensus and leader election",
+            tier="hot",
+            situation="Five servers must agree on who the leader is, and on the order of changes, even when some crash or lose contact.",
+            learn=["Leader, followers and terms", "Majority votes and why two leaders cannot coexist", "How many failures a cluster survives"],
+            model=[
+                "**Consensus** protocols (Paxos, **Raft**) let a group of machines agree on a value or a sequence of changes despite failures. In Raft, one **leader** receives writes and replicates a log to **followers**, who answer with heartbeats. If the leader goes quiet, a follower whose random timeout expires becomes a **candidate** for a new **term** and asks for votes; a node votes once per term, and a candidate that gets a **majority** wins. Two majorities always overlap, so two leaders can never be elected in the same term. A write counts as committed when a majority has stored it. A cluster of 2f+1 nodes survives f failures, which is why clusters have odd sizes: 3 tolerates 1, 5 tolerates 2, 7 tolerates 3.",
+            ],
+            analogy="A committee that elects a chair by majority vote: if the chair disappears, someone calls a new election, and because a majority is needed there can never be two chairs at once.",
+            sim="raft",
+            groups=[
+                dict(title="Cluster size and failures", cmds=[
+                    dict(c="python3 -c \"print('nodes  majority  failures tolerated')\nfor n in (3,4,5,6,7):\n    m=n//2+1\n    print('%5d  %8d  %8d' % (n,m,n-m))\"", e="The majority is `n // 2 + 1`, and the cluster tolerates `n - majority` failures. Note that 4 nodes tolerate only 1 failure, the same as 3, and 6 only the same as 5: an even size adds cost without adding tolerance, so clusters use odd sizes."),
+                ]),
+            ],
+            quick=[
+                ("How many failures can a 5-node Raft cluster tolerate?", "2 (a majority of 3 must stay up)."),
+                ("Why can two leaders not exist in the same term?", "Each leader needs a majority of votes, and any two majorities share a node that votes only once per term."),
+            ],
+            traps=[
+                "Running consensus across a high-latency link makes every write slow: it needs a round trip to a majority.",
+                "Splitting a 3-node cluster across two data centres: losing the one with two nodes loses the majority.",
+                "Do not implement consensus yourself; use etcd, ZooKeeper, a database that has it, or a cloud service.",
+            ],
+        ),
+        dict(
+            title="Clocks and ordering of events",
+            tier="hot",
+            situation="Two servers log events with timestamps, and the log says the reply happened before the request.",
+            learn=["Why wall clocks disagree", "Logical (Lamport) clocks", "Monotonic versus wall-clock time"],
+            model=[
+                "Every machine has its own clock, and they drift; syncing (NTP) narrows the gap but never closes it, and clocks can even jump backwards. So **wall-clock timestamps cannot reliably order events across machines**. **Logical clocks** order events by causality instead: each process keeps a counter, increments it on each event, attaches it to messages, and on receiving a message sets its counter to the larger of its own and the message's, plus one (**Lamport clock**). If A causes B, A's number is smaller. For measuring durations on one machine use a **monotonic** clock, which never goes backwards; wall time is for humans and calendars.",
+            ],
+            analogy="Two people in different time zones with wrong watches try to agree who spoke first. Numbering the letters they send each other works better than comparing watches.",
+            groups=[
+                dict(title="Skewed clocks versus a Lamport clock", cmds=[
+                    dict(c="cd ~/dist && cat > clock.py <<'EOF'\n# Server A's clock is correct. Server B's clock runs 30 s behind.\nevents = []   # (who, what, wall-clock time)\nwall_a, wall_b = 100, 100 - 30\nevents.append(('A', 'sends request', wall_a))\nevents.append(('B', 'receives request and replies', wall_b + 1))\nprint('ordered by wall clock:')\nfor who, what, t in sorted(events, key=lambda e: e[2]):\n    print('  t=%3d  %s %s' % (t, who, what))\nla = 1                      # A's Lamport counter after sending\nlb = max(0, la) + 1         # B takes max(own, received) + 1 on receive\nprint('ordered by Lamport clock:')\nprint('  L=%d  A sends request' % la)\nprint('  L=%d  B receives request and replies' % lb)\nEOF\npython3 clock.py", e="B's slow clock stamps its reply at t=71, before A's request at t=100, so sorting by wall time puts the effect before the cause. The Lamport counters (1 then 2) always put a cause before its effect, regardless of what the clocks say.", parts=[("max(own, received) + 1", "the Lamport rule on receiving a message")]),
+                    dict(volatile=True, c="python3 -c \"import time; w1,m1=time.time(),time.monotonic(); time.sleep(0.2); w2,m2=time.time(),time.monotonic(); print('wall clock elapsed: %.3f s  monotonic elapsed: %.3f s' % (w2-w1, m2-m1))\"", e="Both measure about 0.2 s here, but only the monotonic clock is guaranteed never to jump backwards (a time sync or a leap second can move the wall clock). Use monotonic time to measure durations and timeouts."),
+                ]),
+            ],
+            quick=[
+                ("Why can't you order events across machines by their timestamps?", "Clocks drift and are never perfectly synchronised, so a cause can be stamped later than its effect."),
+                ("Which clock should you use to measure how long something took?", "A monotonic clock, because it never goes backwards."),
+            ],
+            traps=[
+                "Last-write-wins using wall-clock timestamps silently drops writes when clocks are skewed.",
+                "Leap seconds and NTP adjustments have caused real outages; do not assume time is smooth.",
+            ],
+        ),
+        dict(
+            title="Retries, backoff, jitter and idempotency",
+            tier="hot",
+            situation="The payment call timed out. You must retry, but retrying must not charge twice and must not hammer a struggling server.",
+            learn=["Exponential backoff with jitter", "Idempotency keys", "At-least-once delivery and \"exactly-once\" effects"],
+            model=[
+                "Retrying is how you survive transient failures, but done badly it causes retry storms. Use **exponential backoff** (double the wait after each failure, with a cap), add **jitter** (a random wait so clients do not retry in sync), and set **limits** (maximum attempts and an overall deadline). Retrying is only safe for **idempotent** operations: ones where repeating gives the same result as doing it once. Make a risky operation idempotent with an **idempotency key**: the client generates one key per logical operation, sends it with every attempt, and the server stores the result per key and returns it again instead of repeating the work. Networks give **at-least-once** delivery; correctness comes from combining it with idempotent handlers, which gives \"exactly-once effect\".",
+            ],
+            analogy="Pressing a lift button again and again does not summon more lifts: the button is idempotent. Pressing \"pay\" again should behave the same way.",
+            sim="retry",
+            groups=[
+                dict(title="Double charges, with and without a key", cmds=[
+                    dict(c="cd ~/dist && cat > retry.py <<'EOF'\nimport random\nrng = random.Random(11)\ndef pay(client_keys, orders=1000):\n    charged, seen, extra = 0, set(), 0\n    for order in range(orders):\n        key = 'order-%d' % order\n        for attempt in range(3):\n            # server always processes the request; the reply is lost 30% of the time\n            if client_keys and key in seen:\n                pass                      # idempotent: do not charge again\n            else:\n                seen.add(key); charged += 1\n            if rng.random() > 0.30:\n                break                     # client got the reply, stops retrying\n    return charged, orders\nfor use_key in (False, True):\n    charged, orders = pay(use_key)\n    print('idempotency key %-5s: %d orders, %d charges, %d double charges' % (use_key, orders, charged, charged - orders))\nprint()\nprint('backoff with full jitter (base 100 ms, cap 5 s):')\nr = random.Random(5)\nfor attempt in range(1, 6):\n    ceiling = min(5000, 100 * 2 ** attempt)\n    print('  attempt %d: wait random(0, %4d ms) -> %4d ms' % (attempt, ceiling, r.randint(0, ceiling)))\nEOF\npython3 retry.py", e="Every order is processed, but 30 percent of replies are lost, so clients retry. Without an idempotency key hundreds of customers are charged more than once. With a key the server recognises the repeat and returns the saved result: zero double charges. Below it, backoff with jitter waits a random time up to a doubling ceiling.", parts=[("100 * 2 ** attempt", "exponential backoff: double the ceiling each time"), ("randint(0, ceiling)", "jitter: a random wait up to the ceiling")]),
+                ]),
+            ],
+            quick=[
+                ("What is an idempotency key for?", "It lets the server recognise a retry of the same operation and return the original result instead of repeating the work."),
+                ("Why add jitter to backoff?", "So clients that failed together do not all retry at the same instant (synchronised retry waves)."),
+            ],
+            traps=[
+                "Retrying every layer (client, gateway, service) multiplies attempts: three layers with three tries each is 27 requests. Retry in one place.",
+                "Retrying non-idempotent operations without a key; and retrying forever without a deadline.",
+            ],
+        ),
+    ],
+    labs=[
+        dict(kind="linux", script="quorum-math", dir="quorum", title="Quorum arithmetic",
+             goal=["Apply W + R > N and N - W to five replicated-store configurations."],
+             story=["Five teams configured their replicated stores differently. Which of them can promise fresh reads, and how many replicas can each lose while still accepting writes?"],
+             tasks=["Read `scenarios.txt`.", "For each scenario decide whether reads are guaranteed fresh and how many copies may be down for writes.", "Write lines like `s1=yes/1` into `~/sys-lab/answers-quorum.txt`."],
+             check="Run the check script.", check_cmd="bash ~/sys-lab/check-quorum-math.sh",
+             hints=["Fresh reads need W + R > N.", "Write availability needs at most N - W copies down.", "s4 has N=5, W=2, R=3: 2 + 3 = 5, which is not greater than 5."],
+             solution=["s1=yes/1, s2=no/2, s3=yes/2, s4=no/3, s5=yes/3.", "Write the five lines to the answers file."]),
+        dict(kind="linux", script="idempotent-pay", dir="pay", title="How much was charged twice?",
+             goal=["Process a retry-heavy payment log with and without idempotency keys and measure the difference."],
+             story=["Clients retried payments after lost replies. `payments.log` shows every request the server received. Finance wants to know how much a naive server would have over-charged."],
+             tasks=["Read `README.txt`.", "Sum every line (naive), and sum only the first line of each key (idempotent).", "Count the repeated-key lines.", "Write `naive_total=`, `safe_total=` and `duplicates=` into `~/sys-lab/answers-pay.txt`."],
+             check="Run the check script.", check_cmd="bash ~/sys-lab/check-idempotent-pay.sh",
+             hints=["Ignore lines starting with `#`.", "`awk '!seen[$1]++'` prints only the first line for each key.", "Duplicates = total lines minus unique keys."],
+             solution=["naive: add every amount; safe: add each key's first amount once.", "duplicates is the number of lines whose key was seen before.", "Write the three lines to the answers file."]),
+    ],
+    cases=[],
+    cheat=[
+        ["timeout", "means \"unknown\", not \"failed\""],
+        ["CAP", "during a partition choose consistency (refuse) or availability (answer, reconcile later)"],
+        ["PACELC", "else (no partition): latency versus consistency"],
+        ["W + R > N", "read and write sets overlap: reads see the latest write"],
+        ["tolerated down for writes", "N - W copies"],
+        ["majority", "n // 2 + 1; 2f + 1 nodes survive f failures"],
+        ["Raft", "leader, terms, votes by majority, commit on majority"],
+        ["wall clock", "drifts and jumps: do not order events or measure durations with it"],
+        ["Lamport clock", "counter, max(own, received) + 1: causes get smaller numbers"],
+        ["monotonic clock", "for durations and timeouts"],
+        ["backoff + jitter", "double the wait with a cap, randomise it"],
+        ["idempotency key", "one key per logical operation, server remembers the result"],
+        ["at-least-once + idempotent", "gives exactly-once effect"],
+    ],
+    interview_intro="Distributed systems answers get credit for naming the failure first (\"suppose the reply is lost\") and then the technique. Lead with the failure.",
+    interview=[
+        dict(q="Explain the CAP theorem. Is it really \"pick two of three\"?",
+             a=["During a network partition a replicated system cannot be both consistent (linearizable) and available. Partitions are unavoidable, so the real choice is C or A while partitioned.", "CP examples: etcd, ZooKeeper, most bank systems. AP examples: Dynamo-style stores, DNS, shopping carts.", "PACELC: even without a partition you trade latency for consistency; many systems let you tune this per request."],
+             follow=["What does reconciliation look like in an AP system?", "Is CAP consistency the same as ACID consistency?"], mistakes=["Saying \"choose CA\".", "Treating the choice as permanent for a whole system."],
+             angle="Google-style: candidates commonly report CAP as an opener followed by \"now design it for a partition\"; reported by candidates, not official."),
+        dict(q="What are quorums? How do you choose W and R for N=3 or N=5?",
+             a=["W copies acknowledge a write, R copies are read; if W + R > N the sets overlap and a read sees the latest write.", "Choose by workload: R=1 with W=N is fast reads but writes fail with any node down; W=R=majority is balanced and tolerates (N-1)/2 failures.", "Lower W or R trades consistency for latency and availability."],
+             follow=["What about concurrent writes to the same key?"], mistakes=["Forgetting the overlap reasoning."]),
+        dict(q="How does leader election work in Raft, and how many failures can a 5-node cluster tolerate?",
+             a=["Followers wait for heartbeats; on timeout one becomes a candidate for a new term and requests votes; a majority makes it leader.", "Each node votes once per term, and two majorities overlap, so there is at most one leader per term.", "Writes commit on a majority, so 5 nodes tolerate 2 failures."],
+             follow=["Why odd cluster sizes?", "What happens during a partition that isolates the leader?"], mistakes=["Saying a 4-node cluster tolerates 2 failures."]),
+        dict(q="Why can't you use timestamps to order events across servers? What do you use instead?",
+             a=["Clocks drift and jump, so effects can be stamped before causes.", "Use logical clocks (Lamport, vector clocks) for causality, a single sequencer or consensus log for a total order, or bounded-uncertainty clocks where available.", "Use monotonic clocks to measure durations."],
+             follow=["What is last-write-wins and what can go wrong?"], mistakes=["Trusting NTP to make clocks equal."]),
+        dict(q="How do you make a payment API safe to retry?",
+             a=["The client sends an idempotency key per logical payment; the server stores the result per key and returns it on repeats.", "The client retries with exponential backoff and jitter, with a maximum number of attempts and a deadline.", "Handle the in-flight case (two simultaneous requests with the same key) with a lock or unique constraint."],
+             follow=["How long do you keep keys?", "What if the first attempt is still running?"], mistakes=["Retrying without a key.", "Retrying at every layer."],
+             angle="Amazon-style: expect \"what happens if the service crashes after charging but before recording?\" and follow-ups on ownership of the fix; reported by candidates, not official."),
+        dict(q="What is the difference between at-most-once, at-least-once and exactly-once delivery?",
+             a=["At-most-once: send and forget; messages may be lost. At-least-once: retry until acknowledged; messages may be duplicated. Exactly-once delivery is not achievable in general over an unreliable network.", "You get an exactly-once effect by combining at-least-once delivery with idempotent processing (deduplicate by key)."],
+             follow=["How does Kafka's idempotent producer relate?"], mistakes=["Claiming a broker magically provides exactly-once."]),
+    ],
+    selftest=[
+        ("What does a timeout tell you about a remote operation?", "Only that no answer arrived in time; the operation may or may not have happened."),
+        ("What does CAP force you to choose during a partition?", "Consistency or availability."),
+        ("Quorum rule for fresh reads?", "W + R > N."),
+        ("How many failures does a 7-node majority cluster tolerate?", "3."),
+        ("Why are consensus clusters odd-sized?", "An extra node in an even cluster adds cost without increasing failures tolerated."),
+        ("What does a Lamport clock guarantee?", "If event A caused event B, A's number is smaller than B's."),
+        ("What is jitter for?", "To randomise retry waits so clients do not retry in synchronised waves."),
+        ("What turns at-least-once delivery into an exactly-once effect?", "Idempotent handling, such as deduplication by an idempotency key."),
+    ],
+    recall=[
+        ["partial failure", "a timeout means unknown"],
+        ["CAP", "partition: consistency or availability"],
+        ["PACELC", "else: latency or consistency"],
+        ["W + R > N", "overlapping quorums: fresh reads"],
+        ["majority", "n // 2 + 1; no two leaders per term"],
+        ["Lamport clock", "logical order of causes and effects"],
+        ["backoff + jitter", "spread out and slow down retries"],
+        ["idempotency key", "makes retries safe"],
+    ],
+    sources=[
+        dict(title="Raft visualisation and paper", url="https://raft.github.io/", use="An interactive Raft demo and the readable consensus paper", license="Copyright the authors; read online", how="Link only"),
+        dict(title="Designing Data-Intensive Applications (Martin Kleppmann)", url="https://dataintensive.net/", use="Chapters on replication, consistency and consensus", license="Commercial book; not copied", how="Recommended reading"),
+        dict(title="AWS Builders' Library: Timeouts, retries and backoff with jitter", url="https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/", use="Practical retry design", license="Copyright Amazon; read online", how="Link only"),
+        dict(title="Stripe API docs: Idempotent requests", url="https://docs.stripe.com/api/idempotent_requests", use="A real idempotency-key design", license="Copyright Stripe; read online", how="Link only"),
+        dict(title="Jepsen: consistency models", url="https://jepsen.io/consistency", use="A map of consistency models and their relationships", license="Copyright Jepsen; read online", how="Link only"),
+    ],
+    plan=[
+        "**Hour 1:** partial failure; write down three places in a system you know where a timeout hides two different outcomes.",
+        "**Hour 2:** CAP and PACELC; run the partition simulation and explain the output aloud.",
+        "**Hour 3:** quorums; run the simulation; then Lab 1.",
+        "**Hour 4:** consensus and leader election; draw a Raft election from memory.",
+        "**Hour 5:** clocks; then retries and idempotency; then Lab 2.",
+        "**Hours 6 and 7:** interview answers out loud (lead with the failure) and the self-test.",
+    ],
+)

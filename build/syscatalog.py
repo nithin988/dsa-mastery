@@ -32,7 +32,7 @@ MODULES = [
     ("S15", "S15_design_method_estimation", "The design method and estimation", "Requirements, back-of-envelope math, latency numbers and a repeatable framework.", 3, "sys_design_method"),
     ("S16", "S16_scaling_building_blocks", "Scaling building blocks", "Load balancing, caching, CDN, reverse proxies and queues.", 3, "sys_scaling_blocks"),
     ("S17", "S17_data_storage", "Data storage", "SQL and NoSQL, indexes, replication, sharding, consistent hashing, transactions.", 3, "sys_data_storage"),
-    ("S18", "S18_distributed_systems", "Distributed systems essentials", "CAP and PACELC, consistency, consensus, clocks, retries, idempotency.", 3, None),
+    ("S18", "S18_distributed_systems", "Distributed systems essentials", "CAP and PACELC, consistency, consensus, clocks, retries, idempotency.", 3, "sys_distributed"),
     ("S19", "S19_architecture_api_patterns", "Architecture and API patterns", "Microservices, events, CQRS, sagas, REST and gRPC, rate limiting, auth.", 3, None),
     ("S20", "S20_designing_for_reliability", "Designing for reliability", "Availability math, multi-region, disaster recovery, safe deployments, observability.", 3, None),
     ("S21", "S21_design_warmups", "Design warm-ups", "URL shortener, pastebin, rate limiter, ID generator, key-value store.", 4, None),

@@ -418,5 +418,37 @@ txn:function(){var S=[],L=['BEGIN','debit A','credit B','COMMIT'];
  s(L,2,['crash here!','ROLLBACK: A: 500, B: 500'],'If the program or server fails before COMMIT, the database undoes the debit (atomicity). The total is still 1000. Without a transaction the money would be gone.',[0,1],[3]);
  s(L,3,['A: 400, B: 600','committed and durable'],'COMMIT makes both changes permanent at once (durability: written to the log on disk). These four properties are ACID: Atomic, Consistent, Isolated, Durable.',[0,1,2]);
  S.push({a:['dirty read','non-repeatable read','phantom','serializable'],ptr:{},hi:[],ok:[3],aux:{label:'isolation levels',items:['weaker = faster, more anomalies','stronger = safer, more waiting']},note:'Isolation has levels. Weaker levels allow anomalies: reading uncommitted data (dirty read), seeing a row change between two reads (non-repeatable read), seeing new rows appear (phantom). Serializable behaves as if transactions ran one at a time, at the highest cost. Most systems default to something in between, so know which one yours uses.'});
+ return S},
+/* ---- S18: distributed systems essentials ---- */
+partial:function(){var S=[],L=['client sends','server receives','server does the work','reply sent','reply arrives'];
+ function s(at,aux,note,ok,dim){S.push({a:L,ptr:{now:at},hi:[at],ok:ok||[],dim:dim||[],aux:{label:'charge the card',items:aux},note:note})}
+ s(0,['the client sends a request','then waits for an answer'],'On one machine a function call either returns or crashes. Across a network there are more outcomes. The client sends "charge 20 dollars" and waits.');
+ s(1,['the server gets it','or the request is lost on the way'],'Failure point one: the request never arrives. Nothing happened, and a retry is safe.',[0]);
+ s(2,['the server charges the card','this worked'],'The server does the work and charges the card. From now on the world has changed, whatever happens next.',[0,1]);
+ s(3,['the reply is sent','but the network drops it'],'Failure point two: the reply is lost. The work was done, but the client never hears.',[0,1,2]);
+ s(4,['client times out','did the charge happen? unknown!'],'After a timeout the client cannot tell failure point one from failure point two: the request was lost, or only the reply was. This is the heart of distributed systems: a timeout means "I do not know". Retrying blindly may charge twice, so operations that may be retried must be made safe to repeat (idempotent).',[0,1,2,3],[]);
+ return S},
+cap:function(){var S=[];
+ function st(nodes,edges,aux,note,ok,dim,ptr){S.push({a:[],graph:{nodes:nodes,edges:edges,directed:false,w:480,h:190},ptr:ptr||{},ok:ok||[],dim:dim||[],aux:{label:'replicated key x',items:aux},note:note})}
+ var A={x:80,y:60,label:'A x=1'},B={x:80,y:140,label:'B x=1'},C={x:380,y:100,label:'C x=1'};
+ st([A,B,C],[[0,1],[0,2],[1,2]],['all replicas agree: x=1','network is healthy'],'Three replicas hold the same value. While the network works, every read and write can be both consistent and available.');
+ st([A,B,C],[[0,1]],['network partition: C is cut off','A and B cannot reach C'],'A network partition splits the cluster: C can no longer talk to A and B. Partitions happen in real networks (a cut cable, a failed switch, a pause). The system must now choose.',[],[2],{'partition':2});
+ st([A,B,C],[[0,1]],['CP choice: C refuses writes','consistent, but not available on C'],'Choice one (consistency over availability, CP): C refuses to answer or accept writes until it can confirm the others, so nobody ever sees a stale or conflicting value. Clients connected to C get errors. Typical of banks and coordination services.',[0,1],[2]);
+ st([A,{x:80,y:140,label:'B x=2'},{x:380,y:100,label:'C x=3'}],[[0,1]],['AP choice: both sides keep accepting writes','available, but x=2 and x=3 conflict'],'Choice two (availability over consistency, AP): both sides keep serving. Everyone gets an answer, but A and B now say x=2 while C says x=3. After the partition heals the system must reconcile (last write wins, merge, or ask the user). Typical of shopping carts and social feeds.',[],[]);
+ return S},
+raft:function(){var S=[],L=['n1','n2','n3','n4','n5'];
+ function s(a,aux,note,ok,dim,hi){S.push({a:a,ptr:{},hi:hi||[],ok:ok||[],dim:dim||[],aux:{label:'5-node cluster',items:aux},note:note})}
+ s(['L','F','F','F','F'],['n1 is leader (term 1)','followers hear its heartbeats'],'In a consensus protocol such as Raft one node is the leader. It receives writes, appends them to its log and replicates them. Followers reset an election timer each time they hear a heartbeat from the leader.',[0]);
+ s(['x','F','F','F','F'],['leader n1 crashes','heartbeats stop'],'The leader crashes and the heartbeats stop. Each follower waits a random timeout, so they rarely all start at the same moment.',[],[0]);
+ s(['x','F','F','C','F'],['n4 times out first','becomes candidate for term 2, asks for votes'],'The first follower whose timer expires (here n4) becomes a candidate for a new term and asks the others to vote for it. Each node votes for at most one candidate per term.',[],[0],[3]);
+ s(['x','V','V','L','V'],['n4 gets 4 of 5 votes','a majority: n4 is leader of term 2'],'n4 collects votes from a majority (3 of 5 would be enough). It becomes the leader and starts sending heartbeats. Because any two majorities overlap, two leaders can never be elected in the same term.',[3],[0]);
+ s(['x','F','F','L','F'],['a write needs a majority to acknowledge','here 3 of 5, so up to 2 nodes may be down'],'A write is committed once a majority of nodes have stored it. A 5-node cluster therefore survives 2 failures; a 3-node cluster survives 1. Odd sizes are used because adding one more node to an odd cluster does not increase the failures it can tolerate.',[3]);
+ return S},
+retry:function(){var S=[],T=['try 1','try 2','try 3','try 4','try 5'];
+ function s(a,aux,note,ok,hi){S.push({a:a,ptr:{},hi:hi||[],ok:ok||[],aux:{label:'wait before each retry',items:aux},note:note})}
+ s(['0 ms','0 ms','0 ms','0 ms','0 ms'],['immediate retries','all clients hammer at once'],'The naive retry: try again immediately. If a server is struggling, thousands of clients retrying instantly make it worse, a retry storm that can turn a small outage into a long one.');
+ s(['100 ms','200 ms','400 ms','800 ms','1.6 s'],['exponential backoff','double the wait each time'],'Exponential backoff doubles the wait after every failure: 100, 200, 400, 800 ms and so on (with a cap). It gives the server room to recover.',[1,2,3,4]);
+ s(['37 ms','154 ms','212 ms','590 ms','1.2 s'],['add jitter: random wait up to the backoff','clients spread out'],'Add jitter: pick a random wait between zero and the backoff value. Without it, all clients that failed together retry together in synchronised waves. Jitter spreads them out.',[0,1,2,3,4]);
+ s(['key=abc','key=abc','key=abc','key=abc','key=abc'],['same idempotency key on every retry','server charges only once'],'Retrying is only safe if the operation is idempotent. For a payment, the client generates one idempotency key and sends it with every attempt; the server remembers keys it has processed and returns the saved result instead of charging again. Also set a retry limit and a deadline so work is not retried forever.',[0,1,2,3,4]);
  return S}
 };
