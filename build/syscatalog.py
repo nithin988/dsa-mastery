@@ -38,7 +38,7 @@ MODULES = [
     ("S21", "S21_search_blob_special_stores", "Search, blob storage and specialised stores", "Inverted indexes, object storage, time-series and geospatial stores, and when to use each.", 3, None),
     ("S22", "S22_distributed_systems", "Distributed systems essentials", "CAP and PACELC, consistency, consensus, clocks, retries, idempotency.", 3, "sys_dist2"),
     ("S23", "S23_architecture_api_patterns", "APIs and contracts: HTTP, pagination, rate limits and reliable interfaces", "A real teaching API: verbs and status codes, cursor pagination, versioning and deprecation, rate limiting, REST versus gRPC versus GraphQL, idempotency keys, async jobs and webhooks.", 3, "sys_apis"),
-    ("S24", "S24_architecture_patterns", "Architecture patterns: monoliths to events", "Monolith versus microservices, event-driven design, CQRS, sagas, the outbox and migration patterns.", 3, None),
+    ("S24", "S24_architecture_patterns", "Architecture patterns: monoliths, services, events and CQRS", "Monolith versus services with real numbers, a strangler migration on real nginx, event sourcing, CQRS read models and data ownership.", 3, "sys_arch2"),
     ("S25", "S25_security_for_design", "Security for system design", "Authentication, authorisation, TLS and mTLS, secrets, common attacks, DDoS and data protection.", 3, None),
     ("S26", "S26_designing_for_reliability", "Designing for reliability and operations", "Availability math, multi-region, disaster recovery, safe deployments, observability.", 3, "sys_reliability_design"),
     ("S27", "S27_design_warmups", "Design warm-ups", "URL shortener, pastebin, rate limiter, ID generator, key-value store.", 4, "sys_design_warmups"),
