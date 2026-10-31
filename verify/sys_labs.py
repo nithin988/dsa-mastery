@@ -38,6 +38,7 @@ def main():
                 f'bash "$HOME/sys-lab/check-{name}.sh" > /dev/null 2>&1; echo "BEFORE_RC=$?"\n'
                 'bash "$D/solution.sh" > /dev/null 2>&1; echo "SOLUTION_RC=$?"\n'
                 f'bash "$HOME/sys-lab/check-{name}.sh" 2>&1; echo "AFTER_RC=$?"\n'
+                + "".join(f"{c}\n" for c in lab.get("cleanup", []))
             )
             files["driver.sh"] = driver
             rc, out = sys_runner.run_bash(files, "driver.sh", timeout=300)

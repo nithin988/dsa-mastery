@@ -277,5 +277,305 @@
    "out": "could not change directory\n"
   }
  ],
- "_env": "Debian GNU/Linux 13 (trixie)"
+ "_env": "Debian GNU/Linux 13 (trixie)",
+ "tx": [
+  {
+   "cmd": "cd ~/textlab",
+   "out": ""
+  },
+  {
+   "cmd": "grep -c ERROR server.log",
+   "out": "5\n"
+  },
+  {
+   "cmd": "grep -E \"ERROR|WARN\" server.log | wc -l",
+   "out": "8\n"
+  },
+  {
+   "cmd": "grep -n \"timeout\" server.log",
+   "out": "2:2026-01-15 10:01:15 ERROR db timeout (host=db1) 3000ms\n5:2026-01-15 10:03:10 ERROR db timeout (host=db1) 3000ms\n10:2026-01-15 11:15:40 ERROR db timeout (host=db1) 3000ms\n"
+  },
+  {
+   "cmd": "grep -vc INFO server.log",
+   "out": "8\n"
+  },
+  {
+   "cmd": "grep -E \"^2026-01-15 11:\" server.log",
+   "out": "2026-01-15 11:00:02 ERROR disk full (host=web2) 5ms\n2026-01-15 11:00:30 INFO  backup started (host=db2) 20ms\n2026-01-15 11:15:09 WARN  retrying connection (host=web1) 200ms\n2026-01-15 11:15:40 ERROR db timeout (host=db1) 3000ms\n"
+  },
+  {
+   "cmd": "grep -E \"[0-9]{4}ms\" server.log",
+   "out": "2026-01-15 10:01:15 ERROR db timeout (host=db1) 3000ms\n2026-01-15 10:02:44 WARN  slow query (host=db1) 1450ms\n2026-01-15 10:03:10 ERROR db timeout (host=db1) 3000ms\n2026-01-15 11:15:40 ERROR db timeout (host=db1) 3000ms\n2026-01-16 09:02:30 WARN  slow query (host=db2) 1800ms\n"
+  },
+  {
+   "cmd": "grep -o \"host=[a-z0-9]*\" server.log | sort | uniq -c",
+   "out": "      4 host=db1\n      2 host=db2\n      4 host=web1\n      4 host=web2\n"
+  },
+  {
+   "cmd": "grep -E \"\\(host=db[12]\\)\" server.log | head -n 2",
+   "out": "2026-01-15 10:01:15 ERROR db timeout (host=db1) 3000ms\n2026-01-15 10:02:44 WARN  slow query (host=db1) 1450ms\n"
+  },
+  {
+   "cmd": "echo \"ERROR: disk full on /var\" | sed 's/ERROR/WARN/'",
+   "out": "WARN: disk full on /var\n"
+  },
+  {
+   "cmd": "echo \"a-b-c\" | sed 's/-/+/g'",
+   "out": "a+b+c\n"
+  },
+  {
+   "cmd": "sed 's/ERROR/E/' server.log | head -n 3",
+   "out": "2026-01-15 10:01:12 INFO  api request ok (host=web1) 120ms\n2026-01-15 10:01:15 E db timeout (host=db1) 3000ms\n2026-01-15 10:02:01 INFO  api request ok (host=web2) 98ms\n"
+  },
+  {
+   "cmd": "sed -E 's/\\(host=([a-z0-9]+)\\)/[\\1]/' server.log | head -n 2",
+   "out": "2026-01-15 10:01:12 INFO  api request ok [web1] 120ms\n2026-01-15 10:01:15 ERROR db timeout [db1] 3000ms\n"
+  },
+  {
+   "cmd": "sed -n '2,4p' server.log",
+   "out": "2026-01-15 10:01:15 ERROR db timeout (host=db1) 3000ms\n2026-01-15 10:02:01 INFO  api request ok (host=web2) 98ms\n2026-01-15 10:02:44 WARN  slow query (host=db1) 1450ms\n"
+  },
+  {
+   "cmd": "sed '/INFO/d' server.log | wc -l",
+   "out": "8\n"
+  },
+  {
+   "cmd": "cp server.log scratch/copy.log && sed -i.bak 's/db1/DB-ONE/g' scratch/copy.log && grep -c DB-ONE scratch/copy.log && ls scratch",
+   "out": "4\ncopy.log\ncopy.log.bak\n"
+  },
+  {
+   "cmd": "awk '{print $1, $3}' people.txt",
+   "out": "alice eng\nbob ops\ncarol eng\ndave ops\n"
+  },
+  {
+   "cmd": "awk '$2 > 20 {print $1}' people.txt",
+   "out": "alice\ncarol\n"
+  },
+  {
+   "cmd": "awk -F, 'NR==1 {print \"columns:\", NF}' sales.csv",
+   "out": "columns: 4\n"
+  },
+  {
+   "cmd": "awk '$3==\"ERROR\" {n++} END {print n \" errors\"}' server.log",
+   "out": "5 errors\n"
+  },
+  {
+   "cmd": "awk '{sum += $2} END {print \"total:\", sum, \"average:\", sum/NR}' people.txt",
+   "out": "total: 130 average: 32.5\n"
+  },
+  {
+   "cmd": "awk -F, 'NR>1 {rev[$1] += $3*$4} END {for (r in rev) print r, rev[r]}' sales.csv | sort",
+   "out": "east 27.5\nnorth 55\nsouth 70\n"
+  },
+  {
+   "cmd": "awk -F, 'NR>1 {printf \"%-6s %5.1f\\n\", $2, $3*$4}' sales.csv | head -n 3",
+   "out": "widget  25.0\nwidget  10.0\ngadget  30.0\n"
+  },
+  {
+   "cmd": "sort words.txt | uniq -c | sort -rn",
+   "out": "      3 apple\n      2 banana\n      1 date\n      1 cherry\n"
+  },
+  {
+   "cmd": "sort -u words.txt",
+   "out": "apple\nbanana\ncherry\ndate\n"
+  },
+  {
+   "cmd": "sort -k2 -n people.txt",
+   "out": "dave 8 ops\nbob 17 ops\nalice 42 eng\ncarol 63 eng\n"
+  },
+  {
+   "cmd": "cut -d, -f1,3 sales.csv | head -n 3",
+   "out": "region,units\nnorth,10\nsouth,4\n"
+  },
+  {
+   "cmd": "echo \"Hello World\" | tr 'a-z' 'A-Z'",
+   "out": "HELLO WORLD\n"
+  },
+  {
+   "cmd": "find tmpfiles -name \"*.tmp\" | sort | xargs -n 2 echo",
+   "out": "tmpfiles/a.tmp tmpfiles/b.tmp\ntmpfiles/c.tmp tmpfiles/my\nnotes.tmp\n"
+  },
+  {
+   "cmd": "find tmpfiles -name \"*.tmp\" -print0 | sort -z | xargs -0 -n 2 echo",
+   "out": "tmpfiles/a.tmp tmpfiles/b.tmp\ntmpfiles/c.tmp tmpfiles/my notes.tmp\n"
+  },
+  {
+   "cmd": "wc -l people.txt words.txt",
+   "out": " 4 people.txt\n 7 words.txt\n11 total\n"
+  },
+  {
+   "cmd": "cat > scratch/greet.sh <<'EOF'\n#!/bin/bash\nset -euo pipefail\nname=${1:-world}\necho \"Hello, $name\"\nEOF\nchmod +x scratch/greet.sh",
+   "out": ""
+  },
+  {
+   "cmd": "scratch/greet.sh",
+   "out": "Hello, world\n"
+  },
+  {
+   "cmd": "scratch/greet.sh Ada",
+   "out": "Hello, Ada\n"
+  },
+  {
+   "cmd": "cat > scratch/args.sh <<'EOF'\n#!/bin/bash\necho \"count: $#\"\nfor a in \"$@\"; do echo \"arg: [$a]\"; done\nEOF\nchmod +x scratch/args.sh && scratch/args.sh one \"two words\" three",
+   "out": "count: 3\narg: [one]\narg: [two words]\narg: [three]\n"
+  },
+  {
+   "cmd": "for f in people.txt words.txt nothere.txt; do if [ -f \"$f\" ]; then echo \"$f has $(wc -l < \"$f\") lines\"; else echo \"$f is missing\"; fi; done",
+   "out": "people.txt has 4 lines\nwords.txt has 7 lines\nnothere.txt is missing\n"
+  },
+  {
+   "cmd": "while IFS= read -r line; do echo \"got: $line\"; done < people.txt | head -n 2",
+   "out": "got: alice 42 eng\ngot: bob 17 ops\n"
+  },
+  {
+   "cmd": "greet() { echo \"Hi, $1\"; }; greet Linus; greet Grace",
+   "out": "Hi, Linus\nHi, Grace\n"
+  },
+  {
+   "cmd": "bash -c 'set -e; false; echo \"not reached\"'; echo \"exit: $?\"",
+   "out": "exit: 1\n"
+  },
+  {
+   "cmd": "bash -c 'set -u; echo \"value: $UNSET\"'; echo \"exit: $?\"",
+   "out": "bash: UNSET: unbound variable\nexit: 127\n"
+  },
+  {
+   "cmd": "bash -c 'false | true; echo \"without pipefail: $?\"'; bash -c 'set -o pipefail; false | true; echo \"with pipefail: $?\"'",
+   "out": "without pipefail: 0\nwith pipefail: 1\n"
+  },
+  {
+   "cmd": "bash -c 'trap \"echo cleaning up\" EXIT; echo working'",
+   "out": "working\ncleaning up\n"
+  },
+  {
+   "cmd": "cat > scratch/logsum.sh <<'EOF'\n#!/bin/bash\n# logsum.sh: summarise a log file by level and by host\nset -euo pipefail\n\nusage() { echo \"usage: $0 LOGFILE\" >&2; exit 1; }\n[ \"$#\" -eq 1 ] || usage\nlog=$1\n[ -r \"$log\" ] || { echo \"error: cannot read $log\" >&2; exit 2; }\n\necho \"== $log ==\"\necho \"lines: $(wc -l < \"$log\")\"\necho \"by level:\"\nawk '{print $3}' \"$log\" | sort | uniq -c | sort -rn | sed 's/^/  /'\necho \"errors by host:\"\ngrep ' ERROR ' \"$log\" | grep -o 'host=[a-z0-9]*' | sort | uniq -c | sort -rn | sed 's/^/  /'\nEOF\nchmod +x scratch/logsum.sh",
+   "out": ""
+  },
+  {
+   "cmd": "scratch/logsum.sh server.log",
+   "out": "== server.log ==\nlines: 14\nby level:\n        6 INFO\n        5 ERROR\n        3 WARN\nerrors by host:\n        3 host=db1\n        2 host=web2\n"
+  },
+  {
+   "cmd": "scratch/logsum.sh; echo \"exit: $?\"",
+   "out": "usage: scratch/logsum.sh LOGFILE\nexit: 1\n"
+  },
+  {
+   "cmd": "scratch/logsum.sh nofile.log; echo \"exit: $?\"",
+   "out": "error: cannot read nofile.log\nexit: 2\n"
+  }
+ ],
+ "li": [
+  {
+   "cmd": "cat /proc/self/status | grep -E \"^(Name|State)\"",
+   "out": "Name:\tcat\nState:\tR (running)\n"
+  },
+  {
+   "cmd": "bash -c 'exit 3'; echo \"exit code: $?\"",
+   "out": "exit code: 3\n"
+  },
+  {
+   "cmd": "( sleep 30 & pid=$!; sleep 0.2; ps -o stat=,comm= -p $pid; kill $pid; wait $pid 2>/dev/null; echo \"exit code: $?\" ) 2>/dev/null",
+   "out": "S+   sleep\nexit code: 143\n"
+  },
+  {
+   "cmd": "( bash -c 'sleep 0.1 & exec sleep 3' & pid=$!; sleep 0.6; ps -o stat=,args= --ppid $pid; kill $pid ) 2>/dev/null",
+   "out": "Z+   [sleep] <defunct>\n"
+  },
+  {
+   "cmd": "kill -l TERM",
+   "out": "15\n"
+  },
+  {
+   "cmd": "kill -l 9",
+   "out": "KILL\n"
+  },
+  {
+   "cmd": "( bash -c 'trap \"echo got TERM, cleaning up; exit 0\" TERM; sleep 5 & wait' & pid=$!; sleep 0.3; kill -TERM $pid; wait $pid; echo \"exit code: $?\" ) 2>&1",
+   "out": "got TERM, cleaning up\nexit code: 0\n"
+  },
+  {
+   "cmd": "( sleep 5 & pid=$!; sleep 0.3; kill -9 $pid; wait $pid 2>/dev/null; echo \"exit code: $?\" ) 2>/dev/null",
+   "out": "exit code: 137\n"
+  },
+  {
+   "cmd": "grep -E \"^(MemTotal|MemAvailable)\" /proc/meminfo | awk '{print $1}'",
+   "out": "MemTotal:\nMemAvailable:\n"
+  },
+  {
+   "cmd": "cat /proc/self/oom_score_adj",
+   "out": "0\n"
+  },
+  {
+   "cmd": "cd ~/workshop",
+   "out": ""
+  },
+  {
+   "cmd": "echo \"Q4 numbers\" > scratch/report.txt; ln scratch/report.txt scratch/backup.txt; ln -s report.txt scratch/latest.txt; stat -c '%n links=%h type=%F' scratch/backup.txt scratch/latest.txt scratch/report.txt",
+   "out": "scratch/backup.txt links=2 type=regular file\nscratch/latest.txt links=1 type=symbolic link\nscratch/report.txt links=2 type=regular file\n"
+  },
+  {
+   "cmd": "readlink scratch/latest.txt",
+   "out": "report.txt\n"
+  },
+  {
+   "cmd": "[ \"$(stat -c %i scratch/report.txt)\" = \"$(stat -c %i scratch/backup.txt)\" ] && echo \"same inode\"",
+   "out": "same inode\n"
+  },
+  {
+   "cmd": "rm scratch/report.txt; cat scratch/backup.txt; cat scratch/latest.txt",
+   "out": "Q4 numbers\ncat: scratch/latest.txt: No such file or directory\n"
+  },
+  {
+   "cmd": "stat -c '%n links=%h' scratch/backup.txt",
+   "out": "scratch/backup.txt links=1\n"
+  },
+  {
+   "cmd": "du -sb notes archive",
+   "out": "73\tnotes\n11\tarchive\n"
+  },
+  {
+   "cmd": "cat /proc/self/cmdline | tr '\\0' ' '; echo",
+   "out": "cat /proc/self/cmdline \n"
+  },
+  {
+   "cmd": "ls /proc/self/fd | sort -n | head -n 3",
+   "out": "0\n1\n2\n"
+  },
+  {
+   "cmd": "readlink /proc/self/exe",
+   "out": "/usr/bin/readlink\n"
+  },
+  {
+   "cmd": "stat -c '%A major,minor=%t,%T %n' /dev/null",
+   "out": "crw-rw-rw- major,minor=1,3 /dev/null\n"
+  },
+  {
+   "cmd": "head -c 4 /dev/zero | od -An -tx1",
+   "out": " 00 00 00 00\n"
+  },
+  {
+   "cmd": "head -c 5 /dev/urandom | wc -c",
+   "out": "5\n"
+  },
+  {
+   "cmd": "head -n 1 /etc/passwd",
+   "out": "root:x:0:0:root:/root:/bin/bash\n"
+  },
+  {
+   "cmd": "getent passwd learner | cut -d: -f1,6,7",
+   "out": "learner:/home/learner:/bin/bash\n"
+  },
+  {
+   "cmd": "id -u",
+   "out": "1000\n"
+  },
+  {
+   "cmd": "stat -c '%A %U %n' /usr/bin/passwd /tmp",
+   "out": "-rwsr-xr-x root /usr/bin/passwd\ndrwxrwxrwt root /tmp\n"
+  },
+  {
+   "cmd": "( umask 077; touch scratch/private.txt; stat -c '%a' scratch/private.txt )",
+   "out": "600\n"
+  }
+ ]
 }

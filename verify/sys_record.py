@@ -44,7 +44,8 @@ def normalise(text):
 def record_module(m):
     cmds = runnable(m)
     files = {}
-    pre = ["export LC_ALL=C TZ=UTC", 'D="$(dirname "$0")"']
+    pre = ["export LC_ALL=C TZ=UTC", 'D="$(dirname "$0")"',
+           'rm -rf "$HOME/workshop" "$HOME/textlab" "$HOME/sys-lab" "$HOME/gitwork" "$HOME"/.sys-lab-*   # clean slate: other modules leave folders behind']
     for f in m.get("fixture_files", []):
         kind, name = f.split("/")
         files[name] = sys_runner.read(os.path.join(LABS, kind, name))
