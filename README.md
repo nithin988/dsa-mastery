@@ -1,4 +1,4 @@
-# DSA Mastery
+# Mastery: DSA and Systems
 
 Pattern-based Data Structures and Algorithms revision sheets for interview preparation. One self-contained HTML page per topic, each with intuition, a step-through animation, code in Java and Python, complexity, common traps and a ladder of LeetCode problems.
 
@@ -29,6 +29,25 @@ Every page has a **Download** button (and the index has one per topic), so frien
 | 17 | [Advanced Data Structures](topics/17_advanced_ds.html) | done |
 | 18 | [Design Problems](topics/18_design_problems.html) | done |
 | 19 | [Interview Playbook](topics/19_interview_playbook.html) | done |
+
+## Course 2: Systems Mastery (in progress)
+
+Linux, Git, troubleshooting, system design and interviews, kept separate from DSA (own landing page `systems.html`, own progress store, left navigation rail on every page). The plan and content policy are in [docs/COURSE2_PLAN.md](docs/COURSE2_PLAN.md).
+
+| Module | Page | Labs |
+|--------|------|------|
+| S02 Linux shell | [systems/S02_linux_shell.html](systems/S02_linux_shell.html) | find-config, fix-permissions, top-ips |
+| S03 Text tools and scripting | [systems/S03_text_processing_scripting.html](systems/S03_text_scripting.html) | log-forensics, backup-script, bulk-rename |
+| S04 Linux internals | [systems/S04_linux_internals.html](systems/S04_linux_internals.html) | find-the-hog, links-and-inodes, disk-detective |
+| S05 Git fundamentals | [systems/S05_git_fundamentals.html](systems/S05_git_fundamentals.html) | first-repo, merge-conflict, undo-mistakes |
+| S06 Git in teams and recovery | [systems/S06_git_teams_recovery.html](systems/S06_git_teams_recovery.html) | recover-reflog, squash-branch, find-the-bug |
+
+- **Every command output on these pages is real.** `python verify/sys_record.py <module-id>` runs the page's commands on real Linux (WSL Debian) as an unprivileged user and stores the output in `build/sys_outputs.json`; the build fails if a runnable command has no fresh recorded output. Output that cannot be reproduced (systemd, interactive editors) is labelled illustrative.
+- **Every lab is verified:** `python verify/sys_labs.py` runs each setup script, confirms its check script fails, runs the reference solution, and confirms the check passes.
+- `python verify/sys_links.py` checks that every source link still responds.
+- Learners run labs either with Docker (`systems/labs/linux/Dockerfile`) or by downloading a lab script and running it with `bash`; lab scripts only touch `~/sys-lab` and refuse to touch folders they did not create.
+- Hashes and dates in Git examples come from a fixed clock; learners will see different ones, with identical behaviour.
+- Content: `build/sys_*.py` (one per module), `build/syscatalog.py` (catalogue), `build/lib_sys.py` (renderer), `build/sims_sys.js` (animations), `build/sysviz.py` (diagrams).
 
 ## For contributors
 

@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Git fundamentals | Systems Mastery</title>
+<meta name="description" content="Git is the tool every engineering team uses to keep history and work together. This module builds the correct mental model first (snapshots, three areas, branches as labels), then walks through everyday work, branching, merging and remotes ">
+<meta name="theme-color" content="#0f172a">
+<meta property="og:type" content="article"><meta property="og:site_name" content="Systems Mastery"><meta property="og:title" content="Git fundamentals">
+<meta property="og:description" content="Git is the tool every engineering team uses to keep history and work together. This module builds the correct mental model first (snapshots, three areas, branches as labels), then walks through everyday work, branching, merging and remotes "><meta property="og:url" content="https://nithin988.github.io/dsa-mastery/systems/S05_git_fundamentals.html">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f172a'/%3E%3Ctext x='16' y='21' font-family='monospace' font-size='13' font-weight='700' fill='%23f8fafc' text-anchor='middle'%3EDSA%3C/text%3E%3C/svg%3E">
+<style>/* DSA Mastery: shared stylesheet. Tokens and components follow the Kimaru Platform design system
+   (slate neutrals, semantic colour, rounded-md cards, shadow-sm, 16px stroke icons). See docs/DESIGN_SYSTEM.md. */
+:root{
+ --bg:#f8fafc;--surf:#fff;--hd:#f8fafc;--soft:#f1f5f9;--line:#e2e8f0;--line2:#f1f5f9;
+ --fg:#0f172a;--txt:#334155;--mut:#475569;--faint:#64748b;
+ --ink:#0f172a;--ink-fg:#f8fafc;
+ --acc:#3162b4;--acc-soft:#eaf0fa;--acc-line:#bcd0ee;
+ --ok:#15803d;--ok-soft:#f0fdf4;--ok-line:#86efac;
+ --warn:#b45309;--warn-soft:#fffbeb;--warn-line:#fbbf24;
+ --med:#a16207;--med-soft:#fefce8;
+ --bad:#b91c1c;--bad-soft:#fef2f2;--bad-line:#f87171;
+ --risk:#c2410c;--risk-soft:#fff7ed;
+ --info:#0369a1;--info-soft:#f0f9ff;--info-line:#38bdf8;
+ --done:#0f766e;--done-soft:#f0fdfa;--done-line:#5eead4;
+ --code:#f8fafc;--ring:#3162b4;
+ --sh:0 1px 2px rgba(15,23,42,.06);--sh-lg:0 10px 30px rgba(15,23,42,.12);
+ --r:6px;--r-lg:8px;
+ color-scheme:light}
+:root[data-theme=dark]{
+ --bg:#020617;--surf:#0f172a;--hd:#0b1324;--soft:#1e293b;--line:#1e293b;--line2:#172033;
+ --fg:#f1f5f9;--txt:#cbd5e1;--mut:#a3b1c6;--faint:#94a3b8;
+ --ink:#f1f5f9;--ink-fg:#0f172a;
+ --acc:#8db4f0;--acc-soft:#14233d;--acc-line:#2c4a7a;
+ --ok:#4ade80;--ok-soft:#0c2a18;--ok-line:#166534;
+ --warn:#fbbf24;--warn-soft:#2b2008;--warn-line:#a16207;
+ --med:#facc15;--med-soft:#2a2308;
+ --bad:#f87171;--bad-soft:#2d1214;--bad-line:#b91c1c;
+ --risk:#fb923c;--risk-soft:#2b1708;
+ --info:#38bdf8;--info-soft:#0a2233;--info-line:#0369a1;
+ --done:#2dd4bf;--done-soft:#0a2624;--done-line:#0f766e;
+ --code:#0b1324;--ring:#8db4f0;
+ --sh:none;--sh-lg:0 10px 30px rgba(0,0,0,.5);color-scheme:dark}
+
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:var(--acc);text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:4px}
+code{background:var(--soft);padding:1px 5px;border-radius:4px;font:0.88em ui-monospace,"Cascadia Code",Consolas,Menlo,monospace;color:var(--fg)}
+.mut,.muted{color:var(--mut)}.muted{font-size:13px;font-weight:400}
+.skip{position:absolute;left:12px;top:-60px;z-index:100;background:var(--ink);color:var(--ink-fg);padding:8px 14px;border-radius:var(--r);text-decoration:none;font-size:14px}.skip:focus{top:8px}
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.33;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-3px}
+.ic.fill{fill:currentColor;stroke:none}.ic.lg{width:20px;height:20px}
+
+/* buttons: primary = dark, secondary = light, confirmed = teal (design system section 5) */
+.btn,.bar button,.st-ctl button,.st-ctl select{font:inherit;font-size:13px;font-weight:500;line-height:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);cursor:pointer;text-decoration:none;box-shadow:var(--sh);transition:background .15s,border-color .15s}
+.btn:hover,.bar button:hover,.st-ctl button:hover{background:var(--soft)}
+.btn.pri,.bar button.on,.btn.on{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.btn.pri:hover{opacity:.9;background:var(--ink)}
+.btn.sec{background:var(--soft)}
+.btn.lg{height:40px;padding:0 18px;font-size:14px}
+.iconbtn{width:32px;padding:0!important}
+
+/* top bar (sticky 48px, like ReviewBar) */
+.bar{position:sticky;top:0;z-index:30;background:var(--surf);border-bottom:1px solid var(--line);box-shadow:var(--sh)}
+.bar-in{max-width:1280px;margin:0 auto;height:48px;display:flex;gap:8px;align-items:center;padding:0 16px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;text-decoration:none;color:var(--fg);letter-spacing:-.01em;margin-right:4px}
+.brand b{font-weight:700}.brand span{color:var(--faint);font-weight:600}
+.logo{width:24px;height:24px;border-radius:6px;background:var(--ink);color:var(--ink-fg);display:grid;place-items:center;font:700 11px ui-monospace,Consolas,monospace;letter-spacing:-.02em}
+.crumbs{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mut);min-width:0;margin-right:auto}
+.crumbs a{color:var(--mut);text-decoration:none}.crumbs a:hover{color:var(--fg)}
+.crumbs .cur{color:var(--fg);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crumbs .ic{color:var(--faint);width:14px;height:14px}
+.prog{font-size:12.5px;color:var(--mut);white-space:nowrap;padding:0 4px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.seg button{border:0!important;border-radius:0!important;box-shadow:none!important;background:var(--surf)}
+.seg button+button{border-left:1px solid var(--line)!important}
+.pbar{height:2px;background:var(--line)}.pbar i{display:block;height:100%;width:0;background:var(--acc);transition:width .4s}
+
+/* topic switcher panel */
+.menu{position:relative}
+.panel{position:absolute;right:0;top:40px;width:min(380px,92vw);max-height:min(70vh,640px);overflow:auto;background:var(--surf);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-lg);padding:6px;z-index:50}
+.panel[hidden]{display:none}
+.panel h5{margin:10px 8px 4px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.panel a{display:grid;grid-template-columns:26px 1fr auto;gap:8px;align-items:center;padding:7px 8px;border-radius:var(--r);text-decoration:none;color:var(--fg);font-size:13.5px}
+.panel a:hover{background:var(--soft)}.panel a[aria-current=page]{background:var(--soft);font-weight:600}
+.panel .n{font:600 11px ui-monospace,Consolas,monospace;color:var(--faint)}
+.panel .c{font-size:11.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.panel .c.done{color:var(--done);font-weight:600}
+
+/* layout */
+.wrap{max-width:1280px;margin:0 auto;padding:0 16px;display:grid;grid-template-columns:248px minmax(0,1fr);gap:32px}
+nav.side{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto;padding:20px 0;font-size:13.5px}
+nav.side h4{margin:16px 0 6px;padding:0 10px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+nav.side a{display:flex;gap:8px;align-items:center;padding:6px 10px;border-radius:var(--r);text-decoration:none;color:var(--txt)}
+nav.side a:hover{background:var(--soft)}nav.side a.act{background:var(--soft);color:var(--fg);font-weight:600;box-shadow:inset 2px 0 0 var(--ink)}
+nav.side .dot{width:8px;height:8px;border-radius:50%;flex:none}.dot.hot{background:var(--warn)}.dot.sec{background:var(--faint)}
+nav.side .cnt{margin-left:auto;font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}
+main{min-width:0;padding:24px 0 90px}
+.chips{display:none}
+
+/* page header (hero) */
+.hero{background:var(--surf);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh);padding:24px 26px;margin-bottom:20px}
+.eyebrow{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);display:flex;align-items:center;gap:8px}
+.eyebrow .tag{background:var(--soft);border-radius:99px;padding:3px 9px;color:var(--fg);letter-spacing:.06em}
+.hero h1{font-size:clamp(24px,3.4vw,32px);line-height:1.2;margin:10px 0 10px;letter-spacing:-.02em;color:var(--fg);font-weight:700}
+.lead{font-size:15.5px;color:var(--txt);margin:0;max-width:72ch}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.stat{display:inline-flex;gap:6px;align-items:center;background:var(--hd);border:1px solid var(--line);border-radius:99px;padding:3px 12px;font-size:12.5px;color:var(--mut)}.stat b{color:var(--fg);font-variant-numeric:tabular-nums}
+
+/* headings */
+h2{font-size:20px;font-weight:700;margin:40px 0 10px;letter-spacing:-.01em;scroll-margin-top:72px;color:var(--fg)}
+h3{margin:0;font-size:20px;font-weight:600;letter-spacing:-.01em;color:var(--fg)}
+
+/* callouts: neutral box + 2px left accent (design system section 6) */
+.callout{border:1px solid var(--line);border-left:2px solid var(--faint);background:var(--hd);padding:10px 14px;border-radius:var(--r);margin:14px 0}
+.callout.intu{border-left-color:var(--info-line)}.callout p{margin:4px 0}
+.callout .lbl{margin-bottom:2px}
+
+/* pattern card: header bar + body (design system section 6) */
+.pat{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);margin:22px 0;scroll-margin-top:72px;overflow:hidden}
+.pat-h{display:flex;gap:12px;align-items:center;flex-wrap:wrap;min-height:50px;padding:8px 16px;background:var(--hd);border-bottom:1px solid var(--line)}
+.pat-h h3{font-size:18px}
+.badge{width:28px;height:28px;border-radius:var(--r);background:var(--ink);color:var(--ink-fg);display:flex;align-items:center;justify-content:center;font:700 13px ui-monospace,Consolas,monospace;flex:none}
+.tier{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;white-space:nowrap}
+.tier.hot{background:var(--warn-soft);color:var(--warn)}.tier.sec{background:var(--soft);color:var(--mut)}
+.pp{margin-left:auto;font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.pat-b{padding:6px 16px 8px}
+.glance{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0;margin:8px 0 6px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.gi{padding:10px 14px;font-size:14px;border-left:1px solid var(--line2)}.gi:first-child{border-left:0}
+.lbl{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.lbl .ic{width:14px;height:14px}
+.blk{margin:16px 0}.blk p{margin:4px 0}
+.blk ol,.blk ul{margin:4px 0;padding-left:22px}.blk li{margin:4px 0}
+.blk.warn{border:1px solid var(--line);border-left:2px solid var(--warn-line);background:var(--warn-soft);border-radius:var(--r);padding:10px 14px}.blk.warn .lbl{color:var(--warn)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cx{display:flex;gap:8px;align-items:center;background:var(--ok-soft);color:var(--ok);border:1px solid var(--line);border-left:2px solid var(--ok-line);border-radius:var(--r);padding:8px 14px;font-weight:600;font-size:14px;margin:14px 0}
+
+/* code */
+pre{background:var(--code);border:1px solid var(--line);border-radius:var(--r);padding:34px 15px 13px;overflow-x:auto;margin:8px 0;position:relative;font-size:13px;line-height:1.55;color:var(--fg)}
+pre::before{position:absolute;left:12px;top:8px;font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+pre.code-java::before{content:"Java"}pre.code-py::before{content:"Python"}pre.trace::before{content:"Trace"}
+pre code{background:none;padding:0;font-size:inherit;color:inherit}
+.code-java,.code-py{display:none}body[data-lang=java] .code-java,body[data-lang=py] .code-py{display:block}
+.cp{position:absolute;top:5px;right:6px;font:500 12px system-ui,sans-serif;height:24px;padding:0 9px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--mut);cursor:pointer}
+.cp:hover{color:var(--fg);background:var(--soft)}
+.trace{border-left:2px solid var(--faint)}
+
+/* tables */
+.tw{overflow-x:auto;margin:10px 0;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:9px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line2)}
+th{background:var(--hd);font:600 11px/1.2 system-ui,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);border-bottom:1px solid var(--line);position:sticky;top:0}
+tbody tr:hover td{background:var(--hd)}tr:last-child td{border-bottom:0}
+.ladder td:first-child{width:36px;text-align:center}.ladder .t{white-space:nowrap}.ladder .c{white-space:nowrap;font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+input.pk{width:18px;height:18px;accent-color:var(--done);cursor:pointer;margin:0}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;white-space:nowrap}
+.dE{background:var(--ok-soft);color:var(--ok)}.dM{background:var(--med-soft);color:var(--med)}.dH{background:var(--bad-soft);color:var(--bad)}
+tr.done td{background:var(--done-soft)}tr.done td:nth-child(3){text-decoration:line-through;text-decoration-color:var(--faint)}
+details{border:1px solid var(--line);border-radius:var(--r);padding:0 14px;margin:8px 0;background:var(--surf)}
+summary{cursor:pointer;font-weight:600;padding:10px 0;color:var(--fg);list-style:none;display:flex;gap:8px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"";width:6px;height:6px;border-right:1.5px solid var(--faint);border-bottom:1.5px solid var(--faint);transform:rotate(-45deg);transition:transform .2s;flex:none}
+details[open] summary::before{transform:rotate(45deg)}
+details[open]{border-left:2px solid var(--info-line)}details p{margin:0 0 12px;color:var(--txt)}
+
+/* stepper (animation panel) */
+.stepper{border:1px solid var(--line);border-radius:var(--r-lg);margin:8px 0 14px;background:var(--surf);box-shadow:var(--sh);overflow:hidden}
+.stepper:focus-visible{outline-offset:0}
+.st-head{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--hd);border-bottom:1px solid var(--line);font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.st-head .st-count{margin-left:auto;font-size:11.5px;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.st-body{padding:12px 14px 4px}
+.st-prog{height:3px;background:var(--line);overflow:hidden}.st-prog i{display:block;height:100%;background:var(--acc);width:0;transition:width .3s}
+.st-view{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;padding:6px 0 2px;margin:0 auto}
+.cellw{display:flex;flex-direction:column;align-items:center;min-width:46px}
+.ptr{min-height:22px;font:600 11px ui-monospace,Consolas,monospace;margin-bottom:3px;display:flex;align-items:flex-end}
+.ptr b{background:var(--ink);color:var(--ink-fg);padding:1px 7px;border-radius:99px;white-space:nowrap;animation:drop .25s ease}
+.cell{min-width:46px;height:46px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:600 15px ui-monospace,Consolas,monospace;padding:0 7px;transition:background .25s,border-color .25s,transform .25s}
+.cell.in{background:var(--acc-soft);border-color:var(--acc);transform:translateY(-2px)}
+.cell.ok{background:var(--done-soft);border-color:var(--done)}
+.cell.dim{background:var(--soft);color:var(--mut);border-style:dashed;opacity:.65}
+.cell.pop{animation:pop .35s ease}
+.edge{align-self:flex-start;margin-top:31px;min-width:20px;text-align:center;color:var(--faint);font:700 16px ui-monospace,Consolas,monospace}
+.idx{font:11px ui-monospace,Consolas,monospace;color:var(--mut);margin-top:3px}
+.st-aux{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;min-height:30px;margin-top:8px}
+.st-aux .al{font:600 10px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}
+.chip{font:600 12.5px ui-monospace,Consolas,monospace;background:var(--hd);border:1px solid var(--line);border-radius:var(--r);padding:2px 9px;color:var(--fg)}
+.st-note{min-height:48px;margin:8px 0;font-size:14.5px;padding:10px 13px;background:var(--hd);border:1px solid var(--line);border-left:2px solid var(--info-line);border-radius:var(--r);color:var(--txt)}
+.st-ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 14px 12px}
+.st-ctl button{min-width:32px}
+.st-ctl button.pri{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.st-ctl input[type=range]{flex:1;min-width:90px;accent-color:var(--ink)}
+.st-ctl select{padding:0 8px}
+@keyframes pop{0%{transform:scale(.75)}60%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes drop{from{transform:translateY(-6px);opacity:0}to{transform:none;opacity:1}}
+
+/* previous / next */
+.foot{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.nxt{display:flex;flex-direction:column;gap:3px;padding:14px 16px;background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);text-decoration:none;color:var(--fg)}
+.nxt:hover{border-color:var(--faint)}.nxt.r{text-align:right;align-items:flex-end}.nxt small{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);display:flex;gap:6px;align-items:center}
+.nxt strong{font-size:15px;font-weight:600}
+.nxt.next{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}.nxt.next small{color:inherit;opacity:.75}
+.site-foot{max-width:1280px;margin:0 auto;padding:22px 16px 40px;display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between;color:var(--mut);font-size:13px;border-top:1px solid var(--line)}
+.site-foot a{color:var(--mut)}.site-foot a:hover{color:var(--fg)}
+
+/* landing page */
+.home{max-width:1120px;margin:0 auto;padding:28px 16px 60px}
+.home-hero{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:stretch}
+.home-hero .hero{margin:0;display:flex;flex-direction:column}
+.home-hero .hero h1{font-size:clamp(28px,4vw,40px)}
+.cta{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:14px 16px;display:flex;flex-direction:column;justify-content:center}
+.kpi b{font-size:26px;line-height:1.1;color:var(--fg);letter-spacing:-.02em;font-variant-numeric:tabular-nums}.kpi span{font-size:12.5px;color:var(--mut);margin-top:3px}
+.kpi.wide{grid-column:1/-1}
+.meter{height:6px;border-radius:99px;background:var(--soft);overflow:hidden;margin-top:10px}.meter i{display:block;height:100%;width:0;background:var(--done);border-radius:99px;transition:width .4s}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0 0}
+.how div{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;font-size:14px}
+.how b{display:flex;align-items:center;gap:8px;color:var(--fg);margin-bottom:4px}
+.how .no{width:22px;height:22px;border-radius:6px;background:var(--soft);display:grid;place-items:center;font:700 11px ui-monospace,monospace;color:var(--fg)}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:34px 0 4px}
+.tools h2{margin:0;margin-right:auto;font-size:20px}
+.search{position:relative}.search input{height:32px;width:220px;max-width:100%;padding:0 10px 0 32px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:13px}
+.search .ic{position:absolute;left:10px;top:8px;color:var(--faint)}
+.filters{display:inline-flex;gap:6px;flex-wrap:wrap}
+.filters button{height:32px;padding:0 12px;border:1px solid var(--line);border-radius:99px;background:var(--surf);color:var(--mut);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.filters button[aria-pressed=true]{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.phase{margin:26px 0 0}
+.phase-h{display:flex;align-items:baseline;gap:10px;margin:0 0 10px}
+.phase-h h2{margin:0;font-size:16px;scroll-margin-top:72px}.phase-h span{font-size:13px;color:var(--mut)}
+.phase-h .ph{font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;background:var(--soft);color:var(--fg);padding:4px 8px;border-radius:99px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.tcard{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden}
+.tcard[hidden]{display:none}
+.tcard-h{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 14px;background:var(--hd);border-bottom:1px solid var(--line)}
+.tcard-h .no{font:700 12px ui-monospace,Consolas,monospace;background:var(--ink);color:var(--ink-fg);border-radius:var(--r);padding:3px 7px}
+.tcard-h h3{font-size:16px;margin-right:auto}
+.st{font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--soft);color:var(--mut);white-space:nowrap}
+.st.doing{background:var(--warn-soft);color:var(--warn)}.st.done{background:var(--done-soft);color:var(--done)}
+.tcard-b{padding:12px 14px;display:flex;flex-direction:column;gap:10px;flex:1}
+.tcard-b p{margin:0;font-size:13.5px;color:var(--txt);flex:1}
+.meta{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--mut)}.meta span{display:inline-flex;gap:5px;align-items:center}
+.act{display:flex;gap:8px}
+.empty{text-align:center;color:var(--mut);padding:30px;border:1px dashed var(--line);border-radius:var(--r);margin-top:16px}
+
+@media (max-width:1020px){.wrap{display:block}nav.side{display:none}
+ .chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0;position:sticky;top:50px;z-index:10;background:var(--bg)}
+ .chips a{white-space:nowrap;font-size:12.5px;border:1px solid var(--line);background:var(--surf);padding:4px 11px;border-radius:99px;text-decoration:none;color:var(--fg)}
+ .home-hero{grid-template-columns:1fr}}
+@media (max-width:720px){.crumbs .cur,.crumbs .ic,.prog{display:none}.how{grid-template-columns:1fr}.foot{grid-template-columns:1fr}.btn .t-long{display:none}}
+@media (max-width:640px){body{font-size:15px}.hero{padding:18px 16px}.pat-b{padding:4px 12px 6px}.two{grid-template-columns:1fr}.cell{min-width:36px;height:38px;font-size:13px}.cellw{min-width:36px}.brand span{display:none}.pp{margin-left:0}.gi{border-left:0;border-top:1px solid var(--line2)}.gi:first-child{border-top:0}.search input{width:100%}.search{flex:1}.kpis{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media print{.bar,.pbar,nav.side,.chips,.st-ctl,.cp,.skip,.site-foot,.foot{display:none}.wrap{display:block}.code-java,.code-py{display:block!important}.pat{box-shadow:none;break-inside:avoid-page}body{background:#fff}}
+
+/* tree and graph drawings inside the stepper */
+.st-tree svg{display:block;margin:0 auto;height:auto}.st-tree line{stroke:var(--faint);stroke-width:1.75;opacity:.6}
+.tn circle{fill:var(--surf);stroke:var(--line);stroke-width:2;transition:fill .25s,stroke .25s}.tn.in circle{fill:var(--acc-soft);stroke:var(--acc)}.tn.ok circle{fill:var(--done-soft);stroke:var(--done)}.tn.dim circle{fill:var(--soft);stroke-dasharray:4 3;opacity:.7}
+.tn text{font:600 14px ui-monospace,Consolas,monospace;fill:var(--fg);text-anchor:middle;dominant-baseline:central}.tp{font:700 11px ui-monospace,Consolas,monospace;fill:var(--acc);text-anchor:middle}
+.ge{stroke:var(--faint);stroke-width:2;opacity:.5}.ge.on{stroke:var(--acc);stroke-width:3.5;opacity:1}.gw{font:600 11px ui-monospace,Consolas,monospace;fill:var(--mut);text-anchor:middle}.mk{fill:var(--faint);opacity:.7}.mk2{fill:var(--acc)}
+
+/* study planner page */
+.planner .hero{margin-bottom:18px}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:16px;overflow:hidden}
+.card-h{display:flex;align-items:center;gap:10px;min-height:46px;padding:6px 14px;background:var(--hd);border-bottom:1px solid var(--line)}
+.card-h h2{margin:0;font-size:15px;font-weight:600;margin-right:auto;color:var(--fg)}
+.card-h>span:not(.st){font-size:12.5px;color:var(--mut)}
+.card-b{padding:14px}
+.pl-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+.pl-col{min-width:0}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+.field{min-width:0}.field:nth-child(6),.field:nth-child(7){grid-column:1/-1}
+.flabel{display:block;font:600 11px/1.2 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+.field input[type=date],.field input[type=number],.field select{height:34px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:14px;max-width:100%}
+.field input[type=number]{width:96px}.field select{width:100%}.field input[type=date]{width:100%}
+.unit{font-size:13px;color:var(--mut);margin-left:8px}
+.fhint{font-size:12.5px;color:var(--mut);margin-top:6px}
+.qchips{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.qchips button,.presets button,.chips2 button{height:28px;padding:0 11px;border:1px solid var(--line);border-radius:99px;background:var(--surf);color:var(--fg);font:inherit;font-size:12.5px;cursor:pointer}
+.qchips button:hover,.presets button:hover,.chips2 button:hover{background:var(--soft)}
+.seg2{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;max-width:100%}
+.seg2 button{height:34px;padding:0 14px;border:0;background:var(--surf);color:var(--fg);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.seg2 button+button{border-left:1px solid var(--line)}
+.seg2 button[aria-pressed=true]{background:var(--ink);color:var(--ink-fg)}
+.toggles{display:grid;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line2);font-size:14px}
+.toggles label,.key-panel label{display:flex;gap:9px;align-items:center;cursor:pointer}
+.toggles input,.key-panel input[type=checkbox]{width:16px;height:16px;accent-color:var(--ink);margin:0}
+.presets{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.presets span{font-size:12.5px;color:var(--mut);margin-right:2px}
+#topics h5{margin:14px 0 4px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.trow{display:grid;grid-template-columns:20px 28px 1fr auto;gap:8px;align-items:center;padding:6px 6px;border-radius:var(--r);cursor:pointer;font-size:14px}
+.trow:hover{background:var(--soft)}.trow input{width:16px;height:16px;accent-color:var(--ink);margin:0}
+.trow .n{font:600 11.5px ui-monospace,Consolas,monospace;color:var(--faint)}.trow .est{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+/* coach */
+.chat{position:sticky;top:64px;display:flex;flex-direction:column;height:min(720px,calc(100vh - 84px));min-height:480px;margin-bottom:0}
+.chat .card-h .btn{height:28px}
+.key-panel{padding:12px 14px;border-bottom:1px solid var(--line);background:var(--surf);display:grid;gap:10px;font-size:13.5px}
+.key-panel[hidden]{display:none}
+.key-panel p{margin:0}.key-panel .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.key-panel input[type=password],.key-panel select{height:34px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:13.5px;min-width:0;flex:1}
+.msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;background:var(--bg)}
+.msg{max-width:92%}.msg.me{align-self:flex-end}
+.msg .who{font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:0 2px 4px}.msg.me .who{text-align:right}
+.msg .mb{padding:9px 12px;border-radius:var(--r-lg);font-size:14.5px;line-height:1.55;border:1px solid var(--line);background:var(--surf);color:var(--txt)}
+.msg.me .mb{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.msg .mb p{margin:0 0 6px}.msg .mb p:last-child{margin:0}.msg .mb ul,.msg .mb ol{margin:4px 0;padding-left:20px}.msg .mb code{font-size:.9em}
+.msg.sys{align-self:stretch;max-width:100%}.msg.sys .mb{background:var(--hd);border-left:2px solid var(--info-line);font-size:13.5px}
+.typing{display:flex;gap:4px;padding:6px 4px}.typing i{width:6px;height:6px;border-radius:50%;background:var(--faint);animation:blink 1.2s infinite}.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.chips2{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px 0;background:var(--surf);border-top:1px solid var(--line)}
+.composer{display:flex;gap:8px;align-items:flex-end;padding:10px 14px 14px;background:var(--surf)}
+.composer textarea{flex:1;resize:none;min-height:38px;max-height:120px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:14.5px;line-height:1.4}
+.composer .btn{height:38px}
+/* plan output */
+.sec-h{font-size:18px;margin:26px 0 10px}
+.kpis4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.kpis4 .kpi b{font-size:22px}
+.callout.alert{border-left-color:var(--warn-line);background:var(--warn-soft)}.callout.alert .lbl{color:var(--warn)}.callout ul{margin:4px 0;padding-left:20px}
+.warn-c{border-left-color:var(--warn-line)}
+.plan-bar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin:14px 0;box-shadow:var(--sh)}
+.pb-l{min-width:220px;flex:1;font-size:13.5px;color:var(--mut)}.pb-l b{color:var(--fg);font-size:15px}.pb-r{display:flex;gap:8px;flex-wrap:wrap}
+.wk{padding:0;margin:10px 0;border-left:1px solid var(--line)}
+details.wk[open]{border-left:2px solid var(--info-line)}
+.wk summary{padding:12px 14px;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.wk summary::before{align-self:center}
+.wn{font-weight:700;color:var(--fg)}.wd{font-size:13px;color:var(--mut)}.wt{font-size:13px;color:var(--mut);margin-right:auto}.wc{font-size:12.5px;font-weight:600;background:var(--soft);border-radius:99px;padding:2px 10px;color:var(--fg);font-variant-numeric:tabular-nums}
+.wk-b{padding:0 14px 12px}
+.day{border:1px solid var(--line);border-radius:var(--r);margin:8px 0;background:var(--surf);overflow:hidden}
+.day.today{border-color:var(--ink)}
+.day.rest{background:var(--hd);color:var(--mut)}
+.dh{display:flex;gap:10px;align-items:center;padding:7px 12px;background:var(--hd);border-bottom:1px solid var(--line2);font-size:13px}.dh b{color:var(--fg)}.dh span:last-child{margin-left:auto;color:var(--mut);font-variant-numeric:tabular-nums}
+.day.rest .dh{border-bottom:0}
+.pill-t{font-size:11px;font-weight:600;background:var(--ink);color:var(--ink-fg);padding:1px 8px;border-radius:99px}
+.task{display:grid;grid-template-columns:20px 84px 1fr auto;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line2);cursor:pointer;font-size:14px}
+.task:last-child{border-bottom:0}.task:hover{background:var(--hd)}
+.task input{width:17px;height:17px;accent-color:var(--done);margin:0}
+.task .kind{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;text-align:center;background:var(--soft);color:var(--mut)}
+.k-learn .kind{background:var(--info-soft);color:var(--info)}.k-code .kind{background:var(--soft);color:var(--fg)}.k-practice .kind{background:var(--med-soft);color:var(--med)}
+.k-review .kind{background:var(--done-soft);color:var(--done)}.k-checkpoint .kind,.k-mock .kind{background:var(--ink);color:var(--ink-fg)}
+.task .ttl{min-width:0;display:flex;flex-direction:column}.task .ttl a{color:var(--fg);text-decoration:none}.task .ttl a:hover{text-decoration:underline}
+.task .sub{font-size:12px;color:var(--mut)}.task .mins{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.task.is-done .ttl,.task.is-done .ttl a{text-decoration:line-through;text-decoration-color:var(--faint);color:var(--mut)}
+@media (max-width:1020px){.pl-grid{grid-template-columns:1fr}.chat{position:static;height:560px}.kpis4{grid-template-columns:1fr 1fr}}
+@media (max-width:640px){.fgrid{grid-template-columns:1fr}.field:nth-child(n){grid-column:auto}.task{grid-template-columns:20px 1fr auto}.task .kind{display:none}.wt{flex-basis:100%;order:3}.msg{max-width:100%}}
+@media print{.pl-grid,.hero,.plan-bar .pb-r,.chat{display:none}.wk{break-inside:avoid-page}details.wk>summary::before{display:none}}
+
+/* left rail */
+body.has-rail{padding-left:56px}
+.rail{position:fixed;inset:0 auto 0 0;width:56px;z-index:40;background:var(--surf);border-right:1px solid var(--line);padding:9px 8px;overflow:hidden;transition:width .18s ease;display:flex;flex-direction:column;gap:2px}
+.rail:hover,.rail:focus-within{width:240px;box-shadow:var(--sh-lg)}
+.rail-i{display:flex;align-items:center;gap:12px;height:38px;padding:0 10px;border-radius:var(--r);text-decoration:none;color:var(--txt);white-space:nowrap;font-size:14px}
+.rail-i:hover{background:var(--soft)}
+.rail-i[aria-current=page]{background:var(--soft);color:var(--fg);font-weight:600;box-shadow:inset 2px 0 0 var(--ink)}
+.rail-i .ic{width:18px;height:18px}
+.rail-logo{margin-bottom:6px;height:44px}.rail-logo .logo{width:24px;height:24px;flex:none}
+.rail .l{opacity:0;transition:opacity .12s}.rail:hover .l,.rail:focus-within .l{opacity:1}
+.rail-g{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);padding:14px 10px 4px;opacity:0;white-space:nowrap}
+.rail:hover .rail-g,.rail:focus-within .rail-g{opacity:1}
+.rail-sub{display:flex;flex-direction:column;margin:0 0 4px 22px;padding-left:12px;border-left:1px solid var(--line);opacity:0;max-height:0;overflow:hidden;transition:opacity .12s}
+.rail:hover .rail-sub,.rail:focus-within .rail-sub{opacity:1;max-height:260px}
+.rail-sub a{font-size:13px;color:var(--mut);text-decoration:none;padding:5px 8px;border-radius:var(--r);white-space:nowrap}.rail-sub a:hover{background:var(--soft);color:var(--fg)}
+.rail-bd{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:35}.rail-bd[hidden]{display:none}
+.rail-btn{display:none}
+@media (max-width:1020px){body.has-rail{padding-left:0}
+ .rail{transform:translateX(-100%);width:256px;transition:transform .2s ease;box-shadow:none}.rail.open{transform:none;box-shadow:var(--sh-lg)}
+ .rail:hover,.rail:focus-within{width:256px}.rail .l,.rail-g,.rail-sub{opacity:1}.rail-sub{max-height:260px}
+ .rail-btn{display:inline-flex}}
+@media print{.rail,.rail-bd{display:none}body.has-rail{padding-left:0}}
+
+/* systems pages and hub */
+pre.sh::before{content:"Command"}pre.out::before{content:"Output"}
+pre.sh{margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0;background:var(--ink);color:var(--ink-fg)}
+pre.sh::before{color:inherit;opacity:.65}
+pre.sh code{color:inherit;white-space:pre}
+pre.sh .cp{background:transparent;color:var(--ink-fg);border-color:rgba(248,250,252,.35)}pre.sh .cp:hover{background:rgba(248,250,252,.12);color:var(--ink-fg)}
+[data-theme=dark] pre.sh{background:#0b1324;color:#f1f5f9;border:1px solid var(--line)}
+pre.out{margin-top:0;border-top-left-radius:0;border-top-right-radius:0}
+.cmd{margin:14px 0 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);overflow:hidden}
+.cmd pre{margin:0;border-radius:0;border-left:0;border-right:0}.cmd>pre.sh{border-top:0}
+.cmd-b{padding:10px 14px 12px}.cmd-b p{margin:4px 0}
+.cmd-b pre.out{margin:6px 0 0;border:1px solid var(--line);border-radius:var(--r)}
+.out-l{margin-top:8px}
+.stamp{display:inline-block;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--done);background:var(--done-soft);border-radius:99px;padding:3px 9px}
+.stamp.ill{color:var(--warn);background:var(--warn-soft)}
+.noout{font-size:13px}
+.parts{margin:8px 0 0}.parts table{font-size:13px}.parts th,.parts td{padding:6px 10px}
+.analogy{margin:8px 0 2px}
+.tick{display:inline-flex;gap:7px;align-items:center;font-size:12.5px;color:var(--mut);cursor:pointer;margin-left:auto}
+.tick input{width:16px;height:16px;accent-color:var(--done);margin:0}.tick.is-done{color:var(--done);font-weight:600}
+.pat-h .tick{margin-left:auto}.pat-h .pp{margin-left:0}
+.lab .badge{background:var(--soft);color:var(--fg)}.lab .badge .ic{width:16px;height:16px}
+.lab{border-left:2px solid var(--info-line)}
+.case{border:1px solid var(--line);border-left:2px solid var(--warn-line);background:var(--hd);border-radius:var(--r);padding:12px 16px;margin:14px 0}
+.case h4{margin:4px 0 6px;font-size:16px;color:var(--fg)}.case p{margin:6px 0}
+.qa{padding:0 14px}.qa summary{font-weight:600}
+.qa-b{padding:0 0 12px}.qa-b ul{margin:4px 0 10px;padding-left:20px}.qa-b li{margin:3px 0}
+.angle{background:var(--hd);border:1px solid var(--line);border-left:2px solid var(--info-line);border-radius:var(--r);padding:8px 12px;font-size:14px}
+table.playbook td:first-child{font-weight:600;color:var(--fg)}
+table.cheat td:first-child{font-family:ui-monospace,Consolas,monospace;font-size:13px;white-space:pre-wrap;color:var(--fg)}
+/* hub */
+.courses{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ccard{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden}
+.ccard .tcard-h{min-height:52px}.ccard .tcard-h h2{margin:0;font-size:19px;margin-right:auto;color:var(--fg)}
+.ccard .tcard-h .no{padding:5px 8px;display:inline-flex}.ccard .tcard-h .no .ic{width:18px;height:18px}
+.ticks{margin:0;padding-left:20px;font-size:14px;color:var(--txt)}.ticks li{margin:3px 0}
+.tcard.planned{opacity:.7;background:var(--hd)}.tcard.planned .no{background:var(--soft);color:var(--mut)}
+@media (max-width:820px){.courses{grid-template-columns:1fr}}
+/* diagrams */
+.viz{margin:8px 0;padding:10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+.viz figcaption{font-size:13px;color:var(--mut);margin-top:6px;text-align:center}
+.dg{width:100%;height:auto;display:block}
+.dg-box{fill:var(--hd);stroke:var(--line);stroke-width:1.5}.dg-box.acc{fill:var(--acc-soft);stroke:var(--acc)}.dg-box.ok{fill:var(--done-soft);stroke:var(--done)}.dg-box.warn{fill:var(--warn-soft);stroke:var(--warn-line)}.dg-box.ink{fill:var(--ink);stroke:var(--ink)}
+.dg-t{font:600 13px system-ui,sans-serif;fill:var(--fg)}.dg-t.ink{fill:var(--ink-fg)}.dg-s{font:12px system-ui,sans-serif;fill:var(--mut)}
+.dg-a{stroke:var(--faint);stroke-width:2}.dg-a.acc{stroke:var(--acc)}.dg-m{fill:var(--faint)}
+</style></head>
+<body class="has-rail" data-file="S05_git_fundamentals.html" data-topic="gb" data-store="sys-progress" data-last="sys-last" data-word="done">
+<a class="skip" href="#content">Skip to content</a>
+<nav class="rail" id="rail" aria-label="Sections"><a class="rail-i rail-logo" href="../index.html" title="Mastery home"><span class="logo" aria-hidden="true">M</span><span class="l"><b>Mastery</b></span></a><div class="rail-g">Courses</div><a class="rail-i" href="../index.html" title="Home"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 7.5 8 2.5l5.5 5M4 6.5v7h8v-7"/></svg><span class="l">Home</span></a><a class="rail-i" href="../dsa.html" title="DSA Mastery"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m5.5 4.5-3.5 3.5 3.5 3.5M10.5 4.5l3.5 3.5-3.5 3.5"/></svg><span class="l">DSA Mastery</span></a><a class="rail-i" href="../systems.html" aria-current="page" title="Systems Mastery"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3" width="11" height="4" rx="1"/><rect x="2.5" y="9" width="11" height="4" rx="1"/><path d="M5 5h.01M5 11h.01"/></svg><span class="l">Systems Mastery</span></a><div class="rail-sub"><a href="../systems.html#track-1">Foundations</a><a href="../systems.html#track-2">Troubleshooting</a><a href="../systems.html#track-3">System design core</a><a href="../systems.html#track-4">Design problems</a><a href="../systems.html#track-5">Interview and career</a><a href="../systems.html#track-6">Extensions</a></div><div class="rail-g">Tools</div><a class="rail-i" href="../plan.html" title="DSA study planner"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="10" rx="1.5"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/></svg><span class="l">DSA study planner</span></a><a class="rail-i" href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener" title="GitHub"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M9 2.5h4.5V7M13.5 2.5 7 9M12 9v4.5H2.5V4H7"/></svg><span class="l">GitHub</span></a></nav><div class="rail-bd" id="rail-bd" hidden></div>
+<header class="bar"><div class="bar-in"><button id="b-rail" class="iconbtn rail-btn" aria-label="Open the sections menu" aria-expanded="false" aria-controls="rail"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"/></svg></button><a class="brand" href="../systems.html" aria-label="Systems Mastery home"><span class="logo" aria-hidden="true">SYS</span><b>Systems <span>Mastery</span></b></a>
+<nav class="crumbs" aria-label="Breadcrumb"><a href="../systems.html">Systems modules</a><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3.5 4.5 4.5L6 12.5"/></svg><span class="cur">S05 · Git fundamentals</span></nav>
+<span class="prog" id="prog" aria-live="polite"></span>
+<span class="menu"><button id="b-topics" class="btn" aria-haspopup="true" aria-expanded="false" aria-controls="topics-panel"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"/></svg><span class="t-long">All modules</span></button>
+<div class="panel" id="topics-panel" role="menu" aria-label="All modules" hidden></div></span>
+<button id="b-theme" class="iconbtn" title="Toggle light / dark" aria-label="Toggle light or dark theme"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5a5.5 5.5 0 0 0 0 11z" fill="currentColor"/></svg></button>
+<button id="b-dl" class="btn pri" title="Save this page as a standalone HTML file"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8M4.5 7.5 8 11l3.5-3.5M2.5 13.5h11"/></svg><span class="t-long">Download</span></button></div>
+<div class="pbar" role="progressbar" aria-label="Steps done in this module" aria-valuemin="0" aria-valuemax="100"><i id="pbar"></i></div></header>
+<div class="wrap"><nav class="side" aria-label="On this page"><h4>Start here</h4><a href="#why">Why it matters</a><a href="#before">Before you start</a><h4>Lessons</h4><a href="#l1"><span class="dot hot"></span>1. The snapshot model: what Git actually is<span class="cnt"></span></a><a href="#l2"><span class="dot hot"></span>2. Making history: staging, diffs and fixing mistakes<span class="cnt"></span></a><a href="#l3"><span class="dot hot"></span>3. Branches and merging<span class="cnt"></span></a><a href="#l4"><span class="dot hot"></span>4. Remotes: clone, fetch, pull and push<span class="cnt"></span></a><a href="#l5"><span class="dot hot"></span>5. Reading history: log, blame and search<span class="cnt"></span></a><a href="#l6"><span class="dot hot"></span>6. Good habits, hooks, secrets and &quot;I messed up&quot;<span class="cnt"></span></a><h4>Hands-on</h4><a href="#lab1"><span class="dot sec"></span>Lab 1. Make a clean first history<span class="cnt"></span></a><a href="#lab2"><span class="dot sec"></span>Lab 2. Resolve a merge conflict<span class="cnt"></span></a><a href="#lab3"><span class="dot sec"></span>Lab 3. Undo three mistakes (in the right order)<span class="cnt"></span></a><h4>Wrap up</h4><a href="#cheat">Cheat sheet</a><a href="#interview">Interview corner</a><a href="#selftest">Self-test</a><a href="#sources">Further reading</a></nav><main id="content"><div class="chips" aria-label="Jump to a lesson"><a href="#l1">1. The snapshot model: what Git actually is</a><a href="#l2">2. Making history: staging, diffs and fixing mistakes</a><a href="#l3">3. Branches and merging</a><a href="#l4">4. Remotes: clone, fetch, pull and push</a><a href="#l5">5. Reading history: log, blame and search</a><a href="#l6">6. Good habits, hooks, secrets and &quot;I messed up&quot;</a></div>
+<header class="hero"><div class="eyebrow"><span class="tag">Module S05 of 29</span>Foundations</div><h1>Git fundamentals</h1><p class="lead">Git is the tool every engineering team uses to keep history and work together. This module builds the correct mental model first (snapshots, three areas, branches as labels), then walks through everyday work, branching, merging and remotes with real, recorded output.</p><div class="stats"><span class="stat"><b>6</b> lessons</span><span class="stat"><b>3</b> labs</span><span class="stat"><b>3</b> animations</span><span class="stat"><b>8</b> interview questions</span><span class="stat">about <b>5 to 6 hours</b></span></div></header>
+<h2 id="why">Why this matters</h2><div class="callout"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>A real situation</span><p>Monday morning: you pull the latest code and your own changes collide with a teammate's. Or you committed to the wrong branch, or you cannot tell which change broke the build. People who learned Git as a list of memorised commands panic. People who understand what Git is doing underneath just look at the history and fix it.</p><p>Git questions appear in almost every software interview, usually as scenarios: "what is the difference between merge and rebase?", "you pushed a secret by mistake, what now?", "explain fetch versus pull". The strongest answers come from a clear model, not from remembering flags.</p></div><div class="callout intu"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>After this module you can</span><ul><li>Explain Git as snapshots in a graph, with commits, branches and HEAD as pointers.</li><li>Use the three areas (working directory, staging area, repository) deliberately.</li><li>Create clean commits with good messages, ignore files properly, and fix the last commit.</li><li>Branch and merge, understand fast-forward versus merge commits, and read the history graph.</li><li>Work with remotes: clone, fetch, pull, push, and understand pull requests.</li><li>Handle the common accidents: wrong branch, committed secret, rejected push, unwanted changes.</li></ul></div>
+<h2 id="before">Before you start</h2><p>You should be comfortable in a terminal (the Linux shell module covers it). Install Git from git-scm.com or your package manager; any recent version works.</p><p>Every example here ran for real in a throwaway repository with a fixed clock, so the <strong>commit hashes and dates you see will differ from yours</strong>. Everything else (messages, structure, behaviour) matches. Older or newer Git versions may word messages slightly differently.</p>
+<div class="callout"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Your practice shell</span><p>All commands run inside <code>~/gitwork</code>. Create it with <code>mkdir -p ~/gitwork &amp;&amp; cd ~/gitwork</code>. Nothing here touches your real projects. For the labs, the setup scripts only use <code>~/sys-lab</code>.</p></div>
+<h2>The lessons</h2>
+<section class="pat hot" id="l1" aria-labelledby="l1-t">
+<div class="pat-h"><span class="badge">1</span><h3 id="l1-t">The snapshot model: what Git actually is</h3><span class="tier hot"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14.5c-2.5 0-4-1.7-4-3.8 0-2.2 2-3.2 2.4-5.2.9.6 1.6 1.5 1.8 2.6.6-.5.9-1.4.8-2.4 1.8 1.2 3 3 3 5 0 2-1.5 3.8-4 3.8z"/></svg> Must know</span><span class="pp"></span><label class="tick"><input type="checkbox" class="pk" data-k="gb-L1" aria-label="Mark done"><span>Mark done</span></label></div><div class="pat-b">
+<div class="glance"><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/></svg>Situation</span><p>Someone asks "what is a commit?" and you say "a save point". That is half right. The full answer explains why Git is fast, why branches are cheap, and why history is so hard to lose or fake.</p></div><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01"/></svg>You will learn</span><ul><li>Commits as snapshots with a parent, named by a hash</li><li>The three areas: working directory, staging area, repository</li><li>How to read <code>git status</code>, <code>git log</code> and <code>git show</code></li></ul></div></div>
+<div class="callout intu"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>Mental model</span><p>Git does not store a list of changes. Each <strong>commit</strong> stores a full <strong>snapshot</strong> of your project at that moment (sharing unchanged files with older snapshots, so it is compact), plus a message, an author, a time and a <strong>pointer to its parent commit</strong>. Following parents backwards gives you the history. Every commit is named by a <strong>hash</strong>: a 40-character fingerprint of its content. Change anything and the hash changes, which is why history cannot be silently altered.</p><p>Git has <strong>three areas</strong>. The <strong>working directory</strong> holds the files you edit. The <strong>staging area</strong> (index) is a draft of the next commit: you choose what goes in. The <strong>repository</strong> is the permanent history. The typical flow is edit, <code>git add</code> (stage), <code>git commit</code> (record). Staging looks like an extra step but it is the feature that lets you make several small, focused commits out of one messy afternoon.</p><p class="analogy"><b>Everyday analogy:</b> A commit is a photograph of your whole desk with a note pinned to it saying what changed and which photo came before. The staging area is the table where you arrange the items you want in the next photo.</p></div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m8 2 6.5 3.5L8 9 1.5 5.5z"/><path d="m1.5 8.5 6.5 3.5 6.5-3.5"/></svg>The picture</span><figure class="viz"><svg class="dg" viewBox="0 0 720 150" role="img" aria-label="The three areas of Git"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="dg-box " x="10" y="40" width="190" height="60" rx="6"/><text class="dg-t " x="105.0" y="68.0" text-anchor="middle">Working directory</text><text class="dg-s" x="105.0" y="88.0" text-anchor="middle">the files you edit</text><line class="dg-a " x1="200" y1="70" x2="270" y2="70" marker-end="url(#dga)"/><text class="dg-s" x="235.0" y="63.0" text-anchor="middle">git add</text><rect class="dg-box acc" x="270" y="40" width="190" height="60" rx="6"/><text class="dg-t acc" x="365.0" y="68.0" text-anchor="middle">Staging area</text><text class="dg-s" x="365.0" y="88.0" text-anchor="middle">a draft of the next commit</text><line class="dg-a " x1="460" y1="70" x2="530" y2="70" marker-end="url(#dga)"/><text class="dg-s" x="495.0" y="63.0" text-anchor="middle">git commit</text><rect class="dg-box ink" x="530" y="40" width="180" height="60" rx="6"/><text class="dg-t ink" x="620.0" y="68.0" text-anchor="middle">Repository</text><text class="dg-s" x="620.0" y="88.0" text-anchor="middle">permanent history</text><line class="dg-a " x1="530" y1="118" x2="200" y2="118" marker-end="url(#dga)"/><text class="dg-s" x="365.0" y="111.0" text-anchor="middle">git restore / git switch</text><text class="dg-s" x="360" y="142" text-anchor="middle">Edit, choose what to record, record it.</text></svg><figcaption>Git&#x27;s three areas: edit, stage, commit</figcaption></figure></div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="m6.5 6 3.5 2-3.5 2z"/></svg>Watch it run</span><p class="muted" style="margin:0 0 6px">Press play, or step with the buttons, the slider or the arrow keys.</p><div class="stepper" data-sim="git3"></div></div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Your first repository</span>
+<div class="cmd"><pre class="sh"><code>mkdir -p ~/gitwork &amp;&amp; cd ~/gitwork</code></pre><div class="cmd-b"><p>A folder for all the experiments in this module.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>git init -b main demo</code></pre><div class="cmd-b"><p>Create a new repository in a folder called <code>demo</code> with the first branch named <code>main</code>. Git stores everything in a hidden <code>.git</code> folder inside it.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>git init</code></td><td>start a repository</td></tr><tr><td><code>-b main</code></td><td>name the first branch main</td></tr><tr><td><code>demo</code></td><td>folder to create it in</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>Initialized empty Git repository in /home/learner/gitwork/demo/.git/</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>cd demo</code></pre><div class="cmd-b"><p>Move into the repository.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>git status</code></pre><div class="cmd-b"><p>The command you will run most often. It tells you which branch you are on and what is changed, staged or untracked. Nothing yet.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>On branch main
+
+No commits yet
+
+nothing to commit (create/copy files and use &quot;git add&quot; to track)</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>echo &quot;hello&quot; &gt; hello.txt</code></pre><div class="cmd-b"><p>Create a file. It exists only in the working directory so far.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>git status</code></pre><div class="cmd-b"><p>Git sees the new file but is not tracking it: "Untracked files".</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>On branch main
+
+No commits yet
+
+Untracked files:
+  (use &quot;git add &lt;file&gt;...&quot; to include in what will be committed)
+	hello.txt
+
+nothing added to commit but untracked files present (use &quot;git add&quot; to track)</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git add hello.txt</code></pre><div class="cmd-b"><p>Stage the file: copy its current content into the staging area.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>git status -s</code></pre><div class="cmd-b"><p><code>-s</code> is the short form. <code>A</code> in the first column means "added to the staging area"; the second column would show changes in the working directory.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>A </code></td><td>staged as a new file</td></tr><tr><td><code>??</code></td><td>untracked</td></tr><tr><td><code> M</code></td><td>modified but not staged</td></tr><tr><td><code>M </code></td><td>modified and staged</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>A  hello.txt</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git commit -m &quot;Add hello&quot;</code></pre><div class="cmd-b"><p>Record the staged snapshot with a message. Git prints the branch, a short hash and a summary. <code>(root-commit)</code> means it is the very first commit.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>[main (root-commit) 3951597] Add hello
+ 1 file changed, 1 insertion(+)
+ create mode 100644 hello.txt</code></pre></div></div>
+</div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Look at what you recorded</span>
+<div class="cmd"><pre class="sh"><code>git log --oneline</code></pre><div class="cmd-b"><p>One line per commit: short hash and message, newest first.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>3951597 Add hello</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git log</code></pre><div class="cmd-b"><p>The full form: the 40-character hash, the author, the date and the message. <code>HEAD -&gt; main</code> says you are on <code>main</code> and it points here.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>commit 39515972967e46c9fdbfc056887213e5c1ef6b1a
+Author: Ada Learner &lt;ada@example.com&gt;
+Date:   Thu Jan 15 16:00:00 2026 +0000
+
+    Add hello</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git show --stat</code></pre><div class="cmd-b"><p>Show the latest commit and which files it changed, with a count of added lines.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>commit 39515972967e46c9fdbfc056887213e5c1ef6b1a
+Author: Ada Learner &lt;ada@example.com&gt;
+Date:   Thu Jan 15 16:00:00 2026 +0000
+
+    Add hello
+
+ hello.txt | 1 +
+ 1 file changed, 1 insertion(+)</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git cat-file -p HEAD</code></pre><div class="cmd-b"><p>Look at the raw commit object. It holds a <strong>tree</strong> (the snapshot of the folder), the author and committer, and the message. For later commits it also has a <code>parent</code> line. This is the whole data model.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>tree</code></td><td>the snapshot of the whole folder, itself named by a hash</td></tr><tr><td><code>parent</code></td><td>the previous commit (missing in the first one)</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>tree aaa96ced2d9a1c8e72c56b253a0e2fe78393feb7
+author Ada Learner &lt;ada@example.com&gt; 1768492800 +0000
+committer Ada Learner &lt;ada@example.com&gt; 1768492800 +0000
+
+Add hello</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git ls-tree HEAD</code></pre><div class="cmd-b"><p>List the tree: here one <strong>blob</strong> (the file content), named by the hash of that content. Two files with the same content share one blob.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>100644 blob ce013625030ba8dba906f756967f9e9ca394464a	hello.txt</code></pre></div></div>
+</div>
+<div class="blk warn"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Traps to avoid</span><ul><li><code>git add</code> stages the content <strong>at that moment</strong>. If you edit the file again afterwards, the new edit is not staged; run <code>git add</code> again.</li><li>A commit with a message like "stuff" or "wip" is nearly useless later. Write what changed and why, in the imperative: "Add search endpoint".</li><li>Git tracks files, not folders: an empty directory is invisible to Git. Put a placeholder file (conventionally <code>.gitkeep</code>) in it.</li></ul></div>
+</div></section>
+<section class="pat hot" id="l2" aria-labelledby="l2-t">
+<div class="pat-h"><span class="badge">2</span><h3 id="l2-t">Making history: staging, diffs and fixing mistakes</h3><span class="tier hot"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14.5c-2.5 0-4-1.7-4-3.8 0-2.2 2-3.2 2.4-5.2.9.6 1.6 1.5 1.8 2.6.6-.5.9-1.4.8-2.4 1.8 1.2 3 3 3 5 0 2-1.5 3.8-4 3.8z"/></svg> Must know</span><span class="pp"></span><label class="tick"><input type="checkbox" class="pk" data-k="gb-L2" aria-label="Mark done"><span>Mark done</span></label></div><div class="pat-b">
+<div class="glance"><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/></svg>Situation</span><p>You have changed three things in one afternoon and want them as two clean commits. You also edited a file you did not mean to, and the last commit message has a typo.</p></div><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01"/></svg>You will learn</span><ul><li>See changes with <code>git diff</code> and <code>git diff --staged</code></li><li>Undo: <code>git restore</code>, <code>git restore --staged</code>, <code>git commit --amend</code></li><li>Keep secrets and junk out with <code>.gitignore</code></li></ul></div></div>
+<div class="callout intu"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>Mental model</span><p>Think of your work as three lists: <strong>unstaged</strong> changes (<code>git diff</code> shows them), <strong>staged</strong> changes (<code>git diff --staged</code>), and <strong>committed</strong> history. <code>git restore file</code> throws away an unstaged edit (careful: it cannot be undone), and <code>git restore --staged file</code> takes a file back out of the staging area without touching the file.</p><p><code>git commit --amend</code> replaces the <strong>last</strong> commit with a corrected one (new message, or extra staged changes). Because it creates a new commit with a new hash, only do it for commits you have not shared yet. A <code>.gitignore</code> file lists patterns Git should never track: build output, logs, editor files, and above all secrets.</p><p class="analogy"><b>Everyday analogy:</b> <code>git diff</code> is proofreading before you send; the staging area is the outbox; <code>git restore --staged</code> is taking a page back out of the envelope; amend is replacing the letter you just sent before anyone read it.</p></div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>See and choose</span>
+<div class="cmd"><pre class="sh"><code>echo &quot;hello world&quot; &gt; hello.txt; echo &quot;notes&quot; &gt; notes.txt; git status -s</code></pre><div class="cmd-b"><p>One tracked file modified (<code> M</code>) and one new file (<code>??</code>).</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code> M hello.txt
+?? notes.txt</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git diff</code></pre><div class="cmd-b"><p>Shows unstaged changes: lines starting with <code>-</code> were removed and <code>+</code> were added. Read it before every commit: it catches debug prints and accidental edits.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>--- / +++</code></td><td>the old and new file</td></tr><tr><td><code>@@</code></td><td>which lines the change covers</td></tr><tr><td><code>- / +</code></td><td>removed and added line</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>diff --git a/hello.txt b/hello.txt
+index ce01362..3b18e51 100644
+--- a/hello.txt
++++ b/hello.txt
+@@ -1 +1 @@
+-hello
++hello world</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git add hello.txt; git diff --staged</code></pre><div class="cmd-b"><p>Stage one file, then <code>git diff --staged</code> shows exactly what the next commit will contain: the same diff, now staged.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>diff --git a/hello.txt b/hello.txt
+index ce01362..3b18e51 100644
+--- a/hello.txt
++++ b/hello.txt
+@@ -1 +1 @@
+-hello
++hello world</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git status -s</code></pre><div class="cmd-b"><p><code>M </code> (modified, staged) for hello.txt and <code>??</code> for notes.txt: the file we did not stage stays out of the commit.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>M  hello.txt
+?? notes.txt</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git commit -m &quot;Greet the world&quot;</code></pre><div class="cmd-b"><p>Only the staged change is recorded. <code>notes.txt</code> is untouched and will be its own commit.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>[main 711e8ee] Greet the world
+ 1 file changed, 1 insertion(+), 1 deletion(-)</code></pre></div></div>
+</div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Undo, ignore, amend</span>
+<div class="cmd"><pre class="sh"><code>echo &quot;oops&quot; &gt;&gt; hello.txt; git restore hello.txt; cat hello.txt</code></pre><div class="cmd-b"><p>Edit then discard. <code>git restore hello.txt</code> puts the last committed (or staged) version back. This is destructive: that edit was never saved anywhere.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>hello world</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>echo &quot;secret&quot; &gt; .env; echo &quot;.env&quot; &gt; .gitignore; git status -s</code></pre><div class="cmd-b"><p><code>.env</code> does not appear: the pattern in <code>.gitignore</code> hides it. Only <code>.gitignore</code> (new) and <code>notes.txt</code> are listed.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>?? .gitignore
+?? notes.txt</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git add .gitignore notes.txt; git commit -m &quot;Add notes and ignore .env&quot;</code></pre><div class="cmd-b"><p>Commit the ignore file itself so everyone on the team ignores the same things.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>[main cdfd680] Add notes and ignore .env
+ 2 files changed, 2 insertions(+)
+ create mode 100644 .gitignore
+ create mode 100644 notes.txt</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git commit --amend -m &quot;Add notes and ignore secrets&quot;</code></pre><div class="cmd-b"><p>Fix the message of the last commit. A new hash is created; the old commit is replaced. Safe because nobody else has it yet.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>[main 952768e] Add notes and ignore secrets
+ Date: Fri Jan 16 07:00:00 2026 +0000
+ 2 files changed, 2 insertions(+)
+ create mode 100644 .gitignore
+ create mode 100644 notes.txt</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>echo x &gt; tmp.txt; git add tmp.txt; git restore --staged tmp.txt; git status -s; rm tmp.txt</code></pre><div class="cmd-b"><p>Stage a file by mistake, then take it out again with <code>git restore --staged</code>. The file itself stays; <code>rm</code> just tidies the experiment.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>?? tmp.txt</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git log --oneline</code></pre><div class="cmd-b"><p>Our history so far: three clean commits.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>952768e Add notes and ignore secrets
+711e8ee Greet the world
+3951597 Add hello</code></pre></div></div>
+</div>
+<div class="blk warn"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Traps to avoid</span><ul><li><code>git restore file</code> and <code>git checkout -- file</code> discard uncommitted edits for good. Look at <code>git diff</code> first.</li><li><code>.gitignore</code> only affects <strong>untracked</strong> files. A file that is already committed stays tracked; stop tracking it with <code>git rm --cached file</code>.</li><li>If you amend before unstaging an accidentally staged file, the file goes into the amended commit: unstage first (see the first lab).</li></ul></div>
+</div></section>
+<section class="pat hot" id="l3" aria-labelledby="l3-t">
+<div class="pat-h"><span class="badge">3</span><h3 id="l3-t">Branches and merging</h3><span class="tier hot"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14.5c-2.5 0-4-1.7-4-3.8 0-2.2 2-3.2 2.4-5.2.9.6 1.6 1.5 1.8 2.6.6-.5.9-1.4.8-2.4 1.8 1.2 3 3 3 5 0 2-1.5 3.8-4 3.8z"/></svg> Must know</span><span class="pp"></span><label class="tick"><input type="checkbox" class="pk" data-k="gb-L3" aria-label="Mark done"><span>Mark done</span></label></div><div class="pat-b">
+<div class="glance"><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/></svg>Situation</span><p>You want to work on a new feature without breaking main, while a teammate fixes a bug on main at the same time. Later both pieces of work must come together.</p></div><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01"/></svg>You will learn</span><ul><li>A branch is just a movable label on a commit</li><li>Fast-forward merges versus merge commits</li><li>Reading <code>git log --graph</code></li></ul></div></div>
+<div class="callout intu"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>Mental model</span><p>A <strong>branch</strong> is nothing more than a small file holding the hash of one commit. Creating a branch copies nothing: it adds a label. <strong>HEAD</strong> is the label that says which branch you are on, and a new commit moves that branch's label forward. This is why Git branches are instant and cheap, and why teams branch constantly.</p><p><strong>Merging</strong> brings another branch's commits into yours. If your branch has not moved since the other branch split off, Git simply slides your label forward (a <strong>fast-forward</strong>: no new commit). If both have new commits, Git creates a <strong>merge commit</strong> with two parents. A <strong>conflict</strong> happens only when both sides changed the same lines; then you decide the final text.</p><p class="analogy"><b>Everyday analogy:</b> Branches are bookmarks in the history. A merge ties two bookmarks' reading back into one thread.</p></div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="m6.5 6 3.5 2-3.5 2z"/></svg>Watch it run</span><p class="muted" style="margin:0 0 6px">Press play, or step with the buttons, the slider or the arrow keys.</p><div class="stepper" data-sim="commits"></div></div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Branch, commit, fast-forward</span>
+<div class="cmd"><pre class="sh"><code>git switch -c feature</code></pre><div class="cmd-b"><p>Create a branch called <code>feature</code> and switch to it. Same commit as <code>main</code> for now.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>Switched to a new branch &#x27;feature&#x27;</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>echo &quot;feature work&quot; &gt; feature.txt; git add feature.txt; git commit -m &quot;Add feature&quot;</code></pre><div class="cmd-b"><p>Commit on <code>feature</code>. Only the <code>feature</code> label moves.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>[feature a89a2ce] Add feature
+ 1 file changed, 1 insertion(+)
+ create mode 100644 feature.txt</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git switch main</code></pre><div class="cmd-b"><p>Go back to main: your working directory changes back to main's files (feature.txt disappears from the folder).</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>Switched to branch &#x27;main&#x27;</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git merge feature</code></pre><div class="cmd-b"><p><code>main</code> had no new commits, so this is a <strong>fast-forward</strong>: the <code>main</code> label slides forward. No merge commit, a perfectly straight history.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>Updating 952768e..a89a2ce
+Fast-forward
+ feature.txt | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 feature.txt</code></pre></div></div>
+</div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Diverged histories and merge commits</span>
+<div class="cmd"><pre class="sh"><code>git switch -c fix; echo &quot;fix&quot; &gt; fix.txt; git add fix.txt; git commit -m &quot;Add fix&quot;; git switch main; echo &quot;main change&quot; &gt; main.txt; git add main.txt; git commit -m &quot;Add main change&quot;</code></pre><div class="cmd-b"><p>Now both <code>fix</code> and <code>main</code> have a commit the other lacks: the history has diverged.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>Switched to a new branch &#x27;fix&#x27;
+[fix 97661d6] Add fix
+ 1 file changed, 1 insertion(+)
+ create mode 100644 fix.txt
+Switched to branch &#x27;main&#x27;
+[main 3205427] Add main change
+ 1 file changed, 1 insertion(+)
+ create mode 100644 main.txt</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git merge fix -m &quot;Merge fix&quot;</code></pre><div class="cmd-b"><p>Git cannot fast-forward, so it creates a <strong>merge commit</strong> that combines both. The two files do not touch the same lines, so there is no conflict.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>Merge made by the &#x27;ort&#x27; strategy.
+ fix.txt | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 fix.txt</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git log --oneline --graph --all</code></pre><div class="cmd-b"><p>The graph view: <code>*</code> marks commits and the lines show how they join. The merge commit has two parents.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>--graph</code></td><td>draw the branch structure</td></tr><tr><td><code>--all</code></td><td>include every branch, not just the current one</td></tr><tr><td><code>--oneline</code></td><td>one short line per commit</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>*   2f90936 Merge fix
+|\  
+| * 97661d6 Add fix
+* | 3205427 Add main change
+|/  
+* a89a2ce Add feature
+* 952768e Add notes and ignore secrets
+* 711e8ee Greet the world
+* 3951597 Add hello</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git branch -d feature fix</code></pre><div class="cmd-b"><p>Delete branches that are merged. This removes only the labels; the commits remain in history because they are reachable from main. <code>-d</code> refuses if the branch is not merged, which is the safe default.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>Deleted branch feature (was a89a2ce).
+Deleted branch fix (was 97661d6).</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git branch</code></pre><div class="cmd-b"><p>Only <code>main</code> is left; the <code>*</code> marks the current branch.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>* main</code></pre></div></div>
+</div>
+<div class="blk warn"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Traps to avoid</span><ul><li>Switching branches with uncommitted changes can fail or carry the changes along. Commit or stash first.</li><li><code>git branch -D</code> deletes even unmerged work. Prefer <code>-d</code>, and know that the reflog can still recover it for a while.</li><li>Merging <code>main</code> into your feature branch regularly keeps conflicts small; waiting two weeks makes them large.</li></ul></div>
+</div></section>
+<section class="pat hot" id="l4" aria-labelledby="l4-t">
+<div class="pat-h"><span class="badge">4</span><h3 id="l4-t">Remotes: clone, fetch, pull and push</h3><span class="tier hot"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14.5c-2.5 0-4-1.7-4-3.8 0-2.2 2-3.2 2.4-5.2.9.6 1.6 1.5 1.8 2.6.6-.5.9-1.4.8-2.4 1.8 1.2 3 3 3 5 0 2-1.5 3.8-4 3.8z"/></svg> Must know</span><span class="pp"></span><label class="tick"><input type="checkbox" class="pk" data-k="gb-L4" aria-label="Mark done"><span>Mark done</span></label></div><div class="pat-b">
+<div class="glance"><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/></svg>Situation</span><p>Your team keeps the code on a server (GitHub, GitLab, an internal Git server). You must get the latest work without destroying yours, and share yours without surprising anybody.</p></div><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01"/></svg>You will learn</span><ul><li>What a remote and <code>origin/main</code> are</li><li><code>fetch</code> versus <code>pull</code>, and <code>push</code></li><li>What a pull request is and why teams use them</li></ul></div></div>
+<div class="callout intu"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>Mental model</span><p>A <strong>remote</strong> is another copy of the repository, usually on a server. <code>origin</code> is the conventional name for the one you cloned from. Git never contacts a remote unless you tell it to. <code>origin/main</code> is a <strong>remote-tracking branch</strong>: your local read-only bookmark of where <code>main</code> was on the server at your last contact.</p><p><strong><code>git fetch</code></strong> downloads new commits and updates the bookmarks without changing your own branches or files: always safe. <strong><code>git pull</code></strong> is a fetch followed by a merge (or rebase) into your current branch. <strong><code>git push</code></strong> uploads your commits; the server refuses it if it would lose someone else's commits (a "non-fast-forward" rejection), in which case you fetch, integrate, and push again. A <strong>pull request</strong> (or merge request) is not a Git feature but a hosting-site feature: a place to propose a branch for review and discussion before it is merged.</p><p class="analogy"><b>Everyday analogy:</b> <code>origin/main</code> is your last photo of the shared whiteboard. Fetch is taking a new photo; pull is taking the photo and copying the new notes onto your own board; push is writing your notes on the shared board.</p></div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="m6.5 6 3.5 2-3.5 2z"/></svg>Watch it run</span><p class="muted" style="margin:0 0 6px">Press play, or step with the buttons, the slider or the arrow keys.</p><div class="stepper" data-sim="remote"></div></div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Publish your work</span>
+<p>A local "bare" repository stands in for the server, so you can try everything on your own computer.</p>
+<div class="cmd"><pre class="sh"><code>cd ~/gitwork &amp;&amp; git init -q --bare -b main origin.git</code></pre><div class="cmd-b"><p>A bare repository has history but no working files: that is what a server keeps. <code>-b main</code> makes its default branch <code>main</code>, matching ours (older Git versions would call it <code>master</code>).</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>cd demo &amp;&amp; git remote add origin ../origin.git &amp;&amp; git push -u origin main</code></pre><div class="cmd-b"><p>Register the remote under the name <code>origin</code>, then push <code>main</code>. <code>-u</code> makes <code>origin/main</code> the default upstream of your <code>main</code>, so later a plain <code>git push</code> and <code>git pull</code> know where to go.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>git remote add origin URL</code></td><td>give the remote a name and an address</td></tr><tr><td><code>push -u origin main</code></td><td>upload main and remember the link</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>To ../origin.git
+ * [new branch]      main -&gt; main
+branch &#x27;main&#x27; set up to track &#x27;origin/main&#x27;.</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git branch -vv</code></pre><div class="cmd-b"><p><code>-vv</code> shows each branch with the upstream it tracks. <code>main</code> tracks <code>origin/main</code>.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>* main 2f90936 [origin/main] Merge fix</code></pre></div></div>
+</div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>A teammate pushes; you catch up</span>
+<div class="cmd"><pre class="sh"><code>cd ~/gitwork &amp;&amp; git clone -q origin.git teammate &amp;&amp; cd teammate &amp;&amp; echo &quot;from teammate&quot; &gt; team.txt &amp;&amp; git add team.txt &amp;&amp; git commit -q -m &quot;Teammate adds a file&quot; &amp;&amp; git push -q</code></pre><div class="cmd-b"><p><code>git clone</code> makes a full copy (history included) and sets <code>origin</code>. The teammate commits and pushes. All of this happens in another folder, so your <code>demo</code> repository knows nothing yet.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>cd ~/gitwork/demo &amp;&amp; git status -sb</code></pre><div class="cmd-b"><p><code>-b</code> adds the branch line. Git still says your <code>main</code> matches <code>origin/main</code>: it has not looked at the server.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>## main...origin/main</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git fetch</code></pre><div class="cmd-b"><p>Now we look. The output shows <code>origin/main</code> moving from one hash to the next. Your files and your <code>main</code> branch are unchanged: fetch is always safe.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>From ../origin
+   2f90936..f80487d  main       -&gt; origin/main</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git status -sb</code></pre><div class="cmd-b"><p>Now Git knows: your branch is <strong>behind</strong> <code>origin/main</code> by one commit.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>## main...origin/main [behind 1]</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git log --oneline main..origin/main</code></pre><div class="cmd-b"><p><code>A..B</code> means "commits in B that are not in A": exactly what you are about to receive. Look before you integrate.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>f80487d Teammate adds a file</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git pull</code></pre><div class="cmd-b"><p>Fetch plus merge. Because you have no commits of your own that the server lacks, it is a fast-forward.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>Updating 2f90936..f80487d
+Fast-forward
+ team.txt | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 team.txt</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git remote -v</code></pre><div class="cmd-b"><p>List the remotes with their addresses. A remote can have different fetch and push addresses; usually they are the same.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>origin	../origin.git (fetch)
+origin	../origin.git (push)</code></pre></div></div>
+</div>
+<div class="blk warn"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Traps to avoid</span><ul><li><code>git pull</code> can create unexpected merge commits or conflicts. Habit: <code>git fetch</code>, look with <code>git log main..origin/main</code>, then merge or rebase deliberately.</li><li>Never <code>git push --force</code> to a shared branch: it overwrites teammates' commits. If you must, use <code>--force-with-lease</code>, which refuses when the server has commits you have not seen.</li><li>Pushing a commit publishes it forever. Anything committed (secrets included) must be treated as public once pushed.</li></ul></div>
+</div></section>
+<section class="pat hot" id="l5" aria-labelledby="l5-t">
+<div class="pat-h"><span class="badge">5</span><h3 id="l5-t">Reading history: log, blame and search</h3><span class="tier hot"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14.5c-2.5 0-4-1.7-4-3.8 0-2.2 2-3.2 2.4-5.2.9.6 1.6 1.5 1.8 2.6.6-.5.9-1.4.8-2.4 1.8 1.2 3 3 3 5 0 2-1.5 3.8-4 3.8z"/></svg> Must know</span><span class="pp"></span><label class="tick"><input type="checkbox" class="pk" data-k="gb-L5" aria-label="Mark done"><span>Mark done</span></label></div><div class="pat-b">
+<div class="glance"><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/></svg>Situation</span><p>Production behaves strangely. Which commit changed this line, who wrote it, when and why, and when did this word first appear in the code?</p></div><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01"/></svg>You will learn</span><ul><li>Format and filter <code>git log</code></li><li><code>git blame</code> for line history</li><li>Search history with <code>-S</code>, and compare with <code>git diff</code></li></ul></div></div>
+<div class="callout intu"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>Mental model</span><p>History is only useful if you can interrogate it. <code>git log</code> can be filtered by author, date, file and text, and formatted for your question. <code>git blame file</code> annotates every line with the commit and author that last changed it, which finds the right person to ask and the message that explains why. <code>git log -S"text"</code> (the "pickaxe") finds the commits that added or removed a given string, even if the line has moved.</p><p class="analogy"><b>Everyday analogy:</b> <code>git blame</code> is the edit history sidebar of a shared document; <code>git log -S</code> is searching the history for the day a sentence first appeared.</p></div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Find what changed</span>
+<div class="cmd"><pre class="sh"><code>git log --oneline --graph --all</code></pre><div class="cmd-b"><p>The whole shape of the history in one view.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>* f80487d Teammate adds a file
+*   2f90936 Merge fix
+|\  
+| * 97661d6 Add fix
+* | 3205427 Add main change
+|/  
+* a89a2ce Add feature
+* 952768e Add notes and ignore secrets
+* 711e8ee Greet the world
+* 3951597 Add hello</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git log --format=&#x27;%h %an %s&#x27; -n 3</code></pre><div class="cmd-b"><p>Custom format: short hash (<code>%h</code>), author name (<code>%an</code>) and subject (<code>%s</code>) for the latest three commits. Ideal for pasting into a report.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>%h</code></td><td>short hash</td></tr><tr><td><code>%an</code></td><td>author name</td></tr><tr><td><code>%s</code></td><td>subject line</td></tr><tr><td><code>-n 3</code></td><td>only three commits</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>f80487d Ada Learner Teammate adds a file
+2f90936 Ada Learner Merge fix
+3205427 Ada Learner Add main change</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git log -S&quot;main change&quot; --oneline</code></pre><div class="cmd-b"><p>The pickaxe: which commit introduced (or removed) the text <code>main change</code>?</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>3205427 Add main change</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git blame hello.txt</code></pre><div class="cmd-b"><p>Who last changed each line of <code>hello.txt</code>? Each line shows the commit hash, author, date and the line itself. Then <code>git show &lt;hash&gt;</code> explains the why. Use <code>-L10,20</code> to look at just lines 10 to 20 of a longer file.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>-L10,20</code></td><td>restrict the output to those lines (useful on big files)</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>711e8ee3 (Ada Learner 2026-01-16 03:00:00 +0000 1) hello world</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git show HEAD~1 --stat --format=&#x27;%h %s&#x27;</code></pre><div class="cmd-b"><p>Show the commit before the latest (<code>HEAD~1</code>) with the files it touched. <code>~1</code> means one step back along the first parent, <code>~2</code> two steps.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>2f90936 Merge fix
+
+ fix.txt | 1 +
+ 1 file changed, 1 insertion(+)</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git shortlog -sn HEAD</code></pre><div class="cmd-b"><p>Count commits per author: <code>-s</code> summary, <code>-n</code> sorted by number. Naming <code>HEAD</code> explicitly matters: with no revision, <code>git shortlog</code> waits for input on stdin when it is not run in a terminal.</p><div class="tw parts"><table><thead><tr><th>Part</th><th>What it does</th></tr></thead><tbody><tr><td><code>-s</code></td><td>summary: counts only</td></tr><tr><td><code>-n</code></td><td>sort by number of commits</td></tr></tbody></table></div><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>     8	Ada Learner</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git diff HEAD~2 --stat</code></pre><div class="cmd-b"><p>Compare the working tree with the commit two steps back and summarise which files changed and by how much.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code> fix.txt  | 1 +
+ team.txt | 1 +
+ 2 files changed, 2 insertions(+)</code></pre></div></div>
+</div>
+<div class="blk warn"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Traps to avoid</span><ul><li><code>git blame</code> names the last person to touch a line, not necessarily the one who understands it: a formatting commit hides the real author. Use <code>git blame -w</code> (ignore whitespace) or <code>-C</code> (detect moved code).</li><li><code>HEAD~1</code> and <code>HEAD^</code> are not always the same after merges: <code>~</code> walks the first parent, <code>^2</code> picks the second parent of a merge.</li></ul></div>
+</div></section>
+<section class="pat hot" id="l6" aria-labelledby="l6-t">
+<div class="pat-h"><span class="badge">6</span><h3 id="l6-t">Good habits, hooks, secrets and &quot;I messed up&quot;</h3><span class="tier hot"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14.5c-2.5 0-4-1.7-4-3.8 0-2.2 2-3.2 2.4-5.2.9.6 1.6 1.5 1.8 2.6.6-.5.9-1.4.8-2.4 1.8 1.2 3 3 3 5 0 2-1.5 3.8-4 3.8z"/></svg> Must know</span><span class="pp"></span><label class="tick"><input type="checkbox" class="pk" data-k="gb-L6" aria-label="Mark done"><span>Mark done</span></label></div><div class="pat-b">
+<div class="glance"><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/></svg>Situation</span><p>A teammate committed a password. Another committed to the wrong branch. A third got "rejected" on push and used force. Most Git trouble is a small set of repeated situations with a known calm response.</p></div><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01"/></svg>You will learn</span><ul><li>Commit messages and commit size</li><li>Hooks: automatic checks before a commit</li><li>Why deleting a committed secret does not remove it, and the playbook for common accidents</li></ul></div></div>
+<div class="callout intu"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>Mental model</span><p>Good history is small, focused commits with messages that explain <strong>why</strong>. A conventional shape: a short imperative subject line (about 50 characters), a blank line, then details. Small commits make review, <code>git bisect</code> and reverting easy.</p><p>A <strong>hook</strong> is a script Git runs at certain moments, for example <code>pre-commit</code> before a commit is created; if it exits non-zero the commit is stopped. Teams use hooks (or tools built on them) to run formatters, linters and secret scanners. And remember: Git history is append-only in practice. A secret that was ever committed is still in history after you delete the file, and once pushed it must be considered leaked: rotate it.</p><p class="analogy"><b>Everyday analogy:</b> Hooks are the checklist the pilot runs before takeoff. Git history is a ship's log written in ink: you can add a correction but the old entry is still legible.</p></div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>A hook that blocks a commit</span>
+<div class="cmd"><pre class="sh"><code>cat &gt; .git/hooks/pre-commit &lt;&lt;&#x27;EOF&#x27;
+#!/bin/bash
+if git diff --cached | grep -q &#x27;TODO&#x27;; then
+  echo &quot;pre-commit: remove the TODO before committing&quot; &gt;&amp;2
+  exit 1
+fi
+EOF
+chmod +x .git/hooks/pre-commit</code></pre><div class="cmd-b"><p>A <code>pre-commit</code> hook is an executable file with that exact name in <code>.git/hooks</code>. This one fails if the staged changes contain the word TODO. (Hooks live inside <code>.git</code>, so they are not shared by cloning; teams distribute them with a tool.)</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+<div class="cmd"><pre class="sh"><code>echo &quot;TODO: fix later&quot; &gt; todo.txt; git add todo.txt; git commit -m &quot;Add todo&quot;; echo &quot;exit code: $?&quot;</code></pre><div class="cmd-b"><p>The hook runs, prints its message and exits 1, so the commit is <strong>not</strong> created.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>pre-commit: remove the TODO before committing
+exit code: 1</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git restore --staged todo.txt; rm todo.txt .git/hooks/pre-commit; git status -s</code></pre><div class="cmd-b"><p>Tidy up: unstage, delete the file and the hook. A clean status.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><p class="muted noout">No output. In the shell, silence usually means success.</p></div></div>
+</div>
+<div class="blk"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>History remembers</span>
+<p>The password below is a harmless made-up example.</p>
+<div class="cmd"><pre class="sh"><code>echo &quot;password=hunter2&quot; &gt; creds.txt; git add creds.txt; git commit -q -m &quot;Add creds&quot;; git rm -q creds.txt; git commit -q -m &quot;Remove creds&quot;; git log --oneline -3</code></pre><div class="cmd-b"><p>We commit a fake password, then delete the file in the next commit.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>00fc1ab Remove creds
+84bd8b4 Add creds
+f80487d Teammate adds a file</code></pre></div></div>
+<div class="cmd"><pre class="sh"><code>git log --all --oneline -S&quot;hunter2&quot;</code></pre><div class="cmd-b"><p>The pickaxe finds both commits: the one that added the secret and the one that removed it. The file is gone from the latest snapshot but not from history. Rotating the secret is the real fix.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>00fc1ab Remove creds
+84bd8b4 Add creds</code></pre></div></div>
+</div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="m14 14-3.5-3.5"/></svg>Playbook: Git accidents</span><p>Find your symptom, run the check, then the fix. Always run <code>git status</code> and <code>git log --oneline</code> first.</p><div class="tw"><table class="playbook"><thead><tr><th>Symptom</th><th>Check</th><th>What the output means</th><th>Fix</th></tr></thead><tbody><tr><td>I committed to the wrong branch (not pushed)</td><td><code>git log --oneline -3</code></td><td>The commit exists on the wrong branch only</td><td><code>git switch right-branch</code>, <code>git cherry-pick &lt;hash&gt;</code>, then on the wrong branch <code>git reset --hard HEAD~1</code></td></tr><tr><td>I need to undo my last commit but keep the changes</td><td><code>git log -1</code></td><td>The commit is local</td><td><code>git reset --soft HEAD~1</code>, edit, commit again</td></tr><tr><td>I need to undo a commit that is already pushed</td><td><code>git log origin/main</code></td><td>Others may have it: do not rewrite history</td><td><code>git revert &lt;hash&gt;</code> (adds a new commit that undoes it) and push</td></tr><tr><td>Push rejected: non-fast-forward</td><td><code>git fetch; git log main..origin/main</code></td><td>The server has commits you lack</td><td><code>git pull --rebase</code> (or merge), re-test, push. Never force-push a shared branch</td></tr><tr><td>I committed a password or key</td><td><code>git log -S'password' --all</code></td><td>It is in history, and in clones if pushed</td><td>Rotate the secret immediately; then remove it from history with <code>git filter-repo</code> only as cleanup, never as the fix</td></tr><tr><td>Detached HEAD message</td><td><code>git status</code></td><td>You checked out a commit, not a branch; new commits are on no branch</td><td><code>git switch -c rescue</code> to keep them, or <code>git switch main</code> to leave</td></tr><tr><td>I do not know what state the repository is in</td><td><code>git status; git log --oneline --graph --all -10</code></td><td>Reading beats guessing</td><td>Describe it: which branch, ahead or behind, any conflicts</td></tr></tbody></table></div></div>
+<div class="blk warn"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Traps to avoid</span><ul><li>Never commit <code>.env</code>, keys or tokens. Add them to <code>.gitignore</code> before the first commit and use a secret scanner (for example in a pre-commit hook).</li><li>Hooks can be skipped with <code>--no-verify</code>, so they help but are not security: enforce important checks on the server (CI, branch protection).</li><li>"I will clean it up later" and "fix" commit messages pile up. Squash or rewrite on your own unpublished branch before review.</li></ul></div>
+</div></section>
+<h2>Hands-on labs</h2><p class="muted">Reading is not enough for this material. Each lab sets up a realistic mess for you to fix.</p>
+<section class="pat lab" id="lab1" aria-labelledby="lab1-t"><div class="pat-h"><span class="badge"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5h4M6.5 2.5v4L3 12.5a1 1 0 0 0 .9 1.5h8.2a1 1 0 0 0 .9-1.5L9.5 6.5v-4"/><path d="M4.8 10h6.4"/></svg></span><h3 id="lab1-t">Lab 1: Make a clean first history</h3><span class="tier sec"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5h4M6.5 2.5v4L3 12.5a1 1 0 0 0 .9 1.5h8.2a1 1 0 0 0 .9-1.5L9.5 6.5v-4"/><path d="M4.8 10h6.4"/></svg> Hands-on</span><span class="pp"></span><label class="tick"><input type="checkbox" class="pk" data-k="gb-lab1" aria-label="I completed this lab"><span>I completed this lab</span></label></div><div class="pat-b">
+<div class="glance"><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/></svg>Goal</span><p>Create a repository from scratch with clean, focused commits and a working <code>.gitignore</code>.</p></div><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>The situation</span><p>You are starting a small project. Reviewers will read the history, so each commit must do one thing and carry a clear message, and noisy files must stay out.</p></div></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Set it up</span><p>Run this in a terminal with Git (Linux, macOS, WSL or Git Bash). The script builds a practice repository in a throwaway folder (~/sys-lab) and never touches your own projects. To start over, run it again.</p><pre class="sh"><code>curl -fsSLO https://nithin988.github.io/dsa-mastery/systems/labs/git/first-repo.sh
+less first-repo.sh      # read it first: it only touches ~/sys-lab
+bash first-repo.sh
+cd ~/sys-lab</code></pre></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01"/></svg>Your tasks</span><ol><li>Read <code>~/sys-lab/SPEC-first-repo.txt</code>.</li><li>Create <code>~/sys-lab/firstrepo</code> with <code>git init -b main</code>.</li><li>Make the three commits exactly as the spec says, one file per commit.</li><li>Create <code>debug.log</code> and make sure it is ignored and untracked, and finish with a clean <code>git status</code>.</li></ol></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>Check your work</span><p>Run the check script. It inspects the repository: branch, messages, files per commit, ignore rules, cleanliness.</p><pre class="sh"><code>bash ~/sys-lab/check-first-repo.sh</code></pre></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>Hints (try first, then open one at a time)</span><details><summary>Hint 1</summary><p><code>git init -b main firstrepo</code> creates the repository (inside <code>~/sys-lab</code>).</p></details><details><summary>Hint 2</summary><p>Stage one file at a time with <code>git add README.md</code> and commit it before creating the next.</p></details><details><summary>Hint 3</summary><p>Add the line <code>*.log</code> to <code>.gitignore</code>, commit <code>.gitignore</code>, then create <code>debug.log</code>.</p></details></div>
+<div class="blk"><details><summary>Show the solution</summary><p><code>cd ~/sys-lab &amp;&amp; git init -b main firstrepo &amp;&amp; cd firstrepo</code></p><p><code>echo '# My project' &gt; README.md &amp;&amp; git add README.md &amp;&amp; git commit -m 'Add README'</code></p><p><code>echo 'print(1)' &gt; app.py &amp;&amp; git add app.py &amp;&amp; git commit -m 'Add app'</code></p><p><code>echo '*.log' &gt; .gitignore &amp;&amp; git add .gitignore &amp;&amp; git commit -m 'Ignore logs' &amp;&amp; echo debug &gt; debug.log</code></p></details></div>
+</div></section>
+<section class="pat lab" id="lab2" aria-labelledby="lab2-t"><div class="pat-h"><span class="badge"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5h4M6.5 2.5v4L3 12.5a1 1 0 0 0 .9 1.5h8.2a1 1 0 0 0 .9-1.5L9.5 6.5v-4"/><path d="M4.8 10h6.4"/></svg></span><h3 id="lab2-t">Lab 2: Resolve a merge conflict</h3><span class="tier sec"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5h4M6.5 2.5v4L3 12.5a1 1 0 0 0 .9 1.5h8.2a1 1 0 0 0 .9-1.5L9.5 6.5v-4"/><path d="M4.8 10h6.4"/></svg> Hands-on</span><span class="pp"></span><label class="tick"><input type="checkbox" class="pk" data-k="gb-lab2" aria-label="I completed this lab"><span>I completed this lab</span></label></div><div class="pat-b">
+<div class="glance"><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/></svg>Goal</span><p>Experience a real conflict and resolve it deliberately, then complete the merge.</p></div><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>The situation</span><p>Two people changed the same line of <code>greeting.txt</code> on different branches. Git cannot choose, so you must.</p></div></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Set it up</span><p>Run this in a terminal with Git (Linux, macOS, WSL or Git Bash). The script builds a practice repository in a throwaway folder (~/sys-lab) and never touches your own projects. To start over, run it again.</p><pre class="sh"><code>curl -fsSLO https://nithin988.github.io/dsa-mastery/systems/labs/git/merge-conflict.sh
+less merge-conflict.sh      # read it first: it only touches ~/sys-lab
+bash merge-conflict.sh
+cd ~/sys-lab/conflict</code></pre></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01"/></svg>Your tasks</span><ol><li>In <code>~/sys-lab/conflict</code> run <code>git merge feature</code> and read what Git reports.</li><li>Open <code>greeting.txt</code>, find the markers (<code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>, <code>=======</code>, <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code>) and edit the file so it contains: <code>Hello</code>, <code>Welcome from main</code>, <code>Welcome from feature</code> (in that order) with no markers.</li><li>Stage the file and finish the merge with a commit.</li></ol></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>Check your work</span><p>Run the check script.</p><pre class="sh"><code>bash ~/sys-lab/check-merge-conflict.sh</code></pre></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>Hints (try first, then open one at a time)</span><details><summary>Hint 1</summary><p><code>git status</code> lists "both modified" files and tells you what to do next.</p></details><details><summary>Hint 2</summary><p>Between <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> and <code>=======</code> is your side; between <code>=======</code> and <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature</code> is theirs. Delete the three marker lines and keep the text you want.</p></details><details><summary>Hint 3</summary><p><code>git add greeting.txt</code> marks it resolved; <code>git commit</code> (with the default message) completes the merge.</p></details></div>
+<div class="blk"><details><summary>Show the solution</summary><p><code>git merge feature</code> reports a conflict in <code>greeting.txt</code>.</p><p>Edit the file to three lines: <code>Hello</code>, <code>Welcome from main</code>, <code>Welcome from feature</code>.</p><p><code>git add greeting.txt &amp;&amp; git commit --no-edit</code></p><p><code>git log --oneline --graph</code> shows the merge commit.</p></details></div>
+</div></section>
+<section class="pat lab" id="lab3" aria-labelledby="lab3-t"><div class="pat-h"><span class="badge"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5h4M6.5 2.5v4L3 12.5a1 1 0 0 0 .9 1.5h8.2a1 1 0 0 0 .9-1.5L9.5 6.5v-4"/><path d="M4.8 10h6.4"/></svg></span><h3 id="lab3-t">Lab 3: Undo three mistakes (in the right order)</h3><span class="tier sec"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2.5h4M6.5 2.5v4L3 12.5a1 1 0 0 0 .9 1.5h8.2a1 1 0 0 0 .9-1.5L9.5 6.5v-4"/><path d="M4.8 10h6.4"/></svg> Hands-on</span><span class="pp"></span><label class="tick"><input type="checkbox" class="pk" data-k="gb-lab3" aria-label="I completed this lab"><span>I completed this lab</span></label></div><div class="pat-b">
+<div class="glance"><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2"/></svg>Goal</span><p>Fix an unwanted edit, an accidental staged secret and a typo in the last commit message without losing anything you should keep.</p></div><div class="gi"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>The situation</span><p>A tired developer left three problems: a broken edit to <code>app.py</code>, a secret file staged for the next commit, and a typo in the last commit message. There is one trap in the ordering.</p></div></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 4.5 3.5 3.5L3 11.5M8 12h5"/></svg>Set it up</span><p>Run this in a terminal with Git (Linux, macOS, WSL or Git Bash). The script builds a practice repository in a throwaway folder (~/sys-lab) and never touches your own projects. To start over, run it again.</p><pre class="sh"><code>curl -fsSLO https://nithin988.github.io/dsa-mastery/systems/labs/git/undo-mistakes.sh
+less undo-mistakes.sh      # read it first: it only touches ~/sys-lab
+bash undo-mistakes.sh
+cd ~/sys-lab/undo</code></pre></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01"/></svg>Your tasks</span><ol><li>Discard the broken edit in <code>app.py</code> (restore the committed version).</li><li>Unstage <code>secret.env</code> but keep the file in the folder.</li><li>Fix the last commit message to <code>Add notes</code> without adding a new commit, and without the secret ending up in it.</li></ol></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>Check your work</span><p>Run the check script.</p><pre class="sh"><code>bash ~/sys-lab/check-undo-mistakes.sh</code></pre></div>
+<div class="blk "><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z"/></svg>Hints (try first, then open one at a time)</span><details><summary>Hint 1</summary><p><code>git status</code> shows what is staged and what is modified.</p></details><details><summary>Hint 2</summary><p><code>git restore app.py</code> discards the edit; <code>git restore --staged secret.env</code> unstages without deleting.</p></details><details><summary>Hint 3</summary><p>Amending includes everything that is staged. So do the unstaging <strong>first</strong>, then <code>git commit --amend -m "Add notes"</code>.</p></details></div>
+<div class="blk"><details><summary>Show the solution</summary><p><code>cd ~/sys-lab/undo</code></p><p><code>git restore --staged secret.env</code></p><p><code>git restore app.py</code></p><p><code>git commit --amend -m 'Add notes'</code></p></details></div>
+</div></section>
+<h2 id="cheat">Cheat sheet</h2><p class="muted">Print this section or keep it open next to your terminal.</p><div class="tw"><table class="cheat"><thead><tr><th>Command or idea</th><th>What it does</th></tr></thead><tbody><tr><td>git init -b main / git clone URL</td><td>start a repository / copy one from a server</td></tr><tr><td>git status -sb</td><td>short status with the branch line</td></tr><tr><td>git add file / git add -p</td><td>stage a file / stage chosen pieces</td></tr><tr><td>git diff / git diff --staged</td><td>unstaged changes / staged changes</td></tr><tr><td>git commit -m "msg"</td><td>record the staged snapshot</td></tr><tr><td>git commit --amend</td><td>replace the last commit (only if not pushed)</td></tr><tr><td>git restore f / git restore --staged f</td><td>discard an edit / unstage</td></tr><tr><td>git log --oneline --graph --all</td><td>the shape of history</td></tr><tr><td>git log -S"text"</td><td>which commit added or removed this text</td></tr><tr><td>git blame -L10,20 f</td><td>who last changed lines 10 to 20</td></tr><tr><td>git show &lt;hash&gt;</td><td>one commit in full</td></tr><tr><td>git switch -c name / git switch name</td><td>create and switch / switch branch</td></tr><tr><td>git merge name</td><td>bring name into the current branch</td></tr><tr><td>git branch -vv / git branch -d name</td><td>branches and upstreams / delete a merged branch</td></tr><tr><td>git remote -v</td><td>list remotes</td></tr><tr><td>git fetch / git pull / git push</td><td>download / download and merge / upload</td></tr><tr><td>git log main..origin/main</td><td>what a pull would bring</td></tr><tr><td>git push -u origin branch</td><td>publish a branch and track it</td></tr><tr><td>git revert &lt;hash&gt;</td><td>undo a commit by adding a new one (safe when shared)</td></tr><tr><td>git rm --cached f</td><td>stop tracking a file but keep it on disk</td></tr><tr><td>git config --global user.name "Your Name"</td><td>set your identity once</td></tr></tbody></table></div>
+<h2 id="interview">Interview corner</h2><p class="muted">Git questions are almost always scenarios. Say what you would check first, what you would run, and why that choice is safe.</p><details class="qa"><summary>What is the difference between <code>git fetch</code> and <code>git pull</code>?</summary><div class="qa-b"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>Shape of a strong answer</span><ul><li><code>fetch</code> downloads new commits and updates <code>origin/*</code> bookmarks only; it never changes your branches or files.</li><li><code>pull</code> is <code>fetch</code> followed by merge (or rebase) into the current branch.</li><li>Habit: fetch, inspect with <code>git log main..origin/main</code>, then integrate on purpose.</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg>Follow-ups to expect</span><ul><li>How do you make <code>pull</code> rebase by default?</li><li>What does "behind by 2, ahead by 1" mean?</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Common mistakes</span><ul><li>Saying fetch changes your files.</li></ul></div></details><details class="qa"><summary>What is the staging area and why does Git have one?</summary><div class="qa-b"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>Shape of a strong answer</span><ul><li>A draft of the next commit between the working directory and the repository.</li><li>It lets you build focused commits from messy work (stage some files or some hunks) and review exactly what will be committed with <code>git diff --staged</code>.</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg>Follow-ups to expect</span><ul><li>How do you stage only part of a file? (<code>git add -p</code>)</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Common mistakes</span><ul><li>Calling it a backup or a branch.</li></ul></div></details><details class="qa"><summary>What is a branch, internally? Why are branches cheap in Git?</summary><div class="qa-b"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>Shape of a strong answer</span><ul><li>A branch is a small file containing one commit hash: a movable pointer. HEAD points to the current branch.</li><li>Creating one copies no files, so it is instant; committing moves the pointer forward.</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg>Follow-ups to expect</span><ul><li>What is detached HEAD?</li><li>How does Git know which commits belong to a branch?</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Common mistakes</span><ul><li>Describing a branch as a copy of the code.</li></ul></div></details><details class="qa"><summary>What is a fast-forward merge, and when do you get a merge commit instead?</summary><div class="qa-b"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>Shape of a strong answer</span><ul><li>Fast-forward: the target branch has no new commits, so Git only moves its label forward; no new commit.</li><li>When both branches have new commits Git creates a merge commit with two parents.</li><li><code>--no-ff</code> forces a merge commit to keep a record of the branch.</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg>Follow-ups to expect</span><ul><li>How is that different from a rebase?</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Common mistakes</span><ul><li>Thinking a merge always makes a commit.</li></ul></div></details><details class="qa"><summary>You committed a file with a password and pushed it. What do you do?</summary><div class="qa-b"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>Shape of a strong answer</span><ul><li>Treat it as leaked: <strong>rotate the secret immediately</strong>.</li><li>Then clean history if policy requires (<code>git filter-repo</code> or BFG, followed by a force push and everyone re-cloning), noting that clones and forks may keep it.</li><li>Prevent: <code>.gitignore</code>, secret scanning in a pre-commit hook and in CI.</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg>Follow-ups to expect</span><ul><li>Why is deleting the file in a new commit not enough?</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Common mistakes</span><ul><li>Only deleting the file; believing a force push makes it safe.</li></ul><p class="angle"><b>Company angle:</b> Amazon-style interviews like operational follow-ups ("how do you make sure it cannot happen again, and how do you know whether it was used?"); reported by candidates, not official.</p></div></details><details class="qa"><summary>You added <code>*.log</code> to <code>.gitignore</code> but Git still shows changes to a log file. Why?</summary><div class="qa-b"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>Shape of a strong answer</span><ul><li><code>.gitignore</code> only applies to untracked files; this file was committed earlier so it remains tracked.</li><li>Fix: <code>git rm --cached file.log</code>, commit, and keep the ignore rule.</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg>Follow-ups to expect</span><ul><li>How do you check why a path is ignored? (<code>git check-ignore -v</code>)</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Common mistakes</span><ul><li>Re-adding the pattern or deleting the file.</li></ul></div></details><details class="qa"><summary>Explain how Git stores data. What are blobs, trees and commits?</summary><div class="qa-b"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>Shape of a strong answer</span><ul><li>Git is a content-addressed store: every object is named by the hash of its content.</li><li>A <strong>blob</strong> holds file content, a <strong>tree</strong> holds a folder (names pointing to blobs and subtrees), a <strong>commit</strong> points to one tree, its parent commits, and metadata.</li><li>Unchanged files share blobs between commits, so snapshots are compact; changing anything changes hashes upward to the commit.</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg>Follow-ups to expect</span><ul><li>What happens to old commits after a rebase?</li><li>What does the commit hash cover?</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Common mistakes</span><ul><li>Saying Git stores diffs.</li></ul></div></details><details class="qa"><summary>Walk me through what you do when <code>git push</code> is rejected with "non-fast-forward".</summary><div class="qa-b"><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg>Shape of a strong answer</span><ul><li>The server has commits I do not have, so it would lose them.</li><li><code>git fetch</code>, look at what is new (<code>git log main..origin/main</code>), then <code>git pull --rebase</code> or merge, resolve conflicts, run the tests, push.</li><li>Never force-push a shared branch; if unavoidable, <code>--force-with-lease</code> and warn the team.</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg>Follow-ups to expect</span><ul><li>When is force-pushing acceptable?</li></ul><span class="lbl"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg>Common mistakes</span><ul><li>Reaching for <code>--force</code> first.</li></ul></div></details><div style="margin-top:10px"><label class="tick"><input type="checkbox" class="pk" data-k="gb-iv" aria-label="I can answer these out loud"><span>I can answer these out loud</span></label></div>
+<h2 id="selftest">Self-test</h2><p class="muted">Answer in your head first, then open the question.</p><details><summary>What three things does a commit contain?</summary><p>A snapshot (a tree), a pointer to its parent commit(s), and metadata (author, time, message). It is named by the hash of all of that.</p></details><details><summary>What is the difference between <code>git diff</code> and <code>git diff --staged</code>?</summary><p><code>git diff</code> shows unstaged changes (working directory vs staging area); <code>--staged</code> shows staged changes (staging area vs last commit).</p></details><details><summary>What does <code>git restore --staged file</code> do?</summary><p>Takes the file out of the staging area; the file's content in the working directory is untouched.</p></details><details><summary>What is HEAD?</summary><p>The pointer to what you currently have checked out: normally a branch, which itself points to a commit.</p></details><details><summary>When does a merge produce a fast-forward?</summary><p>When the branch you merge into has no commits that the other branch lacks, so its label can simply move forward.</p></details><details><summary>What is <code>origin/main</code>?</summary><p>A remote-tracking branch: your local, read-only record of where <code>main</code> was on the server at your last fetch.</p></details><details><summary>Why can <code>git pull</code> be risky?</summary><p>It combines fetch and merge in one step, so unexpected commits or conflicts land in your branch before you looked at them.</p></details><details><summary>Why is deleting a committed secret not enough?</summary><p>The secret is still in history and in every clone; it must be considered leaked and rotated.</p></details>
+<h2 id="recall">One-line recall</h2><div class="tw"><table class=""><thead><tr><th>Idea</th><th>In one line</th></tr></thead><tbody><tr><td>Commit</td><td>snapshot + parent pointer, named by hash</td></tr><tr><td>Branch</td><td>a movable label on a commit</td></tr><tr><td>HEAD</td><td>which branch/commit you are on</td></tr><tr><td>Staging area</td><td>a draft of the next commit</td></tr><tr><td>fetch</td><td>download and update bookmarks only</td></tr><tr><td>pull</td><td>fetch + merge (or rebase)</td></tr><tr><td>fast-forward</td><td>move the label, no merge commit</td></tr><tr><td>secret in history</td><td>rotate it; deleting is not enough</td></tr></tbody></table></div>
+<h2 id="sources">Further reading</h2><p class="muted">Every explanation in this module is written for this course. These are the best free sources to go deeper; where a licence forbids copying, we only link.</p><div class="tw"><table><thead><tr><th>Resource</th><th>Best for</th><th>Licence or terms</th><th>How this module uses it</th></tr></thead><tbody><tr><td><a href="https://git-scm.com/book/en/v2" target="_blank" rel="noopener">Pro Git (Scott Chacon and Ben Straub)</a></td><td>The standard free book, from basics to internals</td><td>CC BY-NC-SA 3.0 (non-commercial, share-alike)</td><td>Link only; we wrote our own text</td></tr><tr><td><a href="https://learngitbranching.js.org/" target="_blank" rel="noopener">Learn Git Branching</a></td><td>Interactive visual practice of branching, merging, rebasing</td><td>MIT licensed (open source)</td><td>Recommended practice after lessons 3 to 4</td></tr><tr><td><a href="https://ohmygit.org/" target="_blank" rel="noopener">Oh My Git!</a></td><td>A game that visualises repository internals while you type real Git</td><td>Open-source game; see its site for terms</td><td>Optional practice</td></tr><tr><td><a href="https://git-scm.com/docs" target="_blank" rel="noopener">Git reference documentation</a></td><td>Official manual for every command</td><td>See the site for terms</td><td>Link only</td></tr><tr><td><a href="https://github.com/git-guides" target="_blank" rel="noopener">GitHub: Git guides</a></td><td>Short task-based guides</td><td>See the site for terms</td><td>Link only</td></tr><tr><td><a href="https://missing.csail.mit.edu/" target="_blank" rel="noopener">MIT: The Missing Semester (version control lecture)</a></td><td>The data-model lecture matches this module's approach</td><td>CC BY-NC-SA</td><td>Link only</td></tr></tbody></table></div>
+<h2 id="plan">Study plan</h2><ol><li><strong>Hour 1:</strong> the snapshot model; run every command and draw the three areas from memory.</li><li><strong>Hour 2:</strong> staging, diffs and fixing mistakes; then Lab 1 (first clean history).</li><li><strong>Hour 3:</strong> branches and merging with the animation; then Lab 2 (merge conflict).</li><li><strong>Hour 4:</strong> remotes (the local bare repository trick); read history with log and blame.</li><li><strong>Hour 5:</strong> good habits, hooks and the accident playbook; then Lab 3 (undo three mistakes).</li><li><strong>Hour 6:</strong> interview corner out loud, self-test, and try Learn Git Branching.</li></ol>
+<nav class="foot" aria-label="Previous and next module"><a class="nxt" href="S04_linux_internals.html"><small><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8h-11M7 3.5 2.5 8 7 12.5"/></svg>Previous</small><strong>Linux system internals</strong></a><a class="nxt next r" href="S06_git_teams_recovery.html"><small>Next module<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg></small><strong>Git in teams and recovery</strong></a></nav>
+</main></div>
+<footer class="site-foot"><span>Systems Mastery: free, open study sheets. Progress is saved in your browser only.</span><span><a href="../systems.html">All Systems modules</a> · <a href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener">GitHub</a></span></footer>
+<script>window.DSA_TOPICS=[{"id":"sh","file":"S02_linux_shell","num":"S02","title":"Linux shell fluency","phase":"Foundations","total":10},{"id":"tx","file":"S03_text_processing_scripting","num":"S03","title":"Text processing and scripting","phase":"Foundations","total":11},{"id":"li","file":"S04_linux_internals","num":"S04","title":"Linux system internals","phase":"Foundations","total":11},{"id":"gb","file":"S05_git_fundamentals","num":"S05","title":"Git fundamentals","phase":"Foundations","total":10},{"id":"gr","file":"S06_git_teams_recovery","num":"S06","title":"Git in teams and recovery","phase":"Foundations","total":11}];</script>
+<script>(function(){
+var IC={"target":"<circle cx=\"8\" cy=\"8\" r=\"6\"/><circle cx=\"8\" cy=\"8\" r=\"2\"/>","search":"<circle cx=\"7\" cy=\"7\" r=\"4.5\"/><path d=\"m14 14-3.5-3.5\"/>","bulb":"<path d=\"M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z\"/>","up":"<path d=\"M4 12 12 4M6 4h6v6\"/>","spark":"<path d=\"M8 1.5 9.5 6.5 14.5 8 9.5 9.5 8 14.5 6.5 9.5 1.5 8 6.5 6.5z\"/>","list":"<path d=\"M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01\"/>","term":"<path d=\"m3 4.5 3.5 3.5L3 11.5M8 12h5\"/>","code":"<path d=\"m5.5 4.5-3.5 3.5 3.5 3.5M10.5 4.5l3.5 3.5-3.5 3.5\"/>","clock":"<circle cx=\"8\" cy=\"8\" r=\"6\"/><path d=\"M8 4.5V8l2.5 1.5\"/>","warn":"<path d=\"M8 2 14.5 13.5h-13z\"/><path d=\"M8 6.5v3M8 11.5h.01\"/>","layers":"<path d=\"m8 2 6.5 3.5L8 9 1.5 5.5z\"/><path d=\"m1.5 8.5 6.5 3.5 6.5-3.5\"/>","no":"<circle cx=\"8\" cy=\"8\" r=\"6\"/><path d=\"m5.8 5.8 4.4 4.4M10.2 5.8l-4.4 4.4\"/>","stairs":"<path d=\"M2.5 13.5h3v-3h3v-3h3v-3h2\"/>","flame":"<path d=\"M8 14.5c-2.5 0-4-1.7-4-3.8 0-2.2 2-3.2 2.4-5.2.9.6 1.6 1.5 1.8 2.6.6-.5.9-1.4.8-2.4 1.8 1.2 3 3 3 5 0 2-1.5 3.8-4 3.8z\"/>","mark":"<path d=\"M4 2.5h8v11L8 10.5 4 13.5z\"/>","down":"<path d=\"M8 2.5v8M4.5 7.5 8 11l3.5-3.5M2.5 13.5h11\"/>","menu":"<path d=\"M2.5 4h11M2.5 8h11M2.5 12h11\"/>","theme":"<circle cx=\"8\" cy=\"8\" r=\"5.5\"/><path d=\"M8 2.5a5.5 5.5 0 0 0 0 11z\" fill=\"currentColor\"/>","right":"<path d=\"m6 3.5 4.5 4.5L6 12.5\"/>","arr-r":"<path d=\"M2.5 8h11M9 3.5 13.5 8 9 12.5\"/>","arr-l":"<path d=\"M13.5 8h-11M7 3.5 2.5 8 7 12.5\"/>","check":"<path d=\"m3 8.5 3.2 3.2L13 4.8\"/>","ext":"<path d=\"M9 2.5h4.5V7M13.5 2.5 7 9M12 9v4.5H2.5V4H7\"/>","play":"<path d=\"M5 3.2v9.6L12.8 8z\"/>","pause":"<path d=\"M5 3.5v9M11 3.5v9\"/>","prev":"<path d=\"M10 3.5 5.5 8l4.5 4.5\"/>","next":"<path d=\"M6 3.5 10.5 8 6 12.5\"/>","reset":"<path d=\"M3 8a5 5 0 1 0 1.8-3.8M3 2.5v3h3\"/>","key":"<circle cx=\"5.5\" cy=\"10.5\" r=\"3\"/><path d=\"m8 8.5 5.5-5.5M11 5l1.5 1.5M9.5 6.5 11 8\"/>","cal":"<rect x=\"2.5\" y=\"3.5\" width=\"11\" height=\"10\" rx=\"1.5\"/><path d=\"M2.5 6.5h11M5.5 2v3M10.5 2v3\"/>","home":"<path d=\"M2.5 7.5 8 2.5l5.5 5M4 6.5v7h8v-7\"/>","branch":"<circle cx=\"4.5\" cy=\"3.5\" r=\"1.5\"/><circle cx=\"4.5\" cy=\"12.5\" r=\"1.5\"/><circle cx=\"11.5\" cy=\"6\" r=\"1.5\"/><path d=\"M4.5 5v6M11.5 7.5c0 2.5-3 2-7 3.5\"/>","server":"<rect x=\"2.5\" y=\"3\" width=\"11\" height=\"4\" rx=\"1\"/><rect x=\"2.5\" y=\"9\" width=\"11\" height=\"4\" rx=\"1\"/><path d=\"M5 5h.01M5 11h.01\"/>","flask":"<path d=\"M6 2.5h4M6.5 2.5v4L3 12.5a1 1 0 0 0 .9 1.5h8.2a1 1 0 0 0 .9-1.5L9.5 6.5v-4\"/><path d=\"M4.8 10h6.4\"/>","share":"<circle cx=\"4\" cy=\"8\" r=\"1.8\"/><circle cx=\"12\" cy=\"4\" r=\"1.8\"/><circle cx=\"12\" cy=\"12\" r=\"1.8\"/><path d=\"m5.7 7 4.6-2M5.7 9l4.6 2\"/>","book":"<path d=\"M2.5 3.5h4A1.5 1.5 0 0 1 8 5v8a1 1 0 0 0-1-1H2.5zM13.5 3.5h-4A1.5 1.5 0 0 0 8 5v8a1 1 0 0 1 1-1h4.5z\"/>","film":"<rect x=\"2\" y=\"3\" width=\"12\" height=\"10\" rx=\"1.5\"/><path d=\"m6.5 6 3.5 2-3.5 2z\"/>","pencil":"<path d=\"M2.5 13.5 3 10l7-7 3 3-7 7zM9 4l3 3\"/>"};
+/* Animations for Systems Mastery modules. Same step format as sims.js:
+   {a:[cells], ptr:{label:idx}, hi:[], ok:[], dim:[], aux:{label,items}, note, cols?, graph?:{nodes,edges,directed,w,h}, eok?} */
+function rng(x,y){var r=[];for(var i=x;i<=y;i++)r.push(i);return r}
+function mapStr(m){var k=Object.keys(m);return '{'+k.map(function(x){return x+':'+m[x]}).join(', ')+'}'}
+var SIM={
+/* ---- S02: Linux shell ---- */
+cdtree:function(){var S=[];
+ var nodes=[{x:210,y:25,label:'/'},{x:110,y:75,label:'home'},{x:310,y:75,label:'etc'},{x:110,y:125,label:'me'},{x:110,y:175,label:'work'},{x:50,y:228,label:'logs'},{x:110,y:228,label:'notes'},{x:170,y:228,label:'bin'}];
+ var edges=[[0,1],[0,2],[1,3],[3,4],[4,5],[4,6],[4,7]];
+ var G={nodes:nodes,edges:edges,w:420,h:255};
+ function st(at,cmd,pwd,note,ok){S.push({a:[],graph:G,ptr:{'you are here':at},ok:ok||[],aux:{label:'terminal',items:['$ '+cmd,'pwd → '+pwd]},note:note})}
+ st(3,'(shell starts)','/home/me','Every shell session has a current directory ("cwd"). A new session starts in your home directory, written ~ for short. The tree shows the directories we will visit: / is the root of everything.');
+ st(4,'cd work','/home/me/work','cd work is a relative path: it starts from where you are now (/home/me) and goes down into work. No leading slash means "relative to here".');
+ st(5,'cd logs','/home/me/work/logs','Another relative step. Each cd changes only your current directory, never the files.');
+ st(4,'cd ..','/home/me/work','.. always means "the parent directory", one step up the tree. A single . means "here".');
+ st(2,'cd /etc','/etc','A path that starts with / is absolute: it starts at the root and works from anywhere, whatever your current directory is.');
+ st(3,'cd ~   (or just cd)','/home/me','~ is shorthand for your home directory, and cd with no argument takes you home. Absolute paths never depend on where you are; relative paths always do. That difference explains most "No such file or directory" errors.',[3]);
+ return S},
+perm:function(){var S=[];
+ function row(sym,oct,note,hi,aux){var a=sym.split('');S.push({a:a,ptr:{},hi:hi||[],aux:{label:'permissions',items:aux},note:note})}
+ S.push({a:['r','w','x','r','-','x','r','-','-'],ptr:{owner:0,group:3,others:6},aux:{label:'ls -l shows',items:['-rwxr-xr-- 1 me team report.sh']},note:'ls -l prints nine permission characters after the file type. They are three groups of three: what the owner may do, what members of the file group may do, and what everyone else may do. r = read, w = write, x = execute (run, or enter for a directory). A dash means "not allowed".'});
+ S.push({a:['r','w','x','r','-','x','r','-','-'],ptr:{owner:0,group:3,others:6},hi:[0,1,2],aux:{label:'owner',items:['r=4 w=2 x=1','4+2+1 = 7']},note:'Each permission has a value: r is 4, w is 2, x is 1. Add up what is allowed in a group to get one digit. The owner has all three: 4+2+1 = 7.'});
+ S.push({a:['r','w','x','r','-','x','r','-','-'],ptr:{owner:0,group:3,others:6},hi:[3,4,5],aux:{label:'group',items:['r=4 x=1, no w','4+0+1 = 5']},note:'The group may read and execute but not write: 4+0+1 = 5.'});
+ S.push({a:['r','w','x','r','-','x','r','-','-'],ptr:{owner:0,group:3,others:6},hi:[6,7,8],aux:{label:'others',items:['r=4 only','4+0+0 = 4']},note:'Everyone else may only read: 4. Put the three digits together and this file is mode 754: chmod 754 report.sh sets exactly these permissions.'});
+ S.push({a:['r','w','-','r','-','-','-','-','-'],ptr:{owner:0,group:3,others:6},hi:[0,1,2,3,4,5,6,7,8],aux:{label:'chmod 640 notes.txt',items:['6 = rw-','4 = r--','0 = ---']},note:'A common pair to remember: 640 (owner reads and writes, group reads, others nothing) for private files, and 755 for programs and directories that everyone may run or enter. Never "fix" an error with chmod 777: it lets everyone write.'});
+ S.push({a:['r','w','x','r','-','x','r','-','x'],ptr:{owner:0,group:3,others:6},ok:[2,5,8],aux:{label:'directories',items:['x on a directory = may enter it','r on a directory = may list it']},note:'On a directory, x means you may enter it (cd into it or reach files inside) and r means you may list its names. Missing x on a directory is the classic reason "Permission denied" appears for a file that looks fine.'});
+ return S},
+pipe:function(){var S=[],raw=['200 /home','500 /pay','200 /home','404 /old','500 /pay','500 /cart','200 /cart','500 /pay'];
+ function st(a,cmd,note,hi,dim,ok){S.push({a:a,ptr:{},hi:hi||[],dim:dim||[],ok:ok||[],aux:{label:'pipeline so far',items:[cmd]},note:note})}
+ st(raw,'cat access.log','Each program in a pipeline does one small job and passes its output to the next with the | symbol. Here is a tiny web log: a status code and a path per line. Question: which paths fail with status 500, and how often?');
+ var g=raw.map(function(x,i){return x.indexOf('500')===0?-1:i}).filter(function(i){return i>=0});
+ st(raw,'cat access.log | grep "^500"','grep keeps only the lines that match. The five lines that do not start with 500 are dropped.',[1,4,5,7],g);
+ var k=['500 /pay','500 /pay','500 /cart','500 /pay'];
+ st(['500 /pay','500 /pay','500 /cart','500 /pay'],'… | grep "^500"','Only four lines are passed on. The next program receives exactly these.',rng(0,3));
+ st(['/pay','/pay','/cart','/pay'],'… | cut -d" " -f2','cut splits each line on spaces (-d" ") and keeps the 2nd field (-f2): the path.',rng(0,3));
+ st(['/cart','/pay','/pay','/pay'],'… | sort','uniq only compares neighbouring lines, so identical lines must be next to each other first. sort puts them in order.',[1,2,3]);
+ st(['1 /cart','3 /pay'],'… | uniq -c','uniq -c collapses neighbouring duplicates and prefixes a count: /pay failed 3 times, /cart once.',[1],[],[1]);
+ st(['3 /pay','1 /cart'],'… | sort -rn','sort -rn sorts numerically, biggest first. Four tiny tools, one pipeline: "top failing paths". This is the Unix idea: small tools that do one thing, joined together.',[0],[],[0]);
+ return S},
+/* ---- S03: text processing and scripting ---- */
+awkf:function(){var S=[],rows=['alice 42 eng','bob 17 ops','carol 63 eng','dave 8 ops'];
+ function f(i){return rows[i].split(' ')}
+ S.push({a:rows,ptr:{},aux:{label:'input: name, score, team',items:['awk reads one line at a time']},note:'awk is a tiny programming language built for columns of text. It reads input one line (a "record") at a time and splits each line into fields on whitespace: $1 is the first field, $2 the second, and $0 is the whole line.'});
+ rows.forEach(function(r,i){var fs=f(i);S.push({a:rows,ptr:{'line':i},hi:[i],aux:{label:'line '+(i+1)+' split into fields',items:['$1 = '+fs[0],'$2 = '+fs[1],'$3 = '+fs[2],'NR = '+(i+1)]},note:'awk \'{print $1, $3}\' prints fields 1 and 3 of every line. For line '+(i+1)+' that is: '+fs[0]+' '+fs[2]+'.'})});
+ S.push({a:['alice eng','bob ops','carol eng','dave ops'],ptr:{},ok:[0,1,2,3],aux:{label:'output',items:['awk \'{print $1, $3}\' people.txt']},note:'Output is one printed line per input line. Use -F to change the separator: awk -F, \'{print $2}\' file.csv splits on commas instead of whitespace.'});
+ return S},
+awksum:function(){var S=[],sc=[42,17,63,8],sum=0,cnt=0;
+ S.push({a:['BEGIN','line 1','line 2','line 3','line 4','END'],ptr:{},aux:{label:'program',items:['awk \'{sum += $2; n++} END {print sum, sum/n}\'']},note:'An awk program is pattern { action } pairs. Here the action has no pattern, so it runs for every line. BEGIN runs once before the first line, END once after the last. Variables start at 0 or empty and need no declaration.'});
+ sc.forEach(function(v,i){sum+=v;cnt++;S.push({a:['BEGIN','line 1','line 2','line 3','line 4','END'],ptr:{now:i+1},hi:[i+1],ok:rng(0,i),aux:{label:'variables',items:['$2 = '+v,'sum = '+sum,'n = '+cnt]},note:'Line '+(i+1)+': add $2 ('+v+') to sum, giving '+sum+', and count it. awk keeps the variables between lines.'})});
+ S.push({a:['BEGIN','line 1','line 2','line 3','line 4','END'],ptr:{END:5},hi:[5],ok:rng(0,4),aux:{label:'END prints',items:[sum+' '+(sum/cnt)]},note:'After the last line END runs: it prints the total ('+sum+') and the average ('+(sum/cnt)+'). Summing a column is the single most common awk job: totals, averages, counts per group.'});
+ return S},
+sedsub:function(){var S=[],line='ERROR: disk full on /var',steps=[
+ ['s/ERROR/WARN/','WARN: disk full on /var','s/old/new/ replaces the first match on each line. The pattern between the first two slashes is a regular expression; the text between the last two is the replacement.'],
+ ['s/disk/DISK/g','ERROR: DISK full on /var','Add g (global) to replace every match on the line, not only the first.'],
+ ['s#/var#/srv#','ERROR: disk full on /srv','Any character can be the delimiter. When the text contains slashes, # keeps the command readable.'],
+ ['/disk/d','(line deleted)','A pattern before a command picks which lines it applies to. /disk/d deletes every line that contains disk.'],
+ ['-n \'/ERROR/p\'','ERROR: disk full on /var','-n turns off automatic printing and p prints only the lines you select: this makes sed behave like grep.']];
+ S.push({a:[line],ptr:{input:0},aux:{label:'input line',items:[line]},note:'sed is a stream editor: it reads text line by line, applies edit commands, and writes the result. It never changes the input file unless you use -i. The most important command is s (substitute).'});
+ steps.forEach(function(s){S.push({a:[s[1]],ptr:{result:0},hi:[0],aux:{label:'sed '+s[0],items:['input:  '+line,'output: '+s[1]]},note:s[2]})});
+ S.push({a:[line],ptr:{},ok:[0],aux:{label:'in place',items:['sed -i.bak \'s/ERROR/WARN/\' app.log']},note:'sed -i edits the file in place. Always give a backup suffix (-i.bak) when you are not sure: there is no undo, and the -i syntax differs slightly between Linux and macOS.'});
+ return S},
+xargs:function(){var S=[],files=['a.tmp','b.tmp','c.tmp','d.tmp','e.tmp'];
+ S.push({a:files,ptr:{},aux:{label:'find . -name "*.tmp" prints one name per line',items:['xargs turns those lines into arguments']},note:'Some commands take their input as arguments, not as text on stdin (rm, mv, cp, mkdir). A pipe cannot feed those directly. xargs reads lines from stdin and builds a command line from them.'});
+ S.push({a:files,ptr:{},hi:rng(0,4),aux:{label:'… | xargs rm',items:['rm a.tmp b.tmp c.tmp d.tmp e.tmp']},note:'By default xargs packs as many names as fit onto one command: a single rm with five arguments.'});
+ S.push({a:files,ptr:{'run 1':0},hi:[0,1],ok:[],aux:{label:'… | xargs -n 2 echo',items:['echo a.tmp b.tmp','echo c.tmp d.tmp','echo e.tmp']},note:'-n 2 limits each run to two arguments, so xargs makes three commands. Use it to see what will happen before you run something destructive.'});
+ S.push({a:files,ptr:{},ok:rng(0,4),aux:{label:'file names with spaces',items:['find ... -print0 | xargs -0 rm']},note:'A file called "my notes.tmp" would be split into two arguments. The safe pair is find -print0 (separate names with a NUL byte) and xargs -0 (read NUL-separated input). Make it a habit.'});
+ return S},
+/* ---- S04: Linux system internals ---- */
+procstate:function(){var S=[],st=['created','running','sleeping','stopped','zombie','gone'];
+ function s(at,ok,aux,note,dim){S.push({a:st,ptr:{'PID 4242':at},hi:[at],ok:ok||[],dim:dim||[],aux:{label:'process 4242',items:aux},note:note})}
+ s(0,[],['ps STAT: -','parent: the shell (PID 900)'],'Every process is created by another process. The shell calls fork(): the kernel makes a near-copy of itself (the child, PID 4242) and the child then calls exec() to replace its program with the command you typed. Until it is scheduled it is just "created".');
+ s(1,[],['ps STAT: R','using the CPU'],'Running (R): the process is on a CPU, or ready and waiting for its turn. The scheduler hands out CPU time in slices; "running" does not mean "using 100% CPU all the time".');
+ s(2,[],['ps STAT: S (or D)','waiting for disk or network'],'Sleeping (S): the process asked for something slow (a file read, a network packet, a timer) and the kernel parked it. A sleeping process costs no CPU. D means uninterruptible sleep, usually disk I/O: it cannot be killed until the I/O returns, and many of them is a sign of a stuck disk or NFS.');
+ s(1,[],['ps STAT: R','data arrived'],'The data arrived, so the kernel wakes the process and it runs again. Most processes spend most of their life alternating between running and sleeping.');
+ s(3,[],['ps STAT: T','pressed Ctrl-Z'],'Stopped (T): Ctrl-Z sends SIGTSTP. The process is frozen in memory, not running, not dead. fg or bg (which send SIGCONT) resume it.');
+ s(1,[],['ps STAT: R','fg resumed it'],'SIGCONT resumes it. Nothing was lost.');
+ s(4,[],['ps STAT: Z','exited, parent has not called wait()'],'Zombie (Z): the process has exited, but its parent has not yet collected its exit code with wait(). The kernel keeps a tiny entry so the parent can still learn how it ended. A zombie uses no CPU or memory; a pile of them means the parent has a bug.');
+ s(5,[4],['entry removed','parent called wait()'],'The parent calls wait(), reads the exit status, and the kernel removes the entry. If the parent dies first, the orphan is adopted by PID 1 (init or systemd), which always reaps its children. You cannot kill a zombie, only fix or kill its parent.');
+ return S},
+signals:function(){var S=[],sg=['SIGINT 2','SIGTERM 15','SIGKILL 9','SIGSTOP 19','SIGHUP 1','SIGCHLD 17'];
+ function s(at,aux,note,ok,dim){S.push({a:sg,ptr:{sent:at},hi:[at],ok:ok||[],dim:dim||[],aux:{label:'signal',items:aux},note:note})}
+ S.push({a:sg,ptr:{},aux:{label:'signals',items:['a signal = a tiny message the kernel delivers to a process']},note:'A signal is an asynchronous message to a process: "interrupt", "please stop", "stop now". The process may have a handler that runs when the signal arrives, or it may use the default action (usually terminate). Two signals can never be caught: SIGKILL and SIGSTOP.'});
+ s(0,['sent by: Ctrl-C','can be caught: yes','default: terminate'],'SIGINT (2) is what Ctrl-C sends: "the user wants you to stop". Programs may catch it to clean up first. A well-written program flushes its files and exits.');
+ s(1,['sent by: kill PID (the default)','can be caught: yes','default: terminate'],'SIGTERM (15) is the polite request "please shut down". It is what kill, systemd and Kubernetes send first. A good service catches it, finishes in-flight work, releases locks and exits.',[1]);
+ s(2,['sent by: kill -9 PID','can be caught: NO','default: terminate immediately'],'SIGKILL (9) cannot be caught, blocked or ignored: the kernel removes the process. It gets no chance to clean up, so temp files, locks and half-written data are left behind. Use it only after SIGTERM has failed.',[],[0,1]);
+ s(3,['sent by: kill -STOP PID','can be caught: NO','effect: freeze'],'SIGSTOP (19) freezes a process and cannot be caught either; SIGCONT (18) resumes it. Debuggers and job control use this pair.');
+ s(4,['sent when: the terminal closes','can be caught: yes','default: terminate'],'SIGHUP (1) historically meant "the terminal hung up", which is why background jobs die when you close an SSH session unless you use nohup or tmux. Many daemons reuse it to mean "reload your configuration".');
+ s(5,['sent by: the kernel to a parent','can be caught: yes','default: ignore'],'SIGCHLD (17) tells a parent that one of its children has stopped or exited. A parent that handles it (by calling wait) avoids zombies.');
+ S.push({a:sg,ptr:{},ok:[1],aux:{label:'rule of thumb',items:['TERM first, wait, then KILL only if needed']},note:'Order of escalation when stopping a process: SIGTERM, wait several seconds, then SIGKILL. Exit codes show how a process ended: 128 plus the signal number, so 143 means it was killed by SIGTERM and 137 by SIGKILL.'});
+ return S},
+inode:function(){var S=[];
+ function G(nodes,edges,dirs){return {nodes:nodes,edges:edges,directed:true,w:430,h:230}}
+ var N=[{x:70,y:35,label:'name A'},{x:70,y:115,label:'name B'},{x:70,y:195,label:'sym S'},{x:240,y:75,label:'inode'},{x:380,y:75,label:'data'}];
+ function st(nodes,edges,ptr,aux,note,ok,dim){S.push({a:[],graph:{nodes:nodes,edges:edges,directed:true,w:430,h:230},ptr:ptr,ok:ok||[],dim:dim||[],aux:{label:'filesystem',items:aux},note:note})}
+ st([N[0],N[3],N[4]],[[0,1],[1,2]],{'link count 1':1},['echo hi > A','stat A: links = 1'],'A file has two parts: its data blocks on disk, and an inode that stores everything about the file except its name (size, owner, permissions, where the blocks are). The name lives in a directory entry that points to the inode.');
+ st([N[0],N[1],N[3],N[4]],[[0,2],[1,2],[2,3]],{'link count 2':2},['ln A B','stat A: links = 2'],'A hard link (ln A B) is a second name for the same inode. There is no "original": A and B are equal names for one file, and the inode now counts two links. Edit through either name and both see it.',[2]);
+ st([N[0],N[1],N[2],N[3],N[4]],[[0,3],[1,3],[3,4],[2,0]],{'link count 2':3},['ln -s A S','S is a tiny file that contains the text "A"'],'A symbolic link (ln -s A S) is different: a small file whose content is a path. It points to a NAME, not an inode. It has its own inode and does not change A\'s link count.',[3]);
+ st([N[1],N[2],N[3],N[4]],[[0,2],[2,3]],{'link count 1':2},['rm A','B still works; S is now dangling'],'Delete name A. The inode still has one link (B), so the data survives and B works. S pointed to the name A, which no longer exists: it is now a dangling symlink and reading it fails.',[1],[1]);
+ st([N[2],N[3]],[],{'link count 0':1},['rm B','data blocks freed'],'Delete the last name and the link count drops to 0. The kernel frees the inode and its data. One more subtlety: if a process still has the file open, the data stays until it closes it, which is why deleting a huge log may not free disk space until the program is restarted.',[],[]);
+ return S},
+mem:function(){var S=[],n=12;
+ function row(kernel,app,cache,free){var a=[],i;for(i=0;i<kernel;i++)a.push('kernel');for(i=0;i<app;i++)a.push('app');for(i=0;i<cache;i++)a.push('cache');for(i=0;i<free;i++)a.push('free');return a}
+ function s(k,a,c,f,aux,note,ok,dim){var arr=row(k,a,c,f);S.push({a:arr,cols:6,ptr:{},ok:ok||[],dim:dim||[],aux:{label:'free -m (in blocks)',items:aux},note:note})}
+ s(1,2,0,9,['used: 3','free: 9','buff/cache: 0','available: 9'],'Physical memory (RAM), drawn as 12 blocks. The kernel uses some, applications use some, and the rest is free. The kernel does not like wasted RAM, as the next step shows.');
+ s(1,2,5,4,['used: 3','free: 4','buff/cache: 5','available: 9'],'A program reads a big file. The kernel keeps those disk pages in the page cache so the next read is instant. Now "free" is small, which looks alarming, but the cache can be dropped at any moment. The column that matters is available: free plus reclaimable cache.',[3,4,5,6,7],[]);
+ s(1,5,4,2,['used: 6','free: 2','buff/cache: 4','available: 6'],'Applications ask for more memory, so the kernel quietly shrinks the cache to satisfy them. Reading free: "used" excludes cache, "available" is the honest number for "how much can new programs get".');
+ s(1,8,1,2,['used: 9','free: 2','buff/cache: 1','available: 3'],'Pressure rises. The cache is nearly gone. If the system has swap, the kernel starts moving the least-used application pages to disk. That keeps programs alive but makes them very slow, and heavy swapping (thrashing) is a classic cause of "the server is crawling".');
+ s(1,11,0,0,['used: 12','free: 0','available: 0','swap: full'],'Nothing left to reclaim and no swap left. The kernel cannot satisfy an allocation.',[],[]);
+ s(1,6,0,5,['OOM killer chose the biggest app','available: 5'],'The kernel\'s last resort is the OOM killer: it picks a process (by memory use and an adjustable score) and kills it with SIGKILL to free memory. Look for "Out of memory: Killed process" in dmesg or the journal. In containers the same happens at the memory limit of the cgroup, which is why a pod dies with exit code 137.',[1,2,3,4,5,6,7],[]);
+ return S},
+/* ---- S05 / S06: Git ---- */
+git3:function(){var S=[],A=['Working directory','Staging area','Repository'];
+ function s(vals,hi,ok,dim,aux,note){S.push({a:A.map(function(n,i){return n+'\n'+vals[i]}),ptr:{},hi:hi,ok:ok,dim:dim,aux:{label:'hello.txt',items:aux},note:note})}
+ s(['v1','v1','v1'],[],[0,1,2],[],['all three agree','git status: nothing to commit'],'Git keeps your work in three places. The working directory is the files you edit. The staging area (also called the index) is a draft of your next commit. The repository is the permanent history. Right now hello.txt is version 1 everywhere.');
+ s(['v2','v1','v1'],[0],[],[],['edited in the working directory','git status: modified, not staged'],'You edit hello.txt. Only the working directory changed. Git notices the difference and reports "Changes not staged for commit".');
+ s(['v2','v2','v1'],[1],[],[],['git add hello.txt','git status: Changes to be committed'],'git add copies the current content into the staging area. You decide exactly what goes into the next commit: staging lets you commit part of your work and leave the rest.');
+ s(['v2','v2','v2'],[2],[0,1,2],[],['git commit -m "Update hello"','new commit created'],'git commit takes everything in the staging area and saves it as a new, permanent snapshot in the repository, with a message, an author, a time and a parent. All three places agree again.');
+ s(['v3','v2','v2'],[0],[],[],['edited again','working = v3, others = v2'],'Another edit makes the working copy differ again.');
+ s(['v2','v2','v2'],[0],[0,1,2],[],['git restore hello.txt','v3 is gone, for good'],'git restore hello.txt throws the edit away and copies the staged version back into the working directory. This is one of the few Git commands that can lose work: the discarded edit was never committed, so there is no way back. Commit often to stay safe.');
+ return S},
+commits:function(){var S=[];
+ var N=[{x:50,y:100,label:'C1'},{x:140,y:100,label:'C2'},{x:230,y:100,label:'C3'},{x:320,y:45,label:'F1'},{x:320,y:155,label:'M1'},{x:410,y:100,label:'MC'}];
+ function G(nodes,edges){return {nodes:nodes,edges:edges,directed:true,w:470,h:200}}
+ function s(ns,es,ptr,ok,aux,note){S.push({a:[],graph:G(ns,es),ptr:ptr,ok:ok||[],aux:{label:'git log --graph',items:aux},note:note})}
+ s(N.slice(0,3),[[1,0],[2,1]],{'main, HEAD':2},[],['C1 <- C2 <- C3','arrows point to the PARENT'],'A commit is a snapshot plus a pointer to its parent. The arrows in Git run from child to parent, because a commit knows where it came from but not what comes after. A branch is just a movable label on a commit; HEAD says which branch you are on.');
+ s(N.slice(0,3),[[1,0],[2,1]],{main:2,'feature, HEAD':2},[],['git switch -c feature','a new label, no new commits'],'git switch -c feature creates a new branch label on the same commit and moves HEAD to it. Branches are cheap because nothing is copied: it is only a 40-character pointer.');
+ s(N.slice(0,4),[[1,0],[2,1],[3,2]],{main:2,'feature, HEAD':3},[],['git commit (on feature)','feature moves forward, main stays'],'A new commit F1 is made while you are on feature, so the feature label moves forward to F1. main stays where it was. The two lines of work are now independent.');
+ s(N.slice(0,5),[[1,0],[2,1],[3,2],[4,2]],{'main, HEAD':4,feature:3},[],['git switch main; git commit','history has diverged'],'Meanwhile someone commits M1 on main. Both F1 and M1 have C3 as their parent: the history has diverged into two branches that each contain something the other lacks.');
+ s(N,[[1,0],[2,1],[3,2],[4,2],[5,4],[5,3]],{'main, HEAD':5,feature:3},[5],['git merge feature','MC has TWO parents'],'git merge feature creates a merge commit MC with two parents (M1 and F1) that combines both lines of work. If main had not moved, Git would simply slide the main label forward ("fast-forward") and create no merge commit. A conflict only appears when both sides changed the same lines.');
+ return S},
+remote:function(){var S=[];
+ var N=[{x:50,y:100,label:'C1'},{x:140,y:100,label:'C2'},{x:230,y:100,label:'C3'},{x:320,y:100,label:'C4'},{x:410,y:100,label:'C5'}];
+ function G(n,e){return {nodes:N.slice(0,n),edges:e,directed:true,w:470,h:190}}
+ function s(n,e,ptr,ok,aux,note){S.push({a:[],graph:G(n,e),ptr:ptr,ok:ok||[],aux:{label:'local repository',items:aux},note:note})}
+ s(3,[[1,0],[2,1]],{'main, HEAD, origin/main':2},[],['you and the server agree'],'A remote (usually called origin) is another copy of the repository, for example on GitHub. origin/main is your local, read-only bookmark of where main was on the server the last time you talked to it. Right now everything matches.');
+ s(3,[[1,0],[2,1]],{'main, HEAD, origin/main':2},[],['teammate pushes C4 to the server','you cannot see it yet'],'A teammate pushes a new commit C4 to the server. Your computer does not know yet: Git never talks to the network unless you ask. Your origin/main bookmark is stale.');
+ s(4,[[1,0],[2,1],[3,2]],{'main, HEAD':2,'origin/main':3},[3],['git fetch','C4 downloaded, origin/main moved'],'git fetch downloads the new commits and moves origin/main to C4, but changes none of your own branches or files. It is always safe. git status now says "Your branch is behind origin/main by 1 commit".');
+ s(4,[[1,0],[2,1],[3,2]],{'main, HEAD, origin/main':3},[3],['git pull   (fetch + merge)','main fast-forwards to C4'],'git pull is fetch followed by merge (or rebase if you configure it). Because you had no commits of your own, main simply fast-forwards to C4.');
+ s(5,[[1,0],[2,1],[3,2],[4,3]],{'main, HEAD':4,'origin/main':3},[4],['you commit C5','ahead of origin/main by 1'],'You make a commit C5. Your main is now one commit ahead of origin/main. Nobody else can see C5 yet.');
+ s(5,[[1,0],[2,1],[3,2],[4,3]],{'main, HEAD, origin/main':4},[4],['git push','server now has C5'],'git push uploads C5 and moves the server\'s main, and your origin/main bookmark, to C5. If a teammate had pushed first, the push would be rejected ("non-fast-forward") and you would fetch, integrate their work and push again. Never fix that with a force push on a shared branch.');
+ return S},
+rebase:function(){var S=[];
+ var N=[{x:40,y:105,label:'C1'},{x:130,y:105,label:'C2'},{x:220,y:105,label:'C3'},{x:130,y:35,label:'F1'},{x:220,y:35,label:'F2'},{x:310,y:105,label:"F1'"},{x:400,y:105,label:"F2'"}];
+ function G(ns,es){return {nodes:ns,edges:es,directed:true,w:470,h:170}}
+ function s(ns,es,ptr,ok,dim,aux,note){S.push({a:[],graph:G(ns,es),ptr:ptr,ok:ok||[],dim:dim||[],aux:{label:'history',items:aux},note:note})}
+ s(N.slice(0,5),[[1,0],[2,1],[3,0],[4,3]],{main:2,'feature, HEAD':4},[],[],['feature branched off C1','main has moved on to C3'],'Your feature branch was created from C1, but main has since gained C2 and C3. You want your work on top of the latest main before opening a pull request.');
+ s(N.slice(0,5).concat([N[5]]),[[1,0],[2,1],[3,0],[4,3],[5,2]],{main:2,'feature, HEAD':4},[5],[3,4],['git rebase main','replaying F1 on top of C3'],'git rebase main takes each of your commits and replays them, one at a time, on top of the new base. The first replay produces F1\' (F1 prime): the same change, but a brand new commit with a different parent and therefore a different hash.');
+ s(N,[[1,0],[2,1],[3,0],[4,3],[5,2],[6,5]],{main:2,'feature, HEAD':6},[5,6],[3,4],['feature now = C3 + F1\' + F2\'','old F1, F2 are abandoned'],'F2 is replayed too. The feature label moves to F2\'. The old F1 and F2 still exist (the reflog remembers them) but nothing points at them, so they fade away. The history is now one straight line, which makes it easy to read and to fast-forward merge.');
+ s(N,[[1,0],[2,1],[3,0],[4,3],[5,2],[6,5]],{'main, feature':6,HEAD:6},[6],[3,4],['git switch main; git merge feature','fast-forward, no merge commit'],'Merging the rebased branch into main is a fast-forward: main just slides forward to F2\'. Result: a linear history. Trade-off: rebase rewrites commits, so never rebase a branch other people already based work on.');
+ return S},
+reset:function(){var S=[],A=['HEAD (last commit)','Staging area','Working directory'];
+ function s(v,hi,dim,aux,note){S.push({a:A.map(function(n,i){return n+'\n'+v[i]}),ptr:{},hi:hi,dim:dim,ok:[],aux:{label:'file content',items:aux},note:note})}
+ s(['v2','v2','v2'],[],[],['history: v1 <- v2','git reset HEAD~1 undoes the last commit'],'Setup: two commits, v1 then v2 (HEAD). The three areas all hold v2. git reset moves the branch pointer back to an earlier commit. The three modes differ in how far the change is rolled back in the other two areas.');
+ s(['v1','v2','v2'],[0],[],['git reset --soft HEAD~1','commit undone, changes stay STAGED'],'--soft moves only HEAD. The commit is gone from history, but its changes are still staged, ready to commit again. Use it to redo a commit message or to squash the last commits into one.');
+ s(['v1','v1','v2'],[0,1],[],['git reset --mixed HEAD~1   (the default)','commit undone, changes stay in the files'],'--mixed (the default) also resets the staging area. The changes are still in your working files but are no longer staged. Use it to split one big commit into several.');
+ s(['v1','v1','v1'],[0,1,2],[2],['git reset --hard HEAD~1','commit undone, edits DISCARDED'],'--hard resets everything, including your working files: uncommitted edits are lost for good. It is the dangerous one. The undone commit itself can still be rescued from the reflog, but uncommitted work cannot.');
+ s(['v2','v2','v2'],[],[0,1,2],['git revert HEAD','safe on shared branches'],'On a branch others use, do not reset. git revert makes a NEW commit that undoes an old one, leaving history intact and every clone consistent. Reset rewrites history; revert adds to it.');
+ return S},
+reflog:function(){var S=[];
+ function cells(n){var all=['reflog: reset --hard HEAD~2','reflog: commit "Add search"','reflog: commit "Add login"','reflog: commit "Init"'];return all.slice(4-n)}
+ function s(a,tip,hi,ok,dim,aux,note){S.push({a:a,ptr:tip,hi:hi,ok:ok,dim:dim,aux:{label:'git log vs git reflog',items:aux},note:note})}
+ s(['Init','Add login','Add search'],{'main (tip)':2},[],[],[],['git log: Add search, Add login, Init'],'Three commits on main. You think the last two are rubbish and run git reset --hard HEAD~2.');
+ s(['Init','Add login','Add search'],{'main (tip)':0},[0],[],[1,2],['git log: Init only','"Add login" and "Add search" look gone'],'The branch label moved back to Init. git log no longer shows the two commits. It looks like they were destroyed, but only the label moved: the commits are still in the object database.');
+ s(['reset: moving to HEAD~2','commit: Add search','commit: Add login','commit: Init'],{'HEAD@{0}':0,'HEAD@{1}':1},[1],[],[],['git reflog','a journal of where HEAD has been'],'The reflog is Git\'s private journal of every place HEAD and each branch pointed, kept locally for about 90 days. It shows that two entries ago HEAD was on "Add search". This is how you find a lost commit.');
+ s(['reset: moving to HEAD~2','commit: Add search','commit: Add login','commit: Init'],{'HEAD@{1}':1},[],[1],[],['git reset --hard HEAD@{1}','branch restored to "Add search"'],'git reset --hard HEAD@{1} (or git switch -c rescued <hash>) points the branch at the old commit again. Nothing was lost. The limits: the reflog is local to your machine, it expires, and it cannot restore edits that were never committed.');
+ return S},
+bisect:function(){var S=[],c=['c1','c2','c3','c4','c5','c6','c7','c8'];
+ function s(ptr,ok,dim,hi,aux,note){S.push({a:c.slice(),ptr:ptr,ok:ok,dim:dim,hi:hi,aux:{label:'git bisect',items:aux},note:note})}
+ s({good:0,bad:7},[0],[],[],['git bisect start; git bisect bad; git bisect good c1','8 commits between'],'The test passed at c1 and fails at c8, and somewhere in between a commit broke it. Looking at them one by one takes up to 7 tests. git bisect does a binary search: each test halves the suspects, so n commits need only about log2(n) tests (a thousand commits need ten).');
+ s({good:0,testing:3,bad:7},[0],[4,5,6],[3],['test c4 ... passes: git bisect good','suspects: c5 to c8'],'Git checks out the middle commit, c4. You run the test: it passes, so the bug was introduced after c4. Four commits are ruled out in one step.');
+ s({good:3,testing:5,bad:7},[0,1,2,3],[6],[5],['test c6 ... fails: git bisect bad','suspects: c5 and c6'],'Next middle is c6: the test fails, so the bug is in c5 or c6.');
+ s({good:3,testing:4,bad:5},[0,1,2,3],[6,7],[4],['test c5 ... passes: git bisect good','first bad commit: c6'],'c5 passes and c6 fails: c6 is the commit that introduced the bug. Three tests instead of seven. git bisect run ./test.sh automates all of it: Git runs your script at every step and reports the first bad commit by itself.');
+ S.push({a:c.slice(),ptr:{'first bad':5},ok:[0,1,2,3,4],dim:[],hi:[5],aux:{label:'finish',items:['git bisect reset  (return to your branch)']},note:'Read the culprit with git show c6: now you know exactly who changed what, and when. Always finish with git bisect reset to go back to your branch.'});
+ return S}
+};
+
+var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+var body=document.body,T=window.DSA_TOPICS||[],cur=(body.dataset.file||'').replace('.html',''),STORE=body.dataset.store||'dsa-progress',LASTK=body.dataset.last||'dsa-last',WORD=body.dataset.word||'solved';
+function ic(n,c){return '<svg class="ic '+(c||'')+'" viewBox="0 0 16 16" aria-hidden="true">'+IC[n]+'</svg>'}
+/* language + theme */
+function setLang(l){body.dataset.lang=l;var j=$('#b-java'),y=$('#b-py');if(j){j.classList.toggle('on',l==='java');j.setAttribute('aria-pressed',l==='java')}if(y){y.classList.toggle('on',l==='py');y.setAttribute('aria-pressed',l==='py')}ls('dsa-lang',l)}
+setLang(ls('dsa-lang')||'java');
+if($('#b-java')){$('#b-java').onclick=function(){setLang('java')};$('#b-py').onclick=function(){setLang('py')}}
+var th=ls('dsa-theme');if(th)document.documentElement.dataset.theme=th;
+$('#b-theme').onclick=function(){var d=document.documentElement,dark=d.dataset.theme==='dark';d.dataset.theme=dark?'light':'dark';ls('dsa-theme',d.dataset.theme)};
+/* progress (saved in this browser only) */
+function load(){try{return JSON.parse(ls(STORE)||'{}')}catch(e){return {}}}
+var prog=load();
+function refresh(){var boxes=$$('.pk'),n=0;
+ var keys={},all={};boxes.forEach(function(b){var on=!!prog[b.dataset.k];b.checked=on;var tr=b.closest('tr');if(tr)tr.classList.toggle('done',on);var tk=b.closest('.tick');if(tk)tk.classList.toggle('is-done',on);all[b.dataset.k]=1;if(on)keys[b.dataset.k]=1});n=Object.keys(keys).length;
+ var tot=Object.keys(all).length,pc=tot?100*n/tot:0;$('#prog').textContent=n+' / '+tot+' '+WORD;$('#pbar').style.width=pc+'%';$('.pbar').setAttribute('aria-valuenow',Math.round(pc));buildPanel();
+ $$('.pat').forEach(function(p){var bx=$$('.pk',p),d=bx.filter(function(c){return c.checked}).length,e=$('.pp',p),s=$('nav.side a[href="#'+p.id+'"] .cnt');
+  if(e)e.textContent=d+' / '+bx.length+' '+WORD;if(s)s.textContent=d+'/'+bx.length})}
+$$('.pk').forEach(function(b){b.onchange=function(){if(b.checked)prog[b.dataset.k]=1;else delete prog[b.dataset.k];ls(STORE,JSON.stringify(prog));refresh()}});
+refresh();
+/* topic switcher */
+ls(LASTK,cur);
+function solvedFor(id){var n=0;Object.keys(prog).forEach(function(k){if(k.indexOf(id+'-')===0)n++});return n}
+function buildPanel(){var p=$('#topics-panel');if(!p)return;p.textContent='';var last='';
+ T.forEach(function(t){if(t.phase!==last){var h=document.createElement('h5');h.textContent=t.phase;p.appendChild(h);last=t.phase}
+  var s=solvedFor(t.id),done=t.total>0&&s>=t.total,a=document.createElement('a');a.href=t.file+'.html';a.setAttribute('role','menuitem');if(t.file===cur)a.setAttribute('aria-current','page');
+  var n=document.createElement('span');n.className='n';n.textContent=t.num;var m=document.createElement('span');m.textContent=t.title;var c=document.createElement('span');c.className='c'+(done?' done':'');c.textContent=done?'Done':s+'/'+t.total;
+  a.appendChild(n);a.appendChild(m);a.appendChild(c);p.appendChild(a)})}
+(function(){var b=$('#b-topics'),p=$('#topics-panel');if(!b||!p)return;
+ function close(f){p.hidden=true;b.setAttribute('aria-expanded','false');if(f)b.focus()}
+ function open(){buildPanel();p.hidden=false;b.setAttribute('aria-expanded','true');var a=$('a[aria-current=page]',p)||$('a',p);if(a){a.focus();a.scrollIntoView({block:'center'})}}
+ b.onclick=function(){p.hidden?open():close()};
+ document.addEventListener('click',function(e){if(!p.hidden&&!p.contains(e.target)&&!b.contains(e.target))close()});
+ document.addEventListener('keydown',function(e){if(p.hidden)return;var items=$$('a',p),i=items.indexOf(document.activeElement);
+  if(e.key==='Escape'){close(true)}else if(e.key==='ArrowDown'){items[Math.min(items.length-1,i+1)].focus();e.preventDefault()}else if(e.key==='ArrowUp'){items[Math.max(0,i-1)].focus();e.preventDefault()}else if(e.key==='Home'){items[0].focus();e.preventDefault()}else if(e.key==='End'){items[items.length-1].focus();e.preventDefault()}})})();
+/* copy buttons */
+$$('.cp').forEach(function(e){e.remove()});
+$$('pre').forEach(function(p){var b=document.createElement('button');b.className='cp';b.textContent='Copy';b.onclick=function(){var t=p.querySelector('code').textContent;try{navigator.clipboard.writeText(t);b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1200)}catch(e){}};p.appendChild(b)});
+/* scroll spy */
+var links=$$('nav.side a');
+if('IntersectionObserver' in window&&links.length){var map={};links.forEach(function(a){map[a.getAttribute('href').slice(1)]=a});
+ var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(a){a.classList.remove('act')});var a=map[e.target.id];if(a)a.classList.add('act')}})},{rootMargin:'-70px 0px -70% 0px'});
+ Object.keys(map).forEach(function(id){var t=document.getElementById(id);if(t)io.observe(t)})}
+/* download */
+$('#b-dl').onclick=function(){
+ var clone=document.documentElement.cloneNode(true);
+ $$('.stepper',clone).forEach(function(e){e.innerHTML=''});$$('.cp',clone).forEach(function(e){e.remove()});
+ $$('.pk',clone).forEach(function(e){e.removeAttribute('checked')});$$('tr.done',clone).forEach(function(e){e.classList.remove('done')});
+ $$('a.act',clone).forEach(function(e){e.classList.remove('act')});var tp=$('#topics-panel',clone);if(tp){tp.innerHTML='';tp.hidden=true}var tb=$('#b-topics',clone);if(tb)tb.setAttribute('aria-expanded','false');
+ var h='<!DOCTYPE html>\n'+clone.outerHTML,blob=new Blob([h],{type:'text/html'}),a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);a.download=body.dataset.file||'topic.html';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)};
+/* animated stepper */
+function graphSVG(s){var g=s.graph,W=g.w||360,H=g.h||210,R=17,lines='',nodes='',lab={};
+ var rad=g.nodes.map(function(n,i){var t=String(n.label===undefined?i:n.label);return Math.max(R,Math.min(34,5.8*t.length+7))});
+ Object.keys(s.ptr||{}).forEach(function(k){(lab[s.ptr[k]]=lab[s.ptr[k]]||[]).push(k)});
+ function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+ g.edges.forEach(function(e,k){var a=g.nodes[e[0]],b=g.nodes[e[1]],on=(s.eok||[]).indexOf(k)>=0,x1=a.x,y1=a.y,x2=b.x,y2=b.y,mk='';
+  if(g.directed){var dx=x2-x1,dy=y2-y1,L=Math.sqrt(dx*dx+dy*dy)||1,ra=rad[e[0]],rb=rad[e[1]];x1+=dx/L*ra;y1+=dy/L*ra;x2-=dx/L*(rb+4);y2-=dy/L*(rb+4);mk=' marker-end="url(#'+(on?'garrOn':'garr')+')"'}
+  lines+='<line class="ge'+(on?' on':'')+'" x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'"'+mk+'/>';
+  if(e[2]!==undefined)lines+='<text class="gw" x="'+((a.x+b.x)/2)+'" y="'+((a.y+b.y)/2-6)+'">'+esc(e[2])+'</text>'});
+ g.nodes.forEach(function(n,i){var c='tn'+((s.hi||[]).indexOf(i)>=0?' in':'')+((s.ok||[]).indexOf(i)>=0?' ok':'')+((s.dim||[]).indexOf(i)>=0?' dim':'');
+  nodes+='<g class="'+c+'"><circle cx="'+n.x+'" cy="'+n.y+'" r="'+rad[i]+'"/><text x="'+n.x+'" y="'+n.y+'">'+esc(n.label===undefined?i:n.label)+'</text></g>';
+  if(lab[i])nodes+='<text class="tp" x="'+n.x+'" y="'+(n.y-rad[i]-7)+'">'+esc(lab[i].join(', '))+'</text>'});
+ var defs='<defs><marker id="garr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="mk" d="M0,0 L10,5 L0,10 z"/></marker><marker id="garrOn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="mk2" d="M0,0 L10,5 L0,10 z"/></marker></defs>';
+ return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:'+W+'px" role="img" aria-label="Graph">'+defs+lines+nodes+'</svg>'}
+
+function treeSVG(s){var T=s.tree,n=T.length,last=0,i;for(i=0;i<n;i++)if(T[i]!==null&&T[i]!==undefined)last=i;
+ var D=Math.floor(Math.log2(last+1))+1,W=Math.max(300,Math.pow(2,D-1)*56),H=D*64+30,R=18;
+ function pos(k){var d=Math.floor(Math.log2(k+1)),j=k-(Math.pow(2,d)-1),w=Math.pow(2,d);return {x:(j+0.5)/w*W,y:d*64+40}}
+ var lines='',nodes='',lab={};Object.keys(s.ptr||{}).forEach(function(k){(lab[s.ptr[k]]=lab[s.ptr[k]]||[]).push(k)});
+ for(i=0;i<=last;i++){if(T[i]===null||T[i]===undefined)continue;var p=pos(i);
+  if(i>0){var par=Math.floor((i-1)/2);if(T[par]!==null&&T[par]!==undefined){var q=pos(par);lines+='<line x1="'+q.x+'" y1="'+q.y+'" x2="'+p.x+'" y2="'+p.y+'"/>'}}
+  var c='tn'+((s.hi||[]).indexOf(i)>=0?' in':'')+((s.ok||[]).indexOf(i)>=0?' ok':'')+((s.dim||[]).indexOf(i)>=0?' dim':'');
+  nodes+='<g class="'+c+'"><circle cx="'+p.x+'" cy="'+p.y+'" r="'+R+'"/><text x="'+p.x+'" y="'+p.y+'">'+String(T[i]).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</text></g>';
+  if(lab[i])nodes+='<text class="tp" x="'+p.x+'" y="'+(p.y-R-7)+'">'+lab[i].join(', ').replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</text>'}
+ return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:'+W+'px" role="img" aria-label="Binary tree">'+lines+nodes+'</svg>'}
+
+function stepper(el){
+ var steps=SIM[el.dataset.sim](),i=0,timer=null,speed=1300,max=0;
+ steps.forEach(function(s){max=Math.max(max,(s.a||[]).length)});
+ el.setAttribute('tabindex','0');el.setAttribute('aria-label','Step-by-step animation');
+ el.innerHTML='<div class="st-head">'+ic('film')+'<span>Step by step</span><span class="st-count"></span></div><div class="st-prog"><i></i></div><div class="st-body"><div class="st-view"></div><div class="st-tree" style="display:none"></div><div class="st-aux"></div><div class="st-note" aria-live="polite"></div></div>'+
+  '<div class="st-ctl"><button data-a="prev" title="Previous (←)" aria-label="Previous step">'+ic('prev')+'</button><button class="pri" data-a="play" title="Play / pause (space)" aria-label="Play">'+ic('play','fill')+'<span>Play</span></button><button data-a="next" title="Next (→)" aria-label="Next step">'+ic('next')+'</button><button data-a="reset" title="Restart" aria-label="Restart">'+ic('reset')+'</button>'+
+  '<input type="range" min="0" max="'+(steps.length-1)+'" value="0" aria-label="Step"><select aria-label="Speed"><option value="2200">Slow</option><option value="1300" selected>Normal</option><option value="600">Fast</option></select></div>';
+ var view=$('.st-view',el),aux=$('.st-aux',el),note=$('.st-note',el),cnt=$('.st-count',el),play=$('[data-a=play]',el),bar=$('.st-prog i',el),rg=$('input',el),sel=$('select',el);
+ var cells=[],h='';for(var k=0;k<max;k++)h+='<div class="cellw"><div class="ptr"></div><div class="cell"></div><div class="idx">'+k+'</div></div>'+(k<max-1?'<div class="edge"></div>':'');
+ view.innerHTML=h;$$('.cellw',view).forEach(function(w){cells.push({w:w,p:$('.ptr',w),c:$('.cell',w),v:null})});var edges=$$('.edge',view);
+ var tb=$('.st-tree',el);
+ function draw(){var s=steps[i],lab={};
+  if(s.tree||s.graph){view.style.display='none';tb.style.display='block';tb.innerHTML=s.tree?treeSVG(s):graphSVG(s)}else{view.style.display='';tb.style.display='none';tb.innerHTML=''}
+  s.a=s.a||[];Object.keys(s.ptr||{}).forEach(function(k){var ix=s.ptr[k];(lab[ix]=lab[ix]||[]).push(k)});
+  cells.forEach(function(o,ix){if(ix>=s.a.length){o.w.style.display='none';return}o.w.style.display='';
+   var v=String(s.a[ix]);if(o.v!==null&&o.v!==v){o.c.classList.remove('pop');void o.c.offsetWidth;o.c.classList.add('pop')}
+   o.v=v;o.c.textContent=v;
+   o.c.className='cell'+((s.hi||[]).indexOf(ix)>=0?' in':'')+((s.ok||[]).indexOf(ix)>=0?' ok':'')+((s.dim||[]).indexOf(ix)>=0?' dim':'')+(o.c.classList.contains('pop')?' pop':'');
+   o.p.innerHTML=lab[ix]?'<b>'+lab[ix].join(', ')+'</b>':''});
+  view.style.maxWidth=s.cols?(s.cols*53)+'px':'';
+  edges.forEach(function(g,k){var t=k<s.a.length-1?(s.edges?(s.edges[k]||''):(s.link?'→':'')):'';g.textContent=t;g.style.display=t?'':'none'});
+  if(s.aux){aux.innerHTML='<span class="al">'+s.aux.label+'</span>'+s.aux.items.map(function(t){return '<span class="chip">'+String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span>'}).join('')}else aux.innerHTML='';
+  note.textContent=s.note;cnt.textContent=(i+1)+' / '+steps.length;bar.style.width=(100*(i+1)/steps.length)+'%';rg.value=i}
+ function setPlay(on){play.innerHTML=ic(on?'pause':'play',on?'':'fill')+'<span>'+(on?'Pause':'Play')+'</span>';play.setAttribute('aria-label',on?'Pause':'Play')}
+ function stop(){if(timer){clearInterval(timer);timer=null;setPlay(0)}}
+ function go(n){i=Math.max(0,Math.min(steps.length-1,n));draw()}
+ function start(){if(i>=steps.length-1)i=0;setPlay(1);draw();timer=setInterval(function(){if(i<steps.length-1){i++;draw()}else stop()},speed)}
+ $('[data-a=prev]',el).onclick=function(){stop();go(i-1)};$('[data-a=next]',el).onclick=function(){stop();go(i+1)};
+ $('[data-a=reset]',el).onclick=function(){stop();go(0)};play.onclick=function(){timer?stop():start()};
+ rg.oninput=function(){stop();go(+rg.value)};sel.onchange=function(){speed=+sel.value;if(timer){stop();start()}};
+ el.onkeydown=function(e){if(e.target!==el)return;if(e.key==='ArrowRight'){stop();go(i+1);e.preventDefault()}else if(e.key==='ArrowLeft'){stop();go(i-1);e.preventDefault()}else if(e.key===' '){timer?stop():start();e.preventDefault()}};
+ draw()}
+$$('.stepper').forEach(stepper);
+
+/* left section rail: mobile drawer behaviour (desktop is pure CSS: hover or focus expands it) */
+(function(){var r=document.getElementById('rail'),b=document.getElementById('b-rail'),bd=document.getElementById('rail-bd');if(!r)return;
+ function open(o){r.classList.toggle('open',o);if(bd)bd.hidden=!o;if(b)b.setAttribute('aria-expanded',o?'true':'false')}
+ if(b)b.onclick=function(){open(!r.classList.contains('open'))};
+ if(bd)bd.onclick=function(){open(false)};
+ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&r.classList.contains('open')){open(false);if(b)b.focus()}});
+ r.addEventListener('click',function(e){if(e.target.closest('a')&&innerWidth<=1020)open(false)});
+})();
+
+})();</script>
+</body></html>

@@ -1,6 +1,6 @@
 # Course 2 plan: Systems Mastery (Linux, Git, troubleshooting, system design, interviews)
 
-Status: **plan only, nothing built yet.** Written 2026-10-31 after research. Companion to the DSA course (19 topics, live).
+Status: **M0 and M1 built and live** (hub, left rail, S02 to S06: Linux and Git, 15 verified labs). M2 onwards not started. Written 2026-10-31 after research. Companion to the DSA course (19 topics, live).
 
 ## 1. What we are building and for whom
 

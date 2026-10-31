@@ -577,5 +577,405 @@
    "cmd": "( umask 077; touch scratch/private.txt; stat -c '%a' scratch/private.txt )",
    "out": "600\n"
   }
+ ],
+ "gb": [
+  {
+   "cmd": "mkdir -p ~/gitwork && cd ~/gitwork",
+   "out": ""
+  },
+  {
+   "cmd": "git init -b main demo",
+   "out": "Initialized empty Git repository in /home/learner/gitwork/demo/.git/\n"
+  },
+  {
+   "cmd": "cd demo",
+   "out": ""
+  },
+  {
+   "cmd": "git status",
+   "out": "On branch main\n\nNo commits yet\n\nnothing to commit (create/copy files and use \"git add\" to track)\n"
+  },
+  {
+   "cmd": "echo \"hello\" > hello.txt",
+   "out": ""
+  },
+  {
+   "cmd": "git status",
+   "out": "On branch main\n\nNo commits yet\n\nUntracked files:\n  (use \"git add <file>...\" to include in what will be committed)\n\thello.txt\n\nnothing added to commit but untracked files present (use \"git add\" to track)\n"
+  },
+  {
+   "cmd": "git add hello.txt",
+   "out": ""
+  },
+  {
+   "cmd": "git status -s",
+   "out": "A  hello.txt\n"
+  },
+  {
+   "cmd": "git commit -m \"Add hello\"",
+   "out": "[main (root-commit) 3951597] Add hello\n 1 file changed, 1 insertion(+)\n create mode 100644 hello.txt\n"
+  },
+  {
+   "cmd": "git log --oneline",
+   "out": "3951597 Add hello\n"
+  },
+  {
+   "cmd": "git log",
+   "out": "commit 39515972967e46c9fdbfc056887213e5c1ef6b1a\nAuthor: Ada Learner <ada@example.com>\nDate:   Thu Jan 15 16:00:00 2026 +0000\n\n    Add hello\n"
+  },
+  {
+   "cmd": "git show --stat",
+   "out": "commit 39515972967e46c9fdbfc056887213e5c1ef6b1a\nAuthor: Ada Learner <ada@example.com>\nDate:   Thu Jan 15 16:00:00 2026 +0000\n\n    Add hello\n\n hello.txt | 1 +\n 1 file changed, 1 insertion(+)\n"
+  },
+  {
+   "cmd": "git cat-file -p HEAD",
+   "out": "tree aaa96ced2d9a1c8e72c56b253a0e2fe78393feb7\nauthor Ada Learner <ada@example.com> 1768492800 +0000\ncommitter Ada Learner <ada@example.com> 1768492800 +0000\n\nAdd hello\n"
+  },
+  {
+   "cmd": "git ls-tree HEAD",
+   "out": "100644 blob ce013625030ba8dba906f756967f9e9ca394464a\thello.txt\n"
+  },
+  {
+   "cmd": "echo \"hello world\" > hello.txt; echo \"notes\" > notes.txt; git status -s",
+   "out": " M hello.txt\n?? notes.txt\n"
+  },
+  {
+   "cmd": "git diff",
+   "out": "diff --git a/hello.txt b/hello.txt\nindex ce01362..3b18e51 100644\n--- a/hello.txt\n+++ b/hello.txt\n@@ -1 +1 @@\n-hello\n+hello world\n"
+  },
+  {
+   "cmd": "git add hello.txt; git diff --staged",
+   "out": "diff --git a/hello.txt b/hello.txt\nindex ce01362..3b18e51 100644\n--- a/hello.txt\n+++ b/hello.txt\n@@ -1 +1 @@\n-hello\n+hello world\n"
+  },
+  {
+   "cmd": "git status -s",
+   "out": "M  hello.txt\n?? notes.txt\n"
+  },
+  {
+   "cmd": "git commit -m \"Greet the world\"",
+   "out": "[main 711e8ee] Greet the world\n 1 file changed, 1 insertion(+), 1 deletion(-)\n"
+  },
+  {
+   "cmd": "echo \"oops\" >> hello.txt; git restore hello.txt; cat hello.txt",
+   "out": "hello world\n"
+  },
+  {
+   "cmd": "echo \"secret\" > .env; echo \".env\" > .gitignore; git status -s",
+   "out": "?? .gitignore\n?? notes.txt\n"
+  },
+  {
+   "cmd": "git add .gitignore notes.txt; git commit -m \"Add notes and ignore .env\"",
+   "out": "[main cdfd680] Add notes and ignore .env\n 2 files changed, 2 insertions(+)\n create mode 100644 .gitignore\n create mode 100644 notes.txt\n"
+  },
+  {
+   "cmd": "git commit --amend -m \"Add notes and ignore secrets\"",
+   "out": "[main 952768e] Add notes and ignore secrets\n Date: Fri Jan 16 07:00:00 2026 +0000\n 2 files changed, 2 insertions(+)\n create mode 100644 .gitignore\n create mode 100644 notes.txt\n"
+  },
+  {
+   "cmd": "echo x > tmp.txt; git add tmp.txt; git restore --staged tmp.txt; git status -s; rm tmp.txt",
+   "out": "?? tmp.txt\n"
+  },
+  {
+   "cmd": "git log --oneline",
+   "out": "952768e Add notes and ignore secrets\n711e8ee Greet the world\n3951597 Add hello\n"
+  },
+  {
+   "cmd": "git switch -c feature",
+   "out": "Switched to a new branch 'feature'\n"
+  },
+  {
+   "cmd": "echo \"feature work\" > feature.txt; git add feature.txt; git commit -m \"Add feature\"",
+   "out": "[feature a89a2ce] Add feature\n 1 file changed, 1 insertion(+)\n create mode 100644 feature.txt\n"
+  },
+  {
+   "cmd": "git switch main",
+   "out": "Switched to branch 'main'\n"
+  },
+  {
+   "cmd": "git merge feature",
+   "out": "Updating 952768e..a89a2ce\nFast-forward\n feature.txt | 1 +\n 1 file changed, 1 insertion(+)\n create mode 100644 feature.txt\n"
+  },
+  {
+   "cmd": "git switch -c fix; echo \"fix\" > fix.txt; git add fix.txt; git commit -m \"Add fix\"; git switch main; echo \"main change\" > main.txt; git add main.txt; git commit -m \"Add main change\"",
+   "out": "Switched to a new branch 'fix'\n[fix 97661d6] Add fix\n 1 file changed, 1 insertion(+)\n create mode 100644 fix.txt\nSwitched to branch 'main'\n[main 3205427] Add main change\n 1 file changed, 1 insertion(+)\n create mode 100644 main.txt\n"
+  },
+  {
+   "cmd": "git merge fix -m \"Merge fix\"",
+   "out": "Merge made by the 'ort' strategy.\n fix.txt | 1 +\n 1 file changed, 1 insertion(+)\n create mode 100644 fix.txt\n"
+  },
+  {
+   "cmd": "git log --oneline --graph --all",
+   "out": "*   2f90936 Merge fix\n|\\  \n| * 97661d6 Add fix\n* | 3205427 Add main change\n|/  \n* a89a2ce Add feature\n* 952768e Add notes and ignore secrets\n* 711e8ee Greet the world\n* 3951597 Add hello\n"
+  },
+  {
+   "cmd": "git branch -d feature fix",
+   "out": "Deleted branch feature (was a89a2ce).\nDeleted branch fix (was 97661d6).\n"
+  },
+  {
+   "cmd": "git branch",
+   "out": "* main\n"
+  },
+  {
+   "cmd": "cd ~/gitwork && git init -q --bare -b main origin.git",
+   "out": ""
+  },
+  {
+   "cmd": "cd demo && git remote add origin ../origin.git && git push -u origin main",
+   "out": "To ../origin.git\n * [new branch]      main -> main\nbranch 'main' set up to track 'origin/main'.\n"
+  },
+  {
+   "cmd": "git branch -vv",
+   "out": "* main 2f90936 [origin/main] Merge fix\n"
+  },
+  {
+   "cmd": "cd ~/gitwork && git clone -q origin.git teammate && cd teammate && echo \"from teammate\" > team.txt && git add team.txt && git commit -q -m \"Teammate adds a file\" && git push -q",
+   "out": ""
+  },
+  {
+   "cmd": "cd ~/gitwork/demo && git status -sb",
+   "out": "## main...origin/main\n"
+  },
+  {
+   "cmd": "git fetch",
+   "out": "From ../origin\n   2f90936..f80487d  main       -> origin/main\n"
+  },
+  {
+   "cmd": "git status -sb",
+   "out": "## main...origin/main [behind 1]\n"
+  },
+  {
+   "cmd": "git log --oneline main..origin/main",
+   "out": "f80487d Teammate adds a file\n"
+  },
+  {
+   "cmd": "git pull",
+   "out": "Updating 2f90936..f80487d\nFast-forward\n team.txt | 1 +\n 1 file changed, 1 insertion(+)\n create mode 100644 team.txt\n"
+  },
+  {
+   "cmd": "git remote -v",
+   "out": "origin\t../origin.git (fetch)\norigin\t../origin.git (push)\n"
+  },
+  {
+   "cmd": "git log --oneline --graph --all",
+   "out": "* f80487d Teammate adds a file\n*   2f90936 Merge fix\n|\\  \n| * 97661d6 Add fix\n* | 3205427 Add main change\n|/  \n* a89a2ce Add feature\n* 952768e Add notes and ignore secrets\n* 711e8ee Greet the world\n* 3951597 Add hello\n"
+  },
+  {
+   "cmd": "git log --format='%h %an %s' -n 3",
+   "out": "f80487d Ada Learner Teammate adds a file\n2f90936 Ada Learner Merge fix\n3205427 Ada Learner Add main change\n"
+  },
+  {
+   "cmd": "git log -S\"main change\" --oneline",
+   "out": "3205427 Add main change\n"
+  },
+  {
+   "cmd": "git blame hello.txt",
+   "out": "711e8ee3 (Ada Learner 2026-01-16 03:00:00 +0000 1) hello world\n"
+  },
+  {
+   "cmd": "git show HEAD~1 --stat --format='%h %s'",
+   "out": "2f90936 Merge fix\n\n fix.txt | 1 +\n 1 file changed, 1 insertion(+)\n"
+  },
+  {
+   "cmd": "git shortlog -sn HEAD",
+   "out": "     8\tAda Learner\n"
+  },
+  {
+   "cmd": "git diff HEAD~2 --stat",
+   "out": " fix.txt  | 1 +\n team.txt | 1 +\n 2 files changed, 2 insertions(+)\n"
+  },
+  {
+   "cmd": "cat > .git/hooks/pre-commit <<'EOF'\n#!/bin/bash\nif git diff --cached | grep -q 'TODO'; then\n  echo \"pre-commit: remove the TODO before committing\" >&2\n  exit 1\nfi\nEOF\nchmod +x .git/hooks/pre-commit",
+   "out": ""
+  },
+  {
+   "cmd": "echo \"TODO: fix later\" > todo.txt; git add todo.txt; git commit -m \"Add todo\"; echo \"exit code: $?\"",
+   "out": "pre-commit: remove the TODO before committing\nexit code: 1\n"
+  },
+  {
+   "cmd": "git restore --staged todo.txt; rm todo.txt .git/hooks/pre-commit; git status -s",
+   "out": ""
+  },
+  {
+   "cmd": "echo \"password=hunter2\" > creds.txt; git add creds.txt; git commit -q -m \"Add creds\"; git rm -q creds.txt; git commit -q -m \"Remove creds\"; git log --oneline -3",
+   "out": "00fc1ab Remove creds\n84bd8b4 Add creds\nf80487d Teammate adds a file\n"
+  },
+  {
+   "cmd": "git log --all --oneline -S\"hunter2\"",
+   "out": "00fc1ab Remove creds\n84bd8b4 Add creds\n"
+  }
+ ],
+ "gr": [
+  {
+   "cmd": "cd ~/gitwork && git init -q -b main rb && cd rb && echo base > base.txt && git add base.txt && git commit -q -m \"C1: base\"",
+   "out": ""
+  },
+  {
+   "cmd": "git switch -q -c feature; echo f1 > f1.txt; git add f1.txt; git commit -q -m \"F1: feature work\"; echo f2 > f2.txt; git add f2.txt; git commit -q -m \"F2: more feature work\"",
+   "out": ""
+  },
+  {
+   "cmd": "git switch -q main; echo m1 > m1.txt; git add m1.txt; git commit -q -m \"C2: main moves on\"; echo m2 > m2.txt; git add m2.txt; git commit -q -m \"C3: main moves again\"",
+   "out": ""
+  },
+  {
+   "cmd": "git log --oneline --graph --all",
+   "out": "* f893ef2 C3: main moves again\n* 21666d4 C2: main moves on\n| * ad8dfba F2: more feature work\n| * b5c540d F1: feature work\n|/  \n* 04da452 C1: base\n"
+  },
+  {
+   "cmd": "git switch -q feature; git rebase main",
+   "out": "Successfully rebased and updated refs/heads/feature.\n"
+  },
+  {
+   "cmd": "git log --oneline --graph --all",
+   "out": "* 37b423f F2: more feature work\n* 4260bd9 F1: feature work\n* f893ef2 C3: main moves again\n* 21666d4 C2: main moves on\n* 04da452 C1: base\n"
+  },
+  {
+   "cmd": "git switch -q main; git merge --ff-only feature",
+   "out": "Updating f893ef2..37b423f\nFast-forward\n f1.txt | 1 +\n f2.txt | 1 +\n 2 files changed, 2 insertions(+)\n create mode 100644 f1.txt\n create mode 100644 f2.txt\n"
+  },
+  {
+   "cmd": "git log --oneline",
+   "out": "37b423f F2: more feature work\n4260bd9 F1: feature work\nf893ef2 C3: main moves again\n21666d4 C2: main moves on\n04da452 C1: base\n"
+  },
+  {
+   "cmd": "git switch -q -c hotfix; echo fix > hotfix.txt; git add hotfix.txt; git commit -q -m \"Hotfix: patch the bug\"; git switch -q main; git cherry-pick hotfix",
+   "out": "[main 3c82121] Hotfix: patch the bug\n Date: Fri Jan 16 09:00:00 2026 +0000\n 1 file changed, 1 insertion(+)\n create mode 100644 hotfix.txt\n"
+  },
+  {
+   "cmd": "git log --oneline -3",
+   "out": "3c82121 Hotfix: patch the bug\n37b423f F2: more feature work\n4260bd9 F1: feature work\n"
+  },
+  {
+   "cmd": "cd ~/gitwork && git init -q -b main sq && cd sq && echo base > base.txt && git add base.txt && git commit -q -m \"Base\"; echo p1 > parser.txt; git add parser.txt; git commit -q -m \"Add parser\"; echo t1 > tests.txt; git add tests.txt; git commit -q -m \"Add tests\"; echo p2 >> parser.txt; git commit -q -a --fixup=HEAD~1",
+   "out": ""
+  },
+  {
+   "cmd": "git log --oneline",
+   "out": "86fdcad fixup! Add parser\n71c42fe Add tests\ndd14bcc Add parser\nbb0c3ca Base\n"
+  },
+  {
+   "cmd": "GIT_SEQUENCE_EDITOR=true git rebase -i --autosquash HEAD~3",
+   "out": "Successfully rebased and updated refs/heads/main.\n"
+  },
+  {
+   "cmd": "git log --oneline",
+   "out": "44811ee Add tests\n76d7edf Add parser\nbb0c3ca Base\n"
+  },
+  {
+   "cmd": "git reset --soft HEAD~2 && git commit -q -m \"Add parser with tests\" && git log --oneline",
+   "out": "5bcf3d1 Add parser with tests\nbb0c3ca Base\n"
+  },
+  {
+   "cmd": "cd ~/gitwork && git init -q -b main ud && cd ud && echo v1 > file.txt && git add file.txt && git commit -q -m \"v1\" && echo v2 > file.txt && git commit -q -am \"v2\"",
+   "out": ""
+  },
+  {
+   "cmd": "git reset --soft HEAD~1; git status -s; cat file.txt",
+   "out": "M  file.txt\nv2\n"
+  },
+  {
+   "cmd": "git commit -q -m \"v2 again\"; git reset --mixed HEAD~1; git status -s",
+   "out": "Unstaged changes after reset:\nM\tfile.txt\n M file.txt\n"
+  },
+  {
+   "cmd": "git commit -q -am \"v2 once more\"; git reset --hard HEAD~1; cat file.txt",
+   "out": "HEAD is now at f2821d6 v1\nv1\n"
+  },
+  {
+   "cmd": "git reset -q --hard HEAD@{1}; git revert --no-edit HEAD; git log --oneline; cat file.txt",
+   "out": "[main 940efbc] Revert \"v2 once more\"\n Date: Sat Jan 17 15:00:00 2026 +0000\n 1 file changed, 1 insertion(+), 1 deletion(-)\n940efbc Revert \"v2 once more\"\nd0378b7 v2 once more\nf2821d6 v1\nv1\n"
+  },
+  {
+   "cmd": "echo junk > junk.txt; git clean -n; git clean -f; git status -s",
+   "out": "Would remove junk.txt\nRemoving junk.txt\n"
+  },
+  {
+   "cmd": "cd ~/gitwork && git init -q -b main rl && cd rl && for m in \"Init project\" \"Add login\" \"Add search\" \"Add export\"; do echo \"$m\" >> history.txt; git add history.txt; git commit -q -m \"$m\"; done; git log --oneline",
+   "out": "19e18a1 Add export\n07101c7 Add search\n0228e1f Add login\nac69ac0 Init project\n"
+  },
+  {
+   "cmd": "git reset -q --hard HEAD~2; git log --oneline",
+   "out": "0228e1f Add login\nac69ac0 Init project\n"
+  },
+  {
+   "cmd": "git reflog",
+   "out": "0228e1f HEAD@{0}: reset: moving to HEAD~2\n19e18a1 HEAD@{1}: commit: Add export\n07101c7 HEAD@{2}: commit: Add search\n0228e1f HEAD@{3}: commit: Add login\nac69ac0 HEAD@{4}: commit (initial): Init project\n"
+  },
+  {
+   "cmd": "git reset -q --hard HEAD@{1}; git log --oneline",
+   "out": "19e18a1 Add export\n07101c7 Add search\n0228e1f Add login\nac69ac0 Init project\n"
+  },
+  {
+   "cmd": "git switch -q -c temp; echo t > t.txt; git add t.txt; git commit -q -m \"Temp work\"; git switch -q main; git branch -D temp",
+   "out": "Deleted branch temp (was 99b4da7).\n"
+  },
+  {
+   "cmd": "git branch temp 'HEAD@{1}'; git log --oneline temp -1",
+   "out": "99b4da7 Temp work\n"
+  },
+  {
+   "cmd": "cd ~/gitwork && git init -q -b main bs && cd bs && printf '#!/bin/bash\\nif grep -q \"rounding=B\" price.txt; then echo \"FAIL: wrong rounding\"; exit 1; fi\\necho ok\\n' > test.sh && chmod +x test.sh && printf 'price=10\\nrounding=A\\n' > price.txt && git add . && git commit -q -m \"Initial pricing\" && for n in $(seq 2 16); do if [ $n -ge 11 ]; then r=B; else r=A; fi; printf 'price=%s\\nrounding=%s\\n' $((10+n)) $r > price.txt; if [ $n -eq 11 ]; then m=\"Switch pricing to new rounding\"; else m=\"Update price to $((10+n))\"; fi; git commit -q -am \"$m\"; done; git log --oneline | wc -l",
+   "out": "16\n"
+  },
+  {
+   "cmd": "./test.sh",
+   "out": "FAIL: wrong rounding\n"
+  },
+  {
+   "cmd": "git bisect start; git bisect bad; git bisect good $(git rev-list --max-parents=0 HEAD)",
+   "out": "status: waiting for both good and bad commits\nstatus: waiting for good commit(s), bad commit known\nBisecting: 7 revisions left to test after this (roughly 3 steps)\n[9e647216d4471fab93ba7ff37fd819dff73b5f95] Update price to 18\n"
+  },
+  {
+   "cmd": "git bisect run ./test.sh",
+   "out": "running './test.sh'\nok\nBisecting: 3 revisions left to test after this (roughly 2 steps)\n[a9d781425ab25c9318cb6a8f1ed372640690d9a9] Update price to 22\nrunning './test.sh'\nFAIL: wrong rounding\nBisecting: 1 revision left to test after this (roughly 1 step)\n[6749dcbe2df65d4823d763cf7ee3421af85bc424] Update price to 20\nrunning './test.sh'\nok\nBisecting: 0 revisions left to test after this (roughly 0 steps)\n[ae3de3f04ada2707d934b30f863380c90eb85998] Switch pricing to new rounding\nrunning './test.sh'\nFAIL: wrong rounding\nae3de3f04ada2707d934b30f863380c90eb85998 is the first bad commit\ncommit ae3de3f04ada2707d934b30f863380c90eb85998\nAuthor: Ada Learner <ada@example.com>\nDate:   Mon Jan 19 06:00:00 2026 +0000\n\n    Switch pricing to new rounding\n\n price.txt | 4 ++--\n 1 file changed, 2 insertions(+), 2 deletions(-)\nbisect found first bad commit\n"
+  },
+  {
+   "cmd": "git bisect reset",
+   "out": "Previous HEAD position was ae3de3f Switch pricing to new rounding\nSwitched to branch 'main'\n"
+  },
+  {
+   "cmd": "cd ~/gitwork && git init -q -b main st && cd st && echo a > a.txt && git add a.txt && git commit -q -m \"Add a\" && echo wip >> a.txt && git stash",
+   "out": "Saved working directory and index state WIP on main: 33f3406 Add a\n"
+  },
+  {
+   "cmd": "git stash list; git status -s; echo \"files after stash: $(cat a.txt)\"",
+   "out": "stash@{0}: WIP on main: 33f3406 Add a\nfiles after stash: a\n"
+  },
+  {
+   "cmd": "git stash pop --quiet; git status -s",
+   "out": " M a.txt\n"
+  },
+  {
+   "cmd": "git commit -q -am \"Finish a\"; git tag -a v1.0 -m \"First release\"; git tag -l; git describe",
+   "out": "v1.0\nv1.0\n"
+  },
+  {
+   "cmd": "echo b > b.txt; git add b.txt; git commit -q -m \"Add b\"; git describe",
+   "out": "v1.0-1-g27a8989\n"
+  },
+  {
+   "cmd": "git worktree add ../st-hotfix -b hotfix && git worktree list && git worktree remove ../st-hotfix",
+   "out": "Preparing worktree (new branch 'hotfix')\nHEAD is now at 27a8989 Add b\n/home/learner/gitwork/st         27a8989 [main]\n/home/learner/gitwork/st-hotfix  27a8989 [hotfix]\n"
+  },
+  {
+   "cmd": "cd ~/gitwork && git init -q -b main cf && cd cf && printf 'a\\nb\\nc\\n' > f.txt && git add f.txt && git commit -q -m \"Base\" && git switch -q -c left && printf 'a\\nLEFT\\nc\\n' > f.txt && git commit -q -am \"Left edit\" && git switch -q main && printf 'a\\nRIGHT\\nc\\n' > f.txt && git commit -q -am \"Right edit\"",
+   "out": ""
+  },
+  {
+   "cmd": "git merge left; echo \"exit code: $?\"",
+   "out": "Auto-merging f.txt\nCONFLICT (content): Merge conflict in f.txt\nAutomatic merge failed; fix conflicts and then commit the result.\nexit code: 1\n"
+  },
+  {
+   "cmd": "git status -s",
+   "out": "UU f.txt\n"
+  },
+  {
+   "cmd": "cat f.txt",
+   "out": "a\n<<<<<<< HEAD\nRIGHT\n=======\nLEFT\n>>>>>>> left\nc\n"
+  },
+  {
+   "cmd": "printf 'a\\nLEFT and RIGHT\\nc\\n' > f.txt; git add f.txt; git commit -q --no-edit; git log --oneline --graph",
+   "out": "*   5478380 Merge branch 'left'\n|\\  \n| * 49a5a4a Left edit\n* | 44c9f69 Right edit\n|/  \n* 470197e Base\n"
+  }
  ]
 }

@@ -59,6 +59,8 @@ def record_module(m):
     files["rec.sh"] = "\n".join(pre + body) + "\n"
     rc, out = sys_runner.run_bash(files, "rec.sh", timeout=300)
     out = out.replace("\r\n", "\n")
+    # progress lines overwrite themselves with a bare \r in a terminal: keep what stays on screen
+    out = "\n".join(ln.split("\r")[-1] for ln in out.split("\n"))
     entries = []
     for i, c in enumerate(cmds):
         m1 = re.search(rf"@@B{i}\n(.*?)\n@@E{i}\n", out, re.S)

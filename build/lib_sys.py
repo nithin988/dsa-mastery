@@ -122,7 +122,7 @@ def render_lab(mid, i, lab):
     kind = lab["kind"]
     url = f'{LAB_BASE}{kind}/{lab["script"]}.sh'
     if kind == "git":
-        setup = f'curl -fsSLO {url}\nless {lab["script"]}.sh      # read it first: it only touches ~/sys-lab\nbash {lab["script"]}.sh\ncd ~/sys-lab/{lab["dir"]}'
+        setup = f'curl -fsSLO {url}\nless {lab["script"]}.sh      # read it first: it only touches ~/sys-lab\nbash {lab["script"]}.sh\ncd ~/sys-lab' + (f'/{lab["dir"]}' if lab.get("dir") else '')
         how = ("Run this in a terminal with Git (Linux, macOS, WSL or Git Bash). The script builds a practice repository in a throwaway folder "
                "(~/sys-lab) and never touches your own projects. To start over, run it again.")
     else:
