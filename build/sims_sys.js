@@ -385,5 +385,38 @@ queue:function(){var S=[];
  s(['60','120','180','240','300','260','220','180'],['spike ends, workers keep draining','backlog falls 40 per second'],'When the spike ends the backlog drains at 40 per second. The queue turned a brief overload into a short delay. This is called load levelling.',[5,6,7],[4]);
  s(['60','120','180','240','300','180','60','0'],['add 2 more workers: 120/s','drain 3x faster'],'To drain faster, add workers (consumers scale out independently of producers). Watch the queue depth and the age of the oldest message; alert when they keep growing, because that means consumers cannot keep up.',[7],[]);
  s(['at-least-once','duplicates possible','idempotent jobs','dead-letter queue','backoff retries','','',''],['delivery guarantees','what to design for'],'Most queues deliver at least once: a job may be delivered twice, so make jobs idempotent (running twice has the same effect). Poison messages that always fail go to a dead-letter queue instead of blocking everything, and retries should back off.',[],[0,1,2,3,4]);
+ return S},
+/* ---- S17: data storage ---- */
+btree:function(){var S=[];
+ function st(nodes,edges,ok,ptr,aux,note,dim){S.push({a:[],graph:{nodes:nodes,edges:edges,directed:true,w:480,h:210},ptr:ptr||{},ok:ok||[],dim:dim||[],aux:{label:'find user_id = 742',items:aux},note:note})}
+ var N=[{x:240,y:30,label:'root'},{x:120,y:100,label:'501-700'},{x:240,y:100,label:'701-800'},{x:360,y:100,label:'801-1000'},{x:200,y:175,label:'row 742'},{x:300,y:175,label:'row 745'}];
+ var E=[[0,1],[0,2],[0,3],[2,4],[2,5]];
+ st(N,E,[],{},['no index: scan every row','1,000,000 rows to check'],'Without an index the database must read every row and compare it with 742: a full table scan. At a million rows that is a million comparisons for every lookup.');
+ st(N,E,[0],{'start':0},['with an index: start at the root','root says: 742 is in 501-1000'],'An index is a sorted tree (usually a B-tree). The root node says which child holds each range of values, so the first comparison already discards half of the data.',[1,3]);
+ st(N,E,[0,2],{'next':2},['middle level: 701-800','one more step'],'The next level narrows the range again. Each level cuts the search space by a large factor (real B-tree nodes hold hundreds of keys), so even a billion rows need only three or four levels.',[1,3]);
+ st(N,E,[0,2,4],{'found':4},['leaf: row 742 found','3 steps instead of 1,000,000'],'The leaf holds the key and a pointer to the row. Three steps replaced a million comparisons. Cost: the index takes disk space and every insert or update must also update the tree, so each extra index slows writes.',[1,3,5]);
+ return S},
+repl:function(){var S=[];
+ function st(nodes,edges,ptr,aux,note,ok,dim){S.push({a:[],graph:{nodes:nodes,edges:edges,directed:true,w:480,h:190},ptr:ptr||{},ok:ok||[],dim:dim||[],aux:{label:'replication',items:aux},note:note})}
+ var A={x:60,y:95,label:'app'},L={x:200,y:95,label:'leader'},F1={x:360,y:45,label:'copy 1'},F2={x:360,y:145,label:'copy 2'};
+ st([A,L,F1,F2],[[0,1],[1,2],[1,3]],{},['writes go to the leader','leader copies them to followers'],'In leader-follower replication all writes go to one leader. It records each change in a log and ships the log to the followers, which apply the changes in the same order. Reads can be served by any copy.',[1]);
+ st([A,L,F1,F2],[[0,2],[0,3]],{'reads':0},['reads go to followers','read capacity grows with each copy'],'Reads are spread over the followers, so adding a copy adds read capacity. Writes still all go through one leader, so replication scales reads, not writes.',[2,3]);
+ st([A,L,F1,F2],[[0,1],[1,2],[1,3],[0,2]],{'lag':2},['follower is 2 seconds behind','user reads old data'],'Replication is usually asynchronous, so a follower lags the leader by milliseconds, sometimes seconds. A user who just saved a change and reads from a lagging follower sees the old value. Fixes: read your own writes from the leader, or tolerate staleness where it does not matter.',[],[]);
+ st([A,{x:200,y:95,label:'dead'},F1,F2],[[0,2],[0,3]],{'failover':2},['leader died','promote the most up-to-date follower'],'If the leader dies, a follower is promoted (failover). Writes the old leader had acknowledged but not yet shipped can be lost with asynchronous replication, which is the trade-off against synchronous replication (safer but slower, and blocked if a follower is down).',[2],[1]);
+ return S},
+ringsim:function(){var S=[];
+ function s(a,aux,note,ok,hi){S.push({a:a,cols:12,ptr:{},hi:hi||[],ok:ok||[],aux:{label:'hash ring (12 slots shown)',items:aux},note:note})}
+ s(['A','','','B','','','C','','','','',''],['3 nodes on a ring: A, B, C','a key goes to the next node clockwise'],'Imagine the hash space as a circle. Each node sits at some positions on it. A key is hashed to a position and belongs to the first node clockwise from there. Keys between two nodes belong to the later one.');
+ s(['A','','','B','','','C','','','D','',''],['add node D','only keys between C and D move'],'Add a node D. Only the keys that fall between the previous node (C) and D move to D. Every other key stays where it was. With 3 nodes becoming 4, roughly a quarter of the keys move, not nearly all of them.',[9],[9]);
+ s(['A','','','B','','','','','','D','',''],['node C removed','its keys go to the next node (D)'],'Remove node C: its keys move to the next node clockwise (D). Again only that node range is affected, the rest of the ring is untouched.',[],[9]);
+ s(['A','a2','','B','b2','','C','c2','','D','d2',''],['virtual nodes: each node appears many times','smoother balance'],'With few positions the ranges can be very uneven. Giving each node many virtual positions spreads the load evenly and, when a node leaves, spreads its keys over all the others instead of dumping them on one neighbour.',[1,4,7,10]);
+ return S},
+txn:function(){var S=[],L=['BEGIN','debit A','credit B','COMMIT'];
+ function s(a,at,aux,note,ok,dim){S.push({a:a,ptr:{step:at},hi:[at],ok:ok||[],dim:dim||[],aux:{label:'transfer 100 from A to B',items:aux},note:note})}
+ s(L,0,['A: 500, B: 500','total 1000'],'A transaction groups several steps so they succeed or fail together. A transfer needs two updates; if only one happened, money would vanish or appear.');
+ s(L,1,['A: 400, B: 500','total 900 (not yet visible)'],'The debit is applied inside the transaction. Other sessions do not see this half-done state (isolation).',[0]);
+ s(L,2,['crash here!','ROLLBACK: A: 500, B: 500'],'If the program or server fails before COMMIT, the database undoes the debit (atomicity). The total is still 1000. Without a transaction the money would be gone.',[0,1],[3]);
+ s(L,3,['A: 400, B: 600','committed and durable'],'COMMIT makes both changes permanent at once (durability: written to the log on disk). These four properties are ACID: Atomic, Consistent, Isolated, Durable.',[0,1,2]);
+ S.push({a:['dirty read','non-repeatable read','phantom','serializable'],ptr:{},hi:[],ok:[3],aux:{label:'isolation levels',items:['weaker = faster, more anomalies','stronger = safer, more waiting']},note:'Isolation has levels. Weaker levels allow anomalies: reading uncommitted data (dirty read), seeing a row change between two reads (non-repeatable read), seeing new rows appear (phantom). Serializable behaves as if transactions ran one at a time, at the highest cost. Most systems default to something in between, so know which one yours uses.'});
  return S}
 };

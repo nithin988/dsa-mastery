@@ -1515,5 +1515,28 @@
    "cmd": "python3 -c \"arrive=[100]*5+[0]*10\nfor rate in (40,120):\n    b=0; m=0\n    for a in arrive:\n        b=max(0,b+a-rate); m=max(m,b)\n    print('workers do %3d/s: worst backlog %3d jobs' % (rate,m))\"",
    "out": "workers do  40/s: worst backlog 300 jobs\nworkers do 120/s: worst backlog   0 jobs\n"
   }
+ ],
+ "ds": [
+  {
+   "cmd": "mkdir -p ~/store && cd ~/store && cat > sql.py <<'EOF'\nimport sqlite3, json\nc = sqlite3.connect(':memory:')\nc.executescript(\"\"\"\nCREATE TABLE users(id INTEGER PRIMARY KEY, name TEXT);\nCREATE TABLE orders(id INTEGER PRIMARY KEY, user_id INTEGER REFERENCES users(id), total REAL);\nINSERT INTO users VALUES (1,'Asha'),(2,'Ben'),(3,'Chen');\nINSERT INTO orders VALUES (1,1,30),(2,1,20),(3,2,15);\n\"\"\")\nq = \"SELECT u.name, count(o.id), coalesce(sum(o.total),0) FROM users u LEFT JOIN orders o ON o.user_id=u.id GROUP BY u.id ORDER BY u.id\"\nprint('relational: name, orders, spent')\nfor r in c.execute(q):\n    print('  ', r)\ndoc = {'id': 1, 'name': 'Asha', 'orders': [{'id': 1, 'total': 30}, {'id': 2, 'total': 20}]}\nprint('document:  ', json.dumps(doc))\nEOF\npython3 sql.py",
+   "out": "relational: name, orders, spent\n   ('Asha', 2, 50.0)\n   ('Ben', 1, 15.0)\n   ('Chen', 0, 0)\ndocument:   {\"id\": 1, \"name\": \"Asha\", \"orders\": [{\"id\": 1, \"total\": 30}, {\"id\": 2, \"total\": 20}]}\n"
+  },
+  {
+   "cmd": "cd ~/store && cat > idx.py <<'EOF'\nimport sqlite3, random, time\nc = sqlite3.connect(':memory:')\nc.execute('CREATE TABLE orders(id INTEGER PRIMARY KEY, user_id INTEGER, total REAL)')\nrng = random.Random(1)\nc.executemany('INSERT INTO orders VALUES (?,?,?)', ((i, rng.randint(1, 50000), rng.random() * 100) for i in range(300000)))\nq = 'SELECT count(*) FROM orders WHERE user_id = 777'\ndef run():\n    t = time.perf_counter()\n    for _ in range(20):\n        c.execute(q).fetchone()\n    return (time.perf_counter() - t) / 20 * 1000\nprint('plan before:', c.execute('EXPLAIN QUERY PLAN ' + q).fetchall()[0][3])\nbefore = run()\nc.execute('CREATE INDEX idx_user ON orders(user_id)')\nprint('plan after: ', c.execute('EXPLAIN QUERY PLAN ' + q).fetchall()[0][3])\nafter = run()\nprint('without index: %.2f ms per query' % before)\nprint('with index:    %.3f ms per query (about %dx faster)' % (after, before / after))\nEOF\npython3 idx.py",
+   "out": "plan before: SCAN orders\nplan after:  SEARCH orders USING COVERING INDEX idx_user (user_id=?)\nwithout index: 19.52 ms per query\nwith index:    0.005 ms per query (about 4107x faster)\n",
+   "volatile": true
+  },
+  {
+   "cmd": "python3 -c \"lag=0.05\nwrites=[(0.00,'v1'),(0.10,'v2')]\nfor t in (0.02,0.12,0.14,0.20):\n    leader=[v for w,v in writes if w<=t][-1]\n    follower=[v for w,v in writes if w+lag<=t]\n    print('read at %.2fs: leader %s, follower %s' % (t, leader, follower[-1] if follower else 'nothing yet'))\"",
+   "out": "read at 0.02s: leader v1, follower nothing yet\nread at 0.12s: leader v2, follower v1\nread at 0.14s: leader v2, follower v1\nread at 0.20s: leader v2, follower v2\n"
+  },
+  {
+   "cmd": "cd ~/store && cat > ring.py <<'EOF'\nimport bisect, hashlib\nh = lambda s: int(hashlib.md5(s.encode()).hexdigest()[:8], 16)\ndef build(nodes, v=100):\n    r = sorted((h('%s#%d' % (n, i)), n) for n in nodes for i in range(v))\n    return [p for p, _ in r], [n for _, n in r]\ndef owner(r, k):\n    return r[1][bisect.bisect_left(r[0], h(k)) % len(r[0])]\nkeys = ['key%d' % i for i in range(10000)]\nmod = sum(1 for k in keys if h(k) % 4 != h(k) % 5)\nb, a = build(['n0','n1','n2','n3']), build(['n0','n1','n2','n3','n4'])\nring = sum(1 for k in keys if owner(b, k) != owner(a, k))\nprint('10,000 keys, 4 nodes -> 5 nodes')\nprint('hash mod N:        %5d keys moved (%.0f%%)' % (mod, mod / 100))\nprint('consistent hash:   %5d keys moved (%.0f%%)' % (ring, ring / 100))\nEOF\npython3 ring.py",
+   "out": "10,000 keys, 4 nodes -> 5 nodes\nhash mod N:         8028 keys moved (80%)\nconsistent hash:    2121 keys moved (21%)\n"
+  },
+  {
+   "cmd": "cd ~/store && cat > txn.py <<'EOF'\nimport sqlite3\ndef setup():\n    c = sqlite3.connect(':memory:', isolation_level=None)\n    c.execute('CREATE TABLE acct(name TEXT PRIMARY KEY, bal INTEGER)')\n    c.executemany('INSERT INTO acct VALUES (?,?)', [('A', 500), ('B', 500)])\n    return c\ntotal = lambda c: c.execute('SELECT sum(bal) FROM acct').fetchone()[0]\nc = setup()\ntry:\n    c.execute(\"UPDATE acct SET bal = bal - 100 WHERE name = 'A'\")\n    raise RuntimeError('crash before the credit')\nexcept RuntimeError:\n    pass\nprint('without a transaction: total =', total(c), '(100 vanished)')\nc = setup()\ntry:\n    c.execute('BEGIN')\n    c.execute(\"UPDATE acct SET bal = bal - 100 WHERE name = 'A'\")\n    raise RuntimeError('crash before the credit')\nexcept RuntimeError:\n    c.execute('ROLLBACK')\nprint('with a transaction:    total =', total(c), '(rolled back)')\nc.execute('BEGIN')\nc.execute(\"UPDATE acct SET bal = bal - 100 WHERE name = 'A'\")\nc.execute(\"UPDATE acct SET bal = bal + 100 WHERE name = 'B'\")\nc.execute('COMMIT')\nprint('after a committed transfer:', c.execute('SELECT name, bal FROM acct ORDER BY name').fetchall())\nEOF\npython3 txn.py",
+   "out": "without a transaction: total = 900 (100 vanished)\nwith a transaction:    total = 1000 (rolled back)\nafter a committed transfer: [('A', 400), ('B', 600)]\n"
+  }
  ]
 }

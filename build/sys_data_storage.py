@@ -1,0 +1,251 @@
+"""Systems Mastery S17: data storage."""
+import sysviz as v
+
+CHOOSE_VIZ = v.figure(
+    720, 214,
+    [v.box(10, 14, 170, 52, "Relational (SQL)", "acc", "tables, joins, ACID"),
+     v.box(190, 14, 170, 52, "Key-value", "acc", "get/put by key, very fast"),
+     v.box(370, 14, 170, 52, "Document", "acc", "JSON records, flexible shape"),
+     v.box(550, 14, 160, 52, "Wide-column", "acc", "huge write volume"),
+     v.text(95, 92, "orders, accounts, anything", "dg-s"), v.text(95, 110, "that needs consistency", "dg-s"),
+     v.text(275, 92, "sessions, caches, counters", "dg-s"), v.text(275, 110, "lookup by one key", "dg-s"),
+     v.text(455, 92, "catalogues, profiles", "dg-s"), v.text(455, 110, "records of varying shape", "dg-s"),
+     v.text(630, 92, "time series, logs, events", "dg-s"), v.text(630, 110, "spread over many nodes", "dg-s"),
+     v.text(360, 156, "Default to a relational database. Move to something else when a number or a requirement forces you to.", "dg-s"),
+     v.text(360, 180, "Graph databases (relationships first) are the fifth family; rarer in interviews.", "dg-s")],
+    "Families of data stores", "Choose by access pattern and consistency needs, not by fashion")
+
+MODULE = dict(
+    id="ds",
+    title="Data storage",
+    lead="Almost every design question ends at the database. This module explains the families of data stores and when to choose each, how indexes make queries fast, how replication and sharding scale reads and writes, how consistent hashing limits data movement, and what transactions and isolation really guarantee. You will run real SQLite experiments for each.",
+    time="6 to 7 hours",
+    why=[
+        "The checkout page takes eight seconds. Nothing is wrong with the servers: one query scans three million rows because a column has no index. One line, `CREATE INDEX`, makes it 5,000 times faster. Knowing why is the difference between guessing and engineering.",
+        "Storage is where interviewers probe depth: \"SQL or NoSQL for this?\", \"how would you shard it?\", \"what happens to your data if the primary dies?\", \"what does ACID mean and when do you need it?\" Each has a short, principled answer.",
+    ],
+    outcomes=[
+        "Choose between relational, key-value, document and wide-column stores for a given access pattern.",
+        "Explain B-tree indexes, read a query plan, and know what an index costs.",
+        "Describe leader-follower replication, replication lag and failover.",
+        "Explain sharding, why modulo hashing is a bad fit, and how consistent hashing helps.",
+        "Explain ACID, transactions and isolation levels with an example.",
+    ],
+    before=[
+        "Comfortable with the design method (S15) and the scaling blocks (S16).",
+        "Experiments use `python3` with its built-in `sqlite3` module (no database server needed). Timings are real and will differ on your machine.",
+    ],
+    env=["Scratch folder: `mkdir -p ~/store && cd ~/store`."],
+    lessons=[
+        dict(
+            title="SQL, NoSQL and how to choose",
+            tier="hot",
+            situation="\"Should this be Postgres or MongoDB or Redis or Cassandra?\" The honest answer starts with how the data is accessed.",
+            learn=["Relational, key-value, document, wide-column", "ACID versus BASE in plain words", "A sensible default"],
+            model=[
+                "**Relational (SQL)** databases store rows in tables, join them, and give strong guarantees (ACID). **Key-value** stores map a key to a value and are extremely fast for lookups by that key. **Document** stores keep JSON-like records whose shape can vary. **Wide-column** stores spread huge write volumes over many nodes. Choose by **access pattern** (what do you query by?), **consistency need** (can two users briefly see different data?), **scale** and **shape of data**. A good default is a relational database; switch when a number (write volume, data size, latency) or a requirement (flexible schema, global distribution) demands it. \"NoSQL\" systems often trade some consistency (BASE: basically available, eventually consistent) for scale.",
+            ],
+            analogy="A spreadsheet with linked sheets (relational), a coat-check counter (key-value), a filing cabinet of folders where each folder differs (document), and a huge ledger written by many clerks at once (wide-column).",
+            visual=CHOOSE_VIZ,
+            groups=[
+                dict(title="The same data, two shapes", cmds=[
+                    dict(c="mkdir -p ~/store && cd ~/store && cat > sql.py <<'EOF'\nimport sqlite3, json\nc = sqlite3.connect(':memory:')\nc.executescript(\"\"\"\nCREATE TABLE users(id INTEGER PRIMARY KEY, name TEXT);\nCREATE TABLE orders(id INTEGER PRIMARY KEY, user_id INTEGER REFERENCES users(id), total REAL);\nINSERT INTO users VALUES (1,'Asha'),(2,'Ben'),(3,'Chen');\nINSERT INTO orders VALUES (1,1,30),(2,1,20),(3,2,15);\n\"\"\")\nq = \"SELECT u.name, count(o.id), coalesce(sum(o.total),0) FROM users u LEFT JOIN orders o ON o.user_id=u.id GROUP BY u.id ORDER BY u.id\"\nprint('relational: name, orders, spent')\nfor r in c.execute(q):\n    print('  ', r)\ndoc = {'id': 1, 'name': 'Asha', 'orders': [{'id': 1, 'total': 30}, {'id': 2, 'total': 20}]}\nprint('document:  ', json.dumps(doc))\nEOF\npython3 sql.py", e="Relational: two tables linked by `user_id`, and a join plus aggregation answers \"how much has each user spent?\" in one query, even for a user with no orders. Document: one self-contained record per user, fast to read as a whole but harder to ask cross-record questions. Same facts, different trade-offs."),
+                ]),
+            ],
+            quick=[
+                ("What should you decide before choosing a database?", "The access pattern, consistency needs, expected scale and shape of the data."),
+                ("What does ACID stand for?", "Atomicity, Consistency, Isolation, Durability."),
+            ],
+            traps=[
+                "Choosing a NoSQL store because it is fashionable, then re-implementing joins and transactions in application code.",
+                "Assuming SQL cannot scale: it scales a long way with indexes, caching, replicas and later sharding.",
+            ],
+        ),
+        dict(
+            title="Indexes: why one line makes a query 1,000 times faster",
+            tier="hot",
+            situation="A query on a table of 300,000 rows takes a noticeable fraction of a second and slows everything else down.",
+            learn=["How a B-tree index works", "Reading a query plan", "The cost of indexes and composite indexes"],
+            model=[
+                "Without an index the database scans every row (**full table scan**). An **index** is a sorted structure (usually a **B-tree**) that finds a value in a handful of steps, because each level of the tree narrows the search enormously. The query plan (`EXPLAIN QUERY PLAN`) tells you whether it **scans** or **searches using an index**. The cost: indexes take space and slow down writes (each insert must update every index), so index the columns you filter and join on, not everything. A **composite index** on (a, b) serves queries on `a` or on `a` and `b`, but not on `b` alone.",
+            ],
+            analogy="The index at the back of a book: instead of reading every page to find a word, you look it up in a sorted list that points to the pages.",
+            sim="btree",
+            groups=[
+                dict(title="Measure it", cmds=[
+                    dict(volatile=True, c="cd ~/store && cat > idx.py <<'EOF'\nimport sqlite3, random, time\nc = sqlite3.connect(':memory:')\nc.execute('CREATE TABLE orders(id INTEGER PRIMARY KEY, user_id INTEGER, total REAL)')\nrng = random.Random(1)\nc.executemany('INSERT INTO orders VALUES (?,?,?)', ((i, rng.randint(1, 50000), rng.random() * 100) for i in range(300000)))\nq = 'SELECT count(*) FROM orders WHERE user_id = 777'\ndef run():\n    t = time.perf_counter()\n    for _ in range(20):\n        c.execute(q).fetchone()\n    return (time.perf_counter() - t) / 20 * 1000\nprint('plan before:', c.execute('EXPLAIN QUERY PLAN ' + q).fetchall()[0][3])\nbefore = run()\nc.execute('CREATE INDEX idx_user ON orders(user_id)')\nprint('plan after: ', c.execute('EXPLAIN QUERY PLAN ' + q).fetchall()[0][3])\nafter = run()\nprint('without index: %.2f ms per query' % before)\nprint('with index:    %.3f ms per query (about %dx faster)' % (after, before / after))\nEOF\npython3 idx.py", e="300,000 rows. Before the index the plan says `SCAN` (every row is read); after, `SEARCH ... USING INDEX`. The same query becomes hundreds to thousands of times faster. Exact numbers depend on your machine.", parts=[("EXPLAIN QUERY PLAN", "ask the database how it would run the query"), ("CREATE INDEX", "build a sorted B-tree on that column")]),
+                ]),
+            ],
+            quick=[
+                ("What does `SCAN` in a query plan tell you?", "The database reads every row: a full table scan, usually fixable with an index."),
+                ("What is the cost of adding indexes?", "More disk space and slower writes, because each write must update every index."),
+            ],
+            traps=[
+                "Indexing every column: writes slow down and the optimizer may not use most of them.",
+                "A function on the column in the WHERE clause (for example `lower(email) = ...`) can stop the index being used.",
+                "Composite index column order matters: put the most selective, most-filtered column first.",
+            ],
+        ),
+        dict(
+            title="Replication: copies for reads and for survival",
+            tier="hot",
+            situation="One database server is a single point of failure and its read capacity is limited.",
+            learn=["Leader and followers", "Replication lag and read-your-writes", "Failover and its risk"],
+            model=[
+                "In **leader-follower** replication, all writes go to one leader, which ships its change log to **followers** that apply the same changes in order. Reads can be spread over the followers, so replicas scale **reads** (not writes) and give you a standby if the leader dies. Replication is usually **asynchronous**, so followers **lag**: a user who just saved something and reads from a lagging follower sees old data. **Failover** promotes a follower when the leader dies; with asynchronous replication, writes the leader had acknowledged but not yet shipped can be lost. **Synchronous** replication avoids that at the price of latency and availability.",
+            ],
+            analogy="A teacher writes on the board (leader) and students copy into notebooks (followers): a student who looks at their notebook mid-lesson sees yesterday's content.",
+            sim="repl",
+            groups=[
+                dict(title="See stale reads", cmds=[
+                    dict(c="python3 -c \"lag=0.05\nwrites=[(0.00,'v1'),(0.10,'v2')]\nfor t in (0.02,0.12,0.14,0.20):\n    leader=[v for w,v in writes if w<=t][-1]\n    follower=[v for w,v in writes if w+lag<=t]\n    print('read at %.2fs: leader %s, follower %s' % (t, leader, follower[-1] if follower else 'nothing yet'))\"", e="The leader committed v1 at 0.00 s and v2 at 0.10 s; the follower applies each change 50 ms later. Reads at 0.12 s and 0.14 s from the follower still return the old value, v1: stale reads. By 0.20 s the follower has caught up and agrees. The gap is the replication lag."),
+                ]),
+            ],
+            quick=[
+                ("Does adding followers scale writes?", "No: all writes still go through the leader; followers scale reads."),
+                ("What is replication lag?", "The delay before a follower applies a change the leader has committed."),
+            ],
+            traps=[
+                "Reading your own just-written data from a follower: route that user's reads to the leader for a short while.",
+                "Promoting a follower that is behind loses the writes it never received; know how far behind it is.",
+            ],
+        ),
+        dict(
+            title="Sharding and consistent hashing",
+            tier="hot",
+            situation="The data no longer fits on one machine, or one machine cannot handle the write rate, even with replicas.",
+            learn=["Sharding: splitting data by key", "Why modulo hashing moves almost everything", "Consistent hashing with virtual nodes"],
+            model=[
+                "**Sharding** (partitioning) splits the data across several databases by a **shard key** (for example the user ID), so each holds only part of it and handles only part of the writes. Choose a key that spreads load evenly and that your common queries use (a bad key creates a **hot shard**). The simple rule `node = hash(key) mod N` has a nasty flaw: when N changes, almost every key maps to a different node, so almost all data must move. **Consistent hashing** places nodes on a ring; a key belongs to the next node clockwise, so adding or removing a node moves only about **1/N** of the keys. **Virtual nodes** (many positions per node) keep the load even.",
+            ],
+            analogy="Dividing a phone book among clerks by surname: add a clerk and only one range changes hands, instead of re-dealing the whole book.",
+            sim="ringsim",
+            groups=[
+                dict(title="Count the keys that move", cmds=[
+                    dict(c="cd ~/store && cat > ring.py <<'EOF'\nimport bisect, hashlib\nh = lambda s: int(hashlib.md5(s.encode()).hexdigest()[:8], 16)\ndef build(nodes, v=100):\n    r = sorted((h('%s#%d' % (n, i)), n) for n in nodes for i in range(v))\n    return [p for p, _ in r], [n for _, n in r]\ndef owner(r, k):\n    return r[1][bisect.bisect_left(r[0], h(k)) % len(r[0])]\nkeys = ['key%d' % i for i in range(10000)]\nmod = sum(1 for k in keys if h(k) % 4 != h(k) % 5)\nb, a = build(['n0','n1','n2','n3']), build(['n0','n1','n2','n3','n4'])\nring = sum(1 for k in keys if owner(b, k) != owner(a, k))\nprint('10,000 keys, 4 nodes -> 5 nodes')\nprint('hash mod N:        %5d keys moved (%.0f%%)' % (mod, mod / 100))\nprint('consistent hash:   %5d keys moved (%.0f%%)' % (ring, ring / 100))\nEOF\npython3 ring.py", e="With modulo hashing about 80 percent of the keys change node when a fifth node arrives; with a consistent-hash ring only about 20 percent do, close to the ideal 1/5. At terabyte scale that is the difference between a routine change and a migration project."),
+                ]),
+            ],
+            quick=[
+                ("Why is `hash(key) mod N` a poor sharding scheme when N can change?", "Changing N remaps almost every key, forcing nearly all data to move."),
+                ("Roughly what fraction of keys move when a node is added to a consistent-hash ring of N nodes?", "About 1/(N+1) of them."),
+            ],
+            traps=[
+                "A shard key with skew (a celebrity user, a single popular tenant) creates a hot shard that no amount of other shards fixes.",
+                "Queries and joins across shards are expensive; design the key so common queries stay within one shard.",
+            ],
+        ),
+        dict(
+            title="Transactions, ACID and isolation",
+            tier="hot",
+            situation="A transfer debits one account and then the server crashes before crediting the other. Where did the money go?",
+            learn=["Atomicity with BEGIN, COMMIT and ROLLBACK", "The four ACID properties", "Isolation levels and the anomalies they allow"],
+            model=[
+                "A **transaction** groups several operations so they all happen or none do. **ACID**: **Atomicity** (all or nothing), **Consistency** (rules such as constraints always hold), **Isolation** (concurrent transactions do not see each other's half-done work) and **Durability** (committed data survives a crash). Isolation comes in levels: weaker levels allow **dirty reads** (seeing uncommitted data), **non-repeatable reads** (a value changes between two reads) and **phantoms** (new rows appear); **serializable** behaves as if transactions ran one at a time, at the highest cost. Know your database's default level.",
+            ],
+            analogy="Handing over cash and receiving goods in one swap: either both change hands, or the deal is undone.",
+            sim="txn",
+            groups=[
+                dict(title="A transfer that crashes halfway", cmds=[
+                    dict(c="cd ~/store && cat > txn.py <<'EOF'\nimport sqlite3\ndef setup():\n    c = sqlite3.connect(':memory:', isolation_level=None)\n    c.execute('CREATE TABLE acct(name TEXT PRIMARY KEY, bal INTEGER)')\n    c.executemany('INSERT INTO acct VALUES (?,?)', [('A', 500), ('B', 500)])\n    return c\ntotal = lambda c: c.execute('SELECT sum(bal) FROM acct').fetchone()[0]\nc = setup()\ntry:\n    c.execute(\"UPDATE acct SET bal = bal - 100 WHERE name = 'A'\")\n    raise RuntimeError('crash before the credit')\nexcept RuntimeError:\n    pass\nprint('without a transaction: total =', total(c), '(100 vanished)')\nc = setup()\ntry:\n    c.execute('BEGIN')\n    c.execute(\"UPDATE acct SET bal = bal - 100 WHERE name = 'A'\")\n    raise RuntimeError('crash before the credit')\nexcept RuntimeError:\n    c.execute('ROLLBACK')\nprint('with a transaction:    total =', total(c), '(rolled back)')\nc.execute('BEGIN')\nc.execute(\"UPDATE acct SET bal = bal - 100 WHERE name = 'A'\")\nc.execute(\"UPDATE acct SET bal = bal + 100 WHERE name = 'B'\")\nc.execute('COMMIT')\nprint('after a committed transfer:', c.execute('SELECT name, bal FROM acct ORDER BY name').fetchall())\nEOF\npython3 txn.py", e="In autocommit mode the debit stands alone: when the program dies before the credit, 100 has vanished. Inside `BEGIN ... ROLLBACK` the debit is undone and the total stays 1000. A committed transfer applies both changes together.", parts=[("isolation_level=None", "autocommit: every statement commits at once"), ("BEGIN / COMMIT / ROLLBACK", "start, make permanent, or undo a transaction")]),
+                ]),
+            ],
+            quick=[
+                ("What does atomicity guarantee?", "A transaction's operations all take effect or none do; a crash midway leaves no partial result."),
+                ("What is a dirty read?", "Reading data another transaction has changed but not yet committed."),
+            ],
+            traps=[
+                "Assuming the default isolation level is serializable; it is usually weaker (read committed or repeatable read), which allows some anomalies.",
+                "Long transactions hold locks and block others; keep them short.",
+            ],
+        ),
+    ],
+    labs=[
+        dict(kind="linux", script="query-plan", dir="db", title="Make a slow query use an index",
+             goal=["Read a query plan and add an index so a slow query stops scanning the table."],
+             story=["`~/sys-lab/db/shop.db` has 60,000 orders. `slow.sql` holds a query that scans every row. Fix it without touching the data."],
+             tasks=["Read `README.txt` and look at the plan for the query in `slow.sql`.", "Create an index that helps the WHERE clause (it filters on `customer_id` and `status`).", "Check that the plan now says SEARCH ... USING INDEX."],
+             check="Run the check script.", check_cmd="bash ~/sys-lab/check-query-plan.sh",
+             hints=["`EXPLAIN QUERY PLAN SELECT ...` prints how SQLite would run the query; `SCAN orders` means a full scan.", "`CREATE INDEX name ON orders(column1, column2)`; put the column filtered by equality first.", "Remember to commit if you use Python: `conn.commit()`."],
+             solution=["Run `python3` and `import sqlite3`, open `shop.db`.", "`CREATE INDEX idx_orders_customer_status ON orders(customer_id, status)`; `commit()`.", "Re-run the plan: `SEARCH orders USING COVERING INDEX ...`."]),
+        dict(kind="linux", script="shard-moves", dir="shard", title="How much data moves when you add a node?",
+             goal=["Measure the difference between modulo hashing and a consistent-hash ring."],
+             story=["The cluster has 4 nodes and a fifth is joining. 200 keys live in `keys.txt`. The ops lead wants to know how many keys must move under each scheme."],
+             tasks=["Read `README.txt`.", "Count the keys whose node changes with `md5 mod 4` versus `md5 mod 5`.", "Run `python3 ring.py` to see how many move with the consistent-hash ring.", "Write `mod_moved=` and `ring_moved=` into `~/sys-lab/answers-shard.txt`."],
+             check="Run the check script.", check_cmd="bash ~/sys-lab/check-shard-moves.sh",
+             hints=["`int(hashlib.md5(key.encode()).hexdigest()[:8], 16)` is the number to take modulo.", "A key moved if `h % 4 != h % 5`.", "`python3 ~/sys-lab/shard/ring.py` prints the ring result."],
+             solution=["Loop over the keys with the formula above and count the changes.", "`python3 ring.py` prints `ring: N of 200 keys moved`.", "Write both numbers to the answers file."]),
+    ],
+    cases=[],
+    cheat=[
+        ["relational / key-value / document / wide-column", "joins and ACID / fast lookup / flexible JSON / huge writes"],
+        ["ACID", "atomic, consistent, isolated, durable"],
+        ["BASE", "basically available, soft state, eventually consistent"],
+        ["EXPLAIN QUERY PLAN", "SCAN means full scan; SEARCH USING INDEX means indexed"],
+        ["index cost", "extra space and slower writes"],
+        ["composite index (a, b)", "serves a, and a with b; not b alone"],
+        ["leader-follower", "writes to the leader, reads from followers, async lag"],
+        ["failover", "promote a follower; may lose unreplicated writes"],
+        ["shard key", "spread load evenly; make common queries single-shard"],
+        ["hash mod N", "changing N moves almost every key"],
+        ["consistent hashing + virtual nodes", "only about 1/N of keys move; even balance"],
+        ["BEGIN / COMMIT / ROLLBACK", "all or nothing"],
+        ["isolation anomalies", "dirty read, non-repeatable read, phantom"],
+    ],
+    interview_intro="For every storage question, name the access pattern first, then the structure, then the cost. \"It depends\" is only a good answer if you say on what.",
+    interview=[
+        dict(q="SQL or NoSQL for this system? How do you decide?",
+             a=["Start from the access pattern and consistency needs: do I need joins, transactions and ad-hoc queries (relational) or lookups by one key at huge scale (key-value, wide-column) or flexible records (document)?", "State the scale in numbers; a relational database with indexes, caching and replicas handles a great deal.", "Name the trade-off of the alternative: weaker consistency, no joins, more work in the application."],
+             follow=["What would make you switch later?", "Can SQL scale horizontally?"], mistakes=["Choosing by fashion.", "Saying NoSQL means no schema, so no design needed."],
+             angle="Google-style: candidates commonly report that interviewers push back with \"what if the data doubles every year?\"; reported by candidates, not official."),
+        dict(q="Explain database indexes. When can they hurt?",
+             a=["A sorted B-tree structure that turns a scan of every row into a few steps; the query plan shows SEARCH instead of SCAN.", "They cost space and slow writes, because every write updates every index; too many indexes also confuse the planner.", "Composite indexes follow the left-most column rule; functions on the column can prevent use."],
+             follow=["How do you decide which columns to index?", "What is a covering index?"], mistakes=["Indexing everything."]),
+        dict(q="How does replication work, and what is replication lag?",
+             a=["The leader writes a change log; followers apply it in order. Reads can go to followers.", "Asynchronous replication means followers can be stale: handle read-your-writes by reading from the leader after a write.", "Failover promotes a follower and can lose writes not yet shipped; synchronous replication trades latency for safety."],
+             follow=["What happens when two leaders accept writes?"], mistakes=["Claiming replicas scale writes."]),
+        dict(q="How would you shard a large table? What goes wrong with `hash(key) mod N`?",
+             a=["Pick a shard key that spreads data and writes evenly and matches the main query pattern.", "Modulo hashing remaps almost all keys when N changes, so use consistent hashing with virtual nodes (about 1/N of keys move) or a directory service.", "Watch for hot keys, cross-shard queries and re-sharding operations."],
+             follow=["How do you handle a hot shard?", "How do you do cross-shard transactions?"], mistakes=["Choosing a monotonically increasing key (all new writes hit one shard)."]),
+        dict(q="What is ACID? Give an example of why atomicity matters.",
+             a=["Atomicity, consistency, isolation, durability.", "A money transfer is two updates; without a transaction a crash between them loses money.", "Isolation levels trade anomalies for concurrency; durability comes from the write-ahead log."],
+             follow=["Name two isolation anomalies.", "What is a write-ahead log?"], mistakes=["Reciting the letters with no example."],
+             angle="Amazon-style: expect a follow-up on what happens to an order if a service fails mid-way; reported by candidates, not official."),
+        dict(q="A query on a 10-million-row table became slow after a deployment. How do you investigate?",
+             a=["Find the query (slow-query log), run `EXPLAIN` and look for scans, missing indexes or changed plans.", "Check recent schema or query changes, table growth and lock contention.", "Fix with an index or query rewrite, verify with the plan and timing, and add monitoring on query latency."],
+             follow=["How do you add an index to a huge live table safely?"], mistakes=["Adding hardware first."]),
+    ],
+    selftest=[
+        ("Name the four ACID properties.", "Atomicity, consistency, isolation, durability."),
+        ("What does `SCAN` mean in a query plan?", "A full table scan: every row is read."),
+        ("What does an index cost?", "Extra storage and slower writes."),
+        ("Do read replicas scale writes?", "No, only reads."),
+        ("What is replication lag?", "The delay before a follower applies a leader's committed change."),
+        ("Why is `hash(key) mod N` bad for resharding?", "Changing N moves almost every key."),
+        ("What do virtual nodes do on a hash ring?", "They spread each node over many positions for even load and smoother rebalancing."),
+        ("What is a phantom read?", "New rows matching a query appear between two runs of it within one transaction."),
+    ],
+    recall=[
+        ["ACID", "atomic, consistent, isolated, durable"],
+        ["B-tree index", "sorted tree: a few steps instead of a scan"],
+        ["SCAN vs SEARCH", "full scan vs indexed lookup"],
+        ["replica", "scales reads, adds survival, may lag"],
+        ["shard key", "spreads data and matches the queries"],
+        ["consistent hashing", "about 1/N of keys move"],
+        ["isolation level", "which anomalies concurrent transactions may see"],
+        ["failover", "promote a follower; watch for lost writes"],
+    ],
+    sources=[
+        dict(title="SQLite: Query Planning", url="https://www.sqlite.org/queryplanner.html", use="How indexes and the query planner work, clearly explained", license="Public domain documentation", how="Link only"),
+        dict(title="Designing Data-Intensive Applications (Martin Kleppmann)", url="https://dataintensive.net/", use="The reference for replication, partitioning and transactions", license="Commercial book; not copied", how="Recommended reading"),
+        dict(title="Use The Index, Luke", url="https://use-the-index-luke.com/", use="A free guide to SQL indexing", license="CC BY-NC-ND 3.0 (no derivatives)", how="Link only; nothing copied"),
+        dict(title="Amazon Dynamo paper (DeCandia et al.)", url="https://www.allthingsdistributed.com/2007/10/amazons_dynamo.html", use="Consistent hashing and eventual consistency at scale", license="Copyright Amazon; read online", how="Link only"),
+    ],
+    plan=[
+        "**Hour 1:** SQL versus NoSQL; run the first script and sketch which store you would pick for five products you use.",
+        "**Hour 2:** indexes; run the experiment and read both plans; then Lab 1.",
+        "**Hour 3:** replication; change the lag and see which reads go stale.",
+        "**Hour 4:** sharding and consistent hashing; then Lab 2.",
+        "**Hour 5:** transactions and isolation; add a deliberate crash of your own.",
+        "**Hours 6 and 7:** interview answers out loud and the self-test.",
+    ],
+)
