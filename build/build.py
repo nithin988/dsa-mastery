@@ -299,6 +299,12 @@ def build_systems():
         m["_n_total"] = len(rows)
         write(os.path.join(ROOT, "systems", r["slug"] + ".html"), render_module(m))
         print("built", r["slug"])
+    live_files = {r["slug"] + ".html" for r in live}
+    sysdir = os.path.join(ROOT, "systems")
+    for f in os.listdir(sysdir):  # remove pages of modules that were renamed or retired
+        if f.startswith("S") and f.endswith(".html") and f not in live_files:
+            os.remove(os.path.join(sysdir, f))
+            print("removed stale", f)
     stat_rows = []
     for r in rows:
         m = r["module"]

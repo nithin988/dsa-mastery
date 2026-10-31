@@ -91,7 +91,7 @@ FAVICON = (
 SITE_URL = "https://nithin988.github.io/dsa-mastery/"
 
 
-SYS_TRACKS = [("track-1", "Foundations"), ("track-2", "Troubleshooting"), ("track-3", "System design core"), ("track-4", "Design problems"), ("track-5", "Interview and career"), ("track-6", "Extensions")]
+SYS_TRACKS = [("track-1", "Foundations"), ("track-2", "Troubleshooting"), ("track-3", "System design: building blocks"), ("track-4", "System design: worked problems"), ("track-5", "Real systems and interviews"), ("track-6", "Extensions")]
 
 
 def rail(section, root=""):

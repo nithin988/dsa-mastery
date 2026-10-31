@@ -126,10 +126,10 @@ def systems_html(rows, catalog_json, stats):
 <div class="kpi wide"><span>Your progress</span><b id="k-pct">0%</b><div class="meter" id="k-meter" role="progressbar" aria-label="Overall progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="k-bar"></i></div>
 <span id="k-txt" style="margin-top:8px">0 steps done (saved in this browser)</span><span id="k-topics" style="margin-top:2px"></span></div></div>
 </section>
-<section class="how" aria-label="How a module works">
-<div><b><span class="no">1</span>Mental model</b>Plain-words explanation and an everyday analogy first.</div>
-<div><b><span class="no">2</span>Commands and labs</b>Every command explained with real output, then labs that break things on purpose.</div>
-<div><b><span class="no">3</span>Playbooks and interviews</b>What to check first when it fails, and the questions interviewers really ask.</div></section>
+<section class="how" aria-label="How the course works">
+<div><b><span class="no">1</span>Learn the pieces</b>Every building block explained from the inside: the problem it solves, how it works step by step, a flow diagram, and real tools with every line of output explained.</div>
+<div><b><span class="no">2</span>Solve whole problems</b>From a URL shortener to payments: requirements, numbers, API, data, architecture, deep dives and trade-offs, worked end to end.</div>
+<div><b><span class="no">3</span>Explain it out loud</b>Worked interview scenarios with the reasoning shown, what to clarify, follow-ups and common slips, plus a quick revision space.</div></section>
 <div class="tools"><h2 id="path">All modules</h2><span class="muted" id="count" aria-live="polite"></span>
 <label class="search">{icon("search")}<input id="q" type="search" placeholder="Search modules" aria-label="Search modules"></label>
 <span class="filters" role="group" aria-label="Filter by progress"><button data-f="all" aria-pressed="true">All</button><button data-f="new" aria-pressed="false">Not started</button><button data-f="doing" aria-pressed="false">In progress</button><button data-f="done" aria-pressed="false">Done</button></span></div>
