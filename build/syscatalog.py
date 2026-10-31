@@ -15,13 +15,13 @@ TRACKS = [
 
 # (num, slug, title, blurb, track index (1-based), content module name or None)
 MODULES = [
-    ("S01", "S01_how_computers_run_programs", "How a computer runs programs", "Processes, threads, memory, files and system calls: the mental model behind everything else.", 1, None),
+    ("S01", "S01_how_computers_run_programs", "How a computer runs programs", "Processes, threads, memory, files and system calls: the mental model behind everything else.", 1, "sys_how_computers"),
     ("S02", "S02_linux_shell", "Linux shell fluency", "Navigate, find, read, move and secure files; pipes, redirection, permissions and job control.", 1, "sys_linux_shell"),
     ("S03", "S03_text_processing_scripting", "Text processing and scripting", "grep, sed, awk, find, xargs, sort and uniq, then bash scripts that do real work.", 1, "sys_text_scripting"),
     ("S04", "S04_linux_internals", "Linux system internals", "Process states, signals, memory, filesystems and inodes, users, systemd, logs and /proc.", 1, "sys_linux_internals"),
     ("S05", "S05_git_fundamentals", "Git fundamentals", "The snapshot model, staging, branches, merging, remotes and pull requests.", 1, "sys_git_basics"),
     ("S06", "S06_git_teams_recovery", "Git in teams and recovery", "Rebase, interactive rebase, cherry-pick, reflog, bisect, stash, reset modes and conflict handling.", 1, "sys_git_recovery"),
-    ("S07", "S07_networking_for_engineers", "Networking for engineers", "TCP/IP, DNS, HTTP, TLS and what really happens when you type a URL.", 1, None),
+    ("S07", "S07_networking_for_engineers", "Networking for engineers", "TCP/IP, DNS, HTTP, TLS and what really happens when you type a URL.", 1, "sys_networking"),
     ("S08", "S08_containers_cloud_basics", "Containers and cloud basics", "Namespaces and cgroups, Docker, Kubernetes concepts and CI/CD.", 1, None),
     ("S09", "S09_debugging_method", "The debugging method", "Hypotheses, minimal repros, bisecting, reading logs and stack traces.", 2, None),
     ("S10", "S10_linux_performance_triage", "Linux performance triage", "The USE method and a first-60-seconds checklist for CPU, memory, disk and network.", 2, None),

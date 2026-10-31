@@ -420,6 +420,23 @@ details.more[open]{border-left-color:var(--info-line)}
 .quick details summary{font-weight:500}
 #b-density .t-short{display:none}
 @media(max-width:700px){#b-density .t-long{display:none}#b-density .t-short{display:inline}}
+
+/* reader: one step at a time */
+.vh{display:none!important}
+.vnav{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:28px 0 8px}
+body:not(.focus) .vnav{display:none}
+.vnav a{display:flex;flex-direction:column;gap:2px;padding:12px 16px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);text-decoration:none;color:var(--fg);box-shadow:var(--sh);transition:border-color .15s,background .15s}
+.vnav a:hover{border-color:var(--acc);background:var(--soft)}
+.vnav small{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:600}
+.vnav b{font-size:14px;font-weight:600;line-height:1.35}
+.vnav a.vn{text-align:right;align-items:flex-end;background:var(--ink);border-color:var(--ink);color:var(--ink-fg)}
+.vnav a.vn small{color:#cbd5e1}.vnav a.vn:hover{background:var(--ink);opacity:.92}
+.vpos{font-size:12px;color:var(--mut);white-space:nowrap}
+body:not(.focus) .vpos{display:none}
+#b-view .t-short{display:none}
+@media(max-width:700px){#b-view .t-long{display:none}#b-view .t-short{display:inline}.vnav{grid-template-columns:1fr}.vpos{display:none}}
+.chips a.on{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+@media print{.vh{display:block!important}.vnav,.vpos{display:none!important}}
 </style></head>
 <body class="has-rail" data-lang="java" data-file="07_recursion_backtracking.html" data-topic="backtracking">
 <a class="skip" href="#content">Skip to content</a>

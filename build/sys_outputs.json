@@ -977,5 +977,181 @@
    "cmd": "printf 'a\\nLEFT and RIGHT\\nc\\n' > f.txt; git add f.txt; git commit -q --no-edit; git log --oneline --graph",
    "out": "*   5478380 Merge branch 'left'\n|\\  \n| * 49a5a4a Left edit\n* | 44c9f69 Right edit\n|/  \n* 470197e Base\n"
   }
+ ],
+ "hc": [
+  {
+   "cmd": "mkdir -p ~/s01 && cd ~/s01 && bash -c 'echo \"child PID: $$, parent PID: $PPID\"'; echo \"this shell is PID $$\"",
+   "out": "child PID: 234, parent PID: 228\nthis shell is PID 228\n",
+   "volatile": true
+  },
+  {
+   "cmd": "sleep 30 & ps -o pid,ppid,stat,cmd -p $!; kill $!",
+   "out": "    PID    PPID STAT CMD\n    235     228 S+   sleep 30\n",
+   "volatile": true
+  },
+  {
+   "cmd": "bash -c 'exit 3'; echo \"exit status: $?\"",
+   "out": "exit status: 3\n"
+  },
+  {
+   "cmd": "type cd; type ls",
+   "out": "cd is a shell builtin\nls is /usr/bin/ls\n"
+  },
+  {
+   "cmd": "cd ~/s01 && printf 'hello\\n' > notes.txt && strace -o trace.txt -e trace=openat,read,write cat notes.txt > /dev/null; grep -v 'ld.so\\|/lib/' trace.txt | tail -6",
+   "out": "read(3, \"\\177ELF\\2\\1\\1\\3\\0\\0\\0\\0\\0\\0\\0\\0\\3\\0>\\0\\1\\0\\0\\0p\\236\\2\\0\\0\\0\\0\\0\"..., 832) = 832\nopenat(AT_FDCWD, \"notes.txt\", O_RDONLY) = 3\nread(3, \"hello\\n\", 262144)              = 6\nwrite(1, \"hello\\n\", 6)                  = 6\nread(3, \"\", 262144)                     = 0\n+++ exited with 0 +++\n"
+  },
+  {
+   "cmd": "strace -e trace=openat cat nothere.txt 2>&1 | tail -3",
+   "out": "openat(AT_FDCWD, \"nothere.txt\", O_RDONLY) = -1 ENOENT (No such file or directory)\ncat: nothere.txt: No such file or directory\n+++ exited with 1 +++\n"
+  },
+  {
+   "cmd": "strace -f -e trace=execve bash -c 'ls > /dev/null; true' 2>&1 | grep -o 'execve(\"[^\"]*\"'",
+   "out": "execve(\"/usr/bin/bash\"\nexecve(\"/usr/bin/ls\"\n"
+  },
+  {
+   "cmd": "ps -o pid,vsz,rss,comm -p $$",
+   "out": "    PID    VSZ   RSS COMMAND\n    228   7084  3592 bash\n",
+   "volatile": true
+  },
+  {
+   "cmd": "grep -E '\\[heap\\]|\\[stack\\]' /proc/self/maps",
+   "out": "64ae36b9b000-64ae36bbc000 rw-p 00000000 00:00 0                          [heap]\n7fff931df000-7fff93200000 rw-p 00000000 00:00 0                          [stack]\n",
+   "volatile": true
+  },
+  {
+   "cmd": "for i in 1 2; do grep '\\[stack\\]' /proc/self/maps | cut -c1-30; done",
+   "out": "7ffc1bf38000-7ffc1bf59000 rw-p\n7fff0c43a000-7fff0c45b000 rw-p\n",
+   "volatile": true
+  },
+  {
+   "cmd": "ulimit -s; cat /proc/sys/kernel/randomize_va_space",
+   "out": "8192\n2\n"
+  },
+  {
+   "cmd": "for n in 0 1 2; do echo \"fd $n -> $(readlink /proc/$$/fd/$n)\"; done",
+   "out": "fd 0 -> pipe:[17755]\nfd 1 -> pipe:[17756]\nfd 2 -> pipe:[17756]\n",
+   "volatile": true
+  },
+  {
+   "cmd": "exec 3> fd3.txt; echo hello >&3; ls -l /proc/$$/fd | awk '$9==3{print $9, $10, $11}'; exec 3>&-",
+   "out": "3 -> /home/learner/s01/fd3.txt\n"
+  },
+  {
+   "cmd": "head -c 4 /dev/zero | od -An -tx1; ls -l /dev/null /dev/zero | awk '{print $1, $NF}'",
+   "out": " 00 00 00 00\ncrw-rw-rw- /dev/null\ncrw-rw-rw- /dev/zero\n"
+  },
+  {
+   "cmd": "ulimit -n",
+   "out": "10240\n"
+  },
+  {
+   "cmd": "nproc",
+   "out": "8\n"
+  },
+  {
+   "cmd": "ps -o pid,nlwp,comm -p $$",
+   "out": "    PID NLWP COMMAND\n    228    1 bash\n",
+   "volatile": true
+  },
+  {
+   "cmd": "python3 -c \"import threading,os,time; ts=[threading.Thread(target=time.sleep,args=(1,)) for _ in range(3)]; [t.start() for t in ts]; print('threads in this process:', len(os.listdir('/proc/self/task')))\"",
+   "out": "threads in this process: 4\n"
+  },
+  {
+   "cmd": "cat /proc/loadavg",
+   "out": "0.21 0.08 0.03 1/221 277\n",
+   "volatile": true
+  }
+ ],
+ "nw": [
+  {
+   "cmd": "ip -brief addr show lo | awk '{print $1, $2, $3}'",
+   "out": "lo UNKNOWN 127.0.0.1/8\n"
+  },
+  {
+   "cmd": "getent services https ssh http",
+   "out": "https                 443/tcp\nssh                   22/tcp\nhttp                  80/tcp www\n"
+  },
+  {
+   "cmd": "ip route | head -2",
+   "out": "default via 172.31.144.1 dev eth0 proto kernel onlink \n172.31.144.0/20 dev eth0 proto kernel scope link src 172.31.156.155 \n"
+  },
+  {
+   "cmd": "mkdir -p ~/net && cd ~/net && echo '<h1>hello</h1>' > index.html && (python3 -m http.server 8081 --bind 127.0.0.1 >/dev/null 2>&1 &); sleep 1; ss -ltn | grep 8081",
+   "out": "LISTEN 0      5           127.0.0.1:8081      0.0.0.0:*   \n"
+  },
+  {
+   "cmd": "nc -zv 127.0.0.1 8081 2>&1",
+   "out": "Connection to 127.0.0.1 8081 port [tcp/tproxy] succeeded!\n"
+  },
+  {
+   "cmd": "nc -zv 127.0.0.1 8999 2>&1; echo \"exit status: $?\"",
+   "out": "nc: connect to 127.0.0.1 port 8999 (tcp) failed: Connection refused\nexit status: 1\n"
+  },
+  {
+   "cmd": "getent hosts localhost; grep localhost /etc/hosts | head -2",
+   "out": "::1             localhost\n127.0.0.1\tlocalhost\n::1     ip6-localhost ip6-loopback\n"
+  },
+  {
+   "cmd": "dig +noall +answer example.com A",
+   "out": "example.com.\t\t10\tIN\tA\t172.66.147.243\nexample.com.\t\t10\tIN\tA\t104.20.23.154\n",
+   "volatile": true
+  },
+  {
+   "cmd": "dig nonexistent.invalid | grep -o 'status: [A-Z]*'; getent hosts nonexistent.invalid; echo \"exit status: $?\"",
+   "out": "status: NXDOMAIN\nexit status: 2\n"
+  },
+  {
+   "cmd": "cd ~/net && curl -sI http://127.0.0.1:8081/",
+   "out": "HTTP/1.0 200 OK\nServer: SimpleHTTP/0.6 Python/3.13.5\nDate: Sat, 31 Oct 2026 06:09:39 GMT\nContent-type: text/html\nContent-Length: 15\nLast-Modified: Sat, 31 Oct 2026 06:09:37 GMT\n\n",
+   "volatile": true
+  },
+  {
+   "cmd": "curl -sv http://127.0.0.1:8081/ 2>&1 | grep -E '^> '",
+   "out": "> GET / HTTP/1.1\n> Host: 127.0.0.1:8081\n> User-Agent: curl/8.14.1\n> Accept: */*\n> \n"
+  },
+  {
+   "cmd": "curl -s -o /dev/null -w '%{http_code}\\n' http://127.0.0.1:8081/missing",
+   "out": "404\n"
+  },
+  {
+   "cmd": "curl -s -X POST -d 'a=1' -o /dev/null -w '%{http_code}\\n' http://127.0.0.1:8081/",
+   "out": "501\n"
+  },
+  {
+   "cmd": "curl -s -o /dev/null -w 'lookup %{time_namelookup}s connect %{time_connect}s first byte %{time_starttransfer}s total %{time_total}s\\n' http://127.0.0.1:8081/",
+   "out": "lookup 0.000014s connect 0.000135s first byte 0.001285s total 0.001316s\n",
+   "volatile": true
+  },
+  {
+   "cmd": "pkill -f 'http.server 8081'; sleep 0.5; curl -s -m 3 http://127.0.0.1:8081/ ; echo \"curl exit status: $?\"",
+   "out": "curl exit status: 7\n"
+  },
+  {
+   "cmd": "cd ~/net && openssl req -x509 -newkey rsa:2048 -nodes -keyout key.pem -out cert.pem -days 1 -subj '/CN=localhost' 2>/dev/null; ls cert.pem key.pem",
+   "out": "cert.pem\nkey.pem\n"
+  },
+  {
+   "cmd": "(openssl s_server -www -accept 8443 -cert cert.pem -key key.pem >/dev/null 2>&1 &); sleep 1; curl -sS -m 5 https://127.0.0.1:8443/ 2>&1 | head -1",
+   "out": "curl: (60) SSL certificate problem: self-signed certificate\n"
+  },
+  {
+   "cmd": "curl -sk -o /dev/null -w 'status %{http_code}, verify result %{ssl_verify_result}\\n' https://127.0.0.1:8443/",
+   "out": "status 200, verify result 18\n"
+  },
+  {
+   "cmd": "echo | openssl s_client -connect 127.0.0.1:8443 2>/dev/null | openssl x509 -noout -subject -issuer -dates",
+   "out": "subject=CN=localhost\nissuer=CN=localhost\nnotBefore=Oct 31 06:09:39 2026 GMT\nnotAfter=Nov  1 06:09:39 2026 GMT\n",
+   "volatile": true
+  },
+  {
+   "cmd": "pkill -f 's_server -www'; echo stopped",
+   "out": "stopped\n"
+  },
+  {
+   "cmd": "cd ~/net && (python3 -m http.server 8082 --bind 127.0.0.1 >/dev/null 2>&1 &); sleep 1; getent hosts localhost | head -1; nc -zv 127.0.0.1 8082 2>&1; curl -s -o /dev/null -w 'http %{http_code}\\n' http://127.0.0.1:8082/; pkill -f 'http.server 8082'",
+   "out": "::1             localhost\nConnection to 127.0.0.1 8082 port [tcp/*] succeeded!\nhttp 200\n"
+  }
  ]
 }

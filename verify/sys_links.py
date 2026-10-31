@@ -3,6 +3,8 @@
 404 and connection failures fail the check; 403 and 429 (sites that block scripts) are reported as warnings.
 """
 import os
+import shutil
+import subprocess
 import sys
 import urllib.error
 import urllib.request
@@ -23,6 +25,10 @@ def check(url, tries=2):
     except Exception as e:  # network trouble: retry once
         if tries > 1:
             return check(url, tries - 1)
+        if shutil.which("curl"):  # Python's TLS stack sometimes fails where curl works
+            r = subprocess.run(["curl", "-sL", "-m", "25", "-A", "Mozilla/5.0", "-o", os.devnull, "-w", "%{http_code}", url], capture_output=True, text=True)
+            if r.stdout.strip().isdigit() and r.stdout.strip() != "000":
+                return int(r.stdout.strip())
         return "ERR " + type(e).__name__
 
 

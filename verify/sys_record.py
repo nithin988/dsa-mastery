@@ -45,7 +45,7 @@ def record_module(m):
     cmds = runnable(m)
     files = {}
     pre = ["export LC_ALL=C TZ=UTC", 'D="$(dirname "$0")"',
-           'rm -rf "$HOME/workshop" "$HOME/textlab" "$HOME/sys-lab" "$HOME/gitwork" "$HOME"/.sys-lab-*   # clean slate: other modules leave folders behind']
+           'find "$HOME" -mindepth 1 -maxdepth 1 ! -name ".*" -exec rm -rf {} +; rm -rf "$HOME"/.sys-lab-*   # clean slate: other modules leave files behind']
     for f in m.get("fixture_files", []):
         kind, name = f.split("/")
         files[name] = sys_runner.read(os.path.join(LABS, kind, name))
@@ -66,7 +66,10 @@ def record_module(m):
         m1 = re.search(rf"@@B{i}\n(.*?)\n@@E{i}\n", out, re.S)
         if not m1:
             raise SystemExit(f"{m['id']}: no output captured for command #{i} {c['c'][:60]!r}\n--- raw output tail ---\n{out[-800:]}")
-        entries.append({"cmd": c["c"], "out": normalise(m1.group(1))})
+        e = {"cmd": c["c"], "out": normalise(m1.group(1))}
+        if c.get("volatile"):
+            e["volatile"] = True  # real output that changes on every run (PIDs, dates, addresses, timings)
+        entries.append(e)
     return entries
 
 
@@ -92,7 +95,7 @@ def main():
         new = record_module(m)
         if check:
             old = stored.get(m["id"], [])
-            diffs = [i for i, (a, b) in enumerate(zip(old, new)) if a != b] + ([min(len(old), len(new))] if len(old) != len(new) else [])
+            diffs = [i for i, (a, b) in enumerate(zip(old, new)) if a != b and not b.get("volatile")] + ([min(len(old), len(new))] if len(old) != len(new) else [])
             if diffs:
                 bad += 1
                 for i in diffs[:5]:

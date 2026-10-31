@@ -420,15 +420,33 @@ details.more[open]{border-left-color:var(--info-line)}
 .quick details summary{font-weight:500}
 #b-density .t-short{display:none}
 @media(max-width:700px){#b-density .t-long{display:none}#b-density .t-short{display:inline}}
+
+/* reader: one step at a time */
+.vh{display:none!important}
+.vnav{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:28px 0 8px}
+body:not(.focus) .vnav{display:none}
+.vnav a{display:flex;flex-direction:column;gap:2px;padding:12px 16px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);text-decoration:none;color:var(--fg);box-shadow:var(--sh);transition:border-color .15s,background .15s}
+.vnav a:hover{border-color:var(--acc);background:var(--soft)}
+.vnav small{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:600}
+.vnav b{font-size:14px;font-weight:600;line-height:1.35}
+.vnav a.vn{text-align:right;align-items:flex-end;background:var(--ink);border-color:var(--ink);color:var(--ink-fg)}
+.vnav a.vn small{color:#cbd5e1}.vnav a.vn:hover{background:var(--ink);opacity:.92}
+.vpos{font-size:12px;color:var(--mut);white-space:nowrap}
+body:not(.focus) .vpos{display:none}
+#b-view .t-short{display:none}
+@media(max-width:700px){#b-view .t-long{display:none}#b-view .t-short{display:inline}.vnav{grid-template-columns:1fr}.vpos{display:none}}
+.chips a.on{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+@media print{.vh{display:block!important}.vnav,.vpos{display:none!important}}
 </style></head>
 <body class="has-rail" data-file="S04_linux_internals.html" data-topic="li" data-store="sys-progress" data-last="sys-last" data-word="done">
 <a class="skip" href="#content">Skip to content</a>
 <nav class="rail" id="rail" aria-label="Sections"><a class="rail-i rail-logo" href="../index.html" title="Mastery home"><span class="logo" aria-hidden="true">M</span><span class="l"><b>Mastery</b></span></a><div class="rail-g">Courses</div><a class="rail-i" href="../index.html" title="Home"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 7.5 8 2.5l5.5 5M4 6.5v7h8v-7"/></svg><span class="l">Home</span></a><a class="rail-i" href="../dsa.html" title="DSA Mastery"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m5.5 4.5-3.5 3.5 3.5 3.5M10.5 4.5l3.5 3.5-3.5 3.5"/></svg><span class="l">DSA Mastery</span></a><a class="rail-i" href="../systems.html" aria-current="page" title="Systems Mastery"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3" width="11" height="4" rx="1"/><rect x="2.5" y="9" width="11" height="4" rx="1"/><path d="M5 5h.01M5 11h.01"/></svg><span class="l">Systems Mastery</span></a><div class="rail-sub"><a href="../systems.html#track-1">Foundations</a><a href="../systems.html#track-2">Troubleshooting</a><a href="../systems.html#track-3">System design core</a><a href="../systems.html#track-4">Design problems</a><a href="../systems.html#track-5">Interview and career</a><a href="../systems.html#track-6">Extensions</a></div><div class="rail-g">Tools</div><a class="rail-i" href="../plan.html" title="DSA study planner"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="10" rx="1.5"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/></svg><span class="l">DSA study planner</span></a><a class="rail-i" href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener" title="GitHub"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M9 2.5h4.5V7M13.5 2.5 7 9M12 9v4.5H2.5V4H7"/></svg><span class="l">GitHub</span></a></nav><div class="rail-bd" id="rail-bd" hidden></div>
 <header class="bar"><div class="bar-in"><button id="b-rail" class="iconbtn rail-btn" aria-label="Open the sections menu" aria-expanded="false" aria-controls="rail"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"/></svg></button><a class="brand" href="../systems.html" aria-label="Systems Mastery home"><span class="logo" aria-hidden="true">SYS</span><b>Systems <span>Mastery</span></b></a>
 <nav class="crumbs" aria-label="Breadcrumb"><a href="../systems.html">Systems modules</a><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3.5 4.5 4.5L6 12.5"/></svg><span class="cur">S04 · Linux system internals</span></nav>
-<span class="prog" id="prog" aria-live="polite"></span>
+<span class="vpos" id="vpos" aria-live="polite"></span><span class="prog" id="prog" aria-live="polite"></span>
 <span class="menu"><button id="b-topics" class="btn" aria-haspopup="true" aria-expanded="false" aria-controls="topics-panel"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"/></svg><span class="t-long">All modules</span></button>
 <div class="panel" id="topics-panel" role="menu" aria-label="All modules" hidden></div></span>
+<button id="b-view" class="btn" aria-pressed="false" title="Read one step at a time, or show the whole module on one page"><span class="t-long">All on one page</span><span class="t-short">View</span></button>
 <button id="b-density" class="btn" aria-pressed="false" title="Show every detailed explanation, or keep the short view"><span class="t-long">Show all details</span><span class="t-short">Details</span></button>
 <button id="b-theme" class="iconbtn" title="Toggle light / dark" aria-label="Toggle light or dark theme"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5a5.5 5.5 0 0 0 0 11z" fill="currentColor"/></svg></button>
 <button id="b-dl" class="btn pri" title="Save this page as a standalone HTML file"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8M4.5 7.5 8 11l3.5-3.5M2.5 13.5h11"/></svg><span class="t-long">Download</span></button></div>
@@ -643,7 +661,7 @@ cd ~/sys-lab</code></pre></div>
 <nav class="foot" aria-label="Previous and next module"><a class="nxt" href="S03_text_processing_scripting.html"><small><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8h-11M7 3.5 2.5 8 7 12.5"/></svg>Previous</small><strong>Text processing and scripting</strong></a><a class="nxt next r" href="S05_git_fundamentals.html"><small>Next module<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg></small><strong>Git fundamentals</strong></a></nav>
 </main></div>
 <footer class="site-foot"><span>Systems Mastery: free, open study sheets. Progress is saved in your browser only.</span><span><a href="../systems.html">All Systems modules</a> · <a href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener">GitHub</a></span></footer>
-<script>window.DSA_TOPICS=[{"id":"sh","file":"S02_linux_shell","num":"S02","title":"Linux shell fluency","phase":"Foundations","total":10},{"id":"tx","file":"S03_text_processing_scripting","num":"S03","title":"Text processing and scripting","phase":"Foundations","total":11},{"id":"li","file":"S04_linux_internals","num":"S04","title":"Linux system internals","phase":"Foundations","total":11},{"id":"gb","file":"S05_git_fundamentals","num":"S05","title":"Git fundamentals","phase":"Foundations","total":10},{"id":"gr","file":"S06_git_teams_recovery","num":"S06","title":"Git in teams and recovery","phase":"Foundations","total":11}];</script>
+<script>window.DSA_TOPICS=[{"id":"hc","file":"S01_how_computers_run_programs","num":"S01","title":"How a computer runs programs","phase":"Foundations","total":8},{"id":"sh","file":"S02_linux_shell","num":"S02","title":"Linux shell fluency","phase":"Foundations","total":10},{"id":"tx","file":"S03_text_processing_scripting","num":"S03","title":"Text processing and scripting","phase":"Foundations","total":11},{"id":"li","file":"S04_linux_internals","num":"S04","title":"Linux system internals","phase":"Foundations","total":11},{"id":"gb","file":"S05_git_fundamentals","num":"S05","title":"Git fundamentals","phase":"Foundations","total":10},{"id":"gr","file":"S06_git_teams_recovery","num":"S06","title":"Git in teams and recovery","phase":"Foundations","total":11},{"id":"nw","file":"S07_networking_for_engineers","num":"S07","title":"Networking for engineers","phase":"Foundations","total":9}];</script>
 <script>(function(){
 var IC={"target":"<circle cx=\"8\" cy=\"8\" r=\"6\"/><circle cx=\"8\" cy=\"8\" r=\"2\"/>","search":"<circle cx=\"7\" cy=\"7\" r=\"4.5\"/><path d=\"m14 14-3.5-3.5\"/>","bulb":"<path d=\"M6 12.5h4M6.5 14.5h3M8 1.5a4.5 4.5 0 0 0-2.5 8.2c.4.3.5.7.5 1.3h4c0-.6.1-1 .5-1.3A4.5 4.5 0 0 0 8 1.5z\"/>","up":"<path d=\"M4 12 12 4M6 4h6v6\"/>","spark":"<path d=\"M8 1.5 9.5 6.5 14.5 8 9.5 9.5 8 14.5 6.5 9.5 1.5 8 6.5 6.5z\"/>","list":"<path d=\"M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01\"/>","term":"<path d=\"m3 4.5 3.5 3.5L3 11.5M8 12h5\"/>","code":"<path d=\"m5.5 4.5-3.5 3.5 3.5 3.5M10.5 4.5l3.5 3.5-3.5 3.5\"/>","clock":"<circle cx=\"8\" cy=\"8\" r=\"6\"/><path d=\"M8 4.5V8l2.5 1.5\"/>","warn":"<path d=\"M8 2 14.5 13.5h-13z\"/><path d=\"M8 6.5v3M8 11.5h.01\"/>","layers":"<path d=\"m8 2 6.5 3.5L8 9 1.5 5.5z\"/><path d=\"m1.5 8.5 6.5 3.5 6.5-3.5\"/>","no":"<circle cx=\"8\" cy=\"8\" r=\"6\"/><path d=\"m5.8 5.8 4.4 4.4M10.2 5.8l-4.4 4.4\"/>","stairs":"<path d=\"M2.5 13.5h3v-3h3v-3h3v-3h2\"/>","flame":"<path d=\"M8 14.5c-2.5 0-4-1.7-4-3.8 0-2.2 2-3.2 2.4-5.2.9.6 1.6 1.5 1.8 2.6.6-.5.9-1.4.8-2.4 1.8 1.2 3 3 3 5 0 2-1.5 3.8-4 3.8z\"/>","mark":"<path d=\"M4 2.5h8v11L8 10.5 4 13.5z\"/>","down":"<path d=\"M8 2.5v8M4.5 7.5 8 11l3.5-3.5M2.5 13.5h11\"/>","menu":"<path d=\"M2.5 4h11M2.5 8h11M2.5 12h11\"/>","theme":"<circle cx=\"8\" cy=\"8\" r=\"5.5\"/><path d=\"M8 2.5a5.5 5.5 0 0 0 0 11z\" fill=\"currentColor\"/>","right":"<path d=\"m6 3.5 4.5 4.5L6 12.5\"/>","arr-r":"<path d=\"M2.5 8h11M9 3.5 13.5 8 9 12.5\"/>","arr-l":"<path d=\"M13.5 8h-11M7 3.5 2.5 8 7 12.5\"/>","check":"<path d=\"m3 8.5 3.2 3.2L13 4.8\"/>","ext":"<path d=\"M9 2.5h4.5V7M13.5 2.5 7 9M12 9v4.5H2.5V4H7\"/>","play":"<path d=\"M5 3.2v9.6L12.8 8z\"/>","pause":"<path d=\"M5 3.5v9M11 3.5v9\"/>","prev":"<path d=\"M10 3.5 5.5 8l4.5 4.5\"/>","next":"<path d=\"M6 3.5 10.5 8 6 12.5\"/>","reset":"<path d=\"M3 8a5 5 0 1 0 1.8-3.8M3 2.5v3h3\"/>","key":"<circle cx=\"5.5\" cy=\"10.5\" r=\"3\"/><path d=\"m8 8.5 5.5-5.5M11 5l1.5 1.5M9.5 6.5 11 8\"/>","cal":"<rect x=\"2.5\" y=\"3.5\" width=\"11\" height=\"10\" rx=\"1.5\"/><path d=\"M2.5 6.5h11M5.5 2v3M10.5 2v3\"/>","home":"<path d=\"M2.5 7.5 8 2.5l5.5 5M4 6.5v7h8v-7\"/>","branch":"<circle cx=\"4.5\" cy=\"3.5\" r=\"1.5\"/><circle cx=\"4.5\" cy=\"12.5\" r=\"1.5\"/><circle cx=\"11.5\" cy=\"6\" r=\"1.5\"/><path d=\"M4.5 5v6M11.5 7.5c0 2.5-3 2-7 3.5\"/>","server":"<rect x=\"2.5\" y=\"3\" width=\"11\" height=\"4\" rx=\"1\"/><rect x=\"2.5\" y=\"9\" width=\"11\" height=\"4\" rx=\"1\"/><path d=\"M5 5h.01M5 11h.01\"/>","flask":"<path d=\"M6 2.5h4M6.5 2.5v4L3 12.5a1 1 0 0 0 .9 1.5h8.2a1 1 0 0 0 .9-1.5L9.5 6.5v-4\"/><path d=\"M4.8 10h6.4\"/>","share":"<circle cx=\"4\" cy=\"8\" r=\"1.8\"/><circle cx=\"12\" cy=\"4\" r=\"1.8\"/><circle cx=\"12\" cy=\"12\" r=\"1.8\"/><path d=\"m5.7 7 4.6-2M5.7 9l4.6 2\"/>","book":"<path d=\"M2.5 3.5h4A1.5 1.5 0 0 1 8 5v8a1 1 0 0 0-1-1H2.5zM13.5 3.5h-4A1.5 1.5 0 0 0 8 5v8a1 1 0 0 1 1-1h4.5z\"/>","film":"<rect x=\"2\" y=\"3\" width=\"12\" height=\"10\" rx=\"1.5\"/><path d=\"m6.5 6 3.5 2-3.5 2z\"/>","pencil":"<path d=\"M2.5 13.5 3 10l7-7 3 3-7 7zM9 4l3 3\"/>"};
 /* Animations for Systems Mastery modules. Same step format as sims.js:
@@ -819,6 +837,87 @@ bisect:function(){var S=[],c=['c1','c2','c3','c4','c5','c6','c7','c8'];
  s({good:3,testing:5,bad:7},[0,1,2,3],[6],[5],['test c6 ... fails: git bisect bad','suspects: c5 and c6'],'Next middle is c6: the test fails, so the bug is in c5 or c6.');
  s({good:3,testing:4,bad:5},[0,1,2,3],[6,7],[4],['test c5 ... passes: git bisect good','first bad commit: c6'],'c5 passes and c6 fails: c6 is the commit that introduced the bug. Three tests instead of seven. git bisect run ./test.sh automates all of it: Git runs your script at every step and reports the first bad commit by itself.');
  S.push({a:c.slice(),ptr:{'first bad':5},ok:[0,1,2,3,4],dim:[],hi:[5],aux:{label:'finish',items:['git bisect reset  (return to your branch)']},note:'Read the culprit with git show c6: now you know exactly who changed what, and when. Always finish with git bisect reset to go back to your branch.'});
+ return S},
+/* ---- S01: how a computer runs programs ---- */
+forkexec:function(){var S=[];
+ function G(nodes,edges){return {nodes:nodes,edges:edges,directed:true,w:460,h:140}}
+ var sh={x:90,y:60,label:'bash'},ch={x:250,y:60,label:'bash'},ls={x:250,y:60,label:'ls'},k={x:380,y:160,label:'kernel'};
+ function st(g,ptr,aux,note,ok,dim){S.push({a:[],graph:g,ptr:ptr,ok:ok||[],dim:dim||[],aux:{label:'process table',items:aux},note:note})}
+ st(G([sh],[]),{'PID 100':0},['PID 100  bash  (your shell)','waiting for you to type'],'You type ls and press Enter. The shell is a program like any other: a process (here PID 100) that read your line. It does not contain code for ls. To run another program it asks the kernel to create a new process.');
+ st(G([sh,ch],[[0,1]]),{'PID 100':0,'PID 101':1},['fork() returned in both processes','101 is a copy of 100'],'Step 1, fork(): the kernel makes a near-copy of the calling process. The child (PID 101) has the same memory contents, the same open files and the same code as the shell. fork returns 0 in the child and the child\'s PID in the parent, which is how each knows who it is.',[1]);
+ st(G([sh,ls],[[0,1]]),{'PID 100':0,'PID 101':1},['PID 101  ls   (after exec)','same PID, new program'],'Step 2, exec(): the child asks the kernel to replace its program with /bin/ls. The process keeps its PID and its open files, but its code, stack and heap are thrown away and replaced. This fork-then-exec pair is how almost every program on Linux starts.',[1]);
+ st(G([sh,ls],[[0,1]]),{'PID 100':0,'PID 101':1},['101 runs: lists files','100 sleeps in wait()'],'While ls runs, the shell calls wait() and sleeps, using no CPU. This is why your prompt does not return until the command ends. Adding & at the end of a command simply skips the wait.',[1],[0]);
+ st(G([sh,ls],[[0,1]]),{'PID 100':0,'PID 101 exit 0':1},['101 exited with status 0','entry kept until 100 reads it'],'ls finishes and exits with a status code (0 means success). The kernel keeps a small record of the dead child until its parent collects the status.',[0],[1]);
+ st(G([sh],[]),{'PID 100':0},['wait() returned: $? = 0','prompt is back'],'wait() returns, the shell stores the status in $?, the dead child\'s record is removed, and the prompt comes back. Every command you have ever typed went through exactly this cycle: fork, exec, wait.',[0]);
+ return S},
+syscall:function(){var S=[],c=['openat','read','write','close','exit'];
+ function s(at,aux,note,ok,dim){S.push({a:c,ptr:{now:at},hi:[at],ok:ok||[],dim:dim||[],aux:{label:'cat notes.txt',items:aux},note:note})}
+ S.push({a:c,ptr:{},aux:{label:'cat notes.txt',items:['a program cannot touch the disk itself']},note:'A normal program runs in user mode: it can compute, but it cannot read a disk, send a packet or create a process. Only the kernel can. A system call is the controlled doorway: the program asks, the CPU switches into kernel mode, the kernel checks permissions and does the work, then switches back.'});
+ s(0,['openat("notes.txt") = 3','kernel finds the file, checks permissions','returns file descriptor 3'],'cat first asks the kernel to open the file. The kernel checks that you may read it and returns a small number, a file descriptor (3 here; 0, 1 and 2 are already stdin, stdout and stderr). If you may not read it, the call fails with "Permission denied" and the program has to deal with that.');
+ s(1,['read(3) = 64 bytes','data copied from the page cache'],'cat asks for the next bytes from descriptor 3. The kernel copies them from its page cache (or the disk if they are not cached) into cat\'s memory.',[0]);
+ s(2,['write(1) = 64 bytes','descriptor 1 is stdout'],'Output is also a system call: write to descriptor 1. Whether that is your terminal, a file or a pipe is decided by the shell before cat started. cat does not know or care.',[0,1]);
+ s(3,['close(3) = 0','descriptor 3 is free again'],'Closing releases the descriptor. Forgetting this in a long-running program is a classic leak: eventually "Too many open files".',[0,1,2]);
+ s(4,['exit_group(0)','status 0 goes to the parent'],'The last call ends the process and hands the exit status to the parent. strace shows you this whole conversation for any program, which makes it the best tool for "why does this program fail or hang?".',[0,1,2,3]);
+ return S},
+vmem:function(){var S=[];
+ function s(a,hi,aux,note,ok,dim,ptr){S.push({a:a,ptr:ptr||{},hi:hi||[],ok:ok||[],dim:dim||[],aux:{label:'address translation',items:aux},note:note})}
+ s(['A: 0x1000','A: 0x2000','B: 0x1000','B: 0x2000'],[],['process A and process B','both use address 0x1000'],'Every process believes it owns a private memory starting at address 0. Process A and process B can both use the address 0x1000 and not collide, because these are virtual addresses, not real ones.');
+ s(['A: 0x1000','A: 0x2000','B: 0x1000','B: 0x2000'],[0,2],['A:0x1000 -> frame 7','B:0x1000 -> frame 3'],'The CPU\'s memory unit translates each virtual address to a physical frame using a page table that the kernel keeps per process. The same virtual address 0x1000 leads to different physical frames, so A cannot read B\'s data.',[],[1,3]);
+ s(['A: 0x1000','A: 0x2000','B: 0x1000','B: 0x2000'],[1],['A:0x2000 -> not in RAM yet','page fault!'],'Memory is handed out lazily. When A touches an address that has no frame yet, the CPU raises a page fault, the kernel finds a free frame, fills it (zeros, or the file contents for a program or library) and the instruction simply retries. A program never sees this happen.',[],[0,2,3]);
+ s(['A: 0x1000','A: 0x2000','B: 0x1000','B: 0x2000'],[1,3],['A:0x2000 -> frame 9','B:0x2000 -> frame 9 (shared library)'],'Frames can be shared on purpose: two processes running the same program or library map the same read-only frames, so the code is in RAM only once. This is why 50 copies of a program cost far less than 50 times its size.',[1,3]);
+ s(['A: 0x1000','A: 0x2000','B: 0x1000','B: 0x2000'],[0],['A:0x9000 -> not mapped','SIGSEGV: segmentation fault'],'If a program touches an address that is not mapped at all (a null pointer, a freed buffer) the kernel has no frame to give. It delivers SIGSEGV and the process dies with "Segmentation fault". Isolation is enforced by hardware, so one buggy program cannot corrupt another.',[],[1,2,3]);
+ return S},
+sched:function(){var S=[];
+ function s(a,ptr,aux,note,ok,dim,hi){S.push({a:a,ptr:ptr||{},hi:hi||[],ok:ok||[],dim:dim||[],aux:{label:'1 CPU, 3 runnable processes',items:aux},note:note})}
+ s(['','','','','',''],{},['A, B, C all want the CPU','only one can run at a time'],'One CPU core runs exactly one thing at any instant. Here are three processes that all want to run. The row below is time, in small slices of a few milliseconds each.');
+ s(['A','','','','',''],{'CPU now':0},['slice 1: A runs'],'The scheduler picks A for a short time slice.',[0]);
+ s(['A','B','','','',''],{'CPU now':1},['slice 2: B runs','context switch A -> B'],'When A\'s slice ends the kernel saves A\'s CPU registers, loads B\'s and lets it run. This is a context switch. It costs a little time, which is why thousands of runnable processes on a few cores slow everything.',[0,1]);
+ s(['A','B','C','A','B','C'],{'CPU now':5},['each gets a turn in order'],'Round after round the processes share the core. Each makes progress, and because the slices are tiny it looks as if all three run at once. That is concurrency: many tasks in progress, not necessarily at the same instant.',[0,1,2,3,4,5]);
+ s(['A','B','A','B','A','B'],{'2 cores':3},['2 cores: A and B run in parallel','C waits for a free core'],'With two cores, two processes run at the very same instant. That is parallelism. Real programs mix both: more cores means more real parallelism, more processes than cores means time-sharing.',[],[]);
+ s(['A','wait','B','C','B','C'],{'A waits for network':1},['A asked the network and sleeps','B and C use its slices'],'When a process waits for slow I/O it is taken off the CPU, so the others get its slices. A server with a thousand mostly-waiting connections needs far fewer cores than one with a thousand busy ones. Load average counts the running and waiting processes, which is why it can be high even when the CPU is idle.',[],[]);
+ return S},
+/* ---- S07: networking ---- */
+layers:function(){var S=[],L=['HTTP data','+ TCP header','+ IP header','+ Ethernet frame'];
+ function s(upto,aux,note,ok){S.push({a:L,ptr:{wrapped:upto},hi:[upto],ok:ok||[],aux:{label:'sending GET /index.html',items:aux},note:note})}
+ s(0,['your app: "GET /index.html"','plain bytes, no addresses yet'],'The browser has a request: a few lines of text. On its own it has no idea where to go. Each layer below adds one envelope with the information that layer needs, like putting a letter in an envelope, then in a bigger one.');
+ s(1,['TCP adds: source port, destination port 443','sequence numbers for ordering'],'TCP (transport layer) adds ports, so the data reaches the right program on the machine (443 is HTTPS), and sequence numbers so lost or reordered pieces can be repaired. Your computer may have hundreds of open connections; the ports keep them apart.',[0]);
+ s(2,['IP adds: source and destination IP address','routers read only this part'],'IP (network layer) adds the addresses of the two machines. Routers on the way read only the IP header and decide where to forward the packet next. They never look inside at the HTTP data.',[0,1]);
+ s(3,['Ethernet or Wi-Fi adds: next-hop hardware address','only valid for this one link'],'The link layer adds the hardware (MAC) address of the next device on this one network segment, usually your router. At every hop this outer envelope is thrown away and a new one is made for the next link, while the IP packet inside stays the same.',[0,1,2]);
+ return S},
+tcp:function(){var S=[];
+ function G(nodes,edges,eok){return {nodes:nodes,edges:edges,directed:true,w:460,h:150}}
+ var C={x:70,y:80,label:'client'},V={x:390,y:80,label:'server'};
+ function st(edge,aux,note,ok){S.push({a:[],graph:{nodes:[C,V],edges:edge,directed:true,w:460,h:150},ptr:{},ok:ok||[],aux:{label:'TCP',items:aux},note:note})}
+ st([],['server: LISTEN on port 80','client: CLOSED'],'The server program has told the kernel "I accept connections on port 80": the port is in the LISTEN state (you see it with ss -ltn). Nothing is connected yet.');
+ st([[0,1]],['client -> server: SYN','"I want to talk, my first number is x"'],'Step 1 of the three-way handshake: the client sends SYN. If no program listens on that port the server\'s kernel answers with RST and you see "Connection refused" instantly. If a firewall drops the packet silently you see nothing, and the connection attempt times out instead.');
+ st([[1,0]],['server -> client: SYN-ACK','"OK, here is my number y"'],'Step 2: the server answers SYN-ACK: it acknowledges the client\'s number and offers its own.');
+ st([[0,1]],['client -> server: ACK','connection ESTABLISHED'],'Step 3: the client acknowledges. Both sides are now ESTABLISHED. One round trip has passed, which is why a far-away server feels slow to start: distance costs latency before a single byte of your data moves.',[0,1]);
+ st([[0,1],[1,0]],['data flows both ways','every segment is acknowledged'],'Data now flows in numbered segments. The receiver acknowledges what arrived; if an acknowledgement does not come back the sender retransmits. That is how TCP turns an unreliable network into a reliable byte stream, at the price of some waiting.',[0,1]);
+ st([[0,1],[1,0]],['FIN / ACK from both sides','then TIME_WAIT on the closer'],'Closing takes FIN and ACK in each direction. The side that closes first keeps the connection in TIME_WAIT for a short while so late packets cannot be confused with a new connection. A busy server with tens of thousands of TIME_WAIT sockets is normal; a pile of CLOSE_WAIT sockets means the application forgot to close.',[0,1]);
+ return S},
+dns:function(){var S=[];
+ var N=[{x:50,y:115,label:'you'},{x:170,y:115,label:'resolver'},{x:300,y:35,label:'root'},{x:300,y:115,label:'.com'},{x:300,y:195,label:'auth'}];
+ function st(active,edges,aux,note,ok){var dim=[0,1,2,3,4].filter(function(i){return active.indexOf(i)<0});S.push({a:[],graph:{nodes:N,edges:[[0,1],[1,2],[1,3],[1,4]],directed:true,w:480,h:230},eok:edges,ptr:{},ok:ok||[],dim:dim,aux:{label:'looking up www.example.com',items:aux},note:note})}
+ st([0,1],[0],['you -> resolver: www.example.com ?','cache: empty'],'Your program asks the system resolver, which first checks /etc/hosts and its own cache. If it does not know, it forwards the question to a recursive resolver (your ISP\'s, your router\'s, or a public one like 1.1.1.1 or 8.8.8.8).');
+ st([0,1,2],[1],['resolver -> root: who knows .com ?','root: ask the .com servers'],'The recursive resolver starts at the top: one of the 13 root server addresses it already knows. The root does not know the answer, but it knows who is responsible for .com and sends a referral.');
+ st([0,1,3],[2],['resolver -> .com: who knows example.com ?','.com: ask these name servers'],'The .com servers do not know the host either, but they know which name servers are authoritative for example.com and refer the resolver to them.');
+ st([0,1,4],[3],['resolver -> authoritative: www.example.com ?','answer: A 203.0.113.10, TTL 300'],'The authoritative server for the domain holds the real record and answers with an A record (an IPv4 address; AAAA is IPv6) and a TTL: how many seconds the answer may be cached.',[3]);
+ st([0,1],[0],['resolver -> you: 203.0.113.10','cached for 300 s'],'The resolver returns the answer and remembers it for the TTL, so the next person to ask gets it in milliseconds. This is why DNS changes seem to "take time to propagate": caches everywhere hold the old answer until their TTL runs out. Lower the TTL before a planned change.',[0]);
+ return S},
+tls:function(){var S=[];
+ function st(edge,aux,note,ok){S.push({a:[],graph:{nodes:[{x:70,y:70,label:'client'},{x:390,y:70,label:'server'}],edges:edge,directed:true,w:460,h:140},ptr:{},ok:ok||[],aux:{label:'TLS 1.3 handshake',items:aux},note:note})}
+ st([[0,1]],['ClientHello','supported ciphers, a random value, key share, SNI'],'The client opens with ClientHello: which encryption algorithms it supports, a random number, its half of a key exchange, and the server name it wants (SNI), so one IP address can host many sites.');
+ st([[1,0]],['ServerHello + certificate','server key share, signed proof'],'The server picks the algorithms, sends its half of the key exchange and its certificate: a document that says "this public key belongs to example.com", signed by a certificate authority (CA). From here on both sides can compute the same secret key, and everything after is encrypted.');
+ st([[0,1]],['client checks the certificate','chain, name, dates, revocation'],'The client verifies the certificate: is it signed by a CA it trusts (the chain leads to a root in its trust store), does the name match, is it within its dates? If any check fails you see errors like "self-signed certificate" or "certificate has expired". Never "fix" this with curl -k in production code; that turns off the whole point.',[0]);
+ st([[0,1],[1,0]],['Finished messages','HTTP now flows, encrypted'],'Both sides send Finished to prove they derived the same keys. Encrypted HTTP follows. In TLS 1.3 this takes one round trip; older versions took two, and resuming a session can skip most of it.',[0,1]);
+ return S},
+url:function(){var S=[],L=['DNS','TCP','TLS','HTTP','Render'];
+ function s(at,aux,note,ok){S.push({a:L,ptr:{now:at},hi:[at],ok:ok||[],aux:{label:'https://shop.example.com/cart',items:aux},note:note})}
+ s(0,['browser cache, OS cache, resolver','result: 203.0.113.7'],'You press Enter. If the browser does not already have the page, the first job is to turn shop.example.com into an IP address: browser cache, then the operating system and /etc/hosts, then the recursive resolver, then (if needed) the chain of authoritative servers. Cost: 0 to a few round trips.');
+ s(1,['SYN, SYN-ACK, ACK','port 443'],'Next the browser opens a TCP connection to port 443 of that address: the three-way handshake, one round trip. A refused connection or a timeout here points at the server, a firewall or the network path, not the website code.',[0]);
+ s(2,['ClientHello ... Finished','certificate checked'],'Then TLS: agree on keys and check the server\'s certificate. One more round trip. Errors here (expired certificate, wrong name) are certificate problems, not application problems.',[0,1]);
+ s(3,['GET /cart HTTP/1.1','Host: shop.example.com','200 OK + HTML'],'Now the actual request: a method, a path and headers, answered by a status line, headers and a body. The status code is your first clue: 2xx fine, 3xx redirect, 4xx the request was wrong, 5xx the server failed. Keep-alive and HTTP/2 reuse the connection so later requests skip the earlier steps.',[0,1,2]);
+ s(4,['parse HTML','fetch CSS, JS, images (repeat 1-4)','paint'],'The browser parses the HTML, finds more resources and repeats the cycle for each (often over the same connection), then paints the page. When someone says "the site is slow", this is the chain to walk: which step is slow?',[0,1,2,3]);
  return S}
 };
 
@@ -952,6 +1051,58 @@ $$('.stepper').forEach(stepper);
  var v=null;try{v=localStorage.getItem(K)}catch(e){}
  if(v==='full')apply(true,false);
  window.addEventListener('beforeprint',function(){[].forEach.call(document.querySelectorAll('details'),function(d){d.open=true})});
+})();
+
+/* Systems module reader: one step at a time (default) or everything on one page.
+   A module becomes a path of steps: Start here, each lesson, each lab, then each wrap-up section.
+   The URL hash picks the step, so links, the sidebar and the back button all work. */
+(function(){
+ var main=document.getElementById('content'),side=document.querySelector('nav.side');if(!main||!side)return;
+ var K='sys-view',btn=document.getElementById('b-view'),views=[],cur=null,idx=0,seenPat=false,pend=[];
+ var kids=[].slice.call(main.children).filter(function(e){return !e.classList.contains('chips')});
+ function textOf(e,sel){var h=sel?e.querySelector(sel):e;return h?h.textContent.replace(/\s+/g,' ').trim():''}
+ function open(title,key,kind){cur={els:[],title:title,key:key,kind:kind};views.push(cur);return cur}
+ function headsPat(h){var n=h.nextElementSibling;while(n&&n.tagName==='P')n=n.nextElementSibling;return !!(n&&n.matches('section.pat'))}
+ open('Start here','content','start');
+ kids.forEach(function(e){
+  if(e.matches('section.pat')){seenPat=true;var lab=e.classList.contains('lab');var v=open(textOf(e,'h3'),e.id,lab?'lab':'lesson');pend.forEach(function(p){v.els.push(p)});pend=[];v.els.push(e)}
+  else if(e.tagName==='H2'&&headsPat(e)){pend.push(e)}
+  else if(pend.length&&e.tagName==='P'){pend.push(e)}
+  else if(!seenPat){cur.els.push(e)}
+  else if(e.tagName==='H2'){open(textOf(e),e.id,'wrap').els.push(e)}
+  else{cur.els.push(e)}
+ });
+ views.forEach(function(v,i){
+  v.ids={};v.els.forEach(function(e){if(e.id)v.ids[e.id]=1;[].forEach.call(e.querySelectorAll('[id]'),function(x){v.ids[x.id]=1})});
+  var last=v.els[v.els.length-1],bar=document.createElement('div');bar.className='vnav';
+  var p=views[i-1],n=views[i+1],lesson=v.kind==='lesson';
+  bar.innerHTML=(p?'<a class="vp" href="#'+p.key+'"><small>Previous</small><b>'+esc(p.title)+'</b></a>':'<span></span>')+
+   (n?'<a class="vn" href="#'+n.key+'" data-done="'+(lesson?'1':'')+'"><small>'+(lesson?'Done, next':'Next')+'</small><b>'+esc(n.title)+'</b></a>':'<span></span>');
+  last.parentNode.insertBefore(bar,last.nextSibling);v.els.push(bar);
+  v.els.forEach(function(e){e.setAttribute('data-vw',i)});
+ });
+ function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+ function find(h){if(!h||h==='content')return 0;for(var i=0;i<views.length;i++)if(views[i].ids[h]||views[i].key===h)return i;return 0}
+ function mark(i){[].forEach.call(side.querySelectorAll('a'),function(a){a.classList.remove('act');a.removeAttribute('aria-current')});
+  var a=side.querySelector('a[href="#'+views[i].key+'"]')||(i===0?side.querySelector('a[href="#why"]'):null);if(a){a.classList.add('act');a.setAttribute('aria-current','step')}
+  [].forEach.call(document.querySelectorAll('.chips a'),function(c){c.classList.toggle('on',c.getAttribute('href')==='#'+views[i].key)});
+  var pr=document.getElementById('vpos');if(pr)pr.textContent='Step '+(i+1)+' of '+views.length}
+ function show(i){idx=i;views.forEach(function(v,j){v.els.forEach(function(e){e.classList.toggle('vh',j!==i)})});mark(i)}
+ function go(scroll){var h=decodeURIComponent((location.hash||'').slice(1)),i=find(h);if(document.body.classList.contains('focus'))show(i);
+  if(scroll!==false){var t=h&&h!=='content'?document.getElementById(h):null;var y=t?t.getBoundingClientRect().top+window.scrollY-84:main.getBoundingClientRect().top+window.scrollY-84;window.scrollTo(0,Math.max(0,y))}}
+ function apply(focus,save){document.body.classList.toggle('focus',focus);
+  if(btn){btn.setAttribute('aria-pressed',focus?'false':'true');btn.firstChild.textContent=focus?'All on one page':'One step at a time';btn.classList.toggle('on',!focus)}
+  if(focus)show(find((location.hash||'').slice(1)));else views.forEach(function(v){v.els.forEach(function(e){e.classList.remove('vh')})});
+  if(save)try{localStorage.setItem(K,focus?'focus':'all')}catch(e){}}
+ main.addEventListener('click',function(e){var a=e.target.closest('a.vn[data-done="1"]');if(!a)return;
+  var sec=views[idx].els.filter(function(x){return x.matches&&x.matches('section.pat')})[0];var bx=sec&&sec.querySelector('.pk');if(bx&&!bx.checked)bx.click()});
+ window.addEventListener('hashchange',function(){go(true)});
+ window.addEventListener('beforeprint',function(){views.forEach(function(v){v.els.forEach(function(e){e.classList.remove('vh')})})});
+ window.addEventListener('afterprint',function(){if(document.body.classList.contains('focus'))show(idx)});
+ if(btn)btn.onclick=function(){var f=!document.body.classList.contains('focus');apply(f,true);if(f)go(false)};
+ var pref='focus';try{pref=localStorage.getItem(K)||'focus'}catch(e){}
+ apply(pref!=='all',false);
+ if(location.hash)setTimeout(function(){go(true)},0);
 })();
 
 })();</script>

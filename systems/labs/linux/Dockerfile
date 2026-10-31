@@ -3,7 +3,7 @@
 #   docker run --rm -it sys-lab lab workshop
 FROM debian:trixie-slim
 RUN apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
-      procps psmisc less file tree git curl strace lsof dnsutils iproute2 bc vim-tiny sysstat tcpdump iputils-ping ca-certificates man-db \
+      procps psmisc less file tree git curl strace lsof dnsutils iproute2 bc vim-tiny sysstat tcpdump iputils-ping ca-certificates man-db python3 netcat-openbsd gdb gcc ltrace traceroute openssl \
     && rm -rf /var/lib/apt/lists/* \
     && useradd -m -s /bin/bash learner
 COPY *.sh /labs/

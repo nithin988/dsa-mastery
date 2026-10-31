@@ -14,7 +14,7 @@ from lib import CSS, ICONS, FAVICON, SITE_URL, HERE, icon, md, ul, table, rail, 
 OUTPUTS_PATH = os.path.join(HERE, "sys_outputs.json")
 LAB_BASE = SITE_URL + "systems/labs/"
 
-JS_PARTS = ("sims_sys.js", "engine.js", "rail.js")
+JS_PARTS = ("sims_sys.js", "engine.js", "rail.js", "view.js")
 JS = "(function(){\nvar IC=" + json.dumps(ICONS, separators=(",", ":")) + ";\n" + "\n".join(open(os.path.join(HERE, f), encoding="utf-8").read() for f in JS_PARTS) + "\n})();"
 
 
@@ -287,9 +287,10 @@ PAGE_SYS = """<!DOCTYPE html>
 {rail}
 <header class="bar"><div class="bar-in">{rail_btn}<a class="brand" href="../systems.html" aria-label="Systems Mastery home"><span class="logo" aria-hidden="true">SYS</span><b>Systems <span>Mastery</span></b></a>
 <nav class="crumbs" aria-label="Breadcrumb"><a href="../systems.html">Systems modules</a>{i_right}<span class="cur">{num} · {short}</span></nav>
-<span class="prog" id="prog" aria-live="polite"></span>
+<span class="vpos" id="vpos" aria-live="polite"></span><span class="prog" id="prog" aria-live="polite"></span>
 <span class="menu"><button id="b-topics" class="btn" aria-haspopup="true" aria-expanded="false" aria-controls="topics-panel">{i_menu}<span class="t-long">All modules</span></button>
 <div class="panel" id="topics-panel" role="menu" aria-label="All modules" hidden></div></span>
+<button id="b-view" class="btn" aria-pressed="false" title="Read one step at a time, or show the whole module on one page"><span class="t-long">All on one page</span><span class="t-short">View</span></button>
 <button id="b-density" class="btn" aria-pressed="false" title="Show every detailed explanation, or keep the short view"><span class="t-long">Show all details</span><span class="t-short">Details</span></button>
 <button id="b-theme" class="iconbtn" title="Toggle light / dark" aria-label="Toggle light or dark theme">{i_theme}</button>
 <button id="b-dl" class="btn pri" title="Save this page as a standalone HTML file">{i_down}<span class="t-long">Download</span></button></div>
