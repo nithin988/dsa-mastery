@@ -1603,5 +1603,31 @@
    "cmd": "mkdir -p ~/arch && cd ~/arch && cat > tok.py <<'EOF'\nimport base64, hashlib, hmac, json\nb64 = lambda b: base64.urlsafe_b64encode(b).rstrip(b'=').decode()\nsecret = b'demo-secret'\ndef sign(msg):\n    return b64(hmac.new(secret, msg.encode(), hashlib.sha256).digest())\nhead = b64(b'{\"alg\":\"HS256\"}')\nbody = b64(json.dumps({'sub': 'asha', 'role': 'user'}).encode())\ntoken = head + '.' + body + '.' + sign(head + '.' + body)\nprint('token parts:', len(token.split('.')))\ndef check(t):\n    h, p, s = t.split('.')\n    return hmac.compare_digest(sign(h + '.' + p), s)\nprint('genuine token verifies:', check(token))\nforged_body = b64(json.dumps({'sub': 'asha', 'role': 'admin'}).encode())\nforged = head + '.' + forged_body + '.' + token.split('.')[2]\nprint('forged (role=admin) verifies:', check(forged))\nsalt = b'0123456789abcdef'\nh = hashlib.pbkdf2_hmac('sha256', b'correct horse', salt, 200000)\nprint('password check, right:', hashlib.pbkdf2_hmac('sha256', b'correct horse', salt, 200000) == h)\nprint('password check, wrong:', hashlib.pbkdf2_hmac('sha256', b'wrong guess', salt, 200000) == h)\nEOF\npython3 tok.py",
    "out": "token parts: 3\ngenuine token verifies: True\nforged (role=admin) verifies: False\npassword check, right: True\npassword check, wrong: False\n"
   }
+ ],
+ "rd": [
+  {
+   "cmd": "mkdir -p ~/rel && cd ~/rel && python3 -c \"print('availability   per year      per 30-day month')\nfor n in (2,3,4,5):\n    a=1-10**-n; y=(1-a)*365*24*60; m=(1-a)*30*24*60\n    print('%-13s %-13s %s' % (('%.*f%%' % (max(0,n-2),100*a)), ('%.0f min' % y if y<600 else '%.1f h' % (y/60)), ('%.1f min' % m)))\"",
+   "out": "availability   per year      per 30-day month\n99%           87.6 h        432.0 min\n99.9%         526 min       43.2 min\n99.99%        53 min        4.3 min\n99.999%       5 min         0.4 min\n"
+  },
+  {
+   "cmd": "python3 -c \"a=0.999\nprint('series, 3 services at 99.9%%:   %.4f%%' % (100*a**3))\nb=0.99\nprint('parallel, 2 servers at 99%%:    %.4f%%' % (100*(1-(1-b)**2)))\nprint('parallel, 3 servers at 99%%:    %.6f%%' % (100*(1-(1-b)**3)))\"",
+   "out": "series, 3 services at 99.9%:   99.7003%\nparallel, 2 servers at 99%:    99.9900%\nparallel, 3 servers at 99%:    99.999900%\n"
+  },
+  {
+   "cmd": "python3 -c \"print('backup every   worst-case loss   average loss')\nfor h in (24,6,1):\n    print('%2d hours       %2d hours          %.1f hours' % (h, h, h/2))\"",
+   "out": "backup every   worst-case loss   average loss\n24 hours       24 hours          12.0 hours\n 6 hours        6 hours          3.0 hours\n 1 hours        1 hours          0.5 hours\n"
+  },
+  {
+   "cmd": "cd ~/rel && cat > canary.py <<'EOF'\nimport random\nrng = random.Random(4)\nbaseline_err, bad_err = 0.01, 0.06   # v1 fails 1% of requests; the broken v2 fails 6%\nfor share in (1, 5, 25, 50, 100):\n    requests = 4000 * share // 5 if share > 1 else 800\n    errors = sum(1 for _ in range(requests) if rng.random() < bad_err)\n    rate = errors / requests\n    verdict = 'ROLL BACK' if rate > 2 * baseline_err else 'ok'\n    print('canary %3d%%: %5d requests, error rate %.1f%% (baseline %.1f%%) -> %s' % (share, requests, rate * 100, baseline_err * 100, verdict))\n    if verdict == 'ROLL BACK':\n        print('  rollout stopped after exposing %d%% of users' % share)\n        break\nEOF\npython3 canary.py",
+   "out": "canary   1%:   800 requests, error rate 6.8% (baseline 1.0%) -> ROLL BACK\n  rollout stopped after exposing 1% of users\n"
+  },
+  {
+   "cmd": "cd ~/rel && cat > breaker.py <<'EOF'\n# The dependency fails for calls 4 to 9, then recovers. Breaker: open after 3 failures in a row, trial after 2 skipped calls.\ncalls_ok = [True, True, True, False, False, False, False, False, False, True, True, True, True]\nstate, fails, skipped = 'closed', 0, 0\nfor i, ok in enumerate(calls_ok, 1):\n    if state == 'open':\n        skipped += 1\n        if skipped <= 2:\n            print('call %2d: breaker OPEN, failed fast (dependency not called)' % i)\n            continue\n        state = 'half-open'\n    result = 'ok' if ok else 'FAIL'\n    if state == 'half-open':\n        state = 'closed' if ok else 'open'\n        skipped = 0\n        fails = 0 if ok else fails\n        print('call %2d: half-open trial -> %s, breaker now %s' % (i, result, state.upper()))\n        continue\n    fails = 0 if ok else fails + 1\n    if fails >= 3:\n        state, skipped = 'open', 0\n    print('call %2d: %s%s' % (i, result, '  -> breaker OPENS' if state == 'open' else ''))\nEOF\npython3 breaker.py",
+   "out": "call  1: ok\ncall  2: ok\ncall  3: ok\ncall  4: FAIL\ncall  5: FAIL\ncall  6: FAIL  -> breaker OPENS\ncall  7: breaker OPEN, failed fast (dependency not called)\ncall  8: breaker OPEN, failed fast (dependency not called)\ncall  9: half-open trial -> FAIL, breaker now OPEN\ncall 10: breaker OPEN, failed fast (dependency not called)\ncall 11: breaker OPEN, failed fast (dependency not called)\ncall 12: half-open trial -> ok, breaker now CLOSED\ncall 13: ok\n"
+  },
+  {
+   "cmd": "cd ~/rel && python3 -c \"import random\nr=random.Random(8)\nv=[max(5,int(r.gauss(80,15))) for _ in range(940)]+[int(r.uniform(900,2500)) for _ in range(60)]\nr.shuffle(v)\nopen('lat.txt','w').write('\\n'.join(map(str,v))+'\\n')\" && sort -n lat.txt | awk '{a[NR]=$1; s+=$1} END{printf \"requests %d\\nmean    %d ms\\np50     %d ms\\np95     %d ms\\np99     %d ms\\n\", NR, s/NR, a[int(NR*0.50)], a[int(NR*0.95)], a[int(NR*0.99)]}'",
+   "out": "requests 1000\nmean    170 ms\np50     80 ms\np95     1107 ms\np99     2060 ms\n"
+  }
  ]
 }

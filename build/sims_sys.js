@@ -478,5 +478,34 @@ bucket:function(){var S=[];
  s(['T','','','',''],['burst of 4 requests: 1 token left','all 4 allowed'],'A burst of four requests is allowed immediately and leaves one token. Bursts are normal for real clients, so allowing them is a feature of this algorithm.',[0],[],[1,2,3,4]);
  s(['','','','',''],['2 more requests: 1 allowed, 1 REJECTED (429)','bucket empty'],'The next request takes the last token; the one after finds the bucket empty and is rejected with HTTP 429 Too Many Requests, usually with a Retry-After header saying when to try again.',[],[],[0,1,2,3,4]);
  s(['T','T','','',''],['after 2 idle seconds: 2 tokens back','steady rate = refill rate'],'Tokens refill at a fixed rate (here one per second) up to the capacity. A client that waits recovers; a client that keeps hammering is held at the refill rate. Compare a fixed window (N requests per clock minute), which is simpler but lets a client send double the limit around a window boundary.',[0,1]);
+ return S},
+/* ---- S20: designing for reliability ---- */
+nines:function(){var S=[],L=['99%','99.9%','99.99%','99.999%'];
+ function s(at,aux,note,ok){S.push({a:L,ptr:{target:at},hi:[at],ok:ok||[],aux:{label:'allowed downtime per year',items:aux},note:note})}
+ s(0,['99%: 3.65 days a year','7.2 hours a month'],'Availability is usually quoted in nines. Two nines (99 percent) still allows more than three and a half days of downtime a year, over seven hours every month.');
+ s(1,['99.9%: 8.8 hours a year','43 minutes a month'],'Three nines allows under nine hours a year. A typical target for an internal tool or a modest customer service.',[0]);
+ s(2,['99.99%: 52 minutes a year','4.3 minutes a month'],'Four nines allows under an hour a year, which no human can meet by manually fixing things: it needs redundancy, automatic failover and safe deployments.',[0,1]);
+ s(3,['99.999%: 5 minutes a year','26 seconds a month'],'Five nines is about five minutes a year. Each extra nine costs roughly ten times more effort and money, so choose the target from what the business actually needs, and remember your dependencies must be better than you.',[0,1,2]);
+ return S},
+canary:function(){var S=[],L=['1%','5%','25%','50%','100%'];
+ function s(at,aux,note,ok,dim){S.push({a:L,ptr:{traffic:at},hi:[at],ok:ok||[],dim:dim||[],aux:{label:'canary rollout of version 2',items:aux},note:note})}
+ s(0,['send 1% of traffic to v2','compare errors and latency with v1'],'A canary deployment sends a small share of real traffic to the new version while the rest stays on the old one. If the new version is broken, only a few users notice, and rolling back is quick.');
+ s(1,['5%: error rate v2 1.1%, v1 1.0%','healthy: continue'],'Watch automatic checks: error rate, latency, saturation. The canary is healthy if it is no worse than the old version, so the rollout continues to a bigger share.',[0]);
+ s(2,['25%: error rate v2 6.0%, v1 1.0%','STOP: roll back'],'At 25 percent the new version shows six times the errors. The rollout halts and traffic returns to the old version automatically. Only a quarter of users were affected, for a few minutes, instead of everyone.',[0,1],[3,4]);
+ s(2,['feature flags: ship code dark, turn on gradually','kill switch without a deploy'],'Feature flags separate deploying code from releasing it: ship the code switched off, enable it for a few users, grow it, and switch it off instantly if something goes wrong, without another deploy. Blue-green deployment keeps two full environments and flips traffic between them for instant rollback.',[0,1]);
+ return S},
+breaker:function(){var S=[],L=['closed','open','half-open','closed'];
+ function s(a,at,aux,note,ok,dim){S.push({a:a,ptr:{state:at},hi:[at],ok:ok||[],dim:dim||[],aux:{label:'circuit breaker around a payment service',items:aux},note:note})}
+ s(L,0,['closed: calls go through','failures counted'],'A circuit breaker wraps calls to another service. Normally it is closed and calls pass through while it counts failures.');
+ s(L,1,['5 failures in 10 s: breaker OPENS','calls fail instantly, no waiting'],'When failures pass a threshold the breaker opens: calls fail immediately instead of waiting for timeouts. That protects your threads and queues, and gives the sick service room to recover instead of hammering it.',[],[0]);
+ s(L,2,['after 30 s: half-open','let ONE trial call through'],'After a pause the breaker lets a single trial call through (half-open). If it succeeds, the dependency has recovered; if it fails, the breaker opens again and waits longer.',[],[0]);
+ s(L,3,['trial succeeded: closed again','normal traffic resumes'],'A successful trial closes the breaker. Pair it with a fallback (a cached answer, a default, a clear error message) so users see degraded service instead of a hang. Bulkheads (separate pools per dependency) stop one slow service exhausting everything.',[3]);
+ return S},
+dr:function(){var S=[],L=['last backup','disaster','restored','back in service'];
+ function s(at,aux,note,ok){S.push({a:L,ptr:{now:at},hi:[at],ok:ok||[],aux:{label:'RPO and RTO',items:aux},note:note})}
+ s(0,['backup taken at 02:00','data after this point is at risk'],'Disaster recovery starts with two numbers. RPO (recovery point objective) is how much data you can afford to lose, measured in time: if backups run every 6 hours, you can lose up to 6 hours of data.');
+ s(1,['disaster at 07:30','5.5 hours of changes since the backup'],'A region fails at 07:30. Everything written since the last backup (5.5 hours here) exists only in the failed place. A shorter RPO needs more frequent backups or continuous replication.',[0]);
+ s(2,['restore finished at 10:00','2.5 hours of outage'],'RTO (recovery time objective) is how long you can afford to be down. It covers detecting the failure, deciding, restoring data and starting services. Untested restores are the usual reason real RTO is far worse than the plan.',[0,1]);
+ s(3,['strategies, cheapest to fastest','backup and restore, pilot light, warm standby, active-active'],'Choose a strategy by RPO and RTO and cost: backup and restore (cheap, hours), pilot light (minimal core always running), warm standby (a scaled-down copy), active-active in several regions (minutes or seconds, most expensive and complex). Practise the failover; a plan that was never run is a hope.',[0,1,2]);
  return S}
 };
