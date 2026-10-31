@@ -1482,5 +1482,38 @@
    "cmd": "python3 -c \"print('1M requests/day = %.1f per second' % (1e6/86400)); print('1B requests/day = %.0f per second' % (1e9/86400))\"",
    "out": "1M requests/day = 11.6 per second\n1B requests/day = 11574 per second\n"
   }
+ ],
+ "sb": [
+  {
+   "cmd": "mkdir -p ~/scale && cd ~/scale && cat > lb.py <<'EOF'\nimport random, collections\ndef sim(strategy, n=3000):\n    rng = random.Random(42)\n    servers = ['A', 'B', 'C']\n    served, peak, active, t = collections.Counter(), collections.Counter(), [], 0.0\n    for i in range(n):\n        t += rng.expovariate(1000)\n        active = [(f, s) for f, s in active if f > t]\n        cnt = collections.Counter(s for _, s in active)\n        if strategy == 'round robin':\n            s = servers[i % 3]\n        elif strategy == 'random':\n            s = rng.choice(servers)\n        else:\n            s = min(servers, key=lambda x: (cnt[x], x))\n        dur = rng.expovariate(1 / 0.02) if rng.random() < 0.1 else 0.002\n        active.append((t + dur, s))\n        served[s] += 1\n        peak[s] = max(peak[s], cnt[s] + 1)\n    return served, peak\nfor name in ('round robin', 'random', 'least connections'):\n    served, peak = sim(name)\n    print('%-18s served %s  busiest moment %s' % (name, [served[s] for s in 'ABC'], [peak[s] for s in 'ABC']))\nEOF\npython3 lb.py",
+   "out": "round robin        served [1000, 1000, 1000]  busiest moment [6, 6, 5]\nrandom             served [951, 997, 1052]  busiest moment [7, 7, 7]\nleast connections  served [1154, 1010, 836]  busiest moment [4, 4, 4]\n",
+   "volatile": true
+  },
+  {
+   "cmd": "cd ~/scale && cat > cache.py <<'EOF'\nimport random\nfrom collections import OrderedDict\nrng = random.Random(7)\nkeys = list(range(1000))\nweights = [1 / (i + 1) for i in keys]\nreqs = rng.choices(keys, weights, k=20000)\ndef hit_ratio(cap):\n    c, hits = OrderedDict(), 0\n    for k in reqs:\n        if k in c:\n            hits += 1\n            c.move_to_end(k)\n        else:\n            if len(c) >= cap:\n                c.popitem(last=False)\n            c[k] = 1\n    return hits / len(reqs)\nfor cap in (10, 50, 200, 500):\n    r = hit_ratio(cap)\n    print('cache %3d of 1000 keys: hit ratio %5.1f%%, average latency %5.1f ms' % (cap, r * 100, r * 1 + (1 - r) * 20))\nEOF\npython3 cache.py",
+   "out": "cache  10 of 1000 keys: hit ratio  21.3%, average latency  15.9 ms\ncache  50 of 1000 keys: hit ratio  46.3%, average latency  11.2 ms\ncache 200 of 1000 keys: hit ratio  69.8%, average latency   6.7 ms\ncache 500 of 1000 keys: hit ratio  85.7%, average latency   3.7 ms\n",
+   "volatile": true
+  },
+  {
+   "cmd": "cd ~/scale && cat > origin.py <<'EOF'\nimport http.server, socketserver\nclass H(http.server.BaseHTTPRequestHandler):\n    def do_GET(self):\n        if self.headers.get('If-None-Match') == '\"v1\"':\n            self.send_response(304); self.send_header('ETag', '\"v1\"'); self.end_headers(); return\n        body = b'logo-bytes' * 100\n        self.send_response(200)\n        self.send_header('Cache-Control', 'public, max-age=3600')\n        self.send_header('ETag', '\"v1\"')\n        self.send_header('Content-Length', str(len(body)))\n        self.end_headers(); self.wfile.write(body)\n    def log_message(self, *a): pass\nsocketserver.TCPServer.allow_reuse_address = True\nsocketserver.TCPServer(('127.0.0.1', 8085), H).serve_forever()\nEOF\n(python3 origin.py >/dev/null 2>&1 &); sleep 1; curl -s -D - -o /dev/null http://127.0.0.1:8085/logo.png | grep -iE '^(HTTP|cache-control|etag|content-length)'",
+   "out": "HTTP/1.0 200 OK\nCache-Control: public, max-age=3600\nETag: \"v1\"\nContent-Length: 1000\n",
+   "volatile": true
+  },
+  {
+   "cmd": "curl -s -o /dev/null -w 'first request:  %{http_code}, %{size_download} bytes\\n' http://127.0.0.1:8085/logo.png; curl -s -o /dev/null -w 'revalidation:   %{http_code}, %{size_download} bytes\\n' -H 'If-None-Match: \"v1\"' http://127.0.0.1:8085/logo.png",
+   "out": "first request:  200, 1000 bytes\nrevalidation:   304, 0 bytes\n"
+  },
+  {
+   "cmd": "pkill -f 'origin.py'; echo stopped",
+   "out": "stopped\n"
+  },
+  {
+   "cmd": "python3 -c \"arrive=[100]*5+[0]*10; rate=40; b=0\nfor s,a in enumerate(arrive,1):\n    b=max(0,b+a-rate); print('second %2d: arrived %3d, backlog %3d' % (s,a,b))\"",
+   "out": "second  1: arrived 100, backlog  60\nsecond  2: arrived 100, backlog 120\nsecond  3: arrived 100, backlog 180\nsecond  4: arrived 100, backlog 240\nsecond  5: arrived 100, backlog 300\nsecond  6: arrived   0, backlog 260\nsecond  7: arrived   0, backlog 220\nsecond  8: arrived   0, backlog 180\nsecond  9: arrived   0, backlog 140\nsecond 10: arrived   0, backlog 100\nsecond 11: arrived   0, backlog  60\nsecond 12: arrived   0, backlog  20\nsecond 13: arrived   0, backlog   0\nsecond 14: arrived   0, backlog   0\nsecond 15: arrived   0, backlog   0\n"
+  },
+  {
+   "cmd": "python3 -c \"arrive=[100]*5+[0]*10\nfor rate in (40,120):\n    b=0; m=0\n    for a in arrive:\n        b=max(0,b+a-rate); m=max(m,b)\n    print('workers do %3d/s: worst backlog %3d jobs' % (rate,m))\"",
+   "out": "workers do  40/s: worst backlog 300 jobs\nworkers do 120/s: worst backlog   0 jobs\n"
+  }
  ]
 }
