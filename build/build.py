@@ -341,6 +341,10 @@ def main():
     write(os.path.join(ROOT, "dsa.html"), dsa_html())
     print("built dsa.html")
     build_systems()
+    import sd2  # noqa: E402
+    for slug in sd2.build_all():
+        print("built design/" + slug)
+    print("built design/index")
     write(os.path.join(ROOT, "plan.html"), plan_html())
     print("built plan.html")
 

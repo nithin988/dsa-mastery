@@ -77,11 +77,11 @@ for q in ('red shorts', 'running shoes', 'trail'):
     for s, i, d in search(q): print('   score %.2f  doc %d: %s' % (s, i, d))
 EOF''',
                      e="A search engine in forty lines. Each document is analysed and added to the **inverted index**: for each stemmed term, which documents contain it and how often. A query is analysed the same way, the short postings lists are **intersected** (documents containing every term) and the survivors are **scored** by term frequency weighted by how **rare** the term is across the collection, so a match on a rare word beats a match on a common one. Nothing scans the documents at query time: the work depends on the lists, which is why this scales to billions of documents once the index is sharded.",
-                     annot=[("running -> {1: 2, 2: 1, 5: 1} (after the toy stemmer, the term appears as 'runn')", "a postings list: the documents and counts for one term"),
+                     annot=[("runn {1: 2, 2: 1, 5: 1}", "a postings list: the toy stemmer turns running into runn, and the list shows which documents contain it and how often"),
                             ("query 'red shorts' analysed to ['red', 'short']", "the same analysis as at indexing: plural removed"),
                             ("score ... doc 3: Red cotton shorts", "the only document containing both terms is the only result"),
-                            ("query 'trail': doc 1 scores higher than doc 5", "a term repeated in a document raises its score")]),
-                dict(c=r'''cd ~/spec && python3 - <<'EOF'
+                            ("query 'trail': docs 5 and 1 tie at 1.25", "equal counts of the same term score equally; a document repeating the term more often would rank higher")]),
+                dict(volatile=True, c=r'''cd ~/spec && python3 - <<'EOF'
 import sqlite3, time, random
 db = sqlite3.connect(':memory:')
 print('SQLite', sqlite3.sqlite_version, '- FTS5 available:', 'ENABLE_FTS5' in ' '.join(r[0] for r in db.execute('pragma compile_options')))
@@ -91,19 +91,22 @@ rng = random.Random(1)
 rows = [(' '.join(rng.sample(words, 2)) + ' shoes', ' '.join(rng.choice(words) for _ in range(30))) for _ in range(100000)]
 db.executemany('insert into docs values (?, ?)', rows)
 db.execute("insert into docs values ('Marathon racing flats', 'ultra light carbon plate saffron racing')")
+db.commit()
 t = time.perf_counter(); n = db.execute("select count(*) from docs where body like '%saffron%'").fetchone()[0]; like_ms = (time.perf_counter() - t) * 1000
 t = time.perf_counter(); r = db.execute("select title, bm25(docs) from docs where docs match 'saffron' order by bm25(docs)").fetchall(); fts_ms = (time.perf_counter() - t) * 1000
 print('LIKE scan over 100,001 documents:   found %d in %7.1f ms' % (n, like_ms))
 print('full-text index (FTS5 MATCH):       found %d in %7.3f ms   -> %s' % (len(r), fts_ms, r[0][0]))
-print('ranked query, 2 terms (BM25): top 3 of', db.execute("select count(*) from docs where docs match 'waterproof winter'").fetchone()[0], 'matches:')
-for title, score in db.execute("select title, round(bm25(docs), 2) from docs where docs match 'waterproof winter' order by bm25(docs) limit 3"): print('   %-34s bm25 %s' % (title, score))
+db.executemany('insert into docs values (?, ?)', [('Saffron dye kit', 'saffron saffron saffron saffron'), ('Cooking set', 'a pinch of saffron for the rice and a pot'), ('Spice rack', 'cumin pepper salt saffron paprika cardamom')])
+print('ranked query "saffron" (BM25, lower score = better in FTS5): documents that use the word more, and are shorter, rank first:')
+for title, score in db.execute("select title, round(bm25(docs), 2) from docs where docs match 'saffron' order by bm25(docs)"): print('   %-34s bm25 %s' % (title, score))
 print('stemming at work: a query for "run" also matches "running":', db.execute("select count(*) from docs where docs match 'run'").fetchone()[0], 'documents')
 EOF''',
                      e="The same idea in a real engine you already have. SQLite's FTS5 builds an inverted index and ranks with **BM25**. The needle (`saffron`, present in one document of 100,001) is found by the `LIKE` scan only after reading everything, while the index answers in a fraction of a millisecond; the gap grows with the corpus. Multi-term queries return ranked results, and the Porter stemmer makes `run` match `running`. Elasticsearch, OpenSearch and Solr are distributed, feature-rich versions of exactly this structure (built on Lucene).",
                      annot=[("FTS5 available: True", "the full-text extension ships with SQLite here"),
-                            ("LIKE scan over 100,001 documents: found 1 in ~N ms", "reads every row: cost grows with the corpus"),
-                            ("full-text index (FTS5 MATCH): found 1 in ~0.0N ms", "a postings list lookup: orders of magnitude faster"),
-                            ("stemming at work: ... 'run' also matches 'running'", "analysis at index and query time makes related word forms match")]),
+                            ("LIKE scan over 100,001 documents: found 1 in tens of ms", "reads every row: cost grows with the corpus"),
+                            ("full-text index (FTS5 MATCH): found 1 in under a millisecond", "a postings list lookup: tens to hundreds of times faster here, and the gap grows with the corpus"),
+                            ("stemming at work: a query for \"run\" also matches \"running\": 85767 documents", "analysis at index and query time makes related word forms match"),
+                            ("ranked query \"saffron\": Saffron dye kit first", "the document that repeats the rare term most ranks first (FTS5 returns negative scores: smaller is better)")]),
             ]),
         ],
         scenario=dict(
@@ -304,16 +307,16 @@ print('  1-minute averages for 90 days: %7.1f TB compressed (6x fewer points per
 print('  1-hour averages for 5 years:   %7.2f TB compressed' % (per_day / 360 / 6 * 365 * 5 * 1.5 / 1e12))
 EOF''',
                      e="Why time-series stores are small. A regular scrape interval makes the **delta of the delta** of the timestamps almost always zero, which costs about one bit per point in a real encoder; slowly changing values compress as small deltas. Even this crude version (deltas plus a general-purpose compressor) shrinks 16 bytes per point to a small fraction, and production encoders get to 1 to 2 bytes. The retention arithmetic at the bottom shows why downsampling is essential at fleet scale: keeping raw data for two weeks costs tens of terabytes, while hourly averages for five years cost a tiny fraction of that.",
-                     annot=[("raw encoding ...: 16.0 bytes/point", "the naive layout"),
-                            ("timestamps: delta-of-delta is zero for ~98% of points", "regular intervals: almost no information per timestamp"),
-                            ("... as deltas, then zlib: ~1-2 bytes/point (~10x smaller than raw)", "compression exploits the regularity and slow change"),
-                            ("raw for 14 days ... TB compressed; 1-hour averages for 5 years ... TB", "downsampling and retention bound the storage")]),
+                     annot=[("21600 points; raw encoding ...: 16.0 bytes/point", "the naive layout"),
+                            ("timestamps: delta-of-delta is zero for 93.6% of points", "regular intervals: almost no information per timestamp (the occasional 1 s jitter breaks the pattern)"),
+                            ("... as deltas, then zlib: 16486 bytes = 0.76 bytes/point (21x smaller than raw)", "compression exploits the regularity and slow change (this synthetic data is very regular; real data compresses to about 1 to 2 bytes)"),
+                            ("raw for 14 days: 10 TB uncompressed, 0.9 TB compressed; 1-hour averages for 5 years: 0.05 TB", "downsampling and retention bound the storage")]),
                 dict(c=r'''python3 - <<'EOF'
 import statistics
 # Downsample 6 hours of 10-second points to 1-minute rollups, keeping min / max / sum / count so more questions can still be answered.
 import random
 rng = random.Random(5)
-points = [(i * 10, 40 + rng.random() * 5 + (30 if 9000 <= i * 10 < 9060 else 0)) for i in range(2160)]       # a brief spike at t=9000..9060 s
+points = [(i * 10, 40 + rng.random() * 5 + (30 if 9000 <= i * 10 < 9010 else 0)) for i in range(2160)]       # a brief spike: one 10-second sample at t=9000 s
 rolled = {}
 for t, v in points:
     b = t // 60
@@ -331,8 +334,8 @@ for labels, n in (('host (100,000)', 100_000), ('host x endpoint (20)', 2_000_00
     print('  http_requests_total{%-30s -> %s series%s' % (labels + '}', '{:,}'.format(n), '   <- unusable' if n > 1e9 else ''))
 EOF''',
                      e="Two traps of rollups and labels. A one-minute **average** dilutes a ten-second spike to almost nothing, so a good rollup keeps **min, max, sum and count** as well, so spikes remain visible and alertable, and averages and rates can be recomputed correctly for any window. The cardinality table is the other real limit: every distinct label combination is a separate series with its own memory and index, so adding `endpoint` and `status` multiplies by tens, and adding a high-cardinality label such as a user id multiplies by millions and takes the system down. Per-user detail belongs in logs and traces, not in metric labels.",
-                     annot=[("the spike minute, rolled up with avg only: avg ~43", "the average hides a 30-point spike"),
-                            ("the spike minute, rolled up with max kept: max ~75", "keeping the max preserves what alerts need"),
+                     annot=[("the spike minute, rolled up with avg only: avg ~47", "the average dilutes a 30-point, 10-second spike"),
+                            ("the spike minute, rolled up with max kept: max ~73", "keeping the max preserves what alerts need"),
                             ("http_requests_total{... x user_id ...} -> 10,000,000,000,000 series <- unusable", "unbounded labels, not point rate, are what kill metrics systems")]),
             ]),
         ],

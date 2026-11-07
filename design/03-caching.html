@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Make it fast | System Design | Mastery</title>
+<meta name="description" content="Why a tiny amount of memory in front of the database is the cheapest speed-up in system design, and why it is also the source of the most confusing bugs."><meta name="theme-color" content="#0f172a">
+<meta property="og:type" content="article"><meta property="og:site_name" content="Mastery"><meta property="og:title" content="Make it fast">
+<meta property="og:description" content="Why a tiny amount of memory in front of the database is the cheapest speed-up in system design, and why it is also the source of the most confusing bugs."><meta property="og:url" content="https://nithin988.github.io/dsa-mastery/design/03-caching.html">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f172a'/%3E%3Ctext x='16' y='21' font-family='monospace' font-size='13' font-weight='700' fill='%23f8fafc' text-anchor='middle'%3EDSA%3C/text%3E%3C/svg%3E">
+<style>/* DSA Mastery: shared stylesheet. Tokens and components follow the Kimaru Platform design system
+   (slate neutrals, semantic colour, rounded-md cards, shadow-sm, 16px stroke icons). See docs/DESIGN_SYSTEM.md. */
+:root{
+ --bg:#f8fafc;--surf:#fff;--hd:#f8fafc;--soft:#f1f5f9;--line:#e2e8f0;--line2:#f1f5f9;
+ --fg:#0f172a;--txt:#334155;--mut:#475569;--faint:#64748b;
+ --ink:#0f172a;--ink-fg:#f8fafc;
+ --acc:#3162b4;--acc-soft:#eaf0fa;--acc-line:#bcd0ee;
+ --ok:#15803d;--ok-soft:#f0fdf4;--ok-line:#86efac;
+ --warn:#b45309;--warn-soft:#fffbeb;--warn-line:#fbbf24;
+ --med:#a16207;--med-soft:#fefce8;
+ --bad:#b91c1c;--bad-soft:#fef2f2;--bad-line:#f87171;
+ --risk:#c2410c;--risk-soft:#fff7ed;
+ --info:#0369a1;--info-soft:#f0f9ff;--info-line:#38bdf8;
+ --done:#0f766e;--done-soft:#f0fdfa;--done-line:#5eead4;
+ --code:#f8fafc;--ring:#3162b4;
+ --sh:0 1px 2px rgba(15,23,42,.06);--sh-lg:0 10px 30px rgba(15,23,42,.12);
+ --r:6px;--r-lg:8px;
+ color-scheme:light}
+:root[data-theme=dark]{
+ --bg:#020617;--surf:#0f172a;--hd:#0b1324;--soft:#1e293b;--line:#1e293b;--line2:#172033;
+ --fg:#f1f5f9;--txt:#cbd5e1;--mut:#a3b1c6;--faint:#94a3b8;
+ --ink:#f1f5f9;--ink-fg:#0f172a;
+ --acc:#8db4f0;--acc-soft:#14233d;--acc-line:#2c4a7a;
+ --ok:#4ade80;--ok-soft:#0c2a18;--ok-line:#166534;
+ --warn:#fbbf24;--warn-soft:#2b2008;--warn-line:#a16207;
+ --med:#facc15;--med-soft:#2a2308;
+ --bad:#f87171;--bad-soft:#2d1214;--bad-line:#b91c1c;
+ --risk:#fb923c;--risk-soft:#2b1708;
+ --info:#38bdf8;--info-soft:#0a2233;--info-line:#0369a1;
+ --done:#2dd4bf;--done-soft:#0a2624;--done-line:#0f766e;
+ --code:#0b1324;--ring:#8db4f0;
+ --sh:none;--sh-lg:0 10px 30px rgba(0,0,0,.5);color-scheme:dark}
+
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:var(--acc);text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:4px}
+code{background:var(--soft);padding:1px 5px;border-radius:4px;font:0.88em ui-monospace,"Cascadia Code",Consolas,Menlo,monospace;color:var(--fg)}
+.mut,.muted{color:var(--mut)}.muted{font-size:13px;font-weight:400}
+.skip{position:absolute;left:12px;top:-60px;z-index:100;background:var(--ink);color:var(--ink-fg);padding:8px 14px;border-radius:var(--r);text-decoration:none;font-size:14px}.skip:focus{top:8px}
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.33;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-3px}
+.ic.fill{fill:currentColor;stroke:none}.ic.lg{width:20px;height:20px}
+
+/* buttons: primary = dark, secondary = light, confirmed = teal (design system section 5) */
+.btn,.bar button,.st-ctl button,.st-ctl select{font:inherit;font-size:13px;font-weight:500;line-height:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);cursor:pointer;text-decoration:none;box-shadow:var(--sh);transition:background .15s,border-color .15s}
+.btn:hover,.bar button:hover,.st-ctl button:hover{background:var(--soft)}
+.btn.pri,.bar button.on,.btn.on{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.btn.pri:hover{opacity:.9;background:var(--ink)}
+.btn.sec{background:var(--soft)}
+.btn.lg{height:40px;padding:0 18px;font-size:14px}
+.iconbtn{width:32px;padding:0!important}
+
+/* top bar (sticky 48px, like ReviewBar) */
+.bar{position:sticky;top:0;z-index:30;background:var(--surf);border-bottom:1px solid var(--line);box-shadow:var(--sh)}
+.bar-in{max-width:1280px;margin:0 auto;height:48px;display:flex;gap:8px;align-items:center;padding:0 16px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;text-decoration:none;color:var(--fg);letter-spacing:-.01em;margin-right:4px}
+.brand b{font-weight:700}.brand span{color:var(--faint);font-weight:600}
+.logo{width:24px;height:24px;border-radius:6px;background:var(--ink);color:var(--ink-fg);display:grid;place-items:center;font:700 11px ui-monospace,Consolas,monospace;letter-spacing:-.02em}
+.crumbs{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mut);min-width:0;margin-right:auto}
+.crumbs a{color:var(--mut);text-decoration:none}.crumbs a:hover{color:var(--fg)}
+.crumbs .cur{color:var(--fg);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crumbs .ic{color:var(--faint);width:14px;height:14px}
+.prog{font-size:12.5px;color:var(--mut);white-space:nowrap;padding:0 4px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.seg button{border:0!important;border-radius:0!important;box-shadow:none!important;background:var(--surf)}
+.seg button+button{border-left:1px solid var(--line)!important}
+.pbar{height:2px;background:var(--line)}.pbar i{display:block;height:100%;width:0;background:var(--acc);transition:width .4s}
+
+/* topic switcher panel */
+.menu{position:relative}
+.panel{position:absolute;right:0;top:40px;width:min(380px,92vw);max-height:min(70vh,640px);overflow:auto;background:var(--surf);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-lg);padding:6px;z-index:50}
+.panel[hidden]{display:none}
+.panel h5{margin:10px 8px 4px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.panel a{display:grid;grid-template-columns:26px 1fr auto;gap:8px;align-items:center;padding:7px 8px;border-radius:var(--r);text-decoration:none;color:var(--fg);font-size:13.5px}
+.panel a:hover{background:var(--soft)}.panel a[aria-current=page]{background:var(--soft);font-weight:600}
+.panel .n{font:600 11px ui-monospace,Consolas,monospace;color:var(--faint)}
+.panel .c{font-size:11.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.panel .c.done{color:var(--done);font-weight:600}
+
+/* layout */
+.wrap{max-width:1280px;margin:0 auto;padding:0 16px;display:grid;grid-template-columns:248px minmax(0,1fr);gap:32px}
+nav.side{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto;padding:20px 0;font-size:13.5px}
+nav.side h4{margin:16px 0 6px;padding:0 10px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+nav.side a{display:flex;gap:8px;align-items:center;padding:6px 10px;border-radius:var(--r);text-decoration:none;color:var(--txt)}
+nav.side a:hover{background:var(--soft)}nav.side a.act{background:var(--soft);color:var(--fg);font-weight:600;box-shadow:inset 2px 0 0 var(--ink)}
+nav.side .dot{width:8px;height:8px;border-radius:50%;flex:none}.dot.hot{background:var(--warn)}.dot.sec{background:var(--faint)}
+nav.side .cnt{margin-left:auto;font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}
+main{min-width:0;padding:24px 0 90px}
+.chips{display:none}
+
+/* page header (hero) */
+.hero{background:var(--surf);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh);padding:24px 26px;margin-bottom:20px}
+.eyebrow{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);display:flex;align-items:center;gap:8px}
+.eyebrow .tag{background:var(--soft);border-radius:99px;padding:3px 9px;color:var(--fg);letter-spacing:.06em}
+.hero h1{font-size:clamp(24px,3.4vw,32px);line-height:1.2;margin:10px 0 10px;letter-spacing:-.02em;color:var(--fg);font-weight:700}
+.lead{font-size:15.5px;color:var(--txt);margin:0;max-width:72ch}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.stat{display:inline-flex;gap:6px;align-items:center;background:var(--hd);border:1px solid var(--line);border-radius:99px;padding:3px 12px;font-size:12.5px;color:var(--mut)}.stat b{color:var(--fg);font-variant-numeric:tabular-nums}
+
+/* headings */
+h2{font-size:20px;font-weight:700;margin:40px 0 10px;letter-spacing:-.01em;scroll-margin-top:72px;color:var(--fg)}
+h3{margin:0;font-size:20px;font-weight:600;letter-spacing:-.01em;color:var(--fg)}
+
+/* callouts: neutral box + 2px left accent (design system section 6) */
+.callout{border:1px solid var(--line);border-left:2px solid var(--faint);background:var(--hd);padding:10px 14px;border-radius:var(--r);margin:14px 0}
+.callout.intu{border-left-color:var(--info-line)}.callout p{margin:4px 0}
+.callout .lbl{margin-bottom:2px}
+
+/* pattern card: header bar + body (design system section 6) */
+.pat{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);margin:22px 0;scroll-margin-top:72px;overflow:hidden}
+.pat-h{display:flex;gap:12px;align-items:center;flex-wrap:wrap;min-height:50px;padding:8px 16px;background:var(--hd);border-bottom:1px solid var(--line)}
+.pat-h h3{font-size:18px}
+.badge{width:28px;height:28px;border-radius:var(--r);background:var(--ink);color:var(--ink-fg);display:flex;align-items:center;justify-content:center;font:700 13px ui-monospace,Consolas,monospace;flex:none}
+.tier{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;white-space:nowrap}
+.tier.hot{background:var(--warn-soft);color:var(--warn)}.tier.sec{background:var(--soft);color:var(--mut)}
+.pp{margin-left:auto;font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.pat-b{padding:6px 16px 8px}
+.glance{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0;margin:8px 0 6px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.gi{padding:10px 14px;font-size:14px;border-left:1px solid var(--line2)}.gi:first-child{border-left:0}
+.lbl{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.lbl .ic{width:14px;height:14px}
+.blk{margin:16px 0}.blk p{margin:4px 0}
+.blk ol,.blk ul{margin:4px 0;padding-left:22px}.blk li{margin:4px 0}
+.blk.warn{border:1px solid var(--line);border-left:2px solid var(--warn-line);background:var(--warn-soft);border-radius:var(--r);padding:10px 14px}.blk.warn .lbl{color:var(--warn)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cx{display:flex;gap:8px;align-items:center;background:var(--ok-soft);color:var(--ok);border:1px solid var(--line);border-left:2px solid var(--ok-line);border-radius:var(--r);padding:8px 14px;font-weight:600;font-size:14px;margin:14px 0}
+
+/* code */
+pre{background:var(--code);border:1px solid var(--line);border-radius:var(--r);padding:34px 15px 13px;overflow-x:auto;margin:8px 0;position:relative;font-size:13px;line-height:1.55;color:var(--fg)}
+pre::before{position:absolute;left:12px;top:8px;font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+pre.code-java::before{content:"Java"}pre.code-py::before{content:"Python"}pre.trace::before{content:"Trace"}
+pre code{background:none;padding:0;font-size:inherit;color:inherit}
+.code-java,.code-py{display:none}body[data-lang=java] .code-java,body[data-lang=py] .code-py{display:block}
+.cp{position:absolute;top:5px;right:6px;font:500 12px system-ui,sans-serif;height:24px;padding:0 9px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--mut);cursor:pointer}
+.cp:hover{color:var(--fg);background:var(--soft)}
+.trace{border-left:2px solid var(--faint)}
+
+/* tables */
+.tw{overflow-x:auto;margin:10px 0;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:9px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line2)}
+th{background:var(--hd);font:600 11px/1.2 system-ui,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);border-bottom:1px solid var(--line);position:sticky;top:0}
+tbody tr:hover td{background:var(--hd)}tr:last-child td{border-bottom:0}
+.ladder td:first-child{width:36px;text-align:center}.ladder .t{white-space:nowrap}.ladder .c{white-space:nowrap;font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+input.pk{width:18px;height:18px;accent-color:var(--done);cursor:pointer;margin:0}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;white-space:nowrap}
+.dE{background:var(--ok-soft);color:var(--ok)}.dM{background:var(--med-soft);color:var(--med)}.dH{background:var(--bad-soft);color:var(--bad)}
+tr.done td{background:var(--done-soft)}tr.done td:nth-child(3){text-decoration:line-through;text-decoration-color:var(--faint)}
+details{border:1px solid var(--line);border-radius:var(--r);padding:0 14px;margin:8px 0;background:var(--surf)}
+summary{cursor:pointer;font-weight:600;padding:10px 0;color:var(--fg);list-style:none;display:flex;gap:8px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"";width:6px;height:6px;border-right:1.5px solid var(--faint);border-bottom:1.5px solid var(--faint);transform:rotate(-45deg);transition:transform .2s;flex:none}
+details[open] summary::before{transform:rotate(45deg)}
+details[open]{border-left:2px solid var(--info-line)}details p{margin:0 0 12px;color:var(--txt)}
+
+/* stepper (animation panel) */
+.stepper{border:1px solid var(--line);border-radius:var(--r-lg);margin:8px 0 14px;background:var(--surf);box-shadow:var(--sh);overflow:hidden}
+.stepper:focus-visible{outline-offset:0}
+.st-head{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--hd);border-bottom:1px solid var(--line);font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.st-head .st-count{margin-left:auto;font-size:11.5px;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.st-body{padding:12px 14px 4px}
+.st-prog{height:3px;background:var(--line);overflow:hidden}.st-prog i{display:block;height:100%;background:var(--acc);width:0;transition:width .3s}
+.st-view{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;padding:6px 0 2px;margin:0 auto}
+.cellw{display:flex;flex-direction:column;align-items:center;min-width:46px}
+.ptr{min-height:22px;font:600 11px ui-monospace,Consolas,monospace;margin-bottom:3px;display:flex;align-items:flex-end}
+.ptr b{background:var(--ink);color:var(--ink-fg);padding:1px 7px;border-radius:99px;white-space:nowrap;animation:drop .25s ease}
+.cell{min-width:46px;height:46px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:600 15px ui-monospace,Consolas,monospace;padding:0 7px;transition:background .25s,border-color .25s,transform .25s}
+.cell.in{background:var(--acc-soft);border-color:var(--acc);transform:translateY(-2px)}
+.cell.ok{background:var(--done-soft);border-color:var(--done)}
+.cell.dim{background:var(--soft);color:var(--mut);border-style:dashed;opacity:.65}
+.cell.pop{animation:pop .35s ease}
+.edge{align-self:flex-start;margin-top:31px;min-width:20px;text-align:center;color:var(--faint);font:700 16px ui-monospace,Consolas,monospace}
+.idx{font:11px ui-monospace,Consolas,monospace;color:var(--mut);margin-top:3px}
+.st-aux{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;min-height:30px;margin-top:8px}
+.st-aux .al{font:600 10px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}
+.chip{font:600 12.5px ui-monospace,Consolas,monospace;background:var(--hd);border:1px solid var(--line);border-radius:var(--r);padding:2px 9px;color:var(--fg)}
+.st-note{min-height:48px;margin:8px 0;font-size:14.5px;padding:10px 13px;background:var(--hd);border:1px solid var(--line);border-left:2px solid var(--info-line);border-radius:var(--r);color:var(--txt)}
+.st-ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 14px 12px}
+.st-ctl button{min-width:32px}
+.st-ctl button.pri{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.st-ctl input[type=range]{flex:1;min-width:90px;accent-color:var(--ink)}
+.st-ctl select{padding:0 8px}
+@keyframes pop{0%{transform:scale(.75)}60%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes drop{from{transform:translateY(-6px);opacity:0}to{transform:none;opacity:1}}
+
+/* previous / next */
+.foot{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.nxt{display:flex;flex-direction:column;gap:3px;padding:14px 16px;background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);text-decoration:none;color:var(--fg)}
+.nxt:hover{border-color:var(--faint)}.nxt.r{text-align:right;align-items:flex-end}.nxt small{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);display:flex;gap:6px;align-items:center}
+.nxt strong{font-size:15px;font-weight:600}
+.nxt.next{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}.nxt.next small{color:inherit;opacity:.75}
+.site-foot{max-width:1280px;margin:0 auto;padding:22px 16px 40px;display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between;color:var(--mut);font-size:13px;border-top:1px solid var(--line)}
+.site-foot a{color:var(--mut)}.site-foot a:hover{color:var(--fg)}
+
+/* landing page */
+.home{max-width:1120px;margin:0 auto;padding:28px 16px 60px}
+.home-hero{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:stretch}
+.home-hero .hero{margin:0;display:flex;flex-direction:column}
+.home-hero .hero h1{font-size:clamp(28px,4vw,40px)}
+.cta{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:14px 16px;display:flex;flex-direction:column;justify-content:center}
+.kpi b{font-size:26px;line-height:1.1;color:var(--fg);letter-spacing:-.02em;font-variant-numeric:tabular-nums}.kpi span{font-size:12.5px;color:var(--mut);margin-top:3px}
+.kpi.wide{grid-column:1/-1}
+.meter{height:6px;border-radius:99px;background:var(--soft);overflow:hidden;margin-top:10px}.meter i{display:block;height:100%;width:0;background:var(--done);border-radius:99px;transition:width .4s}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0 0}
+.how div{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;font-size:14px}
+.how b{display:flex;align-items:center;gap:8px;color:var(--fg);margin-bottom:4px}
+.how .no{width:22px;height:22px;border-radius:6px;background:var(--soft);display:grid;place-items:center;font:700 11px ui-monospace,monospace;color:var(--fg)}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:34px 0 4px}
+.tools h2{margin:0;margin-right:auto;font-size:20px}
+.search{position:relative}.search input{height:32px;width:220px;max-width:100%;padding:0 10px 0 32px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:13px}
+.search .ic{position:absolute;left:10px;top:8px;color:var(--faint)}
+.filters{display:inline-flex;gap:6px;flex-wrap:wrap}
+.filters button{height:32px;padding:0 12px;border:1px solid var(--line);border-radius:99px;background:var(--surf);color:var(--mut);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.filters button[aria-pressed=true]{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.phase{margin:26px 0 0}
+.phase-h{display:flex;align-items:baseline;gap:10px;margin:0 0 10px}
+.phase-h h2{margin:0;font-size:16px;scroll-margin-top:72px}.phase-h span{font-size:13px;color:var(--mut)}
+.phase-h .ph{font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;background:var(--soft);color:var(--fg);padding:4px 8px;border-radius:99px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.tcard{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden}
+.tcard[hidden]{display:none}
+.tcard-h{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 14px;background:var(--hd);border-bottom:1px solid var(--line)}
+.tcard-h .no{font:700 12px ui-monospace,Consolas,monospace;background:var(--ink);color:var(--ink-fg);border-radius:var(--r);padding:3px 7px}
+.tcard-h h3{font-size:16px;margin-right:auto}
+.st{font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--soft);color:var(--mut);white-space:nowrap}
+.st.doing{background:var(--warn-soft);color:var(--warn)}.st.done{background:var(--done-soft);color:var(--done)}
+.tcard-b{padding:12px 14px;display:flex;flex-direction:column;gap:10px;flex:1}
+.tcard-b p{margin:0;font-size:13.5px;color:var(--txt);flex:1}
+.meta{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--mut)}.meta span{display:inline-flex;gap:5px;align-items:center}
+.act{display:flex;gap:8px}
+.empty{text-align:center;color:var(--mut);padding:30px;border:1px dashed var(--line);border-radius:var(--r);margin-top:16px}
+
+@media (max-width:1020px){.wrap{display:block}nav.side{display:none}
+ .chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0;position:sticky;top:50px;z-index:10;background:var(--bg)}
+ .chips a{white-space:nowrap;font-size:12.5px;border:1px solid var(--line);background:var(--surf);padding:4px 11px;border-radius:99px;text-decoration:none;color:var(--fg)}
+ .home-hero{grid-template-columns:1fr}}
+@media (max-width:720px){.crumbs .cur,.crumbs .ic,.prog{display:none}.how{grid-template-columns:1fr}.foot{grid-template-columns:1fr}.btn .t-long{display:none}}
+@media (max-width:640px){body{font-size:15px}.hero{padding:18px 16px}.pat-b{padding:4px 12px 6px}.two{grid-template-columns:1fr}.cell{min-width:36px;height:38px;font-size:13px}.cellw{min-width:36px}.brand span{display:none}.pp{margin-left:0}.gi{border-left:0;border-top:1px solid var(--line2)}.gi:first-child{border-top:0}.search input{width:100%}.search{flex:1}.kpis{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media print{.bar,.pbar,nav.side,.chips,.st-ctl,.cp,.skip,.site-foot,.foot{display:none}.wrap{display:block}.code-java,.code-py{display:block!important}.pat{box-shadow:none;break-inside:avoid-page}body{background:#fff}}
+
+/* tree and graph drawings inside the stepper */
+.st-tree svg{display:block;margin:0 auto;height:auto}.st-tree line{stroke:var(--faint);stroke-width:1.75;opacity:.6}
+.tn circle{fill:var(--surf);stroke:var(--line);stroke-width:2;transition:fill .25s,stroke .25s}.tn.in circle{fill:var(--acc-soft);stroke:var(--acc)}.tn.ok circle{fill:var(--done-soft);stroke:var(--done)}.tn.dim circle{fill:var(--soft);stroke-dasharray:4 3;opacity:.7}
+.tn text{font:600 14px ui-monospace,Consolas,monospace;fill:var(--fg);text-anchor:middle;dominant-baseline:central}.tp{font:700 11px ui-monospace,Consolas,monospace;fill:var(--acc);text-anchor:middle}
+.ge{stroke:var(--faint);stroke-width:2;opacity:.5}.ge.on{stroke:var(--acc);stroke-width:3.5;opacity:1}.gw{font:600 11px ui-monospace,Consolas,monospace;fill:var(--mut);text-anchor:middle}.mk{fill:var(--faint);opacity:.7}.mk2{fill:var(--acc)}
+
+/* study planner page */
+.planner .hero{margin-bottom:18px}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:16px;overflow:hidden}
+.card-h{display:flex;align-items:center;gap:10px;min-height:46px;padding:6px 14px;background:var(--hd);border-bottom:1px solid var(--line)}
+.card-h h2{margin:0;font-size:15px;font-weight:600;margin-right:auto;color:var(--fg)}
+.card-h>span:not(.st){font-size:12.5px;color:var(--mut)}
+.card-b{padding:14px}
+.pl-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+.pl-col{min-width:0}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+.field{min-width:0}.field:nth-child(6),.field:nth-child(7){grid-column:1/-1}
+.flabel{display:block;font:600 11px/1.2 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+.field input[type=date],.field input[type=number],.field select{height:34px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:14px;max-width:100%}
+.field input[type=number]{width:96px}.field select{width:100%}.field input[type=date]{width:100%}
+.unit{font-size:13px;color:var(--mut);margin-left:8px}
+.fhint{font-size:12.5px;color:var(--mut);margin-top:6px}
+.qchips{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.qchips button,.presets button,.chips2 button{height:28px;padding:0 11px;border:1px solid var(--line);border-radius:99px;background:var(--surf);color:var(--fg);font:inherit;font-size:12.5px;cursor:pointer}
+.qchips button:hover,.presets button:hover,.chips2 button:hover{background:var(--soft)}
+.seg2{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;max-width:100%}
+.seg2 button{height:34px;padding:0 14px;border:0;background:var(--surf);color:var(--fg);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.seg2 button+button{border-left:1px solid var(--line)}
+.seg2 button[aria-pressed=true]{background:var(--ink);color:var(--ink-fg)}
+.toggles{display:grid;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line2);font-size:14px}
+.toggles label,.key-panel label{display:flex;gap:9px;align-items:center;cursor:pointer}
+.toggles input,.key-panel input[type=checkbox]{width:16px;height:16px;accent-color:var(--ink);margin:0}
+.presets{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.presets span{font-size:12.5px;color:var(--mut);margin-right:2px}
+#topics h5{margin:14px 0 4px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.trow{display:grid;grid-template-columns:20px 28px 1fr auto;gap:8px;align-items:center;padding:6px 6px;border-radius:var(--r);cursor:pointer;font-size:14px}
+.trow:hover{background:var(--soft)}.trow input{width:16px;height:16px;accent-color:var(--ink);margin:0}
+.trow .n{font:600 11.5px ui-monospace,Consolas,monospace;color:var(--faint)}.trow .est{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+/* coach */
+.chat{position:sticky;top:64px;display:flex;flex-direction:column;height:min(720px,calc(100vh - 84px));min-height:480px;margin-bottom:0}
+.chat .card-h .btn{height:28px}
+.key-panel{padding:12px 14px;border-bottom:1px solid var(--line);background:var(--surf);display:grid;gap:10px;font-size:13.5px}
+.key-panel[hidden]{display:none}
+.key-panel p{margin:0}.key-panel .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.key-panel input[type=password],.key-panel select{height:34px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:13.5px;min-width:0;flex:1}
+.msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;background:var(--bg)}
+.msg{max-width:92%}.msg.me{align-self:flex-end}
+.msg .who{font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:0 2px 4px}.msg.me .who{text-align:right}
+.msg .mb{padding:9px 12px;border-radius:var(--r-lg);font-size:14.5px;line-height:1.55;border:1px solid var(--line);background:var(--surf);color:var(--txt)}
+.msg.me .mb{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.msg .mb p{margin:0 0 6px}.msg .mb p:last-child{margin:0}.msg .mb ul,.msg .mb ol{margin:4px 0;padding-left:20px}.msg .mb code{font-size:.9em}
+.msg.sys{align-self:stretch;max-width:100%}.msg.sys .mb{background:var(--hd);border-left:2px solid var(--info-line);font-size:13.5px}
+.typing{display:flex;gap:4px;padding:6px 4px}.typing i{width:6px;height:6px;border-radius:50%;background:var(--faint);animation:blink 1.2s infinite}.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.chips2{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px 0;background:var(--surf);border-top:1px solid var(--line)}
+.composer{display:flex;gap:8px;align-items:flex-end;padding:10px 14px 14px;background:var(--surf)}
+.composer textarea{flex:1;resize:none;min-height:38px;max-height:120px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:14.5px;line-height:1.4}
+.composer .btn{height:38px}
+/* plan output */
+.sec-h{font-size:18px;margin:26px 0 10px}
+.kpis4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.kpis4 .kpi b{font-size:22px}
+.callout.alert{border-left-color:var(--warn-line);background:var(--warn-soft)}.callout.alert .lbl{color:var(--warn)}.callout ul{margin:4px 0;padding-left:20px}
+.warn-c{border-left-color:var(--warn-line)}
+.plan-bar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin:14px 0;box-shadow:var(--sh)}
+.pb-l{min-width:220px;flex:1;font-size:13.5px;color:var(--mut)}.pb-l b{color:var(--fg);font-size:15px}.pb-r{display:flex;gap:8px;flex-wrap:wrap}
+.wk{padding:0;margin:10px 0;border-left:1px solid var(--line)}
+details.wk[open]{border-left:2px solid var(--info-line)}
+.wk summary{padding:12px 14px;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.wk summary::before{align-self:center}
+.wn{font-weight:700;color:var(--fg)}.wd{font-size:13px;color:var(--mut)}.wt{font-size:13px;color:var(--mut);margin-right:auto}.wc{font-size:12.5px;font-weight:600;background:var(--soft);border-radius:99px;padding:2px 10px;color:var(--fg);font-variant-numeric:tabular-nums}
+.wk-b{padding:0 14px 12px}
+.day{border:1px solid var(--line);border-radius:var(--r);margin:8px 0;background:var(--surf);overflow:hidden}
+.day.today{border-color:var(--ink)}
+.day.rest{background:var(--hd);color:var(--mut)}
+.dh{display:flex;gap:10px;align-items:center;padding:7px 12px;background:var(--hd);border-bottom:1px solid var(--line2);font-size:13px}.dh b{color:var(--fg)}.dh span:last-child{margin-left:auto;color:var(--mut);font-variant-numeric:tabular-nums}
+.day.rest .dh{border-bottom:0}
+.pill-t{font-size:11px;font-weight:600;background:var(--ink);color:var(--ink-fg);padding:1px 8px;border-radius:99px}
+.task{display:grid;grid-template-columns:20px 84px 1fr auto;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line2);cursor:pointer;font-size:14px}
+.task:last-child{border-bottom:0}.task:hover{background:var(--hd)}
+.task input{width:17px;height:17px;accent-color:var(--done);margin:0}
+.task .kind{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;text-align:center;background:var(--soft);color:var(--mut)}
+.k-learn .kind{background:var(--info-soft);color:var(--info)}.k-code .kind{background:var(--soft);color:var(--fg)}.k-practice .kind{background:var(--med-soft);color:var(--med)}
+.k-review .kind{background:var(--done-soft);color:var(--done)}.k-checkpoint .kind,.k-mock .kind{background:var(--ink);color:var(--ink-fg)}
+.task .ttl{min-width:0;display:flex;flex-direction:column}.task .ttl a{color:var(--fg);text-decoration:none}.task .ttl a:hover{text-decoration:underline}
+.task .sub{font-size:12px;color:var(--mut)}.task .mins{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.task.is-done .ttl,.task.is-done .ttl a{text-decoration:line-through;text-decoration-color:var(--faint);color:var(--mut)}
+@media (max-width:1020px){.pl-grid{grid-template-columns:1fr}.chat{position:static;height:560px}.kpis4{grid-template-columns:1fr 1fr}}
+@media (max-width:640px){.fgrid{grid-template-columns:1fr}.field:nth-child(n){grid-column:auto}.task{grid-template-columns:20px 1fr auto}.task .kind{display:none}.wt{flex-basis:100%;order:3}.msg{max-width:100%}}
+@media print{.pl-grid,.hero,.plan-bar .pb-r,.chat{display:none}.wk{break-inside:avoid-page}details.wk>summary::before{display:none}}
+
+/* left rail */
+body.has-rail{padding-left:56px}
+.rail{position:fixed;inset:0 auto 0 0;width:56px;z-index:40;background:var(--surf);border-right:1px solid var(--line);padding:9px 8px;overflow:hidden;transition:width .18s ease;display:flex;flex-direction:column;gap:2px}
+.rail:hover,.rail:focus-within{width:240px;box-shadow:var(--sh-lg)}
+.rail-i{display:flex;align-items:center;gap:12px;height:38px;padding:0 10px;border-radius:var(--r);text-decoration:none;color:var(--txt);white-space:nowrap;font-size:14px}
+.rail-i:hover{background:var(--soft)}
+.rail-i[aria-current=page]{background:var(--soft);color:var(--fg);font-weight:600;box-shadow:inset 2px 0 0 var(--ink)}
+.rail-i .ic{width:18px;height:18px}
+.rail-logo{margin-bottom:6px;height:44px}.rail-logo .logo{width:24px;height:24px;flex:none}
+.rail .l{opacity:0;transition:opacity .12s}.rail:hover .l,.rail:focus-within .l{opacity:1}
+.rail-g{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);padding:14px 10px 4px;opacity:0;white-space:nowrap}
+.rail:hover .rail-g,.rail:focus-within .rail-g{opacity:1}
+.rail-sub{display:flex;flex-direction:column;margin:0 0 4px 22px;padding-left:12px;border-left:1px solid var(--line);opacity:0;max-height:0;overflow:hidden;transition:opacity .12s}
+.rail:hover .rail-sub,.rail:focus-within .rail-sub{opacity:1;max-height:260px}
+.rail-sub a{font-size:13px;color:var(--mut);text-decoration:none;padding:5px 8px;border-radius:var(--r);white-space:nowrap}.rail-sub a:hover{background:var(--soft);color:var(--fg)}
+.rail-bd{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:35}.rail-bd[hidden]{display:none}
+.rail-btn{display:none}
+@media (max-width:1020px){body.has-rail{padding-left:0}
+ .rail{transform:translateX(-100%);width:256px;transition:transform .2s ease;box-shadow:none}.rail.open{transform:none;box-shadow:var(--sh-lg)}
+ .rail:hover,.rail:focus-within{width:256px}.rail .l,.rail-g,.rail-sub{opacity:1}.rail-sub{max-height:260px}
+ .rail-btn{display:inline-flex}}
+@media print{.rail,.rail-bd{display:none}body.has-rail{padding-left:0}}
+
+/* systems pages and hub */
+pre.sh::before{content:"Command"}pre.out::before{content:"Output"}
+pre.sh{margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0;background:var(--ink);color:var(--ink-fg)}
+pre.sh::before{color:inherit;opacity:.65}
+pre.sh code{color:inherit;white-space:pre}
+pre.sh .cp{background:transparent;color:var(--ink-fg);border-color:rgba(248,250,252,.35)}pre.sh .cp:hover{background:rgba(248,250,252,.12);color:var(--ink-fg)}
+[data-theme=dark] pre.sh{background:#0b1324;color:#f1f5f9;border:1px solid var(--line)}
+pre.out{margin-top:0;border-top-left-radius:0;border-top-right-radius:0}
+.cmd{margin:14px 0 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);overflow:hidden}
+.cmd pre{margin:0;border-radius:0;border-left:0;border-right:0}.cmd>pre.sh{border-top:0}
+.cmd-b{padding:10px 14px 12px}.cmd-b p{margin:4px 0}
+.cmd-b pre.out{margin:6px 0 0;border:1px solid var(--line);border-radius:var(--r)}
+.out-l{margin-top:8px}
+.stamp{display:inline-block;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--done);background:var(--done-soft);border-radius:99px;padding:3px 9px}
+.stamp.ill{color:var(--warn);background:var(--warn-soft)}
+.noout{font-size:13px}
+.parts{margin:8px 0 0}.parts table{font-size:13px}.parts th,.parts td{padding:6px 10px}
+.analogy{margin:8px 0 2px}
+.tick{display:inline-flex;gap:7px;align-items:center;font-size:12.5px;color:var(--mut);cursor:pointer;margin-left:auto}
+.tick input{width:16px;height:16px;accent-color:var(--done);margin:0}.tick.is-done{color:var(--done);font-weight:600}
+.pat-h .tick{margin-left:auto}.pat-h .pp{margin-left:0}
+.lab .badge{background:var(--soft);color:var(--fg)}.lab .badge .ic{width:16px;height:16px}
+.lab{border-left:2px solid var(--info-line)}
+.case{border:1px solid var(--line);border-left:2px solid var(--warn-line);background:var(--hd);border-radius:var(--r);padding:12px 16px;margin:14px 0}
+.case h4{margin:4px 0 6px;font-size:16px;color:var(--fg)}.case p{margin:6px 0}
+.qa{padding:0 14px}.qa summary{font-weight:600}
+.qa-b{padding:0 0 12px}.qa-b ul{margin:4px 0 10px;padding-left:20px}.qa-b li{margin:3px 0}
+.angle{background:var(--hd);border:1px solid var(--line);border-left:2px solid var(--info-line);border-radius:var(--r);padding:8px 12px;font-size:14px}
+table.playbook td:first-child{font-weight:600;color:var(--fg)}
+table.cheat td:first-child{font-family:ui-monospace,Consolas,monospace;font-size:13px;white-space:pre-wrap;color:var(--fg)}
+/* hub */
+.courses{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ccard{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden}
+.ccard .tcard-h{min-height:52px}.ccard .tcard-h h2{margin:0;font-size:19px;margin-right:auto;color:var(--fg)}
+.ccard .tcard-h .no{padding:5px 8px;display:inline-flex}.ccard .tcard-h .no .ic{width:18px;height:18px}
+.ticks{margin:0;padding-left:20px;font-size:14px;color:var(--txt)}.ticks li{margin:3px 0}
+.tcard.planned{opacity:.7;background:var(--hd)}.tcard.planned .no{background:var(--soft);color:var(--mut)}
+@media (max-width:820px){.courses{grid-template-columns:1fr}}
+/* diagrams */
+.viz{margin:8px 0;padding:10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+.viz figcaption{font-size:13px;color:var(--mut);margin-top:6px;text-align:center}
+.dg{width:100%;height:auto;display:block}
+.dg-box{fill:var(--hd);stroke:var(--line);stroke-width:1.5}.dg-box.acc{fill:var(--acc-soft);stroke:var(--acc)}.dg-box.ok{fill:var(--done-soft);stroke:var(--done)}.dg-box.warn{fill:var(--warn-soft);stroke:var(--warn-line)}.dg-box.ink{fill:var(--ink);stroke:var(--ink)}
+.dg-t{font:600 13px system-ui,sans-serif;fill:var(--fg)}.dg-t.ink{fill:var(--ink-fg)}.dg-s{font:12px system-ui,sans-serif;fill:var(--mut)}
+.dg-s.ink{fill:#cbd5e1}
+.dg-a{stroke:var(--faint);stroke-width:2}.dg-a.acc{stroke:var(--acc)}.dg-m{fill:var(--faint)}
+
+/* short view: folded detail inside lessons */
+details.more{border:0;border-left:2px solid var(--line);border-radius:0;padding:0 0 0 12px;margin:8px 0;background:none}
+details.more>summary{font-size:13px;font-weight:600;color:var(--info);display:inline-flex;align-items:center;gap:6px}
+details.more>summary svg{width:14px;height:14px}
+details.more[open]{border-left-color:var(--info-line)}
+.blk.warn details.more>summary{color:var(--warn-ink,var(--fg))}
+.quick details summary{font-weight:500}
+#b-density .t-short{display:none}
+@media(max-width:700px){#b-density .t-long{display:none}#b-density .t-short{display:inline}}
+
+/* reader: one step at a time */
+.vh{display:none!important}
+.vnav{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:28px 0 8px}
+body:not(.focus) .vnav{display:none}
+.vnav a{display:flex;flex-direction:column;gap:2px;padding:12px 16px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);text-decoration:none;color:var(--fg);box-shadow:var(--sh);transition:border-color .15s,background .15s}
+.vnav a:hover{border-color:var(--acc);background:var(--soft)}
+.vnav small{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:600}
+.vnav b{font-size:14px;font-weight:600;line-height:1.35}
+.vnav a.vn{text-align:right;align-items:flex-end;background:var(--ink);border-color:var(--ink);color:var(--ink-fg)}
+.vnav a.vn small{color:#cbd5e1}.vnav a.vn:hover{background:var(--ink);opacity:.92}
+.vpos{font-size:12px;color:var(--mut);white-space:nowrap}
+body:not(.focus) .vpos{display:none}
+#b-view .t-short{display:none}
+@media(max-width:700px){#b-view .t-long{display:none}#b-view .t-short{display:inline}.vnav{grid-template-columns:1fr}.vpos{display:none}}
+.chips a.on{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+@media print{.vh{display:block!important}.vnav,.vpos{display:none!important}}
+
+/* layout: content uses the room it is given; the left menu can be pinned open */
+body.has-rail{transition:padding-left .18s ease}
+body.has-rail .wrap{max-width:1680px}
+.wrap.has-track{grid-template-columns:232px minmax(0,1fr);gap:28px}
+aside.track{display:none}
+@media (min-width:1480px){.wrap.has-track{grid-template-columns:232px minmax(0,1fr) 268px}aside.track{display:block;position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto;padding:20px 0}}
+@media (min-width:1480px) and (max-width:1699px){body.rail-pinned .wrap.has-track{grid-template-columns:232px minmax(0,1fr)}body.rail-pinned aside.track{display:none}}
+@media (max-width:1020px){.wrap.has-track{display:block}aside.track{display:none!important}}
+body.rail-pinned{padding-left:240px}
+body.rail-pinned .rail{width:240px}
+body.rail-pinned .rail .l,body.rail-pinned .rail-g{opacity:1}
+body.rail-pinned .rail-sub{opacity:1;max-height:260px}
+.rail-pin{margin-top:auto;border:0;background:none;cursor:pointer;font:inherit;width:100%;text-align:left;color:var(--mut)}
+.rail-pin svg.ic{transition:transform .18s}
+body.rail-pinned .rail-pin svg.ic{transform:rotate(180deg)}
+@media (max-width:1020px){.rail-pin{display:none}body.rail-pinned{padding-left:0}}
+@media print{body.rail-pinned{padding-left:0}aside.track{display:none!important}}
+/* right-hand progress tracker */
+.tk{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--sh)}
+.tk-top{display:flex;align-items:center;gap:14px}
+.tk-ring{width:64px;height:64px;flex:none}
+.tk-ring circle{fill:none;stroke-width:6}
+.tk-ring .bg{stroke:var(--line)}
+.tk-ring .fg{stroke:var(--done);stroke-linecap:round;transition:stroke-dashoffset .4s ease}
+.tk-ring text{font:700 15px system-ui,sans-serif;fill:var(--fg)}
+.tk-top b{display:block;font-size:15px}
+.tk-top span{font-size:12.5px;color:var(--mut)}
+.tk h4{margin:16px 0 6px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.tk-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+.tk-list a{display:flex;gap:10px;align-items:flex-start;padding:7px 8px;border-radius:8px;text-decoration:none;color:var(--txt);font-size:13px;line-height:1.35}
+.tk-list a:hover{background:var(--soft)}
+.tk-list .d{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line);flex:none;margin-top:1px;display:grid;place-items:center;font-size:10px;line-height:1;color:#fff}
+.tk-list a.done .d{background:var(--done);border-color:var(--done)}
+.tk-list a.done .d::after{content:"¹3"}
+.tk-list a.cur{background:var(--acc-soft);color:var(--fg);font-weight:600}
+.tk-list a.cur .d{border-color:var(--acc)}
+.tk-go{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:14px;padding:9px 12px;border-radius:var(--r);background:var(--ink);color:var(--ink-fg);font-size:13px;font-weight:600;text-decoration:none}
+.tk-go:hover{opacity:.92}
+.tk-rev{display:block;margin-top:8px;text-align:center;font-size:12.5px;color:var(--info);text-decoration:none;font-weight:600}
+
+/* the three-line button only opens the left menu on small screens */
+.bar .rail-btn,.bar-in .rail-btn{display:none}
+@media (max-width:1020px){.bar .rail-btn,.bar-in .rail-btn{display:inline-flex}}
+
+/* quick revision page */
+.revise{max-width:1000px}
+.rv-top{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:6px 0 14px}
+.sel{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mut)}
+.sel select{font:inherit;font-size:13px;height:32px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);max-width:260px}
+.sel select:disabled{opacity:.5}
+.rv-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 10px}
+.rv-bar input[type=search]{width:100%;height:34px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:13.5px}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--txt);cursor:pointer}
+.mtag{display:inline-block;font:600 11px/1 system-ui,sans-serif;padding:3px 6px;border-radius:6px;background:var(--soft);color:var(--mut);margin-right:6px;vertical-align:1px}
+.co{display:inline-block;font:600 11px/1 system-ui,sans-serif;padding:3px 7px;border-radius:999px;background:var(--acc-soft);color:var(--acc);margin-left:6px;white-space:nowrap}
+.fc{border:1px solid var(--line);border-radius:14px;background:var(--surf);box-shadow:var(--sh);padding:28px 24px;min-height:200px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;outline-offset:3px}
+.fc:hover{border-color:var(--acc)}
+.fc-m{font-size:12px;color:var(--mut)}
+.fc-t{font-size:20px;line-height:1.5;font-weight:600;margin:18px 0;color:var(--fg)}
+.fc-h{font-size:12px;color:var(--mut)}
+.fc-a{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;justify-content:center}
+.how-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.hw{border:1px solid var(--line);border-radius:12px;background:var(--surf);padding:16px 18px;box-shadow:var(--sh)}
+.hw h3{margin:0 0 8px;font-size:16px}
+.hw ol,.hw ul{margin:6px 0 8px;padding-left:20px}.hw li{margin:3px 0}
+.hw .ex{margin-top:10px;padding:10px 14px;border-left:3px solid var(--info-line);background:var(--info-soft);border-radius:0 var(--r) var(--r) 0}
+.hw .ex p{margin:4px 0}
+
+.dg-life{stroke:var(--line);stroke-width:1.5;stroke-dasharray:4 4}
+.dg-a.dash{stroke-dasharray:5 4}
+.dg-a.bad{stroke:var(--warn-line)}
+.dg-t.acc{fill:var(--fg)}
+
+/* deep lessons: step-by-step flows, annotated real output, worked interview scenarios */
+.walk{list-style:none;counter-reset:w;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.walk li{counter-increment:w;position:relative;padding:10px 14px 10px 52px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+.walk li::before{content:counter(w);position:absolute;left:14px;top:10px;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--ink-fg);font:700 13px/26px system-ui,sans-serif;text-align:center}
+.walk li b{display:block;margin-bottom:2px}
+.walk li span{color:var(--txt);font-size:14px;line-height:1.55}
+.annot{margin:10px 0 0}
+.annot table{font-size:13px}
+.annot td:first-child{white-space:pre-wrap;word-break:break-word;min-width:160px}
+.scen{border:1px solid var(--info-line);background:var(--info-soft);border-radius:12px;padding:16px 18px;margin-top:18px}
+.scen h4{margin:6px 0 8px;font-size:17px}
+.scen .ask{font-size:15px;margin:0 0 6px}
+.scen-s{margin:12px 0}
+.scen-s ul,.scen-s ol{margin:6px 0 0;padding-left:22px}.scen-s li{margin:5px 0;line-height:1.55}
+.scen-s.warn{border-left:3px solid var(--warn-line);padding-left:12px}
+.scen details{background:var(--surf)}
+.scen details.more.scen-a{border:1px solid var(--line);border-left:3px solid var(--done);border-radius:var(--r);padding:0 14px;background:var(--surf)}
+.scen details.more.scen-a>summary{font-weight:700;color:var(--fg)}
+
+.sdfig{margin:18px 0}.sdfig svg{width:100%;height:auto;display:block}
+.sd-sh{fill:var(--surf);stroke:var(--faint);stroke-width:2}
+.sd-sh.ok{fill:var(--done-soft);stroke:var(--done)}.sd-sh.bad{fill:var(--bad-soft);stroke:var(--bad)}.sd-sh.warn{fill:var(--warn-soft);stroke:var(--warn)}.sd-sh.acc{fill:var(--acc-soft);stroke:var(--acc)}.sd-sh.ink{fill:var(--ink);stroke:var(--ink)}
+.sd-top{fill:var(--soft)}.sd-sh.ok.sd-top{fill:var(--done-soft)}
+.sd-pp{fill:var(--acc-soft);stroke:var(--acc);stroke-width:1.8}.sd-pp.bad{fill:var(--bad-soft);stroke:var(--bad)}.sd-pp.ok{fill:var(--done-soft);stroke:var(--done)}.sd-pp.warn{fill:var(--warn-soft);stroke:var(--warn)}
+.sd-ln{fill:var(--line);}.sd-ln2{fill:none;stroke:var(--faint);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sd-led{fill:var(--faint)}.sd-led.ok{fill:var(--done)}.sd-led.bad{fill:var(--bad)}.sd-led.warn{fill:var(--warn)}.sd-led.acc{fill:var(--acc)}
+.sd-bolt{fill:var(--acc)}.sd-bolt.ok{fill:var(--done)}.sd-bolt.warn{fill:var(--warn)}
+.sd-job{fill:var(--soft);stroke:var(--line);stroke-width:1}.sd-job.on{fill:var(--acc);stroke:var(--acc)}
+.sd-ex{fill:var(--bad)}
+.sd-arc{fill:none;stroke:var(--line);stroke-width:7;stroke-linecap:round}.sd-arc.on{stroke:var(--done)}.sd-arc.on.bad{stroke:var(--bad)}.sd-arc.on.warn{stroke:var(--warn)}
+.sd-needle{stroke:var(--fg);stroke-width:2.5;stroke-linecap:round}.sd-hub{fill:var(--fg)}
+.sd-gv{font:700 13px system-ui,sans-serif;fill:var(--fg)}.sd-gv.bad{fill:var(--bad)}.sd-gv.ok{fill:var(--done)}
+.sd-l{font:600 12.5px system-ui,sans-serif;fill:var(--fg)}.sd-c{font:11.5px system-ui,sans-serif;fill:var(--mut)}
+.sd-n{font:600 12px system-ui,sans-serif;fill:var(--mut)}.sd-n.bad{fill:var(--bad)}.sd-n.ok{fill:var(--done)}.sd-n.warn{fill:var(--warn)}.sd-n.acc{fill:var(--acc)}
+.sd-a{stroke:var(--faint);stroke-width:2.2;fill:none}.sd-a.acc{stroke:var(--acc)}.sd-a.ok{stroke:var(--done)}.sd-a.bad{stroke:var(--bad)}.sd-a.warn{stroke:var(--warn)}.sd-a.dash{stroke-dasharray:5 5}
+.sd-badge{fill:var(--soft);stroke:var(--line)}.sd-badge.ok{fill:var(--done-soft);stroke:var(--done)}.sd-badge.bad{fill:var(--bad-soft);stroke:var(--bad)}.sd-badge.warn{fill:var(--warn-soft);stroke:var(--warn)}.sd-badge.acc{fill:var(--acc-soft);stroke:var(--acc)}
+.sd-bt{font:700 11.5px system-ui,sans-serif;fill:var(--fg)}
+.sd-panel{fill:var(--surf);stroke:var(--line);stroke-width:1.5}.sd-panel.bad{fill:var(--bad-soft);stroke:var(--bad-line)}.sd-panel.ok{fill:var(--done-soft);stroke:var(--done-line)}.sd-panel.warn{fill:var(--warn-soft);stroke:var(--warn-line)}
+.sd-pt{font:700 13px system-ui,sans-serif;fill:var(--fg);letter-spacing:.2px}.sd-pt.bad{fill:var(--bad)}.sd-pt.ok{fill:var(--done)}.sd-pt.warn{fill:var(--warn)}
+.sd-pc{font:12.5px system-ui,sans-serif;fill:var(--txt)}
+
+.sdw{display:grid;grid-template-columns:230px minmax(0,1fr);gap:34px;max-width:1120px;margin:0 auto;padding:22px 20px 60px}
+.sdw main{min-width:0;max-width:780px}
+.sdnav{position:sticky;top:76px;align-self:start;font-size:13.5px}
+.sdnav h4{margin:0 0 8px;font-size:11.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--faint)}
+.sdnav a{display:flex;gap:9px;align-items:center;padding:6px 8px;border-radius:6px;color:var(--mut);text-decoration:none;border-left:3px solid transparent}
+.sdnav a b{width:20px;height:20px;border-radius:50%;background:var(--soft);color:var(--mut);display:inline-grid;place-items:center;font-size:11px;flex:none}
+.sdnav a:hover{background:var(--soft);color:var(--fg)}
+.sdnav a.on{color:var(--fg);font-weight:600;background:var(--acc-soft);border-left-color:var(--acc)}.sdnav a.on b{background:var(--acc);color:#fff}
+.sdnav .done{margin-top:14px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--surf);font-size:13px}
+.sdhero{padding:6px 0 10px}
+.sdhero .eyebrow{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--mut);margin-bottom:8px}
+.sdhero .tag{background:var(--acc-soft);color:var(--acc);border:1px solid var(--acc-line);padding:2px 9px;border-radius:999px;font-weight:600;font-size:12px}
+.sdhero h1{margin:0 0 8px;font-size:clamp(27px,4.2vw,38px);line-height:1.15;color:var(--fg);letter-spacing:-.4px}
+.sdhero .lead{font-size:17.5px;color:var(--txt);max-width:660px;margin:0 0 14px}
+.sdmeta{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px}.sdmeta span{background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:3px 11px;font-size:12.5px;color:var(--mut)}
+.sdsec{margin:38px 0 0;scroll-margin-top:84px}
+.sdsec>h2{display:flex;align-items:center;gap:11px;margin:0 0 4px;font-size:23px;color:var(--fg);letter-spacing:-.2px}
+.sdsec>h2 .n{width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--ink-fg);display:inline-grid;place-items:center;font-size:14px;font-weight:700;flex:none}
+.sdsec>h2 small{font-size:12.5px;font-weight:600;color:var(--faint);letter-spacing:.7px;text-transform:uppercase;margin-left:auto}
+.sdsec .sub{margin:0 0 14px;color:var(--mut)}
+.sdsec p{margin:0 0 12px}
+.sdstory{font-size:16.5px;line-height:1.75}
+.sdstory p:first-of-type::first-letter{float:left;font-size:44px;line-height:.9;padding:5px 8px 0 0;font-weight:800;color:var(--acc)}
+.sdquote{border-left:4px solid var(--acc);background:var(--acc-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0;color:var(--fg)}
+.sdquote p:last-child{margin-bottom:0}
+.sdone{background:var(--ink);color:var(--ink-fg);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:17px;line-height:1.5}
+.sdone b{color:inherit;border-bottom:2px solid var(--acc-line)}
+.sdsteps{list-style:none;margin:8px 0;padding:0;counter-reset:s;display:grid;gap:14px}
+.sdsteps>li{counter-increment:s;border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:14px 16px 6px 56px;position:relative;box-shadow:var(--sh)}
+.sdsteps>li::before{content:counter(s);position:absolute;left:14px;top:13px;width:30px;height:30px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font-weight:700}
+.sdsteps h3{margin:0 0 3px;font-size:17px;color:var(--fg)}.sdsteps p{margin:0 0 8px}
+.sdsteps .sdfig{margin:6px 0 8px}
+.sdgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:8px 0}
+.sdcard{border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:13px 15px;box-shadow:var(--sh)}
+.sdcard h3{margin:0 0 4px;font-size:15.5px;color:var(--fg);display:flex;gap:8px;align-items:center}.sdcard p{margin:0;font-size:14.5px}
+.sdcard.bad{border-color:var(--bad-line);background:var(--bad-soft)}.sdcard.ok{border-color:var(--done-line);background:var(--done-soft)}
+.sdreal{display:grid;gap:10px;margin:8px 0}
+.sdreal>div{border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:12px 15px;display:grid;grid-template-columns:110px 1fr;gap:14px}
+.sdreal b.co{color:var(--acc);font-size:14px}.sdreal p{margin:0 0 4px;font-size:14.5px}.sdreal a{font-size:13px}
+.sdnote{font-size:13px;color:var(--faint);margin:6px 0 0}
+.sdq{border:1px solid var(--line);background:var(--surf);border-radius:12px;margin:14px 0;box-shadow:var(--sh);overflow:hidden}
+.sdq>header{padding:14px 18px;background:var(--hd);border-bottom:1px solid var(--line)}
+.sdq>header .who{font-size:12px;color:var(--faint);text-transform:uppercase;letter-spacing:.7px;font-weight:600}
+.sdq>header h3{margin:2px 0 4px;font-size:18px;color:var(--fg)}.sdq>header p{margin:0;font-size:14.5px;color:var(--mut)}
+.sdq .body{padding:6px 18px 16px}
+.sdq h4{margin:16px 0 6px;font-size:12.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--faint)}
+.sdq ol.think{margin:0;padding-left:20px}.sdq ol.think li{margin:0 0 6px}.sdq ol.think li span{display:block;color:var(--mut);font-size:14.5px}
+.sdq .say{border-left:4px solid var(--done);background:var(--done-soft);padding:10px 15px;border-radius:0 8px 8px 0;font-size:15px}.sdq .say p{margin:0 0 8px}.sdq .say p:last-child{margin:0}
+.sdq .say .lbl2{display:block;font-size:11.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--done);font-weight:700;margin-bottom:4px}
+.sdq details{border:1px solid var(--line);border-radius:8px;margin:6px 0;background:var(--bg)}.sdq summary{cursor:pointer;padding:8px 12px;font-weight:600;color:var(--fg);font-size:14.5px}.sdq details p{margin:0;padding:0 12px 10px;font-size:14.5px}
+.sdq .slips{margin:0;padding-left:20px;color:var(--mut);font-size:14.5px}
+.sdrecap{border:1px solid var(--done-line);background:var(--done-soft);border-radius:12px;padding:6px 18px 12px}
+.sdrecap ul{margin:6px 0 10px;padding-left:20px}.sdrecap li{margin:0 0 5px}
+.sddeeper{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.sddeeper a{border:1px solid var(--line);border-radius:8px;padding:7px 12px;background:var(--surf);text-decoration:none;font-size:13.5px}
+.sdfoot{display:flex;justify-content:space-between;gap:12px;margin:40px 0 0}
+.sdfoot a{flex:1;border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:12px 16px;text-decoration:none;color:var(--fg);box-shadow:var(--sh)}
+.sdfoot a small{display:block;color:var(--faint);font-size:12px}.sdfoot a.r{text-align:right}
+.sdx{border:1px solid var(--line);background:var(--surf);border-radius:12px;padding:14px 18px 8px;margin:14px 0;box-shadow:var(--sh)}.sdx h3{margin:0 0 4px;font-size:17px;color:var(--fg);display:flex;gap:10px;align-items:center}.sdx .xn{width:26px;height:26px;border-radius:7px;background:var(--done);color:#fff;display:inline-grid;place-items:center;font-size:13px}.sdx .what{margin:0 0 8px;color:var(--txt)}.sdx pre.out{margin:6px 0 10px;max-height:340px;overflow:auto}.sdmore{margin:8px 0 6px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}.sdmore summary{cursor:pointer;padding:8px 12px;font-weight:600;font-size:14px;color:var(--acc)}.sdmore pre.sh{margin:0 12px 10px;max-height:380px;overflow:auto}.sdmore p{margin:0 12px 10px;font-size:14.5px}
+.sdtable{width:100%;border-collapse:collapse;font-size:14.5px;margin:8px 0}.sdtable th,.sdtable td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}.sdtable th{background:var(--soft);color:var(--fg)}
+.sdland .path{position:relative;margin:18px 0 8px;padding-left:44px}
+.sdland .path::before{content:"";position:absolute;left:-30px;top:12px;bottom:12px;width:3px;background:linear-gradient(var(--acc),var(--done));border-radius:2px}
+.sdland .node{position:relative;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:11px 15px;margin:0 0 10px;text-decoration:none;color:inherit;box-shadow:var(--sh)}
+.sdland .node::before{content:attr(data-n);position:absolute;left:-44px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;background:var(--surf);border:3px solid var(--acc);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--fg)}
+.sdland .node b{display:block;color:var(--fg);font-size:16px}.sdland .node span{color:var(--mut);font-size:13.5px}
+.sdland .node.soon{opacity:.6;background:var(--soft)}.sdland .node.soon::before{border-color:var(--line)}
+.sdland .node:not(.soon):hover{border-color:var(--acc);transform:translateX(2px)}
+.sdland .pill{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--done-soft);color:var(--done);border:1px solid var(--done-line);white-space:nowrap}
+.sdland .pill.soon{background:var(--soft);color:var(--faint);border-color:var(--line)}
+.sdland .tick-ok{color:var(--done);font-weight:700}
+.sdland h2{margin:34px 0 4px;font-size:24px;color:var(--fg)}
+.sdland .grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.sdland .pcard{border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:13px 15px;text-decoration:none;color:inherit;display:block;box-shadow:var(--sh)}
+.sdland .pcard b{display:block;color:var(--fg);font-size:15.5px;margin-bottom:2px}.sdland .pcard span{color:var(--mut);font-size:13.5px}.sdland .pcard .row{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.sdland .pcard.soon{opacity:.6;background:var(--soft)}.sdland .pcard:not(.soon):hover{border-color:var(--acc)}
+@media(max-width:1020px){.sdw{grid-template-columns:1fr;gap:0;padding:14px 14px 50px}.sdnav{position:static;display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:6px;-webkit-overflow-scrolling:touch}.sdnav h4,.sdnav .done{display:none}.sdnav a{flex:none;border:1px solid var(--line);border-radius:999px;padding:5px 11px;border-left-width:1px;white-space:nowrap}.sdnav a b{display:none}.sdreal>div{grid-template-columns:1fr;gap:4px}.sdsteps>li{padding-left:52px}}
+@media(max-width:560px){.sdsec>h2{font-size:20px}.sdsec>h2 small{display:none}.sdfoot{flex-direction:column}}
+</style></head>
+<body class="has-rail" data-sd="03-caching">
+<a class="skip" href="#content">Skip to content</a>
+<nav class="rail" id="rail" aria-label="Sections"><a class="rail-i rail-logo" href="../index.html" title="Mastery home"><span class="logo" aria-hidden="true">M</span><span class="l"><b>Mastery</b></span></a><div class="rail-g">Courses</div><a class="rail-i" href="../index.html" title="Home"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 7.5 8 2.5l5.5 5M4 6.5v7h8v-7"/></svg><span class="l">Home</span></a><a class="rail-i" href="../dsa.html" title="DSA Mastery"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m5.5 4.5-3.5 3.5 3.5 3.5M10.5 4.5l3.5 3.5-3.5 3.5"/></svg><span class="l">DSA Mastery</span></a><a class="rail-i" href="../design/index.html" aria-current="page" title="System design"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m8 2 6.5 3.5L8 9 1.5 5.5z"/><path d="m1.5 8.5 6.5 3.5 6.5-3.5"/></svg><span class="l">System design</span></a><a class="rail-i" href="../systems.html" title="Systems Mastery"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3" width="11" height="4" rx="1"/><rect x="2.5" y="9" width="11" height="4" rx="1"/><path d="M5 5h.01M5 11h.01"/></svg><span class="l">Systems Mastery</span></a><div class="rail-g">Tools</div><a class="rail-i" href="../revise.html" title="Quick revision"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg><span class="l">Quick revision</span></a><a class="rail-i" href="../plan.html" title="DSA study planner"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="10" rx="1.5"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/></svg><span class="l">DSA study planner</span></a><a class="rail-i" href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener" title="GitHub"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M9 2.5h4.5V7M13.5 2.5 7 9M12 9v4.5H2.5V4H7"/></svg><span class="l">GitHub</span></a><button class="rail-i rail-pin" id="rail-pin" type="button" aria-pressed="false" title="Keep the menu open"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg><span class="l">Pin menu</span></button></nav><div class="rail-bd" id="rail-bd" hidden></div>
+<header class="bar"><div class="bar-in"><button id="b-rail" class="iconbtn rail-btn" aria-label="Open the sections menu" aria-expanded="false" aria-controls="rail"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"/></svg></button><a class="brand" href="index.html" aria-label="System design home"><span class="logo" aria-hidden="true">SD</span><b>System <span>Design</span></b></a>
+<nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Course map</a><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3.5 4.5 4.5L6 12.5"/></svg><span class="cur">Chapter 3 · Make it fast</span></nav>
+<span style="margin-left:auto"></span><button id="b-theme" class="iconbtn" title="Toggle light / dark" aria-label="Toggle light or dark theme"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5a5.5 5.5 0 0 0 0 11z" fill="currentColor"/></svg></button></div></header>
+<div class="sdw"><nav class="sdnav" aria-label="On this page"><h4>On this page</h4><a href="#story"><b>1</b>The story</a><a href="#idea"><b>2</b>The idea</a><a href="#how"><b>3</b>How it works</a><a href="#try"><b>4</b>See it for real</a><a href="#breaks"><b>5</b>How it breaks</a><a href="#real"><b>6</b>Real companies</a><a href="#interview"><b>7</b>In the interview</a><a href="#recap"><b>8</b>Remember</a><label class="done"><input type="checkbox" id="sd-done"> I finished this page</label></nav>
+<main id="content" class="sdmain"><header class="sdhero"><div class="eyebrow"><span class="tag">Chapter 3 of 9</span>The ShopKart story</div><h1>Make it fast</h1><p class="lead">Why a tiny amount of memory in front of the database is the cheapest speed-up in system design, and why it is also the source of the most confusing bugs.</p><div class="sdmeta"><span>about 15 minutes</span><span>4 steps</span><span>3 real experiments</span><span>3 interview questions</span></div></header>
+<section class="sdsec" id="story"><h2><span class="n">1</span>Black Friday, 9:02 a.m.<small>The story</small></h2><div class="sdstory"><p>ShopKart is two years old and doing fine. Every product page makes six database queries: the product, its photos, the price, stock, reviews and related items. With a few hundred visitors an hour nobody cares.</p><p>Then Black Friday starts. At 9:02 the pager goes off: the site is crawling, then failing. The web servers are bored (CPU 15%). The database is at 96% and its queue is growing. Pages that took 80 milliseconds now take eight seconds, and customers are leaving.</p><p>The senior engineer looks at the query log and sees something odd: <strong>the same six queries, over and over, for the same forty popular products</strong>. The database is working very hard to give the same answers it gave a second ago. The fix is not a bigger database. It is a place to remember answers.</p></div><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 720 276" role="img" aria-label="ShopKart&#x27;s product page, three moments"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="sd-panel " x="0" y="0" width="230.667" height="276" rx="10"/><text class="sd-pt " x="14" y="26" text-anchor="start">Day 1</text><circle class="sd-pp" cx="98.33333333333333" cy="57.25" r="5.95"/><path class="sd-pp" d="M88.1333,82.75 v-6.8 a10.2,10.2 0 0 1 20.4,0 v6.8 z"/><circle class="sd-pp" cx="132.33333333333331" cy="63.25" r="5.95"/><path class="sd-pp" d="M122.133,88.75 v-6.8 a10.2,10.2 0 0 1 20.4,0 v6.8 z"/><g transform="translate(115.333 144) scale(0.9) translate(-115.333 -144)"><rect class="sd-sh" x="41.33333333333333" y="120" width="56" height="48" rx="7"/><rect class="sd-ln" x="51.33333333333333" y="132" width="28" height="4" rx="2"/><rect class="sd-ln" x="51.33333333333333" y="142" width="28" height="4" rx="2"/><circle class="sd-led " cx="86.33333333333333" cy="134" r="3"/><circle class="sd-led " cx="86.33333333333333" cy="144" r="3"/><rect class="sd-ln" x="51.33333333333333" y="152" width="36" height="4" rx="2"/><text class="sd-l" x="69.33333333333333" y="184" text-anchor="middle">web</text><path class="sd-sh ok" d="M139.33333333333331,128.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh ok sd-top" cx="161.33333333333331" cy="128.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M139.33333333333331,146 a22.0,9 0 0 0 44,0"/><text class="sd-l" x="161.33333333333331" y="186" text-anchor="middle">database</text><line class="sd-a ok" x1="101.33333333333333" y1="144" x2="133.33333333333331" y2="144" marker-end="url(#dga)"/></g><text class="sd-pc" x="115.333" y="224" text-anchor="middle">Ten visitors an hour. Every</text><text class="sd-pc" x="115.333" y="239" text-anchor="middle">page asks the database six</text><text class="sd-pc" x="115.333" y="254" text-anchor="middle">questions. Nobody notices.</text><rect class="sd-panel bad" x="244.667" y="0" width="230.667" height="276" rx="10"/><text class="sd-pt bad" x="258.667" y="26" text-anchor="start">Black Friday</text><circle class="sd-pp bad" cx="312.0" cy="59.2" r="5.04"/><path class="sd-pp bad" d="M303.36,80.8 v-5.76 a8.64,8.64 0 0 1 17.28,0 v5.76 z"/><circle class="sd-pp bad" cx="336.0" cy="65.2" r="5.04"/><path class="sd-pp bad" d="M327.36,86.8 v-5.76 a8.64,8.64 0 0 1 17.28,0 v5.76 z"/><circle class="sd-pp bad" cx="360.0" cy="59.2" r="5.04"/><path class="sd-pp bad" d="M351.36,80.8 v-5.76 a8.64,8.64 0 0 1 17.28,0 v5.76 z"/><circle class="sd-pp bad" cx="384.0" cy="65.2" r="5.04"/><path class="sd-pp bad" d="M375.36,86.8 v-5.76 a8.64,8.64 0 0 1 17.28,0 v5.76 z"/><circle class="sd-pp bad" cx="408.0" cy="59.2" r="5.04"/><path class="sd-pp bad" d="M399.36,80.8 v-5.76 a8.64,8.64 0 0 1 17.28,0 v5.76 z"/><g transform="translate(360 144) scale(0.9) translate(-360 -144)"><rect class="sd-sh warn" x="286.0" y="120" width="56" height="48" rx="7"/><rect class="sd-ln" x="296.0" y="132" width="28" height="4" rx="2"/><rect class="sd-ln" x="296.0" y="142" width="28" height="4" rx="2"/><circle class="sd-led warn" cx="331.0" cy="134" r="3"/><circle class="sd-led warn" cx="331.0" cy="144" r="3"/><rect class="sd-ln" x="296.0" y="152" width="36" height="4" rx="2"/><text class="sd-l" x="314.0" y="184" text-anchor="middle">web</text><path class="sd-sh bad" d="M384.0,128.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh bad sd-top" cx="406.0" cy="128.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M384.0,146 a22.0,9 0 0 0 44,0"/><text class="sd-l" x="406.0" y="186" text-anchor="middle">database</text><line class="sd-a bad" x1="346.0" y1="144" x2="378.0" y2="144" marker-end="url(#dga)"/><rect class="sd-badge bad" x="372.8" y="197" width="66.4" height="22" rx="11"/><text class="sd-bt bad" x="406.0" y="212" text-anchor="middle">CPU 96%</text></g><text class="sd-pc" x="360" y="224" text-anchor="middle">5,000 visitors a minute ask the</text><text class="sd-pc" x="360" y="239" text-anchor="middle">same six questions. The</text><text class="sd-pc" x="360" y="254" text-anchor="middle">database is overwhelmed and the</text><text class="sd-pc" x="360" y="269" text-anchor="middle">site stops.</text><rect class="sd-panel ok" x="489.333" y="0" width="230.667" height="276" rx="10"/><text class="sd-pt ok" x="503.333" y="26" text-anchor="start">With a cache</text><circle class="sd-pp ok" cx="556.6666666666666" cy="59.2" r="5.04"/><path class="sd-pp ok" d="M548.027,80.8 v-5.76 a8.64,8.64 0 0 1 17.28,0 v5.76 z"/><circle class="sd-pp ok" cx="580.6666666666666" cy="65.2" r="5.04"/><path class="sd-pp ok" d="M572.027,86.8 v-5.76 a8.64,8.64 0 0 1 17.28,0 v5.76 z"/><circle class="sd-pp ok" cx="604.6666666666666" cy="59.2" r="5.04"/><path class="sd-pp ok" d="M596.027,80.8 v-5.76 a8.64,8.64 0 0 1 17.28,0 v5.76 z"/><circle class="sd-pp ok" cx="628.6666666666666" cy="65.2" r="5.04"/><path class="sd-pp ok" d="M620.027,86.8 v-5.76 a8.64,8.64 0 0 1 17.28,0 v5.76 z"/><circle class="sd-pp ok" cx="652.6666666666666" cy="59.2" r="5.04"/><path class="sd-pp ok" d="M644.027,80.8 v-5.76 a8.64,8.64 0 0 1 17.28,0 v5.76 z"/><g transform="translate(604.667 144) scale(0.78) translate(-604.667 -144)"><rect class="sd-sh ok" x="510.66666666666663" y="120" width="56" height="48" rx="7"/><rect class="sd-ln" x="520.6666666666666" y="132" width="28" height="4" rx="2"/><rect class="sd-ln" x="520.6666666666666" y="142" width="28" height="4" rx="2"/><circle class="sd-led ok" cx="555.6666666666666" cy="134" r="3"/><circle class="sd-led ok" cx="555.6666666666666" cy="144" r="3"/><rect class="sd-ln" x="520.6666666666666" y="152" width="36" height="4" rx="2"/><text class="sd-l" x="538.6666666666666" y="184" text-anchor="middle">web</text><rect class="sd-sh ok" x="578.6666666666666" y="122" width="52" height="44" rx="10"/><path class="sd-bolt ok" d="M607.6666666666666,129 L594.6666666666666,147 L603.6666666666666,147 L599.6666666666666,159 L614.6666666666666,140 L605.6666666666666,140 z"/><text class="sd-l" x="604.6666666666666" y="182" text-anchor="middle">cache</text><path class="sd-sh ok" d="M648.6666666666666,128.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh ok sd-top" cx="670.6666666666666" cy="128.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M648.6666666666666,146 a22.0,9 0 0 0 44,0"/><text class="sd-l" x="670.6666666666666" y="186" text-anchor="middle">database</text><line class="sd-a ok" x1="568.6666666666666" y1="144" x2="576.6666666666666" y2="144" marker-end="url(#dga)"/><line class="sd-a warn dash" x1="632.6666666666666" y1="144" x2="642.6666666666666" y2="144" marker-end="url(#dga)"/></g><text class="sd-pc" x="604.667" y="224" text-anchor="middle">95 of every 100 answers come</text><text class="sd-pc" x="604.667" y="239" text-anchor="middle">from memory in about a</text><text class="sd-pc" x="604.667" y="254" text-anchor="middle">millisecond. The database</text><text class="sd-pc" x="604.667" y="269" text-anchor="middle">finally relaxes.</text></svg><figcaption>The same shop on three days: nothing changed except where the answers come from.</figcaption></figure></section>
+<section class="sdsec" id="idea"><h2><span class="n">2</span>The idea: remember the answer<small>The idea</small></h2><div class="sdone">A <strong>cache</strong> is a small, fast place that remembers answers you already worked out, so the next person who asks does not make the slow system do the work again.</div><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 720 266" role="img" aria-label="Cache-aside: ask the cache first, the database only on a miss"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><circle class="sd-pp" cx="60" cy="61.25" r="8.75"/><path class="sd-pp" d="M45,98.75 v-10 a15,15 0 0 1 30,0 v10 z"/><text class="sd-n " x="60" y="130" text-anchor="middle">Customer</text><line class="sd-a acc" x1="94" y1="80" x2="166" y2="80" marker-end="url(#dga)"/><rect class="sd-sh" x="172" y="54" width="56" height="48" rx="7"/><rect class="sd-ln" x="182" y="66" width="28" height="4" rx="2"/><rect class="sd-ln" x="182" y="76" width="28" height="4" rx="2"/><circle class="sd-led " cx="217" cy="68" r="3"/><circle class="sd-led " cx="217" cy="78" r="3"/><rect class="sd-ln" x="182" y="86" width="36" height="4" rx="2"/><text class="sd-l" x="200" y="118" text-anchor="middle">Web server</text><line class="sd-a acc" x1="234" y1="78" x2="316" y2="78" marker-end="url(#dga)"/><text class="sd-c" x="275.0" y="71.0" text-anchor="middle">1. ask</text><rect class="sd-sh ok" x="324" y="56" width="52" height="44" rx="10"/><path class="sd-bolt ok" d="M353,63 L340,81 L349,81 L345,93 L360,74 L351,74 z"/><text class="sd-l" x="350" y="116" text-anchor="middle">Cache</text><text class="sd-c" x="350" y="130" text-anchor="middle">memory, ~0.1 ms</text><rect class="sd-badge ok" x="291.6" y="155" width="116.8" height="22" rx="11"/><text class="sd-bt ok" x="350" y="170" text-anchor="middle">HIT: 95 of 100</text><line class="sd-a warn dash" x1="384" y1="78" x2="484" y2="78" marker-end="url(#dga)"/><text class="sd-c" x="434.0" y="71.0" text-anchor="middle">2. miss</text><path class="sd-sh" d="M498.0,62.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh sd-top" cx="520" cy="62.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M498.0,80 a22.0,9 0 0 0 44,0"/><text class="sd-l" x="520" y="120" text-anchor="middle">Database</text><text class="sd-c" x="520" y="134" text-anchor="middle">disk, ~10 ms</text><rect class="sd-badge warn" x="461.6" y="155" width="116.8" height="22" rx="11"/><text class="sd-bt warn" x="520" y="170" text-anchor="middle">MISS: 5 of 100</text><path class="sd-a warn" d="M520,179 V206 H350 V183" fill="none" marker-end="url(#dga)"/><text class="sd-n warn" x="435" y="226" text-anchor="middle">3. save the answer for next time</text><text class="sd-n " x="360" y="254" text-anchor="middle">A hit never touches the database. A miss pays once; then the next hundred visitors get a hit.</text></svg></figure><p>It works because real traffic is <strong>lopsided</strong>: a few items get most of the requests. Remembering only the hottest 5 to 20 percent of items can answer 70 to 90 percent of requests. Caches exist at every level (browser, CDN, web server, Redis, the database's own memory), and a request stops at the first level that has the answer.</p></section>
+<section class="sdsec" id="how"><h2><span class="n">3</span>How it works, step by step<small>How it works</small></h2><ol class="sdsteps"><li><h3>Look in the cache first</h3><p>Every question has a <strong>key</strong>, such as <code>product:42</code>. The web server asks the cache for that key before anything else. Memory is about a hundred times faster than disk.</p><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 640 100" role="img" aria-label="Lookup in the cache by key"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="sd-sh" x="32" y="20" width="56" height="48" rx="7"/><rect class="sd-ln" x="42" y="32" width="28" height="4" rx="2"/><rect class="sd-ln" x="42" y="42" width="28" height="4" rx="2"/><circle class="sd-led " cx="77" cy="34" r="3"/><circle class="sd-led " cx="77" cy="44" r="3"/><rect class="sd-ln" x="42" y="52" width="36" height="4" rx="2"/><line class="sd-a acc" x1="90" y1="44" x2="190" y2="44" marker-end="url(#dga)"/><text class="sd-c" x="140.0" y="37.0" text-anchor="middle">ask for product:42</text><rect class="sd-sh" x="200" y="22" width="52" height="44" rx="10"/><path class="sd-bolt " d="M229,29 L216,47 L225,47 L221,59 L236,40 L227,40 z"/><text class="sd-l" x="226" y="82" text-anchor="middle">cache</text><line class="sd-a ok" x1="254" y1="44" x2="360" y2="44" marker-end="url(#dga)"/><text class="sd-c" x="307.0" y="37.0" text-anchor="middle">found</text><rect class="sd-badge ok" x="389.6" y="33" width="80.8" height="22" rx="11"/><text class="sd-bt ok" x="430" y="48" text-anchor="middle">return it</text><text class="sd-n ok" x="560" y="48" text-anchor="middle">no database call</text></svg></figure></li><li><h3>On a miss, ask the database, then remember the answer</h3><p>If the key is not there (never asked, expired, or pushed out), read the database <strong>once</strong>, save the answer in the cache, and return it. This is called <strong>cache-aside</strong>, and it is the pattern most real systems use.</p><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 640 104" role="img" aria-label="Cache-aside on a miss"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="sd-sh warn" x="34" y="22" width="52" height="44" rx="10"/><path class="sd-bolt warn" d="M63,29 L50,47 L59,47 L55,59 L70,40 L61,40 z"/><text class="sd-l" x="60" y="82" text-anchor="middle">cache</text><line class="sd-a warn" x1="90" y1="44" x2="170" y2="44" marker-end="url(#dga)"/><text class="sd-c" x="130.0" y="37.0" text-anchor="middle">miss</text><path class="sd-sh" d="M188.0,28.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh sd-top" cx="210" cy="28.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M188.0,46 a22.0,9 0 0 0 44,0"/><text class="sd-l" x="210" y="86" text-anchor="middle">database</text><line class="sd-a ok" x1="240" y1="44" x2="340" y2="44" marker-end="url(#dga)"/><text class="sd-c" x="290.0" y="37.0" text-anchor="middle">answer</text><rect class="sd-sh ok" x="354" y="22" width="52" height="44" rx="10"/><path class="sd-bolt ok" d="M383,29 L370,47 L379,47 L375,59 L390,40 L381,40 z"/><text class="sd-l" x="380" y="82" text-anchor="middle">cache</text><rect class="sd-badge ok" x="436" y="33" width="88" height="22" rx="11"/><text class="sd-bt ok" x="480" y="48" text-anchor="middle">now stored</text><text class="sd-n ok" x="580" y="48" text-anchor="middle">next one hits</text></svg></figure></li><li><h3>Decide how long to remember</h3><p>A cached answer can go stale. Give every entry a <strong>time to live (TTL)</strong> as a safety net, and <strong>delete the entry whenever you change the data</strong>, so the next read refills it with the new value. When memory is full, the cache throws away the least recently used entries.</p><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 640 116" role="img" aria-label="Expiry and invalidation"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><circle class="sd-sh" cx="60" cy="40" r="20"/><path class="sd-ln2" d="M60,28 V40 L69,45"/><text class="sd-l" x="60" y="76" text-anchor="middle">TTL 5 min</text><text class="sd-n acc" x="150" y="44" text-anchor="start">expires by itself</text><circle class="sd-pp" cx="330" cy="25.75" r="6.65"/><path class="sd-pp" d="M318.6,54.25 v-7.6 a11.4,11.4 0 0 1 22.8,0 v7.6 z"/><line class="sd-a warn" x1="352" y1="40" x2="430" y2="40" marker-end="url(#dga)"/><text class="sd-c" x="391.0" y="33.0" text-anchor="middle">write</text><path class="sd-sh" d="M458.0,24.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh sd-top" cx="480" cy="24.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M458.0,42 a22.0,9 0 0 0 44,0"/><text class="sd-l" x="480" y="82" text-anchor="middle">database</text><text class="sd-n warn" x="320" y="104" text-anchor="middle">after every write: update the database, then DELETE the cache entry</text></svg></figure></li><li><h3>Protect the database from the crowd</h3><p>When a very popular entry expires, thousands of requests miss together and all ask the database at once: a <strong>stampede</strong>. Let <strong>one</strong> request rebuild it while the others wait, spread the expiry times with a little random jitter, and cache "not found" for missing keys.</p><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 640 108" role="img" aria-label="Stampede protection"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><circle class="sd-pp bad" cx="34.0" cy="29.5" r="4.9"/><path class="sd-pp bad" d="M25.6,50.5 v-5.6 a8.4,8.4 0 0 1 16.8,0 v5.6 z"/><circle class="sd-pp bad" cx="58.0" cy="35.5" r="4.9"/><path class="sd-pp bad" d="M49.6,56.5 v-5.6 a8.4,8.4 0 0 1 16.8,0 v5.6 z"/><circle class="sd-pp bad" cx="82.0" cy="29.5" r="4.9"/><path class="sd-pp bad" d="M73.6,50.5 v-5.6 a8.4,8.4 0 0 1 16.8,0 v5.6 z"/><circle class="sd-pp bad" cx="106.0" cy="35.5" r="4.9"/><path class="sd-pp bad" d="M97.6,56.5 v-5.6 a8.4,8.4 0 0 1 16.8,0 v5.6 z"/><line class="sd-a bad" x1="130" y1="40" x2="210" y2="40" marker-end="url(#dga)"/><text class="sd-c" x="170.0" y="33.0" text-anchor="middle">1,000 misses</text><path class="sd-sh bad" d="M240,20 L261,56 L219,56 z"/><rect class="sd-ex" x="238.4" y="32" width="3.2" height="12" rx="1.4"/><circle class="sd-ex" cx="240" cy="49" r="2"/><line class="sd-a ok" x1="270" y1="40" x2="350" y2="40" marker-end="url(#dga)"/><rect class="sd-badge ok" x="344.8" y="29" width="210.4" height="22" rx="11"/><text class="sd-bt ok" x="450" y="44" text-anchor="middle">one rebuilds, the rest wait</text><text class="sd-n ok" x="450" y="90" text-anchor="middle">a lock with an expiry (SET NX)</text></svg></figure></li></ol></section>
+<section class="sdsec" id="try"><h2><span class="n">4</span>See it for real<small>Real experiments</small></h2><p class="sub">Every output below was recorded from a real run on Debian Linux as an ordinary user. Read it line by line.</p><div class="sdexp"><p>Three experiments, each a few lines of code you can run and change. First: what does a cache actually save? Then: why stale data appears, and the fix. Then: what a stampede looks like, and how one lock stops it.</p><article class="sdx"><h3><span class="xn">1</span>What does a cache actually save?</h3><p class="what">The whole idea in one experiment. A pretend database call takes 50 ms. Twenty identical lookups cost a full second without a cache. With a cache, the first lookup is a miss (50 ms, and the answer is stored) and the other nineteen are hits that take a fraction of a millisecond. Redis itself counts hits and misses, which is the number you watch in production.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>20 lookups without a cache:   1008 ms  (50.4 ms each)
+20 lookups with a cache:        60 ms  (3.0 ms each)
+Redis counted: 19 hits, 1 miss, hit ratio 95%</code></pre><div class="annot"><span class="lbl">Read it line by line</span><div class="tw"><table><thead><tr><th>In the output</th><th>What it means</th></tr></thead><tbody><tr><td><code>20 lookups without a cache ... 50.x ms each</code></td><td>every call pays the full price: 20 x 50 ms = about one second</td></tr><tr><td><code>20 lookups with a cache ... about 53 ms</code></td><td>one miss (50 ms) plus 19 hits at about 0.1 ms each</td></tr><tr><td><code>19 hits, 1 miss, hit ratio 95%</code></td><td>from Redis's own counters: the hit ratio explains the speed-up, since average = 0.95 x 0.1 ms + 0.05 x 50 ms</td></tr></tbody></table></div></div><details class="sdmore"><summary>Show the command and the full explanation</summary><pre class="sh"><code>. ~/cache/rig.sh; redisup; cd ~/cache; cat &gt; slow.py &lt;&lt;&#x27;EOF&#x27;
+import sys, time
+sys.path.insert(0, &#x27;.&#x27;)
+from rc import R, stat
+r = R()
+def slow_lookup(key):
+    time.sleep(0.05)                       # pretend this is a database query that takes 50 ms
+    return &#x27;value-for-&#x27; + key
+def cached_lookup(key):
+    v = r.cmd(&#x27;GET&#x27;, key)
+    if v is None:                          # miss: do the slow thing once, remember the answer
+        v = slow_lookup(key)
+        r.cmd(&#x27;SET&#x27;, key, v, &#x27;EX&#x27;, 60)
+    return v
+r.cmd(&#x27;CONFIG&#x27;, &#x27;RESETSTAT&#x27;)
+t = time.perf_counter()
+for _ in range(20): slow_lookup(&#x27;item:1&#x27;)
+without = (time.perf_counter() - t) * 1000
+t = time.perf_counter()
+for _ in range(20): cached_lookup(&#x27;item:1&#x27;)
+with_cache = (time.perf_counter() - t) * 1000
+hits, misses = stat(r, &#x27;keyspace_hits&#x27;), stat(r, &#x27;keyspace_misses&#x27;)
+print(&#x27;20 lookups without a cache: %6.0f ms  (%.1f ms each)&#x27; % (without, without / 20))
+print(&#x27;20 lookups with a cache:    %6.0f ms  (%.1f ms each)&#x27; % (with_cache, with_cache / 20))
+print(&#x27;Redis counted: %d hits, %d miss, hit ratio %d%%&#x27; % (hits, misses, 100 * hits / (hits + misses)))
+EOF
+python3 slow.py; redisdown</code></pre><p class="muted">The same code runs on any Debian or Ubuntu machine as an ordinary user; nothing needs root.</p></details></article><article class="sdx"><h3><span class="xn">2</span>Why stale data appears, and the fix</h3><p class="what">Cache-aside and its staleness problem, in a few lines. The first read is a miss (one database read), the second a hit (no database read). Then the database changes and nobody tells the cache: the next read returns the <strong>old</strong> value. Deleting the key on write fixes it (the next read reloads the new value). Write-through also gives a fresh value without any extra database read, because the cache was updated together with the database.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>read 1: Asha (plan v1)    (database reads so far: 1)
+read 2: Asha (plan v1)    (database reads so far: 1)
+after an update, no invalidation:  Asha (plan v1)    &lt;- STALE
+after delete-on-write:             Asha (plan v2)
+after write-through:               Asha (plan v3)    (database reads: 2, no extra read needed)</code></pre><div class="annot"><span class="lbl">Read it line by line</span><div class="tw"><table><thead><tr><th>In the output</th><th>What it means</th></tr></thead><tbody><tr><td><code>read 1 ... (database reads so far: 1)</code></td><td>a miss: the value came from the database and was stored</td></tr><tr><td><code>read 2 ... (database reads so far: 1)</code></td><td>a hit: still one database read in total</td></tr><tr><td><code>after an update, no invalidation: Asha (plan v1)   &lt;- STALE</code></td><td>the cache still holds the old value for up to the TTL (five minutes here): the central weakness of caching</td></tr><tr><td><code>after delete-on-write: Asha (plan v2)</code></td><td>deleting the key forced a miss, so the fresh value was loaded and cached</td></tr><tr><td><code>after write-through: Asha (plan v3)</code></td><td>cache and database were updated together, so the next read is a hit that is already fresh</td></tr></tbody></table></div></div><details class="sdmore"><summary>Show the command and the full explanation</summary><pre class="sh"><code>. ~/cache/rig.sh; redisup; cd ~/cache; cat &gt; patterns.py &lt;&lt;&#x27;EOF&#x27;
+import sys
+sys.path.insert(0, &#x27;.&#x27;)
+from rc import R
+r = R(); r.cmd(&#x27;FLUSHALL&#x27;)
+db = {&#x27;user:1&#x27;: &#x27;Asha (plan v1)&#x27;}; db_reads = [0]
+def db_read(k):
+    db_reads[0] += 1; return db[k]
+def get(k):                                          # cache-aside read
+    v = r.cmd(&#x27;GET&#x27;, k)
+    if v is None:
+        v = db_read(k); r.cmd(&#x27;SET&#x27;, k, v, &#x27;EX&#x27;, 300)
+    return v
+print(&#x27;read 1:&#x27;, get(&#x27;user:1&#x27;), &#x27;   (database reads so far: %d)&#x27; % db_reads[0])
+print(&#x27;read 2:&#x27;, get(&#x27;user:1&#x27;), &#x27;   (database reads so far: %d)&#x27; % db_reads[0])
+db[&#x27;user:1&#x27;] = &#x27;Asha (plan v2)&#x27;                      # the database changes; nobody tells the cache
+print(&#x27;after an update, no invalidation: &#x27;, get(&#x27;user:1&#x27;), &#x27;   &lt;- STALE&#x27;)
+r.cmd(&#x27;DEL&#x27;, &#x27;user:1&#x27;)                               # invalidate on write
+print(&#x27;after delete-on-write:            &#x27;, get(&#x27;user:1&#x27;))
+db[&#x27;user:1&#x27;] = &#x27;Asha (plan v3)&#x27;; r.cmd(&#x27;SET&#x27;, &#x27;user:1&#x27;, &#x27;Asha (plan v3)&#x27;, &#x27;EX&#x27;, 300)   # write-through
+print(&#x27;after write-through:              &#x27;, get(&#x27;user:1&#x27;), &#x27;   (database reads: %d, no extra read needed)&#x27; % db_reads[0])
+EOF
+python3 patterns.py; redisdown</code></pre><p class="muted">The same code runs on any Debian or Ubuntu machine as an ordinary user; nothing needs root.</p></details></article><article class="sdx"><h3><span class="xn">3</span>A stampede, and how one lock stops it</h3><p class="what">Forty requests ask for the same expired key at once. Without protection, nearly all of them miss and each runs the 300 ms query: forty database calls for one answer. With the lock, one caller wins <code>SET ... NX</code> and rebuilds the entry while the other thirty-nine poll the cache and return as soon as it appears: <strong>one</strong> database call. Same latency for users, one fortieth of the load for the database.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>no protection  40 simultaneous requests -&gt; 40 expensive database calls, finished in  336 ms
+with a lock    40 simultaneous requests -&gt;  1 expensive database calls, finished in  342 ms</code></pre><div class="annot"><span class="lbl">Read it line by line</span><div class="tw"><table><thead><tr><th>In the output</th><th>What it means</th></tr></thead><tbody><tr><td><code>no protection ... ~40 expensive database calls</code></td><td>every request missed and recomputed: the stampede (the exact count depends on timing, but it is close to the number of requests)</td></tr><tr><td><code>with a lock ... 1 expensive database call</code></td><td><code>SET page:lock 1 NX PX 5000</code> succeeds for exactly one caller; the lock expires after 5 s even if that caller crashes</td></tr><tr><td><code>finished in ~330 ms</code></td><td>the waiters complete just after the winner's 300 ms rebuild: users wait about the same, the database does 1/40th of the work</td></tr></tbody></table></div></div><details class="sdmore"><summary>Show the command and the full explanation</summary><pre class="sh"><code>. ~/cache/rig.sh; redisup; cd ~/cache; cat &gt; stampede.py &lt;&lt;&#x27;EOF&#x27;
+import sys, threading, time
+sys.path.insert(0, &#x27;.&#x27;)
+from rc import R
+calls = [0]; guard = threading.Lock()
+def expensive():
+    with guard: calls[0] += 1
+    time.sleep(0.3)                                  # an expensive query: 300 ms
+    return &#x27;page&#x27;
+def naive(r):
+    if r.cmd(&#x27;GET&#x27;, &#x27;page&#x27;) is None:
+        r.cmd(&#x27;SET&#x27;, &#x27;page&#x27;, expensive(), &#x27;EX&#x27;, 60)
+def guarded(r):
+    if r.cmd(&#x27;GET&#x27;, &#x27;page&#x27;) is not None: return
+    if r.cmd(&#x27;SET&#x27;, &#x27;page:lock&#x27;, &#x27;1&#x27;, &#x27;NX&#x27;, &#x27;PX&#x27;, 5000):         # only ONE caller wins the lock
+        r.cmd(&#x27;SET&#x27;, &#x27;page&#x27;, expensive(), &#x27;EX&#x27;, 60); r.cmd(&#x27;DEL&#x27;, &#x27;page:lock&#x27;)
+    else:                                                        # everybody else waits for the winner
+        for _ in range(100):
+            time.sleep(0.02)
+            if r.cmd(&#x27;GET&#x27;, &#x27;page&#x27;) is not None: return
+def run(fn):
+    R().cmd(&#x27;FLUSHALL&#x27;); calls[0] = 0
+    ts = [threading.Thread(target=fn, args=(R(),)) for _ in range(40)]
+    t = time.perf_counter(); [x.start() for x in ts]; [x.join() for x in ts]
+    return calls[0], (time.perf_counter() - t) * 1000
+for name, fn in ((&#x27;no protection&#x27;, naive), (&#x27;with a lock&#x27;, guarded)):
+    n, ms = run(fn)
+    print(&#x27;%-14s 40 simultaneous requests -&gt; %2d expensive database calls, finished in %4.0f ms&#x27; % (name, n, ms))
+EOF
+python3 stampede.py; redisdown</code></pre><p class="muted">The same code runs on any Debian or Ubuntu machine as an ordinary user; nothing needs root.</p></details></article></div></section>
+<section class="sdsec" id="breaks"><h2><span class="n">5</span>How it breaks in production<small>Failure modes</small></h2><div class="sdgrid"><div class="sdcard "><h3><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg> Stale data</h3><p>The database changed and the cache still holds the old answer. Fix: delete the entry on every write, and keep a TTL as a safety net. Never cache what must be exactly current (balances, checkout stock).</p></div><div class="sdcard bad"><h3><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg> Stampede</h3><p>A hot entry expires and a thousand requests rebuild it together. Fix: one request rebuilds under a lock, TTLs get random jitter, the hottest keys refresh ahead of expiry.</p></div><div class="sdcard "><h3><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg> Missing keys</h3><p>Requests for things that do not exist always miss and always reach the database (a bug or an attack). Fix: cache "not found" for a short time, validate input.</p></div><div class="sdcard "><h3><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg> Cold start</h3><p>After a restart the cache is empty and the database takes the full load. Fix: warm it before taking traffic, restart nodes gradually, and rate limit as a backstop.</p></div><div class="sdcard bad"><h3><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg> Too small</h3><p>Memory fills, hot entries are evicted, and the hit ratio falls from 95% to 60%: the database load jumps eight-fold. Fix: size from the hot set, watch evictions and hit ratio.</p></div></div></section>
+<section class="sdsec" id="real"><h2><span class="n">6</span>How real companies do it<small>Real companies</small></h2><div class="sdreal"><div><b class="co">Facebook</b><div><p>The paper on scaling memcache describes a <strong>lease</strong> mechanism: when a popular key is invalidated, only one client gets permission to refill it, which prevents a thundering herd and also stops stale values being written back.</p><a href="https://www.usenix.org/conference/nsdi13/technical-sessions/presentation/nishtala" target="_blank" rel="noopener">Scaling Memcache at Facebook (NSDI 2013)</a></div></div><div><b class="co">Netflix</b><div><p>Netflix has written about <strong>EVCache</strong>, a distributed in-memory cache built on memcached and replicated across zones, used so that most reads never reach the persistent stores.</p><a href="https://netflixtechblog.com/caching-for-a-global-netflix-7bcc457012f1" target="_blank" rel="noopener">Netflix Tech Blog: Caching for a Global Netflix</a></div></div><div><b class="co">Everyone</b><div><p>Browsers and CDNs apply the same idea to web content: <code>Cache-Control</code>, <code>ETag</code> and <code>304 Not Modified</code> let copies near the user be reused safely.</p><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching" target="_blank" rel="noopener">MDN: HTTP caching</a></div></div></div><p class="sdnote">Summaries of public engineering write-ups; check the linked source for details.</p></section>
+<section class="sdsec" id="interview"><h2><span class="n">7</span>In the interview<small>Top-company questions</small></h2><p class="sub">Say your answer aloud first, then compare with the model answer. Companies are not published official lists; these are the shapes of question candidates report.</p><article class="sdq"><header><span class="who">A common system design prompt: reported by candidates at large tech companies, not official.</span><h3>&quot;Walk me through adding caching to a slow product page, end to end.&quot;</h3><p>The capstone question for this chapter. They want a structured plan that uses what you know: measure, choose levels, patterns, sizing, failure handling, verification.</p></header><div class="body"><h4>1. Ask first</h4><ul><li><b>What is the traffic, the page's content mix, and how fresh must prices and stock be?</b> <span class='muted'>Prices tolerate a minute; stock at checkout must be exact.</span></li></ul><h4>2. How to think about it</h4><ol class='think'><li><b>Measure first.</b><span>Profile the page: which queries are slow, how many times each runs, and what fraction of requests ask for the same products (skew).</span></li><li><b>Split by volatility.</b><span>Product description and images: change rarely, cacheable for hours, CDN. Price: changes sometimes, tolerates a minute, cache with short TTL and invalidate on change. Stock level at checkout: not cached. Personalisation: separate, private.</span></li><li><b>Choose levels.</b><span>CDN for images and the shared part of the HTML; Redis for the assembled product data and expensive queries; database untouched except on a miss.</span></li><li><b>Pick patterns and settings.</b><span>Cache-aside with TTLs by data type, delete on write, jittered TTLs, a lock for rebuilds of the hottest products, negative caching for unknown IDs.</span></li><li><b>Size it.</b><span>Hot set of products times value size times measured overhead, plus headroom, sharded with replicas; use the hit-ratio curve to choose a target such as 90 percent rather than 99.</span></li><li><b>Plan for failure and cold start.</b><span>If Redis is down the page must still work (slower): timeouts on cache calls, fall back to the database with a rate limit. Warm the cache before a big sale.</span></li><li><b>Verify with numbers.</b><span>Before and after: database queries per second, page p50 and p99, hit ratio, evictions; run a load test including an expiry event.</span></li></ol><h4>3. How to say it</h4><div class="say"><span class="lbl2">A model answer, about two minutes aloud</span><p>"I would start by measuring: which queries make the page slow, how often each runs, and how skewed the traffic is across products. Then I split the page by how it changes. Images and descriptions are static enough for the CDN with fingerprinted URLs. The assembled product data goes in Redis with cache-aside, a TTL by data type, and delete-on-write so edits show up quickly. Price tolerates a minute of staleness, stock at checkout is read from the database and never cached, and personalisation is loaded separately and kept private.</p><p>To protect the database I would add jitter to TTLs, a lock so only one request rebuilds a hot product, and negative caching for unknown IDs. I would size Redis from the hot set times the measured per-key memory with headroom, sharded with replicas, aiming for something like a 90 percent hit ratio since the curve flattens after that. If Redis fails, the page must still work, with timeouts on cache calls and a rate-limited fallback to the database. I would verify with before and after numbers: database queries per second, p50 and p99 latency, hit ratio and evictions, including a load test through a key expiry."</p></div><h4>4. Likely follow-ups</h4><details><summary>How do you know the cache is not serving wrong prices?</summary><p>Bound staleness with TTL and delete-on-write, sample cache against the database in a background check and alert on divergence, and make price changes publish an invalidation event.</p></details><details><summary>The page is still slow on a cache hit. Why?</summary><p>The time may not be in the data fetch: rendering, serialisation, large payloads, many sequential cache calls (batch them with MGET or pipelining), or other services. Profile before adding more caching.</p></details><details><summary>How would you prepare for a flash sale?</summary><p>Pre-warm the cache for sale items, raise TTLs for the duration, add replicas, rehearse a cold-cache scenario with the database protected by rate limits, and watch hit ratio and eviction live.</p></details><h4>Common slips</h4><ul class='slips'><li>Starting with Redis before measuring anything.</li><li>Caching stock or balances that must be exact.</li><li>Not saying what happens when the cache fails.</li></ul></div></article><article class="sdq"><header><span class="who">A frequent follow-up to &quot;I would add a cache&quot;: reported by candidates, not official.</span><h3>&quot;What is a cache stampede, and how would you prevent it?&quot;</h3><p>A favourite follow-up after you say "I would add a cache". It tests whether you have thought about what happens at the moment a cache entry disappears.</p></header><div class="body"><h4>1. Ask first</h4><ul><li><b>Which keys are hot, and how expensive is a rebuild?</b> <span class='muted'>A stampede matters for hot keys with expensive rebuilds; a cheap query barely notices.</span></li></ul><h4>2. How to think about it</h4><ol class='think'><li><b>Describe the failure precisely.</b><span>A hot key expires or is evicted. Many concurrent requests miss, and each independently recomputes the value from the database. The database sees a burst of identical expensive queries exactly when load is highest, and can slow or fail, which makes the rebuild even slower and more requests pile up.</span></li><li><b>Give the family of fixes.</b><span>(1) Single flight: only one request rebuilds; others wait or reuse. (2) Serve stale while revalidating: keep the old value a little longer and refresh in the background. (3) Jittered TTLs so entries do not expire together. (4) Refresh ahead for the hottest keys. (5) Never let a cache expire on its own for the very hottest data: update it from the writer.</span></li><li><b>Explain the lock approach concretely.</b><span><code>SET lock NX PX 5000</code> gives the lock to exactly one caller and expires by itself if that caller dies; the winner recomputes, stores the value and deletes the lock; losers poll the cache briefly or return stale data.</span></li><li><b>Mention the related problems.</b><span>Cold start after a restart is a stampede on every key; penetration (missing keys) bypasses the cache entirely; hot keys overload one node.</span></li><li><b>Say how you would test it.</b><span>Load test with an expiring key and watch database queries per second: it should not spike.</span></li></ol><h4>3. How to say it</h4><div class="say"><span class="lbl2">A model answer, about two minutes aloud</span><p>"A stampede is what happens when a very popular cache entry expires or is evicted: many concurrent requests all miss at once and each recomputes the same value from the database, so the database gets a burst of identical expensive queries just when traffic is highest, and may slow down or fail.</p><p>To prevent it I would make only one request rebuild the entry. In Redis that is a lock with SET NX and an expiry: the winner recomputes and refills the cache, and the others briefly wait for the cache to be filled or serve the previous value. I would also add random jitter to TTLs so entries do not all expire together, and refresh the very hottest keys before they expire. After a restart the whole cache is cold, which is a stampede on every key, so I would warm it or bring nodes back gradually. And I would load test an expiring hot key to see the database stays flat."</p></div><h4>4. Likely follow-ups</h4><details><summary>What is stale-while-revalidate?</summary><p>Serving the old value past its expiry while a background request fetches a new one: users never wait for a rebuild, at the cost of slightly older data.</p></details><details><summary>What if the lock holder crashes?</summary><p>The lock has an expiry (PX), so after that time another request can take it; choose it longer than a normal rebuild and shorter than your tolerance for a stall.</p></details><details><summary>How does a Bloom filter help penetration?</summary><p>It answers "definitely not present" cheaply for IDs that cannot exist, so invalid lookups are rejected before they reach the cache or the database; it may say "maybe present" wrongly but never the reverse.</p></details><h4>Common slips</h4><ul class='slips'><li>Only describing the problem without a concrete fix.</li><li>A lock without an expiry: one crash blocks the key forever.</li><li>Forgetting cold starts and missing keys, which are cousins of the same problem.</li></ul></div></article><article class="sdq"><header><span class="who">A frequent probing question about consistency: reported by candidates, not official.</span><h3>&quot;How do you keep a cache and a database consistent?&quot;</h3><p>One of the most common caching questions. The honest answer is that you cannot make them perfectly consistent for free, so you choose how stale is acceptable and how to bound it.</p></header><div class="body"><h4>1. Ask first</h4><ul><li><b>How stale can this data be, and what happens if a user sees an old value?</b> <span class='muted'>A profile picture can be minutes stale; a stock count at checkout cannot.</span></li><li><b>Read to write ratio, and how often is the same key written?</b> <span class='muted'>Rarely-written data suits invalidation; constantly changing data may not suit caching at all.</span></li><li><b>Is there one writer path or many (several services update the same table)?</b> <span class='muted'>Every writer must invalidate, which is easy to forget; a central write path is much safer.</span></li></ul><h4>2. How to think about it</h4><ol class='think'><li><b>State the baseline.</b><span>Cache-aside with a TTL and delete-on-write. The database is the source of truth; the cache is a disposable copy.</span></li><li><b>Explain the order of operations.</b><span>Write to the database, then delete the cache key. If you delete first, a concurrent read can reload the old value before the write lands and keep it for a whole TTL.</span></li><li><b>Name the remaining race.</b><span>A reader that missed before the write can still store its old value after your delete. This is rare and bounded by the TTL, which is why you always set one.</span></li><li><b>Offer stronger options and their prices.</b><span>Write-through gives fresh reads but ties writes to cache availability. Versioned keys (<code>user:7:v12</code>) avoid races. Event-driven invalidation publishes a change event that all caches consume (CDC), at the cost of infrastructure. For must-be-correct data, skip the cache or read from the primary database.</span></li><li><b>Say what you monitor.</b><span>Hit ratio, and sampled comparisons between cache and database to detect divergence.</span></li></ol><h4>3. How to say it</h4><div class="say"><span class="lbl2">A model answer, about two minutes aloud</span><p>"I treat the database as the source of truth and the cache as a disposable copy. For reads I use cache-aside with a TTL. For writes I update the database first and then delete the cache key, so the next read reloads the fresh value. The order matters: if I deleted first, a concurrent read could reload the old value and keep it for the whole TTL.</p><p>There is still a small race, where a reader that missed before the write stores its old value after my delete, so every entry has a TTL that bounds staleness. If the business cannot tolerate that for some data, I would use write-through, versioned keys, or event-driven invalidation from a change stream, or I would not cache it and read from the primary instead. And I would monitor the hit ratio and compare samples of cache and database to catch divergence."</p></div><h4>4. Likely follow-ups</h4><details><summary>Why delete rather than update the cache on a write?</summary><p>Two concurrent writers can update the database in one order and the cache in the other, leaving the cache with the older value. Deleting lets the next read load whatever is currently in the database.</p></details><details><summary>What is write-behind and when is it acceptable?</summary><p>The cache acknowledges the write and the database is updated later in batches. It makes writes fast and cheap but can lose the last writes if the cache fails; it fits counters, metrics or view counts, not orders or payments.</p></details><details><summary>What happens if the cache delete fails after the database write?</summary><p>The cache keeps a stale value until the TTL. Retry the delete (from a queue if necessary), keep TTLs short for important data, and treat the TTL as the guaranteed bound.</p></details><h4>Common slips</h4><ul class='slips'><li>Updating the cache before the database.</li><li>Saying the cache and database are always consistent.</li><li>No TTL: one missed invalidation then lives forever.</li></ul></div></article></section>
+<section class="sdsec" id="recap"><h2><span class="n">8</span>Remember this<small>Recap</small></h2><div class="sdrecap"><h3 style="margin:12px 0 0">The page in 6 lines</h3><ul><li>A cache remembers answers so the slow system does not repeat work; traffic is lopsided, so a small cache helps a lot.</li><li>Cache-aside: look in the cache, on a miss read the database and fill the cache.</li><li>Staleness is bounded by a TTL and fixed by deleting the entry on every write.</li><li>Hit ratio is the number to watch: 95% means the database sees one request in twenty.</li><li>The hard problems are stampedes, missing keys, cold starts and eviction thrash: each has a one-line fix.</li><li>Never cache what must be exactly current, and always say what happens when the cache fails.</li></ul></div><h3 style="margin:18px 0 6px">Check yourself</h3><details><summary>What does a 95% hit ratio mean for the database?</summary><p>It sees 5 requests for every 100: a twenty-fold reduction in load.</p></details><details><summary>How do you keep a cache from serving stale data?</summary><p>Delete the entry whenever the data changes, and give every entry a TTL as a safety net.</p></details><details><summary>What is a cache stampede and the simplest fix?</summary><p>Many requests rebuild an expired hot entry together; let one rebuild under a lock while the others wait.</p></details><p class="sub" style="margin-top:14px">Want every experiment, lab and edge case? The reference lessons for this topic:</p><div class="sddeeper"><a href="../systems/S17_caching_and_cdns.html#l1"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Why caching works</a><a href="../systems/S17_caching_and_cdns.html#l2"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Caching patterns</a><a href="../systems/S17_caching_and_cdns.html#l3"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Eviction</a><a href="../systems/S17_caching_and_cdns.html#l4"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Stampedes and hard problems</a><a href="../systems/S17_caching_and_cdns.html#l6"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> HTTP caching and CDNs</a><a href="../systems/S17_caching_and_cdns.html#l7"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Sizing a cache</a></div></section>
+<nav class="sdfoot"><span></span><a class="r" href="url-shortener.html"><small>Next</small><strong>Design a URL shortener</strong></a></nav></main></div>
+<footer class="site-foot"><span>Mastery: free, open study sheets. Progress is saved in your browser only.</span><span><a href="index.html">Course map</a> · <a href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener">GitHub</a></span></footer>
+<script>(function(){var IC={};
+var slug=document.body.getAttribute('data-sd'),K='sd2-done';
+function get(){try{return JSON.parse(localStorage.getItem(K)||'{}')}catch(e){return{}}}
+var cb=document.getElementById('sd-done');if(cb){var s=get();cb.checked=!!s[slug];cb.onchange=function(){var s=get();if(cb.checked)s[slug]=1;else delete s[slug];try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}}}
+var links=[].slice.call(document.querySelectorAll('.sdnav a'));var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'))}).filter(Boolean);
+if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(a){a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id)})}})},{rootMargin:'-20% 0px -70% 0px'});secs.forEach(function(s){io.observe(s)})}
+var tb=document.getElementById('b-theme');if(tb){var R=document.documentElement;var t=null;try{t=localStorage.getItem('theme')}catch(e){}if(t)R.setAttribute('data-theme',t);tb.onclick=function(){var n=R.getAttribute('data-theme')==='dark'?'light':'dark';R.setAttribute('data-theme',n);try{localStorage.setItem('theme',n)}catch(e){}}}
+})();</script>
+</body></html>

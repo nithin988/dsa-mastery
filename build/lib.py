@@ -109,6 +109,7 @@ def rail(section, root=""):
         '<div class="rail-g">Courses</div>'
         + item("home", root + "index.html", "home", "Home")
         + item("dsa", root + "dsa.html", "code", "DSA Mastery")
+        + item("design", root + "design/index.html", "layers", "System design")
         + item("systems", root + "systems.html", "server", "Systems Mastery") + subs
         + '<div class="rail-g">Tools</div>'
         + item("revise", root + "revise.html", "check", "Quick revision")
