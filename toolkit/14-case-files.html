@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Case files: how real outages happened | Systems Mastery | Mastery</title>
+<meta name="description" content="Six well documented public outages, retold in plain language: what happened, how it spread, what changed, and what to take back to your own system."><meta name="theme-color" content="#0f172a">
+<meta property="og:type" content="article"><meta property="og:site_name" content="Mastery"><meta property="og:title" content="Case files: how real outages happened">
+<meta property="og:description" content="Six well documented public outages, retold in plain language: what happened, how it spread, what changed, and what to take back to your own system."><meta property="og:url" content="https://nithin988.github.io/dsa-mastery/toolkit/14-case-files.html">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f172a'/%3E%3Ctext x='16' y='21' font-family='monospace' font-size='13' font-weight='700' fill='%23f8fafc' text-anchor='middle'%3EDSA%3C/text%3E%3C/svg%3E">
+<style>/* DSA Mastery: shared stylesheet. Tokens and components follow the Kimaru Platform design system
+   (slate neutrals, semantic colour, rounded-md cards, shadow-sm, 16px stroke icons). See docs/DESIGN_SYSTEM.md. */
+:root{
+ --bg:#f8fafc;--surf:#fff;--hd:#f8fafc;--soft:#f1f5f9;--line:#e2e8f0;--line2:#f1f5f9;
+ --fg:#0f172a;--txt:#334155;--mut:#475569;--faint:#64748b;
+ --ink:#0f172a;--ink-fg:#f8fafc;
+ --acc:#3162b4;--acc-soft:#eaf0fa;--acc-line:#bcd0ee;
+ --ok:#15803d;--ok-soft:#f0fdf4;--ok-line:#86efac;
+ --warn:#b45309;--warn-soft:#fffbeb;--warn-line:#fbbf24;
+ --med:#a16207;--med-soft:#fefce8;
+ --bad:#b91c1c;--bad-soft:#fef2f2;--bad-line:#f87171;
+ --risk:#c2410c;--risk-soft:#fff7ed;
+ --info:#0369a1;--info-soft:#f0f9ff;--info-line:#38bdf8;
+ --done:#0f766e;--done-soft:#f0fdfa;--done-line:#5eead4;
+ --code:#f8fafc;--ring:#3162b4;
+ --sh:0 1px 2px rgba(15,23,42,.06);--sh-lg:0 10px 30px rgba(15,23,42,.12);
+ --r:6px;--r-lg:8px;
+ color-scheme:light}
+:root[data-theme=dark]{
+ --bg:#020617;--surf:#0f172a;--hd:#0b1324;--soft:#1e293b;--line:#1e293b;--line2:#172033;
+ --fg:#f1f5f9;--txt:#cbd5e1;--mut:#a3b1c6;--faint:#94a3b8;
+ --ink:#f1f5f9;--ink-fg:#0f172a;
+ --acc:#8db4f0;--acc-soft:#14233d;--acc-line:#2c4a7a;
+ --ok:#4ade80;--ok-soft:#0c2a18;--ok-line:#166534;
+ --warn:#fbbf24;--warn-soft:#2b2008;--warn-line:#a16207;
+ --med:#facc15;--med-soft:#2a2308;
+ --bad:#f87171;--bad-soft:#2d1214;--bad-line:#b91c1c;
+ --risk:#fb923c;--risk-soft:#2b1708;
+ --info:#38bdf8;--info-soft:#0a2233;--info-line:#0369a1;
+ --done:#2dd4bf;--done-soft:#0a2624;--done-line:#0f766e;
+ --code:#0b1324;--ring:#8db4f0;
+ --sh:none;--sh-lg:0 10px 30px rgba(0,0,0,.5);color-scheme:dark}
+
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:var(--acc);text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:4px}
+code{background:var(--soft);padding:1px 5px;border-radius:4px;font:0.88em ui-monospace,"Cascadia Code",Consolas,Menlo,monospace;color:var(--fg)}
+.mut,.muted{color:var(--mut)}.muted{font-size:13px;font-weight:400}
+.skip{position:absolute;left:12px;top:-60px;z-index:100;background:var(--ink);color:var(--ink-fg);padding:8px 14px;border-radius:var(--r);text-decoration:none;font-size:14px}.skip:focus{top:8px}
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.33;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-3px}
+.ic.fill{fill:currentColor;stroke:none}.ic.lg{width:20px;height:20px}
+
+/* buttons: primary = dark, secondary = light, confirmed = teal (design system section 5) */
+.btn,.bar button,.st-ctl button,.st-ctl select{font:inherit;font-size:13px;font-weight:500;line-height:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);cursor:pointer;text-decoration:none;box-shadow:var(--sh);transition:background .15s,border-color .15s}
+.btn:hover,.bar button:hover,.st-ctl button:hover{background:var(--soft)}
+.btn.pri,.bar button.on,.btn.on{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.btn.pri:hover{opacity:.9;background:var(--ink)}
+.btn.sec{background:var(--soft)}
+.btn.lg{height:40px;padding:0 18px;font-size:14px}
+.iconbtn{width:32px;padding:0!important}
+
+/* top bar (sticky 48px, like ReviewBar) */
+.bar{position:sticky;top:0;z-index:30;background:var(--surf);border-bottom:1px solid var(--line);box-shadow:var(--sh)}
+.bar-in{max-width:1280px;margin:0 auto;height:48px;display:flex;gap:8px;align-items:center;padding:0 16px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;text-decoration:none;color:var(--fg);letter-spacing:-.01em;margin-right:4px}
+.brand b{font-weight:700}.brand span{color:var(--faint);font-weight:600}
+.logo{width:24px;height:24px;border-radius:6px;background:var(--ink);color:var(--ink-fg);display:grid;place-items:center;font:700 11px ui-monospace,Consolas,monospace;letter-spacing:-.02em}
+.crumbs{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mut);min-width:0;margin-right:auto}
+.crumbs a{color:var(--mut);text-decoration:none}.crumbs a:hover{color:var(--fg)}
+.crumbs .cur{color:var(--fg);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crumbs .ic{color:var(--faint);width:14px;height:14px}
+.prog{font-size:12.5px;color:var(--mut);white-space:nowrap;padding:0 4px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.seg button{border:0!important;border-radius:0!important;box-shadow:none!important;background:var(--surf)}
+.seg button+button{border-left:1px solid var(--line)!important}
+.pbar{height:2px;background:var(--line)}.pbar i{display:block;height:100%;width:0;background:var(--acc);transition:width .4s}
+
+/* topic switcher panel */
+.menu{position:relative}
+.panel{position:absolute;right:0;top:40px;width:min(380px,92vw);max-height:min(70vh,640px);overflow:auto;background:var(--surf);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-lg);padding:6px;z-index:50}
+.panel[hidden]{display:none}
+.panel h5{margin:10px 8px 4px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.panel a{display:grid;grid-template-columns:26px 1fr auto;gap:8px;align-items:center;padding:7px 8px;border-radius:var(--r);text-decoration:none;color:var(--fg);font-size:13.5px}
+.panel a:hover{background:var(--soft)}.panel a[aria-current=page]{background:var(--soft);font-weight:600}
+.panel .n{font:600 11px ui-monospace,Consolas,monospace;color:var(--faint)}
+.panel .c{font-size:11.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.panel .c.done{color:var(--done);font-weight:600}
+
+/* layout */
+.wrap{max-width:1280px;margin:0 auto;padding:0 16px;display:grid;grid-template-columns:248px minmax(0,1fr);gap:32px}
+nav.side{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto;padding:20px 0;font-size:13.5px}
+nav.side h4{margin:16px 0 6px;padding:0 10px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+nav.side a{display:flex;gap:8px;align-items:center;padding:6px 10px;border-radius:var(--r);text-decoration:none;color:var(--txt)}
+nav.side a:hover{background:var(--soft)}nav.side a.act{background:var(--soft);color:var(--fg);font-weight:600;box-shadow:inset 2px 0 0 var(--ink)}
+nav.side .dot{width:8px;height:8px;border-radius:50%;flex:none}.dot.hot{background:var(--warn)}.dot.sec{background:var(--faint)}
+nav.side .cnt{margin-left:auto;font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}
+main{min-width:0;padding:24px 0 90px}
+.chips{display:none}
+
+/* page header (hero) */
+.hero{background:var(--surf);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh);padding:24px 26px;margin-bottom:20px}
+.eyebrow{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);display:flex;align-items:center;gap:8px}
+.eyebrow .tag{background:var(--soft);border-radius:99px;padding:3px 9px;color:var(--fg);letter-spacing:.06em}
+.hero h1{font-size:clamp(24px,3.4vw,32px);line-height:1.2;margin:10px 0 10px;letter-spacing:-.02em;color:var(--fg);font-weight:700}
+.lead{font-size:15.5px;color:var(--txt);margin:0;max-width:72ch}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.stat{display:inline-flex;gap:6px;align-items:center;background:var(--hd);border:1px solid var(--line);border-radius:99px;padding:3px 12px;font-size:12.5px;color:var(--mut)}.stat b{color:var(--fg);font-variant-numeric:tabular-nums}
+
+/* headings */
+h2{font-size:20px;font-weight:700;margin:40px 0 10px;letter-spacing:-.01em;scroll-margin-top:72px;color:var(--fg)}
+h3{margin:0;font-size:20px;font-weight:600;letter-spacing:-.01em;color:var(--fg)}
+
+/* callouts: neutral box + 2px left accent (design system section 6) */
+.callout{border:1px solid var(--line);border-left:2px solid var(--faint);background:var(--hd);padding:10px 14px;border-radius:var(--r);margin:14px 0}
+.callout.intu{border-left-color:var(--info-line)}.callout p{margin:4px 0}
+.callout .lbl{margin-bottom:2px}
+
+/* pattern card: header bar + body (design system section 6) */
+.pat{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);margin:22px 0;scroll-margin-top:72px;overflow:hidden}
+.pat-h{display:flex;gap:12px;align-items:center;flex-wrap:wrap;min-height:50px;padding:8px 16px;background:var(--hd);border-bottom:1px solid var(--line)}
+.pat-h h3{font-size:18px}
+.badge{width:28px;height:28px;border-radius:var(--r);background:var(--ink);color:var(--ink-fg);display:flex;align-items:center;justify-content:center;font:700 13px ui-monospace,Consolas,monospace;flex:none}
+.tier{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;white-space:nowrap}
+.tier.hot{background:var(--warn-soft);color:var(--warn)}.tier.sec{background:var(--soft);color:var(--mut)}
+.pp{margin-left:auto;font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.pat-b{padding:6px 16px 8px}
+.glance{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0;margin:8px 0 6px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.gi{padding:10px 14px;font-size:14px;border-left:1px solid var(--line2)}.gi:first-child{border-left:0}
+.lbl{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.lbl .ic{width:14px;height:14px}
+.blk{margin:16px 0}.blk p{margin:4px 0}
+.blk ol,.blk ul{margin:4px 0;padding-left:22px}.blk li{margin:4px 0}
+.blk.warn{border:1px solid var(--line);border-left:2px solid var(--warn-line);background:var(--warn-soft);border-radius:var(--r);padding:10px 14px}.blk.warn .lbl{color:var(--warn)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cx{display:flex;gap:8px;align-items:center;background:var(--ok-soft);color:var(--ok);border:1px solid var(--line);border-left:2px solid var(--ok-line);border-radius:var(--r);padding:8px 14px;font-weight:600;font-size:14px;margin:14px 0}
+
+/* code */
+pre{background:var(--code);border:1px solid var(--line);border-radius:var(--r);padding:34px 15px 13px;overflow-x:auto;margin:8px 0;position:relative;font-size:13px;line-height:1.55;color:var(--fg)}
+pre::before{position:absolute;left:12px;top:8px;font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+pre.code-java::before{content:"Java"}pre.code-py::before{content:"Python"}pre.trace::before{content:"Trace"}
+pre code{background:none;padding:0;font-size:inherit;color:inherit}
+.code-java,.code-py{display:none}body[data-lang=java] .code-java,body[data-lang=py] .code-py{display:block}
+.cp{position:absolute;top:5px;right:6px;font:500 12px system-ui,sans-serif;height:24px;padding:0 9px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--mut);cursor:pointer}
+.cp:hover{color:var(--fg);background:var(--soft)}
+.trace{border-left:2px solid var(--faint)}
+
+/* tables */
+.tw{overflow-x:auto;margin:10px 0;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:9px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line2)}
+th{background:var(--hd);font:600 11px/1.2 system-ui,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);border-bottom:1px solid var(--line);position:sticky;top:0}
+tbody tr:hover td{background:var(--hd)}tr:last-child td{border-bottom:0}
+.ladder td:first-child{width:36px;text-align:center}.ladder .t{white-space:nowrap}.ladder .c{white-space:nowrap;font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+input.pk{width:18px;height:18px;accent-color:var(--done);cursor:pointer;margin:0}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;white-space:nowrap}
+.dE{background:var(--ok-soft);color:var(--ok)}.dM{background:var(--med-soft);color:var(--med)}.dH{background:var(--bad-soft);color:var(--bad)}
+tr.done td{background:var(--done-soft)}tr.done td:nth-child(3){text-decoration:line-through;text-decoration-color:var(--faint)}
+details{border:1px solid var(--line);border-radius:var(--r);padding:0 14px;margin:8px 0;background:var(--surf)}
+summary{cursor:pointer;font-weight:600;padding:10px 0;color:var(--fg);list-style:none;display:flex;gap:8px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"";width:6px;height:6px;border-right:1.5px solid var(--faint);border-bottom:1.5px solid var(--faint);transform:rotate(-45deg);transition:transform .2s;flex:none}
+details[open] summary::before{transform:rotate(45deg)}
+details[open]{border-left:2px solid var(--info-line)}details p{margin:0 0 12px;color:var(--txt)}
+
+/* stepper (animation panel) */
+.stepper{border:1px solid var(--line);border-radius:var(--r-lg);margin:8px 0 14px;background:var(--surf);box-shadow:var(--sh);overflow:hidden}
+.stepper:focus-visible{outline-offset:0}
+.st-head{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--hd);border-bottom:1px solid var(--line);font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.st-head .st-count{margin-left:auto;font-size:11.5px;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.st-body{padding:12px 14px 4px}
+.st-prog{height:3px;background:var(--line);overflow:hidden}.st-prog i{display:block;height:100%;background:var(--acc);width:0;transition:width .3s}
+.st-view{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;padding:6px 0 2px;margin:0 auto}
+.cellw{display:flex;flex-direction:column;align-items:center;min-width:46px}
+.ptr{min-height:22px;font:600 11px ui-monospace,Consolas,monospace;margin-bottom:3px;display:flex;align-items:flex-end}
+.ptr b{background:var(--ink);color:var(--ink-fg);padding:1px 7px;border-radius:99px;white-space:nowrap;animation:drop .25s ease}
+.cell{min-width:46px;height:46px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:600 15px ui-monospace,Consolas,monospace;padding:0 7px;transition:background .25s,border-color .25s,transform .25s}
+.cell.in{background:var(--acc-soft);border-color:var(--acc);transform:translateY(-2px)}
+.cell.ok{background:var(--done-soft);border-color:var(--done)}
+.cell.dim{background:var(--soft);color:var(--mut);border-style:dashed;opacity:.65}
+.cell.pop{animation:pop .35s ease}
+.edge{align-self:flex-start;margin-top:31px;min-width:20px;text-align:center;color:var(--faint);font:700 16px ui-monospace,Consolas,monospace}
+.idx{font:11px ui-monospace,Consolas,monospace;color:var(--mut);margin-top:3px}
+.st-aux{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;min-height:30px;margin-top:8px}
+.st-aux .al{font:600 10px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}
+.chip{font:600 12.5px ui-monospace,Consolas,monospace;background:var(--hd);border:1px solid var(--line);border-radius:var(--r);padding:2px 9px;color:var(--fg)}
+.st-note{min-height:48px;margin:8px 0;font-size:14.5px;padding:10px 13px;background:var(--hd);border:1px solid var(--line);border-left:2px solid var(--info-line);border-radius:var(--r);color:var(--txt)}
+.st-ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 14px 12px}
+.st-ctl button{min-width:32px}
+.st-ctl button.pri{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.st-ctl input[type=range]{flex:1;min-width:90px;accent-color:var(--ink)}
+.st-ctl select{padding:0 8px}
+@keyframes pop{0%{transform:scale(.75)}60%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes drop{from{transform:translateY(-6px);opacity:0}to{transform:none;opacity:1}}
+
+/* previous / next */
+.foot{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.nxt{display:flex;flex-direction:column;gap:3px;padding:14px 16px;background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);text-decoration:none;color:var(--fg)}
+.nxt:hover{border-color:var(--faint)}.nxt.r{text-align:right;align-items:flex-end}.nxt small{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);display:flex;gap:6px;align-items:center}
+.nxt strong{font-size:15px;font-weight:600}
+.nxt.next{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}.nxt.next small{color:inherit;opacity:.75}
+.site-foot{max-width:1280px;margin:0 auto;padding:22px 16px 40px;display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between;color:var(--mut);font-size:13px;border-top:1px solid var(--line)}
+.site-foot a{color:var(--mut)}.site-foot a:hover{color:var(--fg)}
+
+/* landing page */
+.home{max-width:1120px;margin:0 auto;padding:28px 16px 60px}
+.home-hero{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:stretch}
+.home-hero .hero{margin:0;display:flex;flex-direction:column}
+.home-hero .hero h1{font-size:clamp(28px,4vw,40px)}
+.cta{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:14px 16px;display:flex;flex-direction:column;justify-content:center}
+.kpi b{font-size:26px;line-height:1.1;color:var(--fg);letter-spacing:-.02em;font-variant-numeric:tabular-nums}.kpi span{font-size:12.5px;color:var(--mut);margin-top:3px}
+.kpi.wide{grid-column:1/-1}
+.meter{height:6px;border-radius:99px;background:var(--soft);overflow:hidden;margin-top:10px}.meter i{display:block;height:100%;width:0;background:var(--done);border-radius:99px;transition:width .4s}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0 0}
+.how div{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;font-size:14px}
+.how b{display:flex;align-items:center;gap:8px;color:var(--fg);margin-bottom:4px}
+.how .no{width:22px;height:22px;border-radius:6px;background:var(--soft);display:grid;place-items:center;font:700 11px ui-monospace,monospace;color:var(--fg)}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:34px 0 4px}
+.tools h2{margin:0;margin-right:auto;font-size:20px}
+.search{position:relative}.search input{height:32px;width:220px;max-width:100%;padding:0 10px 0 32px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:13px}
+.search .ic{position:absolute;left:10px;top:8px;color:var(--faint)}
+.filters{display:inline-flex;gap:6px;flex-wrap:wrap}
+.filters button{height:32px;padding:0 12px;border:1px solid var(--line);border-radius:99px;background:var(--surf);color:var(--mut);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.filters button[aria-pressed=true]{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.phase{margin:26px 0 0}
+.phase-h{display:flex;align-items:baseline;gap:10px;margin:0 0 10px}
+.phase-h h2{margin:0;font-size:16px;scroll-margin-top:72px}.phase-h span{font-size:13px;color:var(--mut)}
+.phase-h .ph{font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;background:var(--soft);color:var(--fg);padding:4px 8px;border-radius:99px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.tcard{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden}
+.tcard[hidden]{display:none}
+.tcard-h{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 14px;background:var(--hd);border-bottom:1px solid var(--line)}
+.tcard-h .no{font:700 12px ui-monospace,Consolas,monospace;background:var(--ink);color:var(--ink-fg);border-radius:var(--r);padding:3px 7px}
+.tcard-h h3{font-size:16px;margin-right:auto}
+.st{font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--soft);color:var(--mut);white-space:nowrap}
+.st.doing{background:var(--warn-soft);color:var(--warn)}.st.done{background:var(--done-soft);color:var(--done)}
+.tcard-b{padding:12px 14px;display:flex;flex-direction:column;gap:10px;flex:1}
+.tcard-b p{margin:0;font-size:13.5px;color:var(--txt);flex:1}
+.meta{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--mut)}.meta span{display:inline-flex;gap:5px;align-items:center}
+.act{display:flex;gap:8px}
+.empty{text-align:center;color:var(--mut);padding:30px;border:1px dashed var(--line);border-radius:var(--r);margin-top:16px}
+
+@media (max-width:1020px){.wrap{display:block}nav.side{display:none}
+ .chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0;position:sticky;top:50px;z-index:10;background:var(--bg)}
+ .chips a{white-space:nowrap;font-size:12.5px;border:1px solid var(--line);background:var(--surf);padding:4px 11px;border-radius:99px;text-decoration:none;color:var(--fg)}
+ .home-hero{grid-template-columns:1fr}}
+@media (max-width:720px){.crumbs .cur,.crumbs .ic,.prog{display:none}.how{grid-template-columns:1fr}.foot{grid-template-columns:1fr}.btn .t-long{display:none}}
+@media (max-width:640px){body{font-size:15px}.hero{padding:18px 16px}.pat-b{padding:4px 12px 6px}.two{grid-template-columns:1fr}.cell{min-width:36px;height:38px;font-size:13px}.cellw{min-width:36px}.brand span{display:none}.pp{margin-left:0}.gi{border-left:0;border-top:1px solid var(--line2)}.gi:first-child{border-top:0}.search input{width:100%}.search{flex:1}.kpis{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media print{.bar,.pbar,nav.side,.chips,.st-ctl,.cp,.skip,.site-foot,.foot{display:none}.wrap{display:block}.code-java,.code-py{display:block!important}.pat{box-shadow:none;break-inside:avoid-page}body{background:#fff}}
+
+/* tree and graph drawings inside the stepper */
+.st-tree svg{display:block;margin:0 auto;height:auto}.st-tree line{stroke:var(--faint);stroke-width:1.75;opacity:.6}
+.tn circle{fill:var(--surf);stroke:var(--line);stroke-width:2;transition:fill .25s,stroke .25s}.tn.in circle{fill:var(--acc-soft);stroke:var(--acc)}.tn.ok circle{fill:var(--done-soft);stroke:var(--done)}.tn.dim circle{fill:var(--soft);stroke-dasharray:4 3;opacity:.7}
+.tn text{font:600 14px ui-monospace,Consolas,monospace;fill:var(--fg);text-anchor:middle;dominant-baseline:central}.tp{font:700 11px ui-monospace,Consolas,monospace;fill:var(--acc);text-anchor:middle}
+.ge{stroke:var(--faint);stroke-width:2;opacity:.5}.ge.on{stroke:var(--acc);stroke-width:3.5;opacity:1}.gw{font:600 11px ui-monospace,Consolas,monospace;fill:var(--mut);text-anchor:middle}.mk{fill:var(--faint);opacity:.7}.mk2{fill:var(--acc)}
+
+/* study planner page */
+.planner .hero{margin-bottom:18px}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:16px;overflow:hidden}
+.card-h{display:flex;align-items:center;gap:10px;min-height:46px;padding:6px 14px;background:var(--hd);border-bottom:1px solid var(--line)}
+.card-h h2{margin:0;font-size:15px;font-weight:600;margin-right:auto;color:var(--fg)}
+.card-h>span:not(.st){font-size:12.5px;color:var(--mut)}
+.card-b{padding:14px}
+.pl-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+.pl-col{min-width:0}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+.field{min-width:0}.field:nth-child(6),.field:nth-child(7){grid-column:1/-1}
+.flabel{display:block;font:600 11px/1.2 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+.field input[type=date],.field input[type=number],.field select{height:34px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:14px;max-width:100%}
+.field input[type=number]{width:96px}.field select{width:100%}.field input[type=date]{width:100%}
+.unit{font-size:13px;color:var(--mut);margin-left:8px}
+.fhint{font-size:12.5px;color:var(--mut);margin-top:6px}
+.qchips{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.qchips button,.presets button,.chips2 button{height:28px;padding:0 11px;border:1px solid var(--line);border-radius:99px;background:var(--surf);color:var(--fg);font:inherit;font-size:12.5px;cursor:pointer}
+.qchips button:hover,.presets button:hover,.chips2 button:hover{background:var(--soft)}
+.seg2{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;max-width:100%}
+.seg2 button{height:34px;padding:0 14px;border:0;background:var(--surf);color:var(--fg);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.seg2 button+button{border-left:1px solid var(--line)}
+.seg2 button[aria-pressed=true]{background:var(--ink);color:var(--ink-fg)}
+.toggles{display:grid;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line2);font-size:14px}
+.toggles label,.key-panel label{display:flex;gap:9px;align-items:center;cursor:pointer}
+.toggles input,.key-panel input[type=checkbox]{width:16px;height:16px;accent-color:var(--ink);margin:0}
+.presets{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.presets span{font-size:12.5px;color:var(--mut);margin-right:2px}
+#topics h5{margin:14px 0 4px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.trow{display:grid;grid-template-columns:20px 28px 1fr auto;gap:8px;align-items:center;padding:6px 6px;border-radius:var(--r);cursor:pointer;font-size:14px}
+.trow:hover{background:var(--soft)}.trow input{width:16px;height:16px;accent-color:var(--ink);margin:0}
+.trow .n{font:600 11.5px ui-monospace,Consolas,monospace;color:var(--faint)}.trow .est{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+/* coach */
+.chat{position:sticky;top:64px;display:flex;flex-direction:column;height:min(720px,calc(100vh - 84px));min-height:480px;margin-bottom:0}
+.chat .card-h .btn{height:28px}
+.key-panel{padding:12px 14px;border-bottom:1px solid var(--line);background:var(--surf);display:grid;gap:10px;font-size:13.5px}
+.key-panel[hidden]{display:none}
+.key-panel p{margin:0}.key-panel .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.key-panel input[type=password],.key-panel select{height:34px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:13.5px;min-width:0;flex:1}
+.msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;background:var(--bg)}
+.msg{max-width:92%}.msg.me{align-self:flex-end}
+.msg .who{font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:0 2px 4px}.msg.me .who{text-align:right}
+.msg .mb{padding:9px 12px;border-radius:var(--r-lg);font-size:14.5px;line-height:1.55;border:1px solid var(--line);background:var(--surf);color:var(--txt)}
+.msg.me .mb{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.msg .mb p{margin:0 0 6px}.msg .mb p:last-child{margin:0}.msg .mb ul,.msg .mb ol{margin:4px 0;padding-left:20px}.msg .mb code{font-size:.9em}
+.msg.sys{align-self:stretch;max-width:100%}.msg.sys .mb{background:var(--hd);border-left:2px solid var(--info-line);font-size:13.5px}
+.typing{display:flex;gap:4px;padding:6px 4px}.typing i{width:6px;height:6px;border-radius:50%;background:var(--faint);animation:blink 1.2s infinite}.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.chips2{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px 0;background:var(--surf);border-top:1px solid var(--line)}
+.composer{display:flex;gap:8px;align-items:flex-end;padding:10px 14px 14px;background:var(--surf)}
+.composer textarea{flex:1;resize:none;min-height:38px;max-height:120px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:14.5px;line-height:1.4}
+.composer .btn{height:38px}
+/* plan output */
+.sec-h{font-size:18px;margin:26px 0 10px}
+.kpis4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.kpis4 .kpi b{font-size:22px}
+.callout.alert{border-left-color:var(--warn-line);background:var(--warn-soft)}.callout.alert .lbl{color:var(--warn)}.callout ul{margin:4px 0;padding-left:20px}
+.warn-c{border-left-color:var(--warn-line)}
+.plan-bar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin:14px 0;box-shadow:var(--sh)}
+.pb-l{min-width:220px;flex:1;font-size:13.5px;color:var(--mut)}.pb-l b{color:var(--fg);font-size:15px}.pb-r{display:flex;gap:8px;flex-wrap:wrap}
+.wk{padding:0;margin:10px 0;border-left:1px solid var(--line)}
+details.wk[open]{border-left:2px solid var(--info-line)}
+.wk summary{padding:12px 14px;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.wk summary::before{align-self:center}
+.wn{font-weight:700;color:var(--fg)}.wd{font-size:13px;color:var(--mut)}.wt{font-size:13px;color:var(--mut);margin-right:auto}.wc{font-size:12.5px;font-weight:600;background:var(--soft);border-radius:99px;padding:2px 10px;color:var(--fg);font-variant-numeric:tabular-nums}
+.wk-b{padding:0 14px 12px}
+.day{border:1px solid var(--line);border-radius:var(--r);margin:8px 0;background:var(--surf);overflow:hidden}
+.day.today{border-color:var(--ink)}
+.day.rest{background:var(--hd);color:var(--mut)}
+.dh{display:flex;gap:10px;align-items:center;padding:7px 12px;background:var(--hd);border-bottom:1px solid var(--line2);font-size:13px}.dh b{color:var(--fg)}.dh span:last-child{margin-left:auto;color:var(--mut);font-variant-numeric:tabular-nums}
+.day.rest .dh{border-bottom:0}
+.pill-t{font-size:11px;font-weight:600;background:var(--ink);color:var(--ink-fg);padding:1px 8px;border-radius:99px}
+.task{display:grid;grid-template-columns:20px 84px 1fr auto;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line2);cursor:pointer;font-size:14px}
+.task:last-child{border-bottom:0}.task:hover{background:var(--hd)}
+.task input{width:17px;height:17px;accent-color:var(--done);margin:0}
+.task .kind{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;text-align:center;background:var(--soft);color:var(--mut)}
+.k-learn .kind{background:var(--info-soft);color:var(--info)}.k-code .kind{background:var(--soft);color:var(--fg)}.k-practice .kind{background:var(--med-soft);color:var(--med)}
+.k-review .kind{background:var(--done-soft);color:var(--done)}.k-checkpoint .kind,.k-mock .kind{background:var(--ink);color:var(--ink-fg)}
+.task .ttl{min-width:0;display:flex;flex-direction:column}.task .ttl a{color:var(--fg);text-decoration:none}.task .ttl a:hover{text-decoration:underline}
+.task .sub{font-size:12px;color:var(--mut)}.task .mins{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.task.is-done .ttl,.task.is-done .ttl a{text-decoration:line-through;text-decoration-color:var(--faint);color:var(--mut)}
+@media (max-width:1020px){.pl-grid{grid-template-columns:1fr}.chat{position:static;height:560px}.kpis4{grid-template-columns:1fr 1fr}}
+@media (max-width:640px){.fgrid{grid-template-columns:1fr}.field:nth-child(n){grid-column:auto}.task{grid-template-columns:20px 1fr auto}.task .kind{display:none}.wt{flex-basis:100%;order:3}.msg{max-width:100%}}
+@media print{.pl-grid,.hero,.plan-bar .pb-r,.chat{display:none}.wk{break-inside:avoid-page}details.wk>summary::before{display:none}}
+
+/* left rail */
+body.has-rail{padding-left:56px}
+.rail{position:fixed;inset:0 auto 0 0;width:56px;z-index:40;background:var(--surf);border-right:1px solid var(--line);padding:9px 8px;overflow:hidden;transition:width .18s ease;display:flex;flex-direction:column;gap:2px}
+.rail:hover,.rail:focus-within{width:240px;box-shadow:var(--sh-lg)}
+.rail-i{display:flex;align-items:center;gap:12px;height:38px;padding:0 10px;border-radius:var(--r);text-decoration:none;color:var(--txt);white-space:nowrap;font-size:14px}
+.rail-i:hover{background:var(--soft)}
+.rail-i[aria-current=page]{background:var(--soft);color:var(--fg);font-weight:600;box-shadow:inset 2px 0 0 var(--ink)}
+.rail-i .ic{width:18px;height:18px}
+.rail-logo{margin-bottom:6px;height:44px}.rail-logo .logo{width:24px;height:24px;flex:none}
+.rail .l{opacity:0;transition:opacity .12s}.rail:hover .l,.rail:focus-within .l{opacity:1}
+.rail-g{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);padding:14px 10px 4px;opacity:0;white-space:nowrap}
+.rail:hover .rail-g,.rail:focus-within .rail-g{opacity:1}
+.rail-sub{display:flex;flex-direction:column;margin:0 0 4px 22px;padding-left:12px;border-left:1px solid var(--line);opacity:0;max-height:0;overflow:hidden;transition:opacity .12s}
+.rail:hover .rail-sub,.rail:focus-within .rail-sub{opacity:1;max-height:260px}
+.rail-sub a{font-size:13px;color:var(--mut);text-decoration:none;padding:5px 8px;border-radius:var(--r);white-space:nowrap}.rail-sub a:hover{background:var(--soft);color:var(--fg)}
+.rail-bd{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:35}.rail-bd[hidden]{display:none}
+.rail-btn{display:none}
+@media (max-width:1020px){body.has-rail{padding-left:0}
+ .rail{transform:translateX(-100%);width:256px;transition:transform .2s ease;box-shadow:none}.rail.open{transform:none;box-shadow:var(--sh-lg)}
+ .rail:hover,.rail:focus-within{width:256px}.rail .l,.rail-g,.rail-sub{opacity:1}.rail-sub{max-height:260px}
+ .rail-btn{display:inline-flex}}
+@media print{.rail,.rail-bd{display:none}body.has-rail{padding-left:0}}
+
+/* systems pages and hub */
+pre.sh::before{content:"Command"}pre.out::before{content:"Output"}
+pre.sh{margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0;background:var(--ink);color:var(--ink-fg)}
+pre.sh::before{color:inherit;opacity:.65}
+pre.sh code{color:inherit;white-space:pre}
+pre.sh .cp{background:transparent;color:var(--ink-fg);border-color:rgba(248,250,252,.35)}pre.sh .cp:hover{background:rgba(248,250,252,.12);color:var(--ink-fg)}
+[data-theme=dark] pre.sh{background:#0b1324;color:#f1f5f9;border:1px solid var(--line)}
+pre.out{margin-top:0;border-top-left-radius:0;border-top-right-radius:0}
+.cmd{margin:14px 0 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);overflow:hidden}
+.cmd pre{margin:0;border-radius:0;border-left:0;border-right:0}.cmd>pre.sh{border-top:0}
+.cmd-b{padding:10px 14px 12px}.cmd-b p{margin:4px 0}
+.cmd-b pre.out{margin:6px 0 0;border:1px solid var(--line);border-radius:var(--r)}
+.out-l{margin-top:8px}
+.stamp{display:inline-block;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--done);background:var(--done-soft);border-radius:99px;padding:3px 9px}
+.stamp.ill{color:var(--warn);background:var(--warn-soft)}
+.noout{font-size:13px}
+.parts{margin:8px 0 0}.parts table{font-size:13px}.parts th,.parts td{padding:6px 10px}
+.analogy{margin:8px 0 2px}
+.tick{display:inline-flex;gap:7px;align-items:center;font-size:12.5px;color:var(--mut);cursor:pointer;margin-left:auto}
+.tick input{width:16px;height:16px;accent-color:var(--done);margin:0}.tick.is-done{color:var(--done);font-weight:600}
+.pat-h .tick{margin-left:auto}.pat-h .pp{margin-left:0}
+.lab .badge{background:var(--soft);color:var(--fg)}.lab .badge .ic{width:16px;height:16px}
+.lab{border-left:2px solid var(--info-line)}
+.case{border:1px solid var(--line);border-left:2px solid var(--warn-line);background:var(--hd);border-radius:var(--r);padding:12px 16px;margin:14px 0}
+.case h4{margin:4px 0 6px;font-size:16px;color:var(--fg)}.case p{margin:6px 0}
+.qa{padding:0 14px}.qa summary{font-weight:600}
+.qa-b{padding:0 0 12px}.qa-b ul{margin:4px 0 10px;padding-left:20px}.qa-b li{margin:3px 0}
+.angle{background:var(--hd);border:1px solid var(--line);border-left:2px solid var(--info-line);border-radius:var(--r);padding:8px 12px;font-size:14px}
+table.playbook td:first-child{font-weight:600;color:var(--fg)}
+table.cheat td:first-child{font-family:ui-monospace,Consolas,monospace;font-size:13px;white-space:pre-wrap;color:var(--fg)}
+/* hub */
+.courses{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ccard{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden}
+.ccard .tcard-h{min-height:52px}.ccard .tcard-h h2{margin:0;font-size:19px;margin-right:auto;color:var(--fg)}
+.ccard .tcard-h .no{padding:5px 8px;display:inline-flex}.ccard .tcard-h .no .ic{width:18px;height:18px}
+.ticks{margin:0;padding-left:20px;font-size:14px;color:var(--txt)}.ticks li{margin:3px 0}
+.tcard.planned{opacity:.7;background:var(--hd)}.tcard.planned .no{background:var(--soft);color:var(--mut)}
+@media (max-width:820px){.courses{grid-template-columns:1fr}}
+/* diagrams */
+.viz{margin:8px 0;padding:10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+.viz figcaption{font-size:13px;color:var(--mut);margin-top:6px;text-align:center}
+.dg{width:100%;height:auto;display:block}
+.dg-box{fill:var(--hd);stroke:var(--line);stroke-width:1.5}.dg-box.acc{fill:var(--acc-soft);stroke:var(--acc)}.dg-box.ok{fill:var(--done-soft);stroke:var(--done)}.dg-box.warn{fill:var(--warn-soft);stroke:var(--warn-line)}.dg-box.ink{fill:var(--ink);stroke:var(--ink)}
+.dg-t{font:600 13px system-ui,sans-serif;fill:var(--fg)}.dg-t.ink{fill:var(--ink-fg)}.dg-s{font:12px system-ui,sans-serif;fill:var(--mut)}
+.dg-s.ink{fill:#cbd5e1}
+.dg-a{stroke:var(--faint);stroke-width:2}.dg-a.acc{stroke:var(--acc)}.dg-m{fill:var(--faint)}
+
+/* short view: folded detail inside lessons */
+details.more{border:0;border-left:2px solid var(--line);border-radius:0;padding:0 0 0 12px;margin:8px 0;background:none}
+details.more>summary{font-size:13px;font-weight:600;color:var(--info);display:inline-flex;align-items:center;gap:6px}
+details.more>summary svg{width:14px;height:14px}
+details.more[open]{border-left-color:var(--info-line)}
+.blk.warn details.more>summary{color:var(--warn-ink,var(--fg))}
+.quick details summary{font-weight:500}
+#b-density .t-short{display:none}
+@media(max-width:700px){#b-density .t-long{display:none}#b-density .t-short{display:inline}}
+
+/* reader: one step at a time */
+.vh{display:none!important}
+.vnav{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:28px 0 8px}
+body:not(.focus) .vnav{display:none}
+.vnav a{display:flex;flex-direction:column;gap:2px;padding:12px 16px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);text-decoration:none;color:var(--fg);box-shadow:var(--sh);transition:border-color .15s,background .15s}
+.vnav a:hover{border-color:var(--acc);background:var(--soft)}
+.vnav small{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:600}
+.vnav b{font-size:14px;font-weight:600;line-height:1.35}
+.vnav a.vn{text-align:right;align-items:flex-end;background:var(--ink);border-color:var(--ink);color:var(--ink-fg)}
+.vnav a.vn small{color:#cbd5e1}.vnav a.vn:hover{background:var(--ink);opacity:.92}
+.vpos{font-size:12px;color:var(--mut);white-space:nowrap}
+body:not(.focus) .vpos{display:none}
+#b-view .t-short{display:none}
+@media(max-width:700px){#b-view .t-long{display:none}#b-view .t-short{display:inline}.vnav{grid-template-columns:1fr}.vpos{display:none}}
+.chips a.on{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+@media print{.vh{display:block!important}.vnav,.vpos{display:none!important}}
+
+/* layout: content uses the room it is given; the left menu can be pinned open */
+body.has-rail{transition:padding-left .18s ease}
+body.has-rail .wrap{max-width:1680px}
+.wrap.has-track{grid-template-columns:232px minmax(0,1fr);gap:28px}
+aside.track{display:none}
+@media (min-width:1480px){.wrap.has-track{grid-template-columns:232px minmax(0,1fr) 268px}aside.track{display:block;position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto;padding:20px 0}}
+@media (min-width:1480px) and (max-width:1699px){body.rail-pinned .wrap.has-track{grid-template-columns:232px minmax(0,1fr)}body.rail-pinned aside.track{display:none}}
+@media (max-width:1020px){.wrap.has-track{display:block}aside.track{display:none!important}}
+body.rail-pinned{padding-left:240px}
+body.rail-pinned .rail{width:240px}
+body.rail-pinned .rail .l,body.rail-pinned .rail-g{opacity:1}
+body.rail-pinned .rail-sub{opacity:1;max-height:260px}
+.rail-pin{margin-top:auto;border:0;background:none;cursor:pointer;font:inherit;width:100%;text-align:left;color:var(--mut)}
+.rail-pin svg.ic{transition:transform .18s}
+body.rail-pinned .rail-pin svg.ic{transform:rotate(180deg)}
+@media (max-width:1020px){.rail-pin{display:none}body.rail-pinned{padding-left:0}}
+@media print{body.rail-pinned{padding-left:0}aside.track{display:none!important}}
+/* right-hand progress tracker */
+.tk{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--sh)}
+.tk-top{display:flex;align-items:center;gap:14px}
+.tk-ring{width:64px;height:64px;flex:none}
+.tk-ring circle{fill:none;stroke-width:6}
+.tk-ring .bg{stroke:var(--line)}
+.tk-ring .fg{stroke:var(--done);stroke-linecap:round;transition:stroke-dashoffset .4s ease}
+.tk-ring text{font:700 15px system-ui,sans-serif;fill:var(--fg)}
+.tk-top b{display:block;font-size:15px}
+.tk-top span{font-size:12.5px;color:var(--mut)}
+.tk h4{margin:16px 0 6px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.tk-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+.tk-list a{display:flex;gap:10px;align-items:flex-start;padding:7px 8px;border-radius:8px;text-decoration:none;color:var(--txt);font-size:13px;line-height:1.35}
+.tk-list a:hover{background:var(--soft)}
+.tk-list .d{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line);flex:none;margin-top:1px;display:grid;place-items:center;font-size:10px;line-height:1;color:#fff}
+.tk-list a.done .d{background:var(--done);border-color:var(--done)}
+.tk-list a.done .d::after{content:"¹3"}
+.tk-list a.cur{background:var(--acc-soft);color:var(--fg);font-weight:600}
+.tk-list a.cur .d{border-color:var(--acc)}
+.tk-go{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:14px;padding:9px 12px;border-radius:var(--r);background:var(--ink);color:var(--ink-fg);font-size:13px;font-weight:600;text-decoration:none}
+.tk-go:hover{opacity:.92}
+.tk-rev{display:block;margin-top:8px;text-align:center;font-size:12.5px;color:var(--info);text-decoration:none;font-weight:600}
+
+/* the three-line button only opens the left menu on small screens */
+.bar .rail-btn,.bar-in .rail-btn{display:none}
+@media (max-width:1020px){.bar .rail-btn,.bar-in .rail-btn{display:inline-flex}}
+
+/* quick revision page */
+.revise{max-width:1000px}
+.rv-top{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:6px 0 14px}
+.sel{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mut)}
+.sel select{font:inherit;font-size:13px;height:32px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);max-width:260px}
+.sel select:disabled{opacity:.5}
+.rv-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 10px}
+.rv-bar input[type=search]{width:100%;height:34px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:13.5px}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--txt);cursor:pointer}
+.mtag{display:inline-block;font:600 11px/1 system-ui,sans-serif;padding:3px 6px;border-radius:6px;background:var(--soft);color:var(--mut);margin-right:6px;vertical-align:1px}
+.co{display:inline-block;font:600 11px/1 system-ui,sans-serif;padding:3px 7px;border-radius:999px;background:var(--acc-soft);color:var(--acc);margin-left:6px;white-space:nowrap}
+.fc{border:1px solid var(--line);border-radius:14px;background:var(--surf);box-shadow:var(--sh);padding:28px 24px;min-height:200px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;outline-offset:3px}
+.fc:hover{border-color:var(--acc)}
+.fc-m{font-size:12px;color:var(--mut)}
+.fc-t{font-size:20px;line-height:1.5;font-weight:600;margin:18px 0;color:var(--fg)}
+.fc-h{font-size:12px;color:var(--mut)}
+.fc-a{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;justify-content:center}
+.how-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.hw{border:1px solid var(--line);border-radius:12px;background:var(--surf);padding:16px 18px;box-shadow:var(--sh)}
+.hw h3{margin:0 0 8px;font-size:16px}
+.hw ol,.hw ul{margin:6px 0 8px;padding-left:20px}.hw li{margin:3px 0}
+.hw .ex{margin-top:10px;padding:10px 14px;border-left:3px solid var(--info-line);background:var(--info-soft);border-radius:0 var(--r) var(--r) 0}
+.hw .ex p{margin:4px 0}
+
+.dg-life{stroke:var(--line);stroke-width:1.5;stroke-dasharray:4 4}
+.dg-a.dash{stroke-dasharray:5 4}
+.dg-a.bad{stroke:var(--warn-line)}
+.dg-t.acc{fill:var(--fg)}
+
+/* deep lessons: step-by-step flows, annotated real output, worked interview scenarios */
+.walk{list-style:none;counter-reset:w;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.walk li{counter-increment:w;position:relative;padding:10px 14px 10px 52px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+.walk li::before{content:counter(w);position:absolute;left:14px;top:10px;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--ink-fg);font:700 13px/26px system-ui,sans-serif;text-align:center}
+.walk li b{display:block;margin-bottom:2px}
+.walk li span{color:var(--txt);font-size:14px;line-height:1.55}
+.annot{margin:10px 0 0}
+.annot table{font-size:13px}
+.annot td:first-child{white-space:pre-wrap;word-break:break-word;min-width:160px}
+.scen{border:1px solid var(--info-line);background:var(--info-soft);border-radius:12px;padding:16px 18px;margin-top:18px}
+.scen h4{margin:6px 0 8px;font-size:17px}
+.scen .ask{font-size:15px;margin:0 0 6px}
+.scen-s{margin:12px 0}
+.scen-s ul,.scen-s ol{margin:6px 0 0;padding-left:22px}.scen-s li{margin:5px 0;line-height:1.55}
+.scen-s.warn{border-left:3px solid var(--warn-line);padding-left:12px}
+.scen details{background:var(--surf)}
+.scen details.more.scen-a{border:1px solid var(--line);border-left:3px solid var(--done);border-radius:var(--r);padding:0 14px;background:var(--surf)}
+.scen details.more.scen-a>summary{font-weight:700;color:var(--fg)}
+
+.sdfig{margin:18px 0}.sdfig svg{width:100%;height:auto;display:block}
+.sd-sh{fill:var(--surf);stroke:var(--faint);stroke-width:2}
+.sd-sh.ok{fill:var(--done-soft);stroke:var(--done)}.sd-sh.bad{fill:var(--bad-soft);stroke:var(--bad)}.sd-sh.warn{fill:var(--warn-soft);stroke:var(--warn)}.sd-sh.acc{fill:var(--acc-soft);stroke:var(--acc)}.sd-sh.ink{fill:var(--ink);stroke:var(--ink)}
+.sd-top{fill:var(--soft)}.sd-sh.ok.sd-top{fill:var(--done-soft)}
+.sd-pp{fill:var(--acc-soft);stroke:var(--acc);stroke-width:1.8}.sd-pp.bad{fill:var(--bad-soft);stroke:var(--bad)}.sd-pp.ok{fill:var(--done-soft);stroke:var(--done)}.sd-pp.warn{fill:var(--warn-soft);stroke:var(--warn)}
+.sd-ln{fill:var(--line);}.sd-ln2{fill:none;stroke:var(--faint);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sd-led{fill:var(--faint)}.sd-led.ok{fill:var(--done)}.sd-led.bad{fill:var(--bad)}.sd-led.warn{fill:var(--warn)}.sd-led.acc{fill:var(--acc)}
+.sd-bolt{fill:var(--acc)}.sd-bolt.ok{fill:var(--done)}.sd-bolt.warn{fill:var(--warn)}
+.sd-job{fill:var(--soft);stroke:var(--line);stroke-width:1}.sd-job.on{fill:var(--acc);stroke:var(--acc)}
+.sd-ex{fill:var(--bad)}
+.sd-arc{fill:none;stroke:var(--line);stroke-width:7;stroke-linecap:round}.sd-arc.on{stroke:var(--done)}.sd-arc.on.bad{stroke:var(--bad)}.sd-arc.on.warn{stroke:var(--warn)}
+.sd-needle{stroke:var(--fg);stroke-width:2.5;stroke-linecap:round}.sd-hub{fill:var(--fg)}
+.sd-gv{font:700 13px system-ui,sans-serif;fill:var(--fg)}.sd-gv.bad{fill:var(--bad)}.sd-gv.ok{fill:var(--done)}
+.sd-l{font:600 12.5px system-ui,sans-serif;fill:var(--fg)}.sd-c{font:11.5px system-ui,sans-serif;fill:var(--mut)}
+.sd-n{font:600 12px system-ui,sans-serif;fill:var(--mut)}.sd-n.bad{fill:var(--bad)}.sd-n.ok{fill:var(--done)}.sd-n.warn{fill:var(--warn)}.sd-n.acc{fill:var(--acc)}
+.sd-a{stroke:var(--faint);stroke-width:2.2;fill:none}.sd-a.acc{stroke:var(--acc)}.sd-a.ok{stroke:var(--done)}.sd-a.bad{stroke:var(--bad)}.sd-a.warn{stroke:var(--warn)}.sd-a.dash{stroke-dasharray:5 5}
+.sd-badge{fill:var(--soft);stroke:var(--line)}.sd-badge.ok{fill:var(--done-soft);stroke:var(--done)}.sd-badge.bad{fill:var(--bad-soft);stroke:var(--bad)}.sd-badge.warn{fill:var(--warn-soft);stroke:var(--warn)}.sd-badge.acc{fill:var(--acc-soft);stroke:var(--acc)}
+.sd-bt{font:700 11.5px system-ui,sans-serif;fill:var(--fg)}
+.sd-panel{fill:var(--surf);stroke:var(--line);stroke-width:1.5}.sd-panel.bad{fill:var(--bad-soft);stroke:var(--bad-line)}.sd-panel.ok{fill:var(--done-soft);stroke:var(--done-line)}.sd-panel.warn{fill:var(--warn-soft);stroke:var(--warn-line)}
+.sd-pt{font:700 13px system-ui,sans-serif;fill:var(--fg);letter-spacing:.2px}.sd-pt.bad{fill:var(--bad)}.sd-pt.ok{fill:var(--done)}.sd-pt.warn{fill:var(--warn)}
+.sd-pc{font:12.5px system-ui,sans-serif;fill:var(--txt)}
+
+.sdw{display:grid;grid-template-columns:230px minmax(0,1fr);gap:34px;max-width:1120px;margin:0 auto;padding:22px 20px 60px}
+.sdw main{min-width:0;max-width:780px}
+.sdnav{position:sticky;top:76px;align-self:start;font-size:13.5px}
+.sdnav h4{margin:0 0 8px;font-size:11.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--faint)}
+.sdnav a{display:flex;gap:9px;align-items:center;padding:6px 8px;border-radius:6px;color:var(--mut);text-decoration:none;border-left:3px solid transparent}
+.sdnav a b{width:20px;height:20px;border-radius:50%;background:var(--soft);color:var(--mut);display:inline-grid;place-items:center;font-size:11px;flex:none}
+.sdnav a:hover{background:var(--soft);color:var(--fg)}
+.sdnav a.on{color:var(--fg);font-weight:600;background:var(--acc-soft);border-left-color:var(--acc)}.sdnav a.on b{background:var(--acc);color:#fff}
+.sdnav .done{margin-top:14px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--surf);font-size:13px}
+.sdhero{padding:6px 0 10px}
+.sdhero .eyebrow{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--mut);margin-bottom:8px}
+.sdhero .tag{background:var(--acc-soft);color:var(--acc);border:1px solid var(--acc-line);padding:2px 9px;border-radius:999px;font-weight:600;font-size:12px}
+.sdhero h1{margin:0 0 8px;font-size:clamp(27px,4.2vw,38px);line-height:1.15;color:var(--fg);letter-spacing:-.4px}
+.sdhero .lead{font-size:17.5px;color:var(--txt);max-width:660px;margin:0 0 14px}
+.sdmeta{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px}.sdmeta span{background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:3px 11px;font-size:12.5px;color:var(--mut)}
+.sdsec{margin:38px 0 0;scroll-margin-top:84px}
+.sdsec>h2{display:flex;align-items:center;gap:11px;margin:0 0 4px;font-size:23px;color:var(--fg);letter-spacing:-.2px}
+.sdsec>h2 .n{width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--ink-fg);display:inline-grid;place-items:center;font-size:14px;font-weight:700;flex:none}
+.sdsec>h2 small{font-size:12.5px;font-weight:600;color:var(--faint);letter-spacing:.7px;text-transform:uppercase;margin-left:auto}
+.sdsec .sub{margin:0 0 14px;color:var(--mut)}
+.sdsec p{margin:0 0 12px}
+.sdstory{font-size:16.5px;line-height:1.75}
+.sdstory p:first-of-type::first-letter{float:left;font-size:44px;line-height:.9;padding:5px 8px 0 0;font-weight:800;color:var(--acc)}
+.sdquote{border-left:4px solid var(--acc);background:var(--acc-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0;color:var(--fg)}
+.sdquote p:last-child{margin-bottom:0}
+.sdone{background:var(--ink);color:var(--ink-fg);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:17px;line-height:1.5}
+.sdone b{color:inherit;border-bottom:2px solid var(--acc-line)}
+.sdsteps{list-style:none;margin:8px 0;padding:0;counter-reset:s;display:grid;gap:14px}
+.sdsteps>li{counter-increment:s;border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:14px 16px 6px 56px;position:relative;box-shadow:var(--sh)}
+.sdsteps>li::before{content:counter(s);position:absolute;left:14px;top:13px;width:30px;height:30px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font-weight:700}
+.sdsteps h3{margin:0 0 3px;font-size:17px;color:var(--fg)}.sdsteps p{margin:0 0 8px}
+.sdsteps .sdfig{margin:6px 0 8px}
+.sdgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:8px 0}
+.sdcard{border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:13px 15px;box-shadow:var(--sh)}
+.sdcard h3{margin:0 0 4px;font-size:15.5px;color:var(--fg);display:flex;gap:8px;align-items:center}.sdcard p{margin:0;font-size:14.5px}
+.sdcard.bad{border-color:var(--bad-line);background:var(--bad-soft)}.sdcard.ok{border-color:var(--done-line);background:var(--done-soft)}
+.sdreal{display:grid;gap:10px;margin:8px 0}
+.sdreal>div{border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:12px 15px;display:grid;grid-template-columns:110px 1fr;gap:14px}
+.sdreal b.co{color:var(--acc);font-size:14px}.sdreal p{margin:0 0 4px;font-size:14.5px}.sdreal a{font-size:13px}
+.sdnote{font-size:13px;color:var(--faint);margin:6px 0 0}
+.sdq{border:1px solid var(--line);background:var(--surf);border-radius:12px;margin:14px 0;box-shadow:var(--sh);overflow:hidden}
+.sdq>header{padding:14px 18px;background:var(--hd);border-bottom:1px solid var(--line)}
+.sdq>header .who{font-size:12px;color:var(--faint);text-transform:uppercase;letter-spacing:.7px;font-weight:600}
+.sdq>header h3{margin:2px 0 4px;font-size:18px;color:var(--fg)}.sdq>header p{margin:0;font-size:14.5px;color:var(--mut)}
+.sdq .body{padding:6px 18px 16px}
+.sdq h4{margin:16px 0 6px;font-size:12.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--faint)}
+.sdq ol.think{margin:0;padding-left:20px}.sdq ol.think li{margin:0 0 6px}.sdq ol.think li span{display:block;color:var(--mut);font-size:14.5px}
+.sdq .say{border-left:4px solid var(--done);background:var(--done-soft);padding:10px 15px;border-radius:0 8px 8px 0;font-size:15px}.sdq .say p{margin:0 0 8px}.sdq .say p:last-child{margin:0}
+.sdq .say .lbl2{display:block;font-size:11.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--done);font-weight:700;margin-bottom:4px}
+.sdq details{border:1px solid var(--line);border-radius:8px;margin:6px 0;background:var(--bg)}.sdq summary{cursor:pointer;padding:8px 12px;font-weight:600;color:var(--fg);font-size:14.5px}.sdq details p{margin:0;padding:0 12px 10px;font-size:14.5px}
+.sdq .slips{margin:0;padding-left:20px;color:var(--mut);font-size:14.5px}
+.sdrecap{border:1px solid var(--done-line);background:var(--done-soft);border-radius:12px;padding:6px 18px 12px}
+.sdrecap ul{margin:6px 0 10px;padding-left:20px}.sdrecap li{margin:0 0 5px}
+.sddeeper{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.sddeeper a{border:1px solid var(--line);border-radius:8px;padding:7px 12px;background:var(--surf);text-decoration:none;font-size:13.5px}
+.sdfoot{display:flex;justify-content:space-between;gap:12px;margin:40px 0 0}
+.sdfoot a{flex:1;border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:12px 16px;text-decoration:none;color:var(--fg);box-shadow:var(--sh)}
+.sdfoot a small{display:block;color:var(--faint);font-size:12px}.sdfoot a.r{text-align:right}
+.sdx{border:1px solid var(--line);background:var(--surf);border-radius:12px;padding:14px 18px 8px;margin:14px 0;box-shadow:var(--sh)}.sdx h3{margin:0 0 4px;font-size:17px;color:var(--fg);display:flex;gap:10px;align-items:center}.sdx .xn{width:26px;height:26px;border-radius:7px;background:var(--done);color:#fff;display:inline-grid;place-items:center;font-size:13px}.sdx .what{margin:0 0 8px;color:var(--txt)}.sdx pre.out{margin:6px 0 10px;max-height:340px;overflow:auto}.sdmore{margin:8px 0 6px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}.sdmore summary{cursor:pointer;padding:8px 12px;font-weight:600;font-size:14px;color:var(--acc)}.sdmore pre.sh{margin:0 12px 10px;max-height:380px;overflow:auto}.sdmore p{margin:0 12px 10px;font-size:14.5px}
+.sdtable{width:100%;border-collapse:collapse;font-size:14.5px;margin:8px 0}.sdtable th,.sdtable td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}.sdtable th{background:var(--soft);color:var(--fg)}
+.sdland .path{position:relative;margin:18px 0 8px;padding-left:44px}
+.sdland .path::before{content:"";position:absolute;left:-30px;top:12px;bottom:12px;width:3px;background:linear-gradient(var(--acc),var(--done));border-radius:2px}
+.sdland .node{position:relative;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:11px 15px;margin:0 0 10px;text-decoration:none;color:inherit;box-shadow:var(--sh)}
+.sdland .node::before{content:attr(data-n);position:absolute;left:-44px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;background:var(--surf);border:3px solid var(--acc);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--fg)}
+.sdland .node b{display:block;color:var(--fg);font-size:16px}.sdland .node span{color:var(--mut);font-size:13.5px}
+.sdland .node.soon{opacity:.6;background:var(--soft)}.sdland .node.soon::before{border-color:var(--line)}
+.sdland .node:not(.soon):hover{border-color:var(--acc);transform:translateX(2px)}
+.sdland .pill{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--done-soft);color:var(--done);border:1px solid var(--done-line);white-space:nowrap}
+.sdland .pill.soon{background:var(--soft);color:var(--faint);border-color:var(--line)}
+.sdland .tick-ok{color:var(--done);font-weight:700}
+.sdland h2{margin:34px 0 4px;font-size:24px;color:var(--fg)}
+.sdland .grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.sdland .pcard{border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:13px 15px;text-decoration:none;color:inherit;display:block;box-shadow:var(--sh)}
+.sdland .pcard b{display:block;color:var(--fg);font-size:15.5px;margin-bottom:2px}.sdland .pcard span{color:var(--mut);font-size:13.5px}.sdland .pcard .row{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.sdland .pcard.soon{opacity:.6;background:var(--soft)}.sdland .pcard:not(.soon):hover{border-color:var(--acc)}
+@media(max-width:1020px){.sdw{grid-template-columns:1fr;gap:0;padding:14px 14px 50px}.sdnav{position:static;display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:6px;-webkit-overflow-scrolling:touch}.sdnav h4,.sdnav .done{display:none}.sdnav a{flex:none;border:1px solid var(--line);border-radius:999px;padding:5px 11px;border-left-width:1px;white-space:nowrap}.sdnav a b{display:none}.sdreal>div{grid-template-columns:1fr;gap:4px}.sdsteps>li{padding-left:52px}}
+@media(max-width:560px){.sdsec>h2{font-size:20px}.sdsec>h2 small{display:none}.sdfoot{flex-direction:column}}
+</style></head>
+<body class="has-rail" data-sd="14-case-files">
+<a class="skip" href="#content">Skip to content</a>
+<nav class="rail" id="rail" aria-label="Sections"><a class="rail-i rail-logo" href="../index.html" title="Mastery home"><span class="logo" aria-hidden="true">M</span><span class="l"><b>Mastery</b></span></a><div class="rail-g">Courses</div><a class="rail-i" href="../index.html" title="Home"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 7.5 8 2.5l5.5 5M4 6.5v7h8v-7"/></svg><span class="l">Home</span></a><a class="rail-i" href="../dsa.html" title="DSA Mastery"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m5.5 4.5-3.5 3.5 3.5 3.5M10.5 4.5l3.5 3.5-3.5 3.5"/></svg><span class="l">DSA Mastery</span></a><a class="rail-i" href="../design/index.html" title="System design"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m8 2 6.5 3.5L8 9 1.5 5.5z"/><path d="m1.5 8.5 6.5 3.5 6.5-3.5"/></svg><span class="l">System design</span></a><a class="rail-i" href="../toolkit/index.html" aria-current="page" title="Systems Mastery"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3" width="11" height="4" rx="1"/><rect x="2.5" y="9" width="11" height="4" rx="1"/><path d="M5 5h.01M5 11h.01"/></svg><span class="l">Systems Mastery</span></a><a class="rail-i" href="../systems.html" title="Reference library"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2 4h.01M2 8h.01M2 12h.01"/></svg><span class="l">Reference library</span></a><div class="rail-g">Tools</div><a class="rail-i" href="../revise.html" title="Quick revision"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg><span class="l">Quick revision</span></a><a class="rail-i" href="../plan.html" title="DSA study planner"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="10" rx="1.5"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/></svg><span class="l">DSA study planner</span></a><a class="rail-i" href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener" title="GitHub"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M9 2.5h4.5V7M13.5 2.5 7 9M12 9v4.5H2.5V4H7"/></svg><span class="l">GitHub</span></a><button class="rail-i rail-pin" id="rail-pin" type="button" aria-pressed="false" title="Keep the menu open"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg><span class="l">Pin menu</span></button></nav><div class="rail-bd" id="rail-bd" hidden></div>
+<header class="bar"><div class="bar-in"><button id="b-rail" class="iconbtn rail-btn" aria-label="Open the sections menu" aria-expanded="false" aria-controls="rail"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"/></svg></button><a class="brand" href="index.html" aria-label="Systems Mastery home"><span class="logo" aria-hidden="true">SM</span><b>Systems <span>Mastery</span></b></a>
+<nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Course map</a><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3.5 4.5 4.5L6 12.5"/></svg><span class="cur">Chapter 14 · Case files: how real outages happened</span></nav>
+<span style="margin-left:auto"></span><button id="b-theme" class="iconbtn" title="Toggle light / dark" aria-label="Toggle light or dark theme"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5a5.5 5.5 0 0 0 0 11z" fill="currentColor"/></svg></button></div></header>
+<div class="sdw"><nav class="sdnav" aria-label="On this page"><h4>On this page</h4><a href="#story"><b>1</b>The story</a><a href="#read"><b>2</b>How to read a postmortem</a><a href="#cases"><b>3</b>The case files</a><a href="#patterns"><b>4</b>Patterns across outages</a><a href="#interview"><b>5</b>In the interview</a><a href="#recap"><b>6</b>Remember</a><label class="done"><input type="checkbox" id="sd-done"> I finished this page</label></nav>
+<main id="content" class="sdmain"><header class="sdhero"><div class="eyebrow"><span class="tag">Chapter 14 of 14</span>Night shift at ShopKart</div><h1>Case files: how real outages happened</h1><p class="lead">Six well documented public outages, retold in plain language: what happened, how it spread, what changed, and what to take back to your own system.</p><div class="sdmeta"><span>about 35 minutes</span><span>6 case files</span><span>every claim sourced</span></div></header>
+<section class="sdsec" id="story"><h2><span class="n">1</span>Monday, 9:30 a.m.<small>The story</small></h2><div class="sdstory"><p>It has been a rough weekend at ShopKart. The pager went off four times, and by Sunday morning everyone has a theory about what went wrong. Your manager puts a coffee next to your keyboard and says: "Before we argue about our own outage, read how the big ones went. I want to see what the pattern is."</p><p>You expected the big companies to be a different species. They are not. A mistyped input, a backup nobody had tried to restore, a rule that nobody tested for cost: the same small human things, on a larger stage. The writing they published afterwards is some of the best teaching material in engineering.</p><p>So this page is a set of <strong>case files</strong>. Each one is retold from the company's own postmortem, with the date, the timeline, the cause, the reason it spread and what they changed. At the end you will see the patterns, and you will turn them into a short list for ShopKart.</p></div><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 720 276" role="img" aria-label="ShopKart reads other people&#x27;s outages"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="sd-panel bad" x="0" y="0" width="230.667" height="276" rx="10"/><text class="sd-pt bad" x="14" y="26" text-anchor="start">Monday, 9:30 a.m.</text><circle class="sd-pp warn" cx="71.33333333333333" cy="99.5" r="7.7"/><path class="sd-pp warn" d="M58.1333,132.5 v-8.8 a13.2,13.2 0 0 1 26.4,0 v8.8 z"/><path class="sd-sh bad" d="M155.33333333333331,98 L176.33333333333331,134 L134.33333333333331,134 z"/><rect class="sd-ex" x="153.73333333333332" y="110" width="3.2" height="12" rx="1.4"/><circle class="sd-ex" cx="155.33333333333331" cy="127" r="2"/><text class="sd-pc" x="115.333" y="224" text-anchor="middle">The weekend outage is over.</text><text class="sd-pc" x="115.333" y="239" text-anchor="middle">Your manager asks: what exactly</text><text class="sd-pc" x="115.333" y="254" text-anchor="middle">happened, and could it happen</text><text class="sd-pc" x="115.333" y="269" text-anchor="middle">again?</text><rect class="sd-panel warn" x="244.667" y="0" width="230.667" height="276" rx="10"/><text class="sd-pt warn" x="258.667" y="26" text-anchor="start">Monday, 11:00 a.m.</text><path class="sd-sh warn" d="M290.0,136 a14,14 0 0 1 2,-27 a20,20 0 0 1 38,-4 a15,15 0 0 1 8,31 z"/><text class="sd-l" x="320.0" y="154" text-anchor="middle">other firms</text><line class="sd-a warn" x1="352.0" y1="122" x2="386.0" y2="122" marker-end="url(#dga)"/><circle class="sd-pp ok" cx="416.0" cy="101" r="7"/><path class="sd-pp ok" d="M404,131 v-8 a12,12 0 0 1 24,0 v8 z"/><text class="sd-pc" x="360" y="224" text-anchor="middle">You read how GitLab, AWS,</text><text class="sd-pc" x="360" y="239" text-anchor="middle">Cloudflare, GitHub, Meta and</text><text class="sd-pc" x="360" y="254" text-anchor="middle">Google lost whole days, and</text><text class="sd-pc" x="360" y="269" text-anchor="middle">what they wrote down.</text><rect class="sd-panel ok" x="489.333" y="0" width="230.667" height="276" rx="10"/><text class="sd-pt ok" x="503.333" y="26" text-anchor="start">Monday, 4:00 p.m.</text><circle class="sd-pp ok" cx="554.6666666666666" cy="99.5" r="7.7"/><path class="sd-pp ok" d="M541.467,132.5 v-8.8 a13.2,13.2 0 0 1 26.4,0 v8.8 z"/><rect class="sd-sh ok" x="612.6666666666666" y="98" width="56" height="48" rx="7"/><rect class="sd-ln" x="622.6666666666666" y="110" width="28" height="4" rx="2"/><rect class="sd-ln" x="622.6666666666666" y="120" width="28" height="4" rx="2"/><circle class="sd-led ok" cx="657.6666666666666" cy="112" r="3"/><circle class="sd-led ok" cx="657.6666666666666" cy="122" r="3"/><rect class="sd-ln" x="622.6666666666666" y="130" width="36" height="4" rx="2"/><text class="sd-l" x="640.6666666666666" y="162" text-anchor="middle">checked</text><line class="sd-a ok" x1="580.6666666666666" y1="122" x2="610.6666666666666" y2="122" marker-end="url(#dga)"/><text class="sd-pc" x="604.667" y="224" text-anchor="middle">You test your own backups and</text><text class="sd-pc" x="604.667" y="239" text-anchor="middle">add one safety check. Other</text><text class="sd-pc" x="604.667" y="254" text-anchor="middle">people&#x27;s bad nights became your</text><text class="sd-pc" x="604.667" y="269" text-anchor="middle">list.</text></svg><figcaption>Learning from a failure that happened to someone else costs nothing but reading time.</figcaption></figure></section>
+<section class="sdsec" id="read"><h2><span class="n">2</span>How to read a postmortem<small>Method</small></h2><p>A <strong>postmortem</strong> (also called an incident review) is the written account of an outage after it is over. A good one is <strong>blameless</strong>: it asks how the system let a normal mistake cause harm, instead of asking who to punish. That is why companies can publish them.</p><p>Read each one in the same order. What was the <strong>trigger</strong> (the small thing that started it)? What made it <strong>spread</strong> (the missing brake)? Why did it <strong>last</strong> (slow to detect, slow to restart, or missing access)? What did they <strong>change</strong>? The trigger is usually boring. The other three are where you learn.</p><p>Be careful with numbers. Times differ by time zone, and a company's first estimate is often revised. Where a source is vague or two figures disagree, the case file says so in its note. Always read the original, which is linked under each case.</p><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 720 188" role="img" aria-label="The shape of an outage"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="sd-badge warn" x="32" y="39" width="88" height="22" rx="11"/><text class="sd-bt warn" x="76" y="54" text-anchor="middle">1. trigger</text><line class="sd-a warn" x1="122" y1="50" x2="188" y2="50" marker-end="url(#dga)"/><rect class="sd-badge bad" x="191.2" y="39" width="109.6" height="22" rx="11"/><text class="sd-bt bad" x="246" y="54" text-anchor="middle">2. it spreads</text><line class="sd-a bad" x1="300" y1="50" x2="366" y2="50" marker-end="url(#dga)"/><rect class="sd-badge bad" x="365.6" y="39" width="116.8" height="22" rx="11"/><text class="sd-bt bad" x="424" y="54" text-anchor="middle">3. slow to see</text><line class="sd-a warn" x1="484" y1="50" x2="550" y2="50" marker-end="url(#dga)"/><rect class="sd-badge ok" x="566" y="39" width="88" height="22" rx="11"/><text class="sd-bt ok" x="610" y="54" text-anchor="middle">4. the fix</text><text class="sd-n " x="76" y="100" text-anchor="middle">a small change</text><text class="sd-n " x="246" y="100" text-anchor="middle">no brake stops it</text><text class="sd-n " x="424" y="100" text-anchor="middle">tools or access fail</text><text class="sd-n " x="610" y="100" text-anchor="middle">learn and change</text><text class="sd-n acc" x="360" y="150" text-anchor="middle">Every case in this chapter fits this chain. The trigger is rarely the real cause.</text></svg></figure></section>
+<section class="sdsec" id="cases"><h2><span class="n">3</span>The case files<small>Case files</small></h2><p class="sub">Each case is told the same way: what happened, the timeline, the root cause, why it spread, what changed, and what to take away.</p><article class="sdq"><header><span class="who">31 January 2017 · GitLab</span><h3>1. The database that was wiped, and the backups that were not there</h3><p>An engineer fighting a database slowdown late at night deleted the data on the wrong server. GitLab.com then needed about 18 hours to come back, and some data created that day was lost for good.</p></header><div class="body"><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 720 182" role="img" aria-label="GitLab: the right command on the wrong machine"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><circle class="sd-pp warn" cx="50" cy="47.5" r="7.7"/><path class="sd-pp warn" d="M36.8,80.5 v-8.8 a13.2,13.2 0 0 1 26.4,0 v8.8 z"/><line class="sd-a bad" x1="84" y1="64" x2="170" y2="64" marker-end="url(#dga)"/><text class="sd-c" x="127.0" y="57.0" text-anchor="middle">wipe data</text><rect class="sd-sh bad" x="182" y="38" width="56" height="48" rx="7"/><rect class="sd-ln" x="192" y="50" width="28" height="4" rx="2"/><rect class="sd-ln" x="192" y="60" width="28" height="4" rx="2"/><circle class="sd-led bad" cx="227" cy="52" r="3"/><circle class="sd-led bad" cx="227" cy="62" r="3"/><rect class="sd-ln" x="192" y="70" width="36" height="4" rx="2"/><text class="sd-l" x="210" y="102" text-anchor="middle">primary</text><rect class="sd-sh warn" x="532" y="38" width="56" height="48" rx="7"/><rect class="sd-ln" x="542" y="50" width="28" height="4" rx="2"/><rect class="sd-ln" x="542" y="60" width="28" height="4" rx="2"/><circle class="sd-led warn" cx="577" cy="52" r="3"/><circle class="sd-led warn" cx="577" cy="62" r="3"/><rect class="sd-ln" x="542" y="70" width="36" height="4" rx="2"/><text class="sd-l" x="560" y="102" text-anchor="middle">replica</text><text class="sd-n bad" x="210" y="128" text-anchor="middle">wiped by mistake</text><text class="sd-n warn" x="560" y="128" text-anchor="middle">was the intended target</text><line class="sd-a warn dash" x1="244" y1="62" x2="526" y2="62" marker-end="url(#dga)"/><text class="sd-c" x="385.0" y="55.0" text-anchor="middle">replication broken</text><text class="sd-n acc" x="360" y="164" text-anchor="middle">Meant for the replica, ran on the primary. About 300 GB went in a second or two.</text></svg></figure><h4>What happened</h4><p>GitLab.com ran one main PostgreSQL database and one copy of it, called a <strong>secondary</strong>, that follows every change. On the evening of 31 January the main database came under heavy load, partly from spam and partly from a background job deleting a user account that had been flagged by mistake. The secondary fell behind and then stopped following.</p><p>An engineer tried to rebuild the secondary by emptying its data folder and copying a fresh version. Very late at night, the delete command was run on the <strong>primary</strong> instead. About 300 GB of live data was removed before the engineer noticed and stopped it.</p><p>Then the team went looking for backups. Several of them turned out to be unusable or missing. The best option left was a copy of production taken by an engineer about six hours earlier, to use in a test environment.</p><h4>Timeline</h4><ol class='think'><li><b>About 17:20 UTC</b><span>An engineer takes a snapshot of production for testing. This accidentally becomes the newest copy of the data.</span></li><li><b>About 19:00</b><span>Database load rises. Users cannot post comments for several hours.</span></li><li><b>About 23:00</b><span>The secondary has fallen behind and the history it needs is already gone from the primary. Manual rebuilding starts.</span></li><li><b>About 23:30</b><span>The delete command runs on the primary. The engineer stops it, but about 300 GB is already gone.</span></li><li><b>1 February, about 17:00</b><span>After copying the six hour old snapshot over slow disks (about 18 hours in total), GitLab.com is back, without webhooks.</span></li><li><b>About 18:00</b><span>Webhooks are restored and final checks finish.</span></li></ol><div class="sdgrid"><div class="sdcard bad"><h3>Root cause</h3><p>A manual, undocumented rebuild procedure was run under stress and the engineer was on the wrong server. Behind that sat a second cause: nobody owned and tested the backups, so when they were needed they did not work.</p></div><div class="sdcard "><h3>Why it spread</h3><p>A tired person, a slow rebuild and an unusual load all landed together. Backup failures were silent: the daily dump job ran with the wrong tool version and its failure emails were rejected, so nobody knew for a long time.</p></div><div class="sdcard ok"><h3>What changed</h3><p>GitLab listed fifteen follow-ups, including a shell prompt that clearly shows which host and environment you are on, monitoring for backups, automated tests that restore a backup, point in time recovery, hourly snapshots and a named owner for data durability.</p></div></div><h4>The lesson</h4><div class="say"><span class="lbl2">Take this to your own system</span><p><strong>A backup you have never restored is a hope, not a backup.</strong> Schedule a restore test and alert when a backup job fails or is empty.</p><p>Make dangerous commands hard to point at the wrong target: colour the prompt for production, show the hostname, and write the rebuild steps down before you need them.</p></div><p class="sdnote">Source: <a href="https://about.gitlab.com/blog/postmortem-of-database-outage-of-january-31/" target="_blank" rel="noopener">GitLab: Postmortem of database outage of January 31</a>. The post gives the lost window as 17:20 to 23:30 UTC in one place and a different end time in its introduction, so treat the exact window as approximate. Counts of lost data (about 5,000 projects, 5,000 comments, 700 users) are GitLab's estimates and were stated as minimums.</p></div></article><article class="sdq"><header><span class="who">28 February 2017 · Amazon Web Services</span><h3>2. One mistyped input took down S3 in a whole region</h3><p>A routine command to remove a few servers removed far more than intended. S3 in the US East (Northern Virginia) region could not serve requests for about four hours, and much of the internet noticed.</p></header><div class="body"><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 720 182" role="img" aria-label="AWS S3: one mistyped input in a routine command"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><circle class="sd-pp warn" cx="50" cy="47.5" r="7.7"/><path class="sd-pp warn" d="M36.8,80.5 v-8.8 a13.2,13.2 0 0 1 26.4,0 v8.8 z"/><line class="sd-a warn" x1="84" y1="64" x2="172" y2="64" marker-end="url(#dga)"/><text class="sd-c" x="128.0" y="57.0" text-anchor="middle">remove a few</text><rect class="sd-sh warn" x="184" y="38" width="56" height="48" rx="7"/><rect class="sd-ln" x="194" y="50" width="28" height="4" rx="2"/><rect class="sd-ln" x="194" y="60" width="28" height="4" rx="2"/><circle class="sd-led warn" cx="229" cy="52" r="3"/><circle class="sd-led warn" cx="229" cy="62" r="3"/><rect class="sd-ln" x="194" y="70" width="36" height="4" rx="2"/><text class="sd-l" x="212" y="102" text-anchor="middle">billing servers</text><rect class="sd-badge bad" x="346" y="11" width="88" height="22" rx="11"/><text class="sd-bt bad" x="390" y="26" text-anchor="middle">input typo</text><line class="sd-a bad" x1="246" y1="62" x2="460" y2="62" marker-end="url(#dga)"/><text class="sd-c" x="353.0" y="55.0" text-anchor="middle">far more removed</text><rect class="sd-sh bad" x="472" y="38" width="56" height="48" rx="7"/><rect class="sd-ln" x="482" y="50" width="28" height="4" rx="2"/><rect class="sd-ln" x="482" y="60" width="28" height="4" rx="2"/><circle class="sd-led bad" cx="517" cy="52" r="3"/><circle class="sd-led bad" cx="517" cy="62" r="3"/><rect class="sd-ln" x="482" y="70" width="36" height="4" rx="2"/><text class="sd-l" x="500" y="102" text-anchor="middle">index</text><rect class="sd-sh bad" x="592" y="38" width="56" height="48" rx="7"/><rect class="sd-ln" x="602" y="50" width="28" height="4" rx="2"/><rect class="sd-ln" x="602" y="60" width="28" height="4" rx="2"/><circle class="sd-led bad" cx="637" cy="52" r="3"/><circle class="sd-led bad" cx="637" cy="62" r="3"/><rect class="sd-ln" x="602" y="70" width="36" height="4" rx="2"/><text class="sd-l" x="620" y="102" text-anchor="middle">placement</text><text class="sd-n bad" x="560" y="128" text-anchor="middle">S3 cannot serve requests</text><text class="sd-n acc" x="360" y="164" text-anchor="middle">A routine playbook command removed too much capacity, and both core parts had to restart.</text></svg></figure><h4>What happened</h4><p>The S3 team was investigating why a billing system was slow. An authorised engineer ran a command from an established playbook to take a small number of servers out of service. One input was entered wrongly, and a much larger set of servers was removed.</p><p>Those servers also supported two core parts of S3: the <strong>index</strong>, which knows where every object lives, and the <strong>placement</strong> part, which decides where new objects are stored. Without enough capacity both had to restart, and S3 could not answer requests while they did.</p><p>Other AWS services that depend on S3 suffered too, including launching new EC2 instances and some data volumes. Even AWS's own status dashboard needed S3, so for a while it could not show updates and AWS used banner text and Twitter instead.</p><h4>Timeline</h4><ol class='think'><li><b>9:37 a.m. PST</b><span>The command is run and the large set of servers is removed.</span></li><li><b>12:26 p.m.</b><span>The index part can serve some requests again (GET, LIST and DELETE).</span></li><li><b>1:18 p.m.</b><span>The index part is fully recovered.</span></li><li><b>1:54 p.m.</b><span>The placement part finishes recovering and S3 operates normally. That is about 4 hours 17 minutes after the start (our sum of the stated times).</span></li></ol><div class="sdgrid"><div class="sdcard bad"><h3>Root cause</h3><p>The tool allowed one input to remove too much capacity, and nothing blocked a removal that would take a subsystem below its safe minimum.</p></div><div class="sdcard "><h3>Why it spread</h3><p>The same machines served several subsystems in one region, so a mistake in billing became an outage of core storage. The restarts were slow because AWS had not fully restarted those subsystems in a large region for years, and S3 had grown a lot in that time.</p></div><div class="sdcard ok"><h3>What changed</h3><p>AWS changed the tool to remove capacity more slowly and to refuse removals that would go below minimum capacity, began auditing other tools for the same weakness, moved up work to split the index into smaller cells, and made the status dashboard run across several regions.</p></div></div><h4>The lesson</h4><div class="say"><span class="lbl2">Take this to your own system</span><p><strong>Put a seatbelt on destructive tools:</strong> limits, dry runs, a maximum blast radius and a minimum safe capacity that the tool refuses to cross.</p><p>Do not host your status page or your incident tools on the thing that is failing. And practise a full restart before the day you need one.</p></div><p class="sdnote">Source: <a href="https://aws.amazon.com/message/41926/" target="_blank" rel="noopener">AWS: Summary of the Amazon S3 Service Disruption in the Northern Virginia (US-EAST-1) Region</a>. Times are Pacific. The total duration is our own sum from the stated start and finish times; the summary does not state a single total.</p></div></article><article class="sdq"><header><span class="who">2 July 2019 · Cloudflare</span><h3>3. A firewall rule that used all the CPU, worldwide, in seconds</h3><p>Cloudflare shipped a new rule for its web application firewall (WAF). One pattern in it was so expensive to match that servers everywhere ran out of CPU, and customers saw 502 errors for 27 minutes.</p></header><div class="body"><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 720 182" role="img" aria-label="Cloudflare: a rule that ate every CPU"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><circle class="sd-pp warn" cx="50" cy="47.5" r="7.7"/><path class="sd-pp warn" d="M36.8,80.5 v-8.8 a13.2,13.2 0 0 1 26.4,0 v8.8 z"/><line class="sd-a warn" x1="84" y1="64" x2="170" y2="64" marker-end="url(#dga)"/><text class="sd-c" x="127.0" y="57.0" text-anchor="middle">new WAF rule</text><path class="sd-sh warn" d="M180,76 a14,14 0 0 1 2,-27 a20,20 0 0 1 38,-4 a15,15 0 0 1 8,31 z"/><text class="sd-l" x="210" y="94" text-anchor="middle">global edge</text><line class="sd-a bad" x1="244" y1="62" x2="360" y2="62" marker-end="url(#dga)"/><text class="sd-c" x="302.0" y="55.0" text-anchor="middle">in seconds</text><rect class="sd-sh bad" x="372" y="38" width="56" height="48" rx="7"/><rect class="sd-ln" x="382" y="50" width="28" height="4" rx="2"/><rect class="sd-ln" x="382" y="60" width="28" height="4" rx="2"/><circle class="sd-led bad" cx="417" cy="52" r="3"/><circle class="sd-led bad" cx="417" cy="62" r="3"/><rect class="sd-ln" x="382" y="70" width="36" height="4" rx="2"/><text class="sd-l" x="400" y="102" text-anchor="middle">every server</text><path class="sd-arc" d="M534,70 A26,26 0 0 1 586,70"/><path class="sd-arc on bad" d="M534,70 A26,26 0 0 1 585.949,68.3674"/><line class="sd-needle bad" x1="560" y1="70" x2="579.961" y2="68.7442"/><circle class="sd-hub bad" cx="560" cy="70" r="3.5"/><text class="sd-gv bad" x="560" y="86" text-anchor="middle">98%</text><text class="sd-l" x="560" y="106" text-anchor="middle">CPU</text><text class="sd-n bad" x="560" y="128" text-anchor="middle">all cores busy: 502 errors</text><text class="sd-n acc" x="360" y="164" text-anchor="middle">A rule with a costly pattern ran on all live traffic worldwide the moment it shipped.</text></svg></figure><h4>What happened</h4><p>A <strong>WAF</strong> inspects web requests and blocks attacks. Cloudflare engineers merged a change to its managed rules. It contained a <strong>regular expression</strong> (a text pattern) that, on some inputs, makes the matching engine try an enormous number of combinations, called <strong>backtracking</strong>.</p><p>The rule was deployed in a mode that only observes and does not block, but it still had to run against live traffic. CPUs that serve web traffic went to nearly 100 percent across the network, and customers and their visitors got 502 errors.</p><p>Engineers first saw a flood of pager alerts, then worked out that the WAF was the cause and used a global switch to turn it off. Traffic and CPU returned to normal two minutes later. The team confirmed the cause and re-enabled the WAF about 45 minutes after that.</p><h4>Timeline</h4><ol class='think'><li><b>13:31 UTC</b><span>The change is merged after approval.</span></li><li><b>13:37</b><span>Automatic build finishes and the tests pass.</span></li><li><b>13:42</b><span>The change starts deploying and goes worldwide almost at once.</span></li><li><b>About 13:45</b><span>The first pager alert fires, followed by many more.</span></li><li><b>14:00</b><span>The WAF is identified as the cause and an attack is ruled out.</span></li><li><b>14:07</b><span>The WAF is switched off globally.</span></li><li><b>14:09</b><span>Traffic and CPU are back to normal. The outage lasted 27 minutes.</span></li><li><b>14:52</b><span>A fix is confirmed and the WAF is turned back on.</span></li></ol><div class="sdgrid"><div class="sdcard bad"><h3>Root cause</h3><p>A badly behaved pattern met a regular expression engine with no guarantee about how long matching can take. Contributing causes Cloudflare listed include a CPU protection that had been removed by mistake in an earlier refactor, and tests that never measured CPU use.</p></div><div class="sdcard "><h3>Why it spread</h3><p>Firewall rules were allowed to skip the normal staged rollout so that attacks could be answered fast. They travelled through a system that updates every server in seconds, so a mistake reached the whole network before anyone could see a pattern.</p></div><div class="sdcard ok"><h3>What changed</h3><p>Cloudflare restored the CPU protection, reviewed all 3,868 managed rules for backtracking, added performance profiling to the tests, planned a switch to regex engines with run time guarantees, changed the procedure to staged rollouts, and planned an emergency way to take its own dashboard and API off the edge.</p></div></div><h4>The lesson</h4><div class="say"><span class="lbl2">Take this to your own system</span><p><strong>Ship in stages, even your fast lane.</strong> A small first slice with a metric watching it turns a worldwide outage into a blip.</p><p>Test the cost of a change, not just whether it gives the right answer, and keep a global off switch that you have practised.</p></div><p class="sdnote">Source: <a href="https://blog.cloudflare.com/details-of-the-cloudflare-outage-on-july-2-2019/" target="_blank" rel="noopener">Cloudflare blog: Details of the Cloudflare outage on July 2, 2019</a>. Summarised from the company or project write-up; read the source for the full detail.</p></div></article><article class="sdq"><header><span class="who">21 to 22 October 2018 · GitHub</span><h3>4. Forty three seconds of network trouble, a day of degraded service</h3><p>A short loss of connectivity between two GitHub sites made its database failover choose a different primary. Fixing the resulting split took over 24 hours, though GitHub reported no user data lost.</p></header><div class="body"><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 720 182" role="img" aria-label="GitHub: two databases, both thinking they were in charge"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="sd-sh warn" x="92" y="34" width="56" height="48" rx="7"/><rect class="sd-ln" x="102" y="46" width="28" height="4" rx="2"/><rect class="sd-ln" x="102" y="56" width="28" height="4" rx="2"/><circle class="sd-led warn" cx="137" cy="48" r="3"/><circle class="sd-led warn" cx="137" cy="58" r="3"/><rect class="sd-ln" x="102" y="66" width="36" height="4" rx="2"/><text class="sd-l" x="120" y="98" text-anchor="middle">East Coast</text><rect class="sd-sh warn" x="572" y="34" width="56" height="48" rx="7"/><rect class="sd-ln" x="582" y="46" width="28" height="4" rx="2"/><rect class="sd-ln" x="582" y="56" width="28" height="4" rx="2"/><circle class="sd-led warn" cx="617" cy="48" r="3"/><circle class="sd-led warn" cx="617" cy="58" r="3"/><rect class="sd-ln" x="582" y="66" width="36" height="4" rx="2"/><text class="sd-l" x="600" y="98" text-anchor="middle">West Coast</text><line class="sd-a bad dash" x1="154" y1="58" x2="566" y2="58" marker-end="url(#dga)"/><text class="sd-c" x="360.0" y="51.0" text-anchor="middle">link cut for 43 seconds</text><text class="sd-n bad" x="120" y="128" text-anchor="middle">writes West never saw</text><text class="sd-n bad" x="600" y="128" text-anchor="middle">writes East never saw</text><text class="sd-n acc" x="360" y="164" text-anchor="middle">Both sides then accepted writes, so neither copy of the database could simply win.</text></svg></figure><h4>What happened</h4><p>GitHub was replacing faulty optical network equipment. At 22:52 UTC on 21 October the maintenance cut the link between its East Coast network hub and its main East Coast data centre. The link came back after 43 seconds.</p><p>In that short gap, the software that manages MySQL failover, called Orchestrator, decided that databases on the West Coast should become the primaries. When the link returned, the application began writing to the West primaries, but the East still held a few seconds of writes the West never had. Neither side was safe to fail back to.</p><p>GitHub chose to restore from backups and rebuild replicas, which took hours because of the data size. While databases were served from across the country, pages were slow and some users saw inconsistent data. A large backlog of webhook events and Pages builds then had to be processed.</p><h4>Timeline</h4><ol class='think'><li><b>22:52 UTC, 21 Oct</b><span>Maintenance cuts the link for 43 seconds. Failover moves database primaries to the West Coast.</span></li><li><b>23:02</b><span>First responders see databases in an unexpected state.</span></li><li><b>23:09 to 23:13</b><span>Status goes yellow, then red, and an incident coordinator takes charge.</span></li><li><b>23:19</b><span>Webhooks and Pages builds are paused to protect data already received.</span></li><li><b>00:05, 22 Oct</b><span>The recovery plan is set: restore from backups, resync replicas, return to a stable layout.</span></li><li><b>11:12</b><span>All database primaries are back on the East Coast.</span></li><li><b>16:24</b><span>Replicas catch up and the original layout is restored. The backlog is still being worked through.</span></li><li><b>23:03</b><span>Status returns to green, 24 hours 11 minutes after the start.</span></li></ol><div class="sdgrid"><div class="sdcard bad"><h3>Root cause</h3><p>The failover tool was free to promote a primary in another region after a brief connectivity blip, creating two sets of writes that could not be merged cleanly.</p></div><div class="sdcard "><h3>Why it spread</h3><p>Recovery took far longer than first estimated because estimates assumed steady progress, while replication catching up slows down as it nears the end and morning traffic added more writes. More than five million webhook events and about 80,000 Pages builds queued up; about 200,000 webhook payloads expired before they could be processed.</p></div><div class="sdcard ok"><h3>What changed</h3><p>GitHub reconfigured Orchestrator to stop promoting primaries across regional boundaries, sped up a more detailed status system, continued work on running from several data centres at once, and planned more fault injection and testing of its assumptions.</p></div></div><h4>The lesson</h4><div class="say"><span class="lbl2">Take this to your own system</span><p><strong>An automatic fix can be the larger problem.</strong> Decide in advance which failovers a machine may do alone, and limit them to cases you have tested.</p><p>Give estimates in ranges and say what is unknown. Pause side effects such as webhooks early so the damage stops growing while you recover.</p></div><p class="sdnote">Source: <a href="https://github.blog/news-insights/company-news/oct21-post-incident-analysis/" target="_blank" rel="noopener">GitHub blog: October 21 post-incident analysis</a>. Inconsistent writes were still being reconciled when GitHub published, so this retelling reflects the post as written, not any later update.</p></div></article><article class="sdq"><header><span class="who">4 October 2021 · Meta (Facebook)</span><h3>5. The command that cut the backbone and locked the engineers out</h3><p>During routine maintenance, a command took down every connection in Meta's backbone network. Its DNS servers then pulled themselves off the internet, and the tools to fix things went with them.</p></header><div class="body"><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 720 182" role="img" aria-label="Facebook (Meta): the network that fixes the network was down"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><path class="sd-sh bad" d="M70,76 a14,14 0 0 1 2,-27 a20,20 0 0 1 38,-4 a15,15 0 0 1 8,31 z"/><text class="sd-l" x="100" y="94" text-anchor="middle">backbone</text><line class="sd-a bad" x1="134" y1="62" x2="230" y2="62" marker-end="url(#dga)"/><text class="sd-c" x="182.0" y="55.0" text-anchor="middle">all links down</text><rect class="sd-sh warn" x="242" y="36" width="56" height="48" rx="7"/><rect class="sd-ln" x="252" y="48" width="28" height="4" rx="2"/><rect class="sd-ln" x="252" y="58" width="28" height="4" rx="2"/><circle class="sd-led warn" cx="287" cy="50" r="3"/><circle class="sd-led warn" cx="287" cy="60" r="3"/><rect class="sd-ln" x="252" y="68" width="36" height="4" rx="2"/><text class="sd-l" x="270" y="100" text-anchor="middle">DNS servers</text><line class="sd-a warn" x1="304" y1="60" x2="400" y2="60" marker-end="url(#dga)"/><text class="sd-c" x="352.0" y="53.0" text-anchor="middle">withdraw routes</text><path class="sd-sh bad" d="M410,76 a14,14 0 0 1 2,-27 a20,20 0 0 1 38,-4 a15,15 0 0 1 8,31 z"/><text class="sd-l" x="440" y="94" text-anchor="middle">internet</text><text class="sd-n bad" x="440" y="128" text-anchor="middle">cannot find facebook.com</text><circle class="sd-pp warn" cx="600" cy="45.5" r="7.7"/><path class="sd-pp warn" d="M586.8,78.5 v-8.8 a13.2,13.2 0 0 1 26.4,0 v8.8 z"/><text class="sd-n warn" x="600" y="128" text-anchor="middle">tools and doors also down</text><text class="sd-n acc" x="360" y="164" text-anchor="middle">The safety reaction of the DNS servers made the outage total. Fixing it needed people on site.</text></svg></figure><h4>What happened</h4><p>Meta's data centres talk to each other over a global <strong>backbone</strong> network. During routine maintenance, a command meant to check the backbone's capacity instead took down all of its connections. Meta's systems audit such commands, but a bug in the audit tool let this one through.</p><p>Meta's <strong>DNS</strong> servers (the internet's phone book) are programmed to stop advertising their routes over <strong>BGP</strong> (how networks announce what they can reach) when they cannot reach the data centres, as a health signal. With the backbone down they all did, so the name servers were unreachable even though they were running.</p><p>Internal tools and even normal and out of band access also failed, so engineers had to go on site. Physical security and secure access protocols are strict, which slowed things down. Services were then brought back gradually to avoid power and traffic surges.</p><h4>Timeline</h4><ol class='think'><li><b>Routine maintenance</b><span>A command intended to assess backbone capacity takes down all backbone connections.</span></li><li><b>Seconds later</b><span>Data centres are cut off from each other and from the internet. DNS servers withdraw their BGP routes.</span></li><li><b>Next</b><span>Engineers cannot reach systems remotely. Many internal tools that depend on DNS fail too.</span></li><li><b>Then</b><span>Teams are sent to the data centres, confirm the cause and bring the backbone back.</span></li><li><b>Last</b><span>Services are restored in stages to avoid power and traffic surges.</span></li></ol><div class="sdgrid"><div class="sdcard bad"><h3>Root cause</h3><p>A faulty command, combined with a bug in the audit tool that should have blocked it, disabled the backbone network.</p></div><div class="sdcard "><h3>Why it spread</h3><p>The DNS servers' protective behaviour was sensible on its own but turned a backbone failure into a global disappearance. The people and tools needed to repair the network depended on that same network.</p></div><div class="sdcard ok"><h3>What changed</h3><p>Meta said it would strengthen testing, drills and resilience. It had never run a storm drill simulating a global backbone loss and planned to simulate such events. It also said its strict security slowed recovery and that it considers that trade worth making.</p></div></div><h4>The lesson</h4><div class="say"><span class="lbl2">Take this to your own system</span><p><strong>Keep a way in that does not depend on the thing that is broken:</strong> out of band access, an emergency account and a contact list that is not stored on your own servers.</p><p>Ask what each safety reaction does when everything fails at once, and practise the worst day, not only the likely ones.</p></div><p class="sdnote">Source: <a href="https://engineering.fb.com/2021/10/05/networking-infrastructure/outage-details/" target="_blank" rel="noopener">Engineering at Meta: More details about the October 4 outage</a>. The post gives no clock times or total duration, so none are stated here. Timeline entries are in the order the post describes.</p></div></article><article class="sdq"><header><span class="who">12 June 2025 · Google Cloud</span><h3>6. A blank field, a null pointer and a global crash loop</h3><p>A new check in a core Google Cloud service met a policy row with blank fields and crashed. Because the data copies worldwide in seconds, API requests failed in many regions, and recovery took hours.</p></header><div class="body"><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 720 182" role="img" aria-label="Google Cloud: bad data, global crash, restart herd"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><path class="sd-sh warn" d="M48.0,46.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh warn sd-top" cx="70" cy="46.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M48.0,64 a22.0,9 0 0 0 44,0"/><text class="sd-l" x="70" y="104" text-anchor="middle">policy row</text><line class="sd-a bad" x1="104" y1="62" x2="200" y2="62" marker-end="url(#dga)"/><text class="sd-c" x="152.0" y="55.0" text-anchor="middle">copied in seconds</text><rect class="sd-sh bad" x="212" y="36" width="56" height="48" rx="7"/><rect class="sd-ln" x="222" y="48" width="28" height="4" rx="2"/><rect class="sd-ln" x="222" y="58" width="28" height="4" rx="2"/><circle class="sd-led bad" cx="257" cy="50" r="3"/><circle class="sd-led bad" cx="257" cy="60" r="3"/><rect class="sd-ln" x="222" y="68" width="36" height="4" rx="2"/><text class="sd-l" x="240" y="100" text-anchor="middle">region A</text><rect class="sd-sh bad" x="322" y="36" width="56" height="48" rx="7"/><rect class="sd-ln" x="332" y="48" width="28" height="4" rx="2"/><rect class="sd-ln" x="332" y="58" width="28" height="4" rx="2"/><circle class="sd-led bad" cx="367" cy="50" r="3"/><circle class="sd-led bad" cx="367" cy="60" r="3"/><rect class="sd-ln" x="332" y="68" width="36" height="4" rx="2"/><text class="sd-l" x="350" y="100" text-anchor="middle">region B</text><rect class="sd-sh bad" x="432" y="36" width="56" height="48" rx="7"/><rect class="sd-ln" x="442" y="48" width="28" height="4" rx="2"/><rect class="sd-ln" x="442" y="58" width="28" height="4" rx="2"/><circle class="sd-led bad" cx="477" cy="50" r="3"/><circle class="sd-led bad" cx="477" cy="60" r="3"/><rect class="sd-ln" x="442" y="68" width="36" height="4" rx="2"/><text class="sd-l" x="460" y="100" text-anchor="middle">region C</text><text class="sd-n bad" x="350" y="128" text-anchor="middle">same blank value, same crash</text><line class="sd-a warn" x1="500" y1="60" x2="580" y2="60" marker-end="url(#dga)"/><text class="sd-c" x="540.0" y="53.0" text-anchor="middle">restart</text><path class="sd-sh warn" d="M598.0,46.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh warn sd-top" cx="620" cy="46.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M598.0,64 a22.0,9 0 0 0 44,0"/><text class="sd-l" x="620" y="104" text-anchor="middle">database</text><text class="sd-n warn" x="620" y="128" text-anchor="middle">overloaded by retries</text><text class="sd-n acc" x="360" y="164" text-anchor="middle">One bad data row crashed every region. Then the restart crowd hit the database.</text></svg></figure><h4>What happened</h4><p>A service called Service Control checks quotas and policies for API requests. On 29 May 2025 Google added a new check to it. The code did not handle a missing value, and the check was not protected by a feature flag.</p><p>On 12 June, a policy change was inserted that contained blank fields. Service Control read it, tried to use a value that was not there (a <strong>null pointer</strong>) and crashed over and over. Users saw 503 errors across Google Cloud, Google Workspace and other Google products.</p><p>Engineers started triage within minutes and prepared a kill switch for the faulty path. When the services restarted in big regions such as us-central1, they all hit the same database table at once and overloaded it, because there was no randomised wait between retries.</p><h4>Timeline</h4><ol class='think'><li><b>About 10:45 PDT</b><span>The policy change with blank fields is inserted and copied to every region.</span></li><li><b>Within 2 minutes</b><span>Triage begins. The root cause is found within about 10 minutes.</span></li><li><b>About 25 minutes in</b><span>A kill switch for the faulty path is ready. Rollout finishes within about 40 minutes.</span></li><li><b>About 2 hours in</b><span>Most regions have recovered by bypassing the quota check.</span></li><li><b>Up to 2 hours 40 minutes</b><span>us-central1 recovers slowly because restarting tasks overload the database.</span></li><li><b>18:18</b><span>The status page lists the incident as over, after about 7.5 hours.</span></li></ol><div class="sdgrid"><div class="sdcard bad"><h3>Root cause</h3><p>New code that skipped error handling and had no feature flag read unexpected blank data and crashed instead of carrying on.</p></div><div class="sdcard "><h3>Why it spread</h3><p>The policy data is replicated globally within seconds, so every region received the bad row almost at once and ran the same faulty code. Restarts without randomised exponential backoff then created a herd of retries.</p></div><div class="sdcard ok"><h3>What changed</h3><p>Google committed to making failing checks fail open, to rolling out globally replicated data in steps, to requiring feature flags (off by default) for changes to critical programs, to auditing systems for randomised backoff, and to keeping its status and monitoring tools running even if Cloud is down.</p></div></div><h4>The lesson</h4><div class="say"><span class="lbl2">Take this to your own system</span><p><strong>Treat data like code:</strong> a configuration or policy change can crash everything, so roll it out in steps with a check at each step.</p><p>Add random jitter to retries so a recovering system is not knocked down again by its own clients.</p></div><p class="sdnote">Source: <a href="https://status.cloud.google.com/incidents/ow5i3PPK96RduMcb1SsW" target="_blank" rel="noopener">Google Cloud: incident report for 12 June 2025</a>. Google's pages give slightly different start times (10:45 to 10:51) and an early estimate of three hours that was later revised, so we quote approximate times and the final end time from the status page.</p></div></article></section>
+<section class="sdsec" id="patterns"><h2><span class="n">4</span>Patterns across the outages<small>Patterns</small></h2><div class="sdgrid"><div class="sdcard"><h3>The trigger is small and ordinary</h3><p>A typo, a routine command, a regex, a blank field, a short network drop. If the only fix is "be more careful", you have not found the cause.</p></div><div class="sdcard"><h3>Nothing limited the blast radius</h3><p>S3, Cloudflare and Google all spread a mistake everywhere at once. Staged rollouts, minimum capacity limits and cell based design turn global failures into local ones.</p></div><div class="sdcard"><h3>The safety net had a hole</h3><p>GitLab's backups, Meta's audit tool and Cloudflare's removed CPU protection all failed quietly. Test the guard, not just the thing it guards.</p></div><div class="sdcard"><h3>Recovery was slower than the break</h3><p>Restores, restarts and replication catch up took hours in S3, GitLab, GitHub and Google. Time a full recovery before you need one.</p></div><div class="sdcard"><h3>The tools to fix it were affected</h3><p>AWS and Google's status pages and Meta's internal tools depended on the failing systems. Keep a separate way in and a separate way to talk.</p></div><div class="sdcard"><h3>Automatic helpers can make it worse</h3><p>GitHub's failover and Meta's DNS withdrawal did what they were designed to do, with an unexpected result. Ask what each automation does when everything fails together.</p></div></div></section>
+<section class="sdsec" id="interview"><h2><span class="n">5</span>In the interview<small>Questions</small></h2><p class="sub">Say your answer aloud first, then compare. These are questions candidates report, not official lists.</p><p class="sub">Incident questions test calm thinking more than facts. These three are shapes candidates report for operations and reliability roles.</p><article class="sdq"><header><span class="who">Reported by candidates in reliability and operations interviews, not official. Often asked as: tell me about an outage you studied.</span><h3>Walk me through a public outage and what you would change</h3><p>Pick a well known incident, explain what happened in simple terms, and say what you would do differently.</p></header><div class="body"><h4>Ask first</h4><ul><li><b>Is it fine to pick any public postmortem?</b> <span class='muted'>Yes, choose one you know well enough to explain in two minutes.</span></li><li><b>Should I focus on the trigger or the system?</b> <span class='muted'>Both: the trigger starts it, the system decides how bad it gets.</span></li></ul><h4>How to think about it</h4><ol class='think'><li><b>Say the trigger in one sentence.</b><span>For example: a command removed more servers than intended.</span></li><li><b>Explain why it spread.</b><span>Which missing brake let a small mistake reach everyone?</span></li><li><b>Explain why it lasted.</b><span>Slow detection, slow restart, missing access or a missing runbook.</span></li><li><b>Finish with two changes you would make.</b><span>Preferably a guard on the tool and a practised recovery.</span></li></ol><h4>How to say it</h4><div class="say"><span class="lbl2">A model answer, about two minutes aloud</span><p>I will take the AWS S3 outage of February 2017. An engineer ran a routine playbook command to remove a few servers from a billing subsystem. One input was wrong, so far more servers went, including ones that supported the index and placement parts of S3. Both had to restart, and S3 in that region could not serve requests for a few hours.</p><p>The trigger was a typo, but the cause was a tool with no limit and a restart nobody had practised at that size. I would make the tool refuse to go below a minimum capacity, remove capacity slowly, and rehearse full restarts. AWS announced changes of exactly that kind, and also moved its status page off S3.</p></div><h4>Likely follow-ups</h4><details><summary>Why not just blame the engineer?</summary><p>A blameless review asks why the tool allowed it. Humans make typos; systems should make them harmless.</p></details><details><summary>How would you know the restart takes hours?</summary><p>By practising it on a copy and timing it, before the real day.</p></details><h4>Common slips</h4><ul class='slips'><li>Blaming one person and stopping there.</li><li>Retelling the story without any change you would make.</li><li>Quoting numbers you are not sure of; say approximately.</li></ul></div></article><article class="sdq"><header><span class="who">A common incident response scenario, reported by candidates, not official.</span><h3>You are on call and the whole site is returning errors. What do you do in the first 15 minutes?</h3><p>Describe how you would lead an incident from the first alert to a stable state.</p></header><div class="body"><h4>Ask first</h4><ul><li><b>Do I have a runbook, a status page, a team?</b> <span class='muted'>Assume some, but say what you would do if not.</span></li><li><b>Did anything change recently?</b> <span class='muted'>A recent deploy or config push is the most common cause.</span></li></ul><h4>How to think about it</h4><ol class='think'><li><b>Declare it and name roles.</b><span>One incident lead, one person fixing, one person communicating.</span></li><li><b>Stop the bleeding first.</b><span>Rollback or disable the last change; this is faster than finding the root cause.</span></li><li><b>Check what changed.</b><span>Deploys, config, data pushes, certificates, expiring things.</span></li><li><b>Communicate early and honestly.</b><span>Update the status page; say what you know and do not know.</span></li><li><b>Write it down afterwards.</b><span>A blameless postmortem with timeline, causes and owners for actions.</span></li></ol><h4>How to say it</h4><div class="say"><span class="lbl2">A model answer, about two minutes aloud</span><p>First I would confirm the alert is real, declare an incident and set roles, so that one person leads and is not also debugging. I would ask what changed in the last hour, because most outages follow a change. If a change is the suspect, I would roll it back or switch off the feature right away, before I understand everything.</p><p>While that happens, someone posts an honest status update, and I keep a timeline as we go. Once users are served again, I would look for the real cause, and write a blameless postmortem within a few days with specific actions and owners. The Cloudflare 2019 outage is a good example: a global off switch ended the pain in minutes, and the lasting fixes came afterwards.</p></div><h4>Likely follow-ups</h4><details><summary>What if rollback is not possible?</summary><p>Use a feature flag or kill switch, shed load, or fail over; have these ready beforehand.</p></details><details><summary>What if your own tools are down?</summary><p>Meta and Google both found this. Keep an out of band way in and a status page hosted elsewhere.</p></details><h4>Common slips</h4><ul class='slips'><li>Diving into root cause before stopping the harm.</li><li>No communication to users or colleagues.</li><li>Several people changing things at once with no lead.</li></ul></div></article><article class="sdq"><header><span class="who">Reported by candidates for senior and SRE roles, not official.</span><h3>How would you write a good postmortem, and what makes one blameless?</h3><p>Explain what a useful postmortem contains and how you keep it from becoming a hunt for someone to blame.</p></header><div class="body"><h4>Ask first</h4><ul><li><b>Who reads it?</b> <span class='muted'>Engineers, managers, sometimes customers. Write so a new joiner can follow it.</span></li></ul><h4>How to think about it</h4><ol class='think'><li><b>Facts first.</b><span>Dates, times, durations and impact, from logs not memory.</span></li><li><b>A timeline.</b><span>What happened, when, and what people knew at each point.</span></li><li><b>Causes, plural.</b><span>A trigger plus the conditions that let it become an outage.</span></li><li><b>Actions with owners and dates.</b><span>Each action reduces a specific risk.</span></li><li><b>Blameless means system focused.</b><span>Ask how the system allowed the mistake, not who made it.</span></li></ol><h4>How to say it</h4><div class="say"><span class="lbl2">A model answer, about two minutes aloud</span><p>A good postmortem has a plain summary, the impact, a precise timeline, the causes, what went well and what did not, and a short list of actions with owners and dates. I would build the timeline from logs and chat history, not from memory, and state what we knew at each moment, so readers can see why decisions made sense at the time.</p><p>Blameless does not mean nobody is accountable. It means we assume people acted reasonably with what they knew, and ask how the system, tools and process let a normal mistake cause harm. GitLab's postmortem is a good model: it names the mistake, then asks why backups did not save them and lists specific follow-ups, including an owner for data durability.</p></div><h4>Likely follow-ups</h4><details><summary>How do you stop the actions being forgotten?</summary><p>Track them in your normal ticket system, review them monthly and close the loop publicly.</p></details><details><summary>When would you not write one?</summary><p>Almost never for customer impact. Keep it shorter for small incidents.</p></details><h4>Common slips</h4><ul class='slips'><li>Listing a single root cause and stopping there.</li><li>Actions with no owner or date.</li><li>Naming individuals as the cause.</li></ul></div></article></section>
+<section class="sdsec" id="recap"><h2><span class="n">6</span>Remember this<small>Recap</small></h2><div class="sdrecap"><h3 style="margin:12px 0 0">The page in 6 lines</h3><ul><li>A postmortem is a blameless written account: trigger, spread, duration, changes.</li><li>Small triggers cause big outages when nothing limits the blast radius.</li><li>A backup you have not restored is only a hope; test restores on a schedule.</li><li>Roll out changes, even rules and data, in stages with a metric watching each step.</li><li>Keep a way in and a way to communicate that does not depend on the failing system.</li><li>Add jitter to retries, and practise the full recovery, not only the failure.</li></ul></div><h3 style="margin:18px 0 6px">Check yourself</h3><details><summary>What makes a postmortem blameless?</summary><p>It asks how the system and process allowed a normal mistake to do damage, rather than who made it.</p></details><details><summary>What did the S3 and Cloudflare cases have in common?</summary><p>A small change reached too much at once, because no limit or staged rollout stopped it.</p></details><details><summary>Why did GitLab not simply restore a backup?</summary><p>The backup jobs had failed silently and the other options were unusable, so the best copy was a six hour old test snapshot.</p></details><p class="sub" style="margin-top:14px">Want every experiment, lab and edge case? The reference lessons for this topic:</p><div class="sddeeper"><a href="../systems/S12_troubleshooting_playbooks.html"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Playbooks and runbooks</a><a href="../systems/S13_reliability_practice.html"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Reliability practice</a></div></section>
+<nav class="sdfoot"><a class="" href="13-reliability-practice.html"><small>Previous</small><strong>Measure, alert, respond</strong></a><span></span></nav></main></div>
+<footer class="site-foot"><span>Mastery: free, open study sheets. Progress is saved in your browser only.</span><span><a href="index.html">Course map</a> · <a href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener">GitHub</a></span></footer>
+<script>(function(){var IC={};
+var slug=document.body.getAttribute('data-sd'),K='sd2-done';
+function get(){try{return JSON.parse(localStorage.getItem(K)||'{}')}catch(e){return{}}}
+var cb=document.getElementById('sd-done');if(cb){var s=get();cb.checked=!!s[slug];cb.onchange=function(){var s=get();if(cb.checked)s[slug]=1;else delete s[slug];try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}}}
+var links=[].slice.call(document.querySelectorAll('.sdnav a'));var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'))}).filter(Boolean);
+if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(a){a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id)})}})},{rootMargin:'-20% 0px -70% 0px'});secs.forEach(function(s){io.observe(s)})}
+var tb=document.getElementById('b-theme');if(tb){var R=document.documentElement;var t=null;try{t=localStorage.getItem('theme')}catch(e){}if(t)R.setAttribute('data-theme',t);tb.onclick=function(){var n=R.getAttribute('data-theme')==='dark'?'light':'dark';R.setAttribute('data-theme',n);try{localStorage.setItem('theme',n)}catch(e){}}}
+})();</script>
+</body></html>

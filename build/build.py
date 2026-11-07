@@ -345,6 +345,9 @@ def main():
     for slug in sd2.build_all():
         print("built design/" + slug)
     print("built design/index")
+    import sd2_tk  # noqa: E402
+    for slug in sd2_tk.build():
+        print("built toolkit/" + slug)
     write(os.path.join(ROOT, "plan.html"), plan_html())
     print("built plan.html")
 

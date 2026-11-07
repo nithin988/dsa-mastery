@@ -97,9 +97,27 @@ SITE_CSS = """
 @media(max-width:560px){.sdsec>h2{font-size:20px}.sdsec>h2 small{display:none}.sdfoot{flex-direction:column}}
 """
 
+CTX = dict(folder="design", out=OUT_DIR, site="System Design", logo="SD", brand="System <span>Design</span>", aria="System design home", rail="design",
+           story="The ShopKart story")
+
+
+def set_course(name):
+    """Switch the renderer between the System Design course and the Systems Mastery (toolkit) course."""
+    if name == "toolkit":
+        CTX.update(folder="toolkit", out=os.path.join(ROOT, "toolkit"), site="Systems Mastery", logo="SM", brand="Systems <span>Mastery</span>", aria="Systems Mastery home",
+                   rail="toolkit", story="Night shift at ShopKart")
+    else:
+        CTX.update(folder="design", out=OUT_DIR, site="System Design", logo="SD", brand="System <span>Design</span>", aria="System design home", rail="design",
+                   story="The ShopKart story")
+
+
+def _ctx_fields():
+    return dict(site=CTX["site"], logo=CTX["logo"], brand=CTX["brand"], aria=CTX["aria"], rail=rail(CTX["rail"], "../"))
+
+
 PAGE = """<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{title} | System Design | Mastery</title>
+<title>{title} | {site} | Mastery</title>
 <meta name="description" content="{desc}"><meta name="theme-color" content="#0f172a">
 <meta property="og:type" content="article"><meta property="og:site_name" content="Mastery"><meta property="og:title" content="{title}">
 <meta property="og:description" content="{desc}"><meta property="og:url" content="{url}">
@@ -108,7 +126,7 @@ PAGE = """<!DOCTYPE html>
 <body class="has-rail" data-sd="{slug}">
 <a class="skip" href="#content">Skip to content</a>
 {rail}
-<header class="bar"><div class="bar-in">{rail_btn}<a class="brand" href="index.html" aria-label="System design home"><span class="logo" aria-hidden="true">SD</span><b>System <span>Design</span></b></a>
+<header class="bar"><div class="bar-in">{rail_btn}<a class="brand" href="index.html" aria-label="{aria}"><span class="logo" aria-hidden="true">{logo}</span><b>{brand}</b></a>
 <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Course map</a>{i_right}<span class="cur">{crumb}</span></nav>
 <span style="margin-left:auto"></span><button id="b-theme" class="iconbtn" title="Toggle light / dark" aria-label="Toggle light or dark theme">{i_theme}</button></div></header>
 <div class="sdw"><nav class="sdnav" aria-label="On this page"><h4>On this page</h4>{nav}<label class="done"><input type="checkbox" id="sd-done"> I finished this page</label></nav>
@@ -153,6 +171,13 @@ def scen(mid, li):
     return _mod_of(mid)["lessons"][li]["scenario"]
 
 
+def iv(mid, i, ask=None):
+    """Adapt a module-level interview item (question, answer lines, follow-ups, mistakes) into the scenario shape the pages render."""
+    q = _mod_of(mid)["interview"][i]
+    return dict(title=q["q"], ask=ask or q.get("angle") or "A common interview question on this topic.", clarify=None, think=None,
+                answer=q["a"], follow=[(f, None) if isinstance(f, str) else f for f in q.get("follow", [])], slips=q.get("mistakes", []))
+
+
 def figure_of(mid, li, vi=0):
     v = _mod_of(mid)["lessons"][li]["visual"]
     return v[vi] if isinstance(v, (list, tuple)) else v
@@ -172,7 +197,9 @@ def render_experiments(picks, intro=None):
         out.append(_paras(intro))
     for n, p in enumerate(picks, 1):
         title = p[4] if len(p) > 4 else f"Experiment {n}"
+        extra = p[5] if len(p) > 5 else {}
         cmd, entry = pick(*p[:4])
+        cmd = dict(cmd, **{k_: v_ for k_, v_ in extra.items() if k_ in ("annot", "e")})
         paras_e = [cmd["e"]] if isinstance(cmd["e"], str) else list(cmd["e"])
         head, rest = paras_e[0], paras_e[1:]
         text = entry["out"].rstrip(chr(10))
@@ -197,12 +224,12 @@ def render_interview(qs, intro=None):
         head_note = q.get("who", "Reported by candidates at large tech companies. Not official.")
         h = [f'<article class="sdq"><header><span class="who">{html.escape(head_note)}</span><h3>{html.escape(sc["title"])}</h3><p>{md(sc["ask"].replace("this module", "this chapter"))}</p></header><div class="body">']
         if sc.get("clarify"):
-            h.append("<h4>1. Ask first</h4><ul>" + "".join(f"<li><b>{md(a)}</b> <span class='muted'>{md(b)}</span></li>" for a, b in sc["clarify"]) + "</ul>")
+            h.append("<h4>Ask first</h4><ul>" + "".join(f"<li><b>{md(a)}</b> <span class='muted'>{md(b)}</span></li>" for a, b in sc["clarify"]) + "</ul>")
         if sc.get("think"):
-            h.append("<h4>2. How to think about it</h4><ol class='think'>" + "".join(f"<li><b>{md(a)}</b><span>{md(b)}</span></li>" for a, b in sc["think"]) + "</ol>")
-        h.append('<h4>3. How to say it</h4><div class="say"><span class="lbl2">A model answer, about two minutes aloud</span>' + _paras(sc["answer"]) + "</div>")
+            h.append("<h4>How to think about it</h4><ol class='think'>" + "".join(f"<li><b>{md(a)}</b><span>{md(b)}</span></li>" for a, b in sc["think"]) + "</ol>")
+        h.append('<h4>How to say it</h4><div class="say"><span class="lbl2">A model answer, about two minutes aloud</span>' + _paras(sc["answer"]) + "</div>")
         if sc.get("follow"):
-            h.append("<h4>4. Likely follow-ups</h4>" + "".join(f"<details><summary>{md(a)}</summary><p>{md(b)}</p></details>" for a, b in sc["follow"]))
+            h.append("<h4>Likely follow-ups</h4>" + "".join((f"<details><summary>{md(a)}</summary><p>{md(b)}</p></details>" if b else f"<p style='margin:4px 0'>&bull; {md(a)}</p>") for a, b in sc["follow"]))
         if sc.get("slips"):
             h.append("<h4>Common slips</h4><ul class='slips'>" + "".join(f"<li>{md(s)}</li>" for s in sc["slips"]) + "</ul>")
         h.append("</div></article>")
@@ -226,11 +253,11 @@ def _deeper(links):
 
 # ----------------------------------------------------------------------------- chapter (building block) page
 def render_chapter(c, nav_prev, nav_next, part_total):
-    nav_items = [("story", "The story"), ("idea", "The idea"), ("how", "How it works"), ("try", "See it for real"), ("breaks", "How it breaks"), ("real", "Real companies"), ("interview", "In the interview"), ("recap", "Remember")]
+    nav_items = [("story", "The story"), ("idea", "The idea"), ("how", "How it works"), ("try", "See it for real"), ("breaks", "How it breaks"), ("real", c.get("real_tag", "Real companies")), ("interview", "In the interview"), ("recap", "Remember")]
     nav = "".join(f'<a href="#{a}"><b>{i + 1}</b>{b}</a>' for i, (a, b) in enumerate(nav_items))
     b = []
     nq = len(c["interview"])
-    b.append(f'<header class="sdhero"><div class="eyebrow"><span class="tag">Chapter {c["num"]} of {part_total}</span>The ShopKart story</div>'
+    b.append(f'<header class="sdhero"><div class="eyebrow"><span class="tag">Chapter {c["num"]} of {part_total}</span>' + CTX["story"] + '</div>'
              f'<h1>{html.escape(c["title"])}</h1><p class="lead">{md(c["tagline"])}</p>'
              f'<div class="sdmeta"><span>about {html.escape(c["time"])}</span><span>{len(c["how"])} steps</span><span>{len(c["try"])} real experiments</span><span>{nq} interview questions</span></div></header>')
     st = c["story"]
@@ -243,7 +270,7 @@ def render_chapter(c, nav_prev, nav_next, part_total):
     cards = "".join(f'<div class="sdcard {k}"><h3>{icon("warn")} {md(t)}</h3><p>{md(x)}</p></div>' for t, x, k in c["breaks"])
     b.append(_sec("breaks", 5, "How it breaks in production", "Failure modes", f'<div class="sdgrid">{cards}</div>'))
     real = "".join(f'<div><b class="co">{html.escape(r["company"])}</b><div><p>{md(r["text"])}</p><a href="{r["url"]}" target="_blank" rel="noopener">{html.escape(r["source"])}</a></div></div>' for r in c["real"])
-    b.append(_sec("real", 6, "How real companies do it", "Real companies", f'<div class="sdreal">{real}</div><p class="sdnote">{md(c.get("real_note", "Summaries of public engineering write-ups; check the linked source for details."))}</p>'))
+    b.append(_sec("real", 6, c.get("real_title", "How real companies do it"), c.get("real_tag", "Real companies"), f'<div class="sdreal">{real}</div><p class="sdnote">{md(c.get("real_note", "Summaries of public engineering write-ups; check the linked source for details."))}</p>'))
     b.append(_sec("interview", 7, "In the interview", "Top-company questions", render_interview(c["interview"], c.get("interview_intro")), sub=c.get("interview_sub", "Say your answer aloud first, then compare. These are questions candidates report, not official company lists.")))
     rc = c["recap"]
     quick = "".join(f"<details><summary>{md(q)}</summary><p>{md(a)}</p></details>" for q, a in rc["quick"])
@@ -289,8 +316,8 @@ def _foot(prev, nxt):
 
 def _page(c, nav, body, crumb):
     desc = re.sub(r"[`*]", "", c["tagline"])[:230]
-    return PAGE.format(title=html.escape(c["title"]), desc=html.escape(desc, quote=True), url=SITE_URL + "design/" + c["slug"] + ".html", favicon=FAVICON,
-                       css=CSS + sd2kit.CSS + SITE_CSS, slug=c["slug"], rail=rail("design", "../"), rail_btn=rail_button(), i_right=icon("right"), i_theme=icon("theme"),
+    return PAGE.format(title=html.escape(c["title"]), desc=html.escape(desc, quote=True), url=SITE_URL + CTX["folder"] + "/" + c["slug"] + ".html", favicon=FAVICON,
+                       css=CSS + sd2kit.CSS + SITE_CSS, slug=c["slug"], rail_btn=rail_button(), **_ctx_fields(), i_right=icon("right"), i_theme=icon("theme"),
                        crumb=html.escape(crumb), nav=nav, body=body, js=JS, ic=json.dumps({}))
 
 
@@ -324,7 +351,7 @@ def render_landing(course):
     body = "".join(parts)
     desc = "System design explained as one story: a small shop grows from one server to millions of customers. Nine chapters, ten interview problems, real experiments."
     return PAGE.format(title="How real products are built", desc=html.escape(desc, quote=True), url=SITE_URL + "design/", favicon=FAVICON, css=CSS + sd2kit.CSS + SITE_CSS,
-                       slug="index", rail=rail("design", "../"), rail_btn=rail_button(), i_right=icon("right"), i_theme=icon("theme"), crumb="Course map",
+                       slug="index", rail_btn=rail_button(), **_ctx_fields(), i_right=icon("right"), i_theme=icon("theme"), crumb="Course map",
                        nav='<h4>The course</h4><a href="#"><b>1</b>Part 1: the story</a><a href="#"><b>2</b>Part 2: problems</a><a href="#"><b>3</b>Part 3: playbook</a>',
                        body=f'<div class="sdmain-wrap">{body}</div><script>{done_js}</script>', js=JS, ic="{}")
 

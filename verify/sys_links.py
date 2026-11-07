@@ -50,6 +50,18 @@ def main():
                     urls.setdefault(r["url"], "design/" + row["slug"])
     except ImportError:
         pass
+    try:  # and the Systems Mastery chapters and case files
+        import sd2_tk
+        for row in sd2_tk.CHAPTERS:
+            if row["live"]:
+                d = sd2_tk.load(row["slug"])
+                for r in d.get("real", []):
+                    urls.setdefault(r["url"], "toolkit/" + row["slug"])
+                for cs in d.get("cases", []):
+                    if cs.get("url"):
+                        urls.setdefault(cs["url"], "toolkit/" + row["slug"])
+    except ImportError:
+        pass
     bad = 0
     for url, mid in sorted(urls.items()):
         st = check(url)

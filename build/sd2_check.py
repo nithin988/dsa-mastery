@@ -12,6 +12,7 @@ import tempfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import sd2  # noqa: E402
 from sd2_content import COURSE, load  # noqa: E402
+import sd2_tk  # noqa: E402
 
 CHAPTER_KEYS = ["time", "tagline", "story", "idea", "how", "try", "breaks", "real", "interview", "recap"]
 PROBLEM_KEYS = ["time", "seen_at", "tagline", "story", "numbers", "design_figure", "design", "hard_title", "hard_paras", "try", "scale", "scenario", "recap"]
@@ -20,22 +21,35 @@ PROBLEM_KEYS = ["time", "seen_at", "tagline", "story", "numbers", "design_figure
 def main():
     slug = sys.argv[1]
     meta = next((r for r in COURSE["chapters"] + COURSE["problems"] if r["slug"] == slug), None)
+    toolkit = False
+    if not meta:
+        meta = next((r for r in sd2_tk.CHAPTERS if r["slug"] == slug), None)
+        toolkit = bool(meta)
     if not meta:
         print("unknown slug", slug)
         return 1
-    is_chapter = meta in COURSE["chapters"]
-    data = dict(meta, **load(slug))
+    is_chapter = toolkit or meta in COURSE["chapters"]
+    sd2.set_course("toolkit" if toolkit else "design")
+    cases = toolkit and slug == sd2_tk.CASES_SLUG
+    data = dict(meta, **(sd2_tk.load(slug) if toolkit else load(slug)))
     problems = []
-    for k in (CHAPTER_KEYS if is_chapter else PROBLEM_KEYS):
+    for k in (["time", "tagline", "story", "how_to_read", "cases", "patterns", "interview", "recap"] if cases else CHAPTER_KEYS if is_chapter else PROBLEM_KEYS):
         if k not in data or not data[k]:
             problems.append(f"missing or empty field: {k}")
-    if is_chapter and len(data.get("how", [])) < 3:
+    if is_chapter and not cases and len(data.get("how", [])) < 3:
         problems.append("a chapter needs at least 3 'how it works' steps, each with a small figure")
     if is_chapter and len(data.get("interview", [])) < 2:
         problems.append("a chapter needs at least 2 interview questions")
-    if is_chapter and len(data.get("real", [])) < 1:
+    if is_chapter and not cases and len(data.get("real", [])) < 1:
         problems.append("a chapter needs at least 1 sourced real-company note")
-    text = (sd2.render_chapter(data, None, None, 9) if is_chapter else sd2.render_problem(data, None, None, 10)) if not problems else ""
+    if problems:
+        text = ""
+    elif cases:
+        text = sd2_tk.render_cases(data, None, None)
+    elif is_chapter:
+        text = sd2.render_chapter(data, None, None, 14 if toolkit else 9)
+    else:
+        text = sd2.render_problem(data, None, None, 10)
     if text:
         figs = len(re.findall(r"<svg", text))
         print(f"figures: {figs}")

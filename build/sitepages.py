@@ -51,8 +51,8 @@ def hub_html(dsa, sysc):
     c1 = card("dsa.html", "code", "DSA Mastery", "Pattern-based data structures and algorithms for coding interviews. Intuition, animations, Java and Python code, and ladders of LeetCode problems.",
               ["Arrays to dynamic programming in 19 topics", "Step-by-step animations of every pattern", "Study planner that fits your weeks"],
               [(dsa["topics"], "topics"), (dsa["problems"], "problems")], "Open DSA Mastery", "dsa")
-    c2 = card("systems.html", "server", "Systems Mastery", "Linux, Git, troubleshooting and system design for engineers and interviews: real commands with real output, hands-on labs, playbooks and design walkthroughs.",
-              ["Linux and Git you can use under pressure", "Debugging and incident playbooks", "Deep reference lessons behind System Design"],
+    c2 = card("toolkit/index.html", "server", "Systems Mastery", "Linux, Git, networking and debugging, taught as a night shift at a small shop: fourteen chapters that each start with something that broke, with real commands, real output and the interview questions on the same page.",
+              ["Fourteen chapters in five parts, one story", "Real commands, real recorded output", "Runbooks, SLOs and real outage case files"],
               [(f"{live} of {sysc['total']}", "modules ready"), (sysc["labs"], "labs")], "Open Systems Mastery", "sys")
     c3 = (f'<article class="ccard" data-course="sd"><div class="tcard-h"><span class="no">{icon("layers")}</span><h2>System Design</h2><span class="st">New</span></div>'
           f'<div class="tcard-b"><p>One story, twenty pages: follow a small shop as it grows from one server to millions of customers, then practise the classic whiteboard problems with real experiments and model answers.</p>'
