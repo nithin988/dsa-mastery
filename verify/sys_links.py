@@ -42,6 +42,14 @@ def main():
         for c in m.get("cases", []):
             if c.get("url"):
                 urls.setdefault(c["url"], m["id"])
+    try:  # the System Design pages cite real-company write-ups too
+        from sd2_content import COURSE, load
+        for row in COURSE["chapters"] + COURSE["problems"]:
+            if row["live"]:
+                for r in load(row["slug"]).get("real", []):
+                    urls.setdefault(r["url"], "design/" + row["slug"])
+    except ImportError:
+        pass
     bad = 0
     for url, mid in sorted(urls.items()):
         st = check(url)

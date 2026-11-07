@@ -318,7 +318,7 @@ def render_landing(course):
         tag = "a" if live else "div"
         href = f' href="{p["slug"]}.html"' if live else ""
         parts.append(f'<{tag} class="pcard{"" if live else " soon"}" data-slug="{p["slug"]}"{href}><b>{html.escape(p["title"])}</b><span>{md(p["pain"])}</span><div class="row"><span class="muted">Problem {p["num"]}</span><span class="pill{"" if live else " soon"}">{"Read" if live else "Coming"}</span></div></{tag}>')
-    parts.append('</div><h2>Part 3. The interview playbook</h2><div class="grid2"><div class="pcard soon" data-slug="playbook"><b>How to run the 45 minutes</b><span>Structure, pacing, trade-offs, and what the big companies are reported to emphasise.</span><div class="row"><span class="muted">Playbook</span><span class="pill soon">Coming</span></div></div></div>')
+    parts.append('</div><h2>Part 3. The interview playbook</h2><div class="grid2"><a class="pcard" data-slug="playbook" href="playbook.html"><b>How to run the 45 minutes</b><span>Structure, pacing, trade-offs, and what the big companies are reported to emphasise.</span><div class="row"><span class="muted">Playbook</span><span class="pill">Read</span></div></a></div>')
     parts.append('<h2>How to use this course</h2><div class="sdgrid"><div class="sdcard"><h3>Read one page at a time</h3><p>Each page is complete on its own and takes about 15 minutes. No tiny steps to click through.</p></div><div class="sdcard"><h3>Run the experiments</h3><p>Real commands on a real Linux. Change a number and see what happens. That is where the understanding comes from.</p></div><div class="sdcard"><h3>Say the answers aloud</h3><p>Every page ends with questions people report from big tech interviews, and a model answer to compare with.</p></div></div>')
     parts.append('<p class="sdnote">Prefer the full reference? The earlier, longer modules are still available in the <a href="../systems.html">reference library</a> and each page links to the matching lessons.</p></div>')
     body = "".join(parts)
@@ -347,6 +347,11 @@ def build_all():
         with open(os.path.join(OUT_DIR, meta["slug"] + ".html"), "w", encoding="utf-8", newline="\n") as f:
             f.write(text)
         written.append(meta["slug"])
+    import sd2_playbook
+    last = (pages[-1][1]["slug"], pages[-1][1]["title"]) if pages else None
+    with open(os.path.join(OUT_DIR, "playbook.html"), "w", encoding="utf-8", newline=chr(10)) as f:
+        f.write(sd2_playbook.render(last, None))
+    written.append("playbook")
     with open(os.path.join(OUT_DIR, "index.html"), "w", encoding="utf-8", newline="\n") as f:
         f.write(render_landing(COURSE))
     return written

@@ -4,6 +4,11 @@ Pattern-based Data Structures and Algorithms revision sheets for interview prepa
 
 **Read online:** https://nithin988.github.io/dsa-mastery/
 
+## System Design (new): one story, twenty pages
+
+[`design/index.html`](design/index.html) is a story-driven system design course. A small shop, ShopKart, grows from one server to millions of customers; each of the nine chapters starts with something that broke and teaches the building block that fixes it. Ten whiteboard problems (URL shortener to booking and payments) follow, then an interview playbook. Every page has pictures, real recorded experiments, the questions candidates report, and a model answer. The plan and research are in [`docs/SYSTEM_DESIGN_V2.md`](docs/SYSTEM_DESIGN_V2.md). The earlier long modules remain as the [reference library](systems.html).
+
+
 Every page has a **Download** button (and the index has one per topic), so friends can save the HTML and read it offline.
 
 ## Topics

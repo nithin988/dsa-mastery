@@ -83,3 +83,7 @@ Nothing is deleted. The Engineering toolkit (S01 to S14) is unchanged. The deep 
 - No page needs more than one scroll direction; there is no "next section" button for small steps.
 - Every page ends with the questions asked at top companies and a model answer, on the same screen.
 - Page count in the main path drops from 37 to 20, and every page has at least three pictures.
+
+## 6. Status
+
+All 20 pages are written and built: 9 chapters, 10 problems and the playbook. Experiments and model answers are picked from the verified reference modules; real-company notes carry source links that the link check verifies. Figures are audited in a browser for clipped or overlapping text.

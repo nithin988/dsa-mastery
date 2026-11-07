@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Where the data lives | System Design | Mastery</title>
+<meta name="description" content="Three bad days, one lesson: a database is not a box of files. Indexes make finding fast, transactions make sharing safe, and the log makes saving permanent."><meta name="theme-color" content="#0f172a">
+<meta property="og:type" content="article"><meta property="og:site_name" content="Mastery"><meta property="og:title" content="Where the data lives">
+<meta property="og:description" content="Three bad days, one lesson: a database is not a box of files. Indexes make finding fast, transactions make sharing safe, and the log makes saving permanent."><meta property="og:url" content="https://nithin988.github.io/dsa-mastery/design/04-databases.html">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f172a'/%3E%3Ctext x='16' y='21' font-family='monospace' font-size='13' font-weight='700' fill='%23f8fafc' text-anchor='middle'%3EDSA%3C/text%3E%3C/svg%3E">
+<style>/* DSA Mastery: shared stylesheet. Tokens and components follow the Kimaru Platform design system
+   (slate neutrals, semantic colour, rounded-md cards, shadow-sm, 16px stroke icons). See docs/DESIGN_SYSTEM.md. */
+:root{
+ --bg:#f8fafc;--surf:#fff;--hd:#f8fafc;--soft:#f1f5f9;--line:#e2e8f0;--line2:#f1f5f9;
+ --fg:#0f172a;--txt:#334155;--mut:#475569;--faint:#64748b;
+ --ink:#0f172a;--ink-fg:#f8fafc;
+ --acc:#3162b4;--acc-soft:#eaf0fa;--acc-line:#bcd0ee;
+ --ok:#15803d;--ok-soft:#f0fdf4;--ok-line:#86efac;
+ --warn:#b45309;--warn-soft:#fffbeb;--warn-line:#fbbf24;
+ --med:#a16207;--med-soft:#fefce8;
+ --bad:#b91c1c;--bad-soft:#fef2f2;--bad-line:#f87171;
+ --risk:#c2410c;--risk-soft:#fff7ed;
+ --info:#0369a1;--info-soft:#f0f9ff;--info-line:#38bdf8;
+ --done:#0f766e;--done-soft:#f0fdfa;--done-line:#5eead4;
+ --code:#f8fafc;--ring:#3162b4;
+ --sh:0 1px 2px rgba(15,23,42,.06);--sh-lg:0 10px 30px rgba(15,23,42,.12);
+ --r:6px;--r-lg:8px;
+ color-scheme:light}
+:root[data-theme=dark]{
+ --bg:#020617;--surf:#0f172a;--hd:#0b1324;--soft:#1e293b;--line:#1e293b;--line2:#172033;
+ --fg:#f1f5f9;--txt:#cbd5e1;--mut:#a3b1c6;--faint:#94a3b8;
+ --ink:#f1f5f9;--ink-fg:#0f172a;
+ --acc:#8db4f0;--acc-soft:#14233d;--acc-line:#2c4a7a;
+ --ok:#4ade80;--ok-soft:#0c2a18;--ok-line:#166534;
+ --warn:#fbbf24;--warn-soft:#2b2008;--warn-line:#a16207;
+ --med:#facc15;--med-soft:#2a2308;
+ --bad:#f87171;--bad-soft:#2d1214;--bad-line:#b91c1c;
+ --risk:#fb923c;--risk-soft:#2b1708;
+ --info:#38bdf8;--info-soft:#0a2233;--info-line:#0369a1;
+ --done:#2dd4bf;--done-soft:#0a2624;--done-line:#0f766e;
+ --code:#0b1324;--ring:#8db4f0;
+ --sh:none;--sh-lg:0 10px 30px rgba(0,0,0,.5);color-scheme:dark}
+
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:var(--acc);text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:4px}
+code{background:var(--soft);padding:1px 5px;border-radius:4px;font:0.88em ui-monospace,"Cascadia Code",Consolas,Menlo,monospace;color:var(--fg)}
+.mut,.muted{color:var(--mut)}.muted{font-size:13px;font-weight:400}
+.skip{position:absolute;left:12px;top:-60px;z-index:100;background:var(--ink);color:var(--ink-fg);padding:8px 14px;border-radius:var(--r);text-decoration:none;font-size:14px}.skip:focus{top:8px}
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.33;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-3px}
+.ic.fill{fill:currentColor;stroke:none}.ic.lg{width:20px;height:20px}
+
+/* buttons: primary = dark, secondary = light, confirmed = teal (design system section 5) */
+.btn,.bar button,.st-ctl button,.st-ctl select{font:inherit;font-size:13px;font-weight:500;line-height:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);cursor:pointer;text-decoration:none;box-shadow:var(--sh);transition:background .15s,border-color .15s}
+.btn:hover,.bar button:hover,.st-ctl button:hover{background:var(--soft)}
+.btn.pri,.bar button.on,.btn.on{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.btn.pri:hover{opacity:.9;background:var(--ink)}
+.btn.sec{background:var(--soft)}
+.btn.lg{height:40px;padding:0 18px;font-size:14px}
+.iconbtn{width:32px;padding:0!important}
+
+/* top bar (sticky 48px, like ReviewBar) */
+.bar{position:sticky;top:0;z-index:30;background:var(--surf);border-bottom:1px solid var(--line);box-shadow:var(--sh)}
+.bar-in{max-width:1280px;margin:0 auto;height:48px;display:flex;gap:8px;align-items:center;padding:0 16px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;text-decoration:none;color:var(--fg);letter-spacing:-.01em;margin-right:4px}
+.brand b{font-weight:700}.brand span{color:var(--faint);font-weight:600}
+.logo{width:24px;height:24px;border-radius:6px;background:var(--ink);color:var(--ink-fg);display:grid;place-items:center;font:700 11px ui-monospace,Consolas,monospace;letter-spacing:-.02em}
+.crumbs{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mut);min-width:0;margin-right:auto}
+.crumbs a{color:var(--mut);text-decoration:none}.crumbs a:hover{color:var(--fg)}
+.crumbs .cur{color:var(--fg);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crumbs .ic{color:var(--faint);width:14px;height:14px}
+.prog{font-size:12.5px;color:var(--mut);white-space:nowrap;padding:0 4px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.seg button{border:0!important;border-radius:0!important;box-shadow:none!important;background:var(--surf)}
+.seg button+button{border-left:1px solid var(--line)!important}
+.pbar{height:2px;background:var(--line)}.pbar i{display:block;height:100%;width:0;background:var(--acc);transition:width .4s}
+
+/* topic switcher panel */
+.menu{position:relative}
+.panel{position:absolute;right:0;top:40px;width:min(380px,92vw);max-height:min(70vh,640px);overflow:auto;background:var(--surf);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-lg);padding:6px;z-index:50}
+.panel[hidden]{display:none}
+.panel h5{margin:10px 8px 4px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.panel a{display:grid;grid-template-columns:26px 1fr auto;gap:8px;align-items:center;padding:7px 8px;border-radius:var(--r);text-decoration:none;color:var(--fg);font-size:13.5px}
+.panel a:hover{background:var(--soft)}.panel a[aria-current=page]{background:var(--soft);font-weight:600}
+.panel .n{font:600 11px ui-monospace,Consolas,monospace;color:var(--faint)}
+.panel .c{font-size:11.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.panel .c.done{color:var(--done);font-weight:600}
+
+/* layout */
+.wrap{max-width:1280px;margin:0 auto;padding:0 16px;display:grid;grid-template-columns:248px minmax(0,1fr);gap:32px}
+nav.side{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto;padding:20px 0;font-size:13.5px}
+nav.side h4{margin:16px 0 6px;padding:0 10px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+nav.side a{display:flex;gap:8px;align-items:center;padding:6px 10px;border-radius:var(--r);text-decoration:none;color:var(--txt)}
+nav.side a:hover{background:var(--soft)}nav.side a.act{background:var(--soft);color:var(--fg);font-weight:600;box-shadow:inset 2px 0 0 var(--ink)}
+nav.side .dot{width:8px;height:8px;border-radius:50%;flex:none}.dot.hot{background:var(--warn)}.dot.sec{background:var(--faint)}
+nav.side .cnt{margin-left:auto;font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}
+main{min-width:0;padding:24px 0 90px}
+.chips{display:none}
+
+/* page header (hero) */
+.hero{background:var(--surf);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh);padding:24px 26px;margin-bottom:20px}
+.eyebrow{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);display:flex;align-items:center;gap:8px}
+.eyebrow .tag{background:var(--soft);border-radius:99px;padding:3px 9px;color:var(--fg);letter-spacing:.06em}
+.hero h1{font-size:clamp(24px,3.4vw,32px);line-height:1.2;margin:10px 0 10px;letter-spacing:-.02em;color:var(--fg);font-weight:700}
+.lead{font-size:15.5px;color:var(--txt);margin:0;max-width:72ch}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.stat{display:inline-flex;gap:6px;align-items:center;background:var(--hd);border:1px solid var(--line);border-radius:99px;padding:3px 12px;font-size:12.5px;color:var(--mut)}.stat b{color:var(--fg);font-variant-numeric:tabular-nums}
+
+/* headings */
+h2{font-size:20px;font-weight:700;margin:40px 0 10px;letter-spacing:-.01em;scroll-margin-top:72px;color:var(--fg)}
+h3{margin:0;font-size:20px;font-weight:600;letter-spacing:-.01em;color:var(--fg)}
+
+/* callouts: neutral box + 2px left accent (design system section 6) */
+.callout{border:1px solid var(--line);border-left:2px solid var(--faint);background:var(--hd);padding:10px 14px;border-radius:var(--r);margin:14px 0}
+.callout.intu{border-left-color:var(--info-line)}.callout p{margin:4px 0}
+.callout .lbl{margin-bottom:2px}
+
+/* pattern card: header bar + body (design system section 6) */
+.pat{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);margin:22px 0;scroll-margin-top:72px;overflow:hidden}
+.pat-h{display:flex;gap:12px;align-items:center;flex-wrap:wrap;min-height:50px;padding:8px 16px;background:var(--hd);border-bottom:1px solid var(--line)}
+.pat-h h3{font-size:18px}
+.badge{width:28px;height:28px;border-radius:var(--r);background:var(--ink);color:var(--ink-fg);display:flex;align-items:center;justify-content:center;font:700 13px ui-monospace,Consolas,monospace;flex:none}
+.tier{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;white-space:nowrap}
+.tier.hot{background:var(--warn-soft);color:var(--warn)}.tier.sec{background:var(--soft);color:var(--mut)}
+.pp{margin-left:auto;font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.pat-b{padding:6px 16px 8px}
+.glance{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0;margin:8px 0 6px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.gi{padding:10px 14px;font-size:14px;border-left:1px solid var(--line2)}.gi:first-child{border-left:0}
+.lbl{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.lbl .ic{width:14px;height:14px}
+.blk{margin:16px 0}.blk p{margin:4px 0}
+.blk ol,.blk ul{margin:4px 0;padding-left:22px}.blk li{margin:4px 0}
+.blk.warn{border:1px solid var(--line);border-left:2px solid var(--warn-line);background:var(--warn-soft);border-radius:var(--r);padding:10px 14px}.blk.warn .lbl{color:var(--warn)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cx{display:flex;gap:8px;align-items:center;background:var(--ok-soft);color:var(--ok);border:1px solid var(--line);border-left:2px solid var(--ok-line);border-radius:var(--r);padding:8px 14px;font-weight:600;font-size:14px;margin:14px 0}
+
+/* code */
+pre{background:var(--code);border:1px solid var(--line);border-radius:var(--r);padding:34px 15px 13px;overflow-x:auto;margin:8px 0;position:relative;font-size:13px;line-height:1.55;color:var(--fg)}
+pre::before{position:absolute;left:12px;top:8px;font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+pre.code-java::before{content:"Java"}pre.code-py::before{content:"Python"}pre.trace::before{content:"Trace"}
+pre code{background:none;padding:0;font-size:inherit;color:inherit}
+.code-java,.code-py{display:none}body[data-lang=java] .code-java,body[data-lang=py] .code-py{display:block}
+.cp{position:absolute;top:5px;right:6px;font:500 12px system-ui,sans-serif;height:24px;padding:0 9px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--mut);cursor:pointer}
+.cp:hover{color:var(--fg);background:var(--soft)}
+.trace{border-left:2px solid var(--faint)}
+
+/* tables */
+.tw{overflow-x:auto;margin:10px 0;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:9px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line2)}
+th{background:var(--hd);font:600 11px/1.2 system-ui,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);border-bottom:1px solid var(--line);position:sticky;top:0}
+tbody tr:hover td{background:var(--hd)}tr:last-child td{border-bottom:0}
+.ladder td:first-child{width:36px;text-align:center}.ladder .t{white-space:nowrap}.ladder .c{white-space:nowrap;font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+input.pk{width:18px;height:18px;accent-color:var(--done);cursor:pointer;margin:0}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;white-space:nowrap}
+.dE{background:var(--ok-soft);color:var(--ok)}.dM{background:var(--med-soft);color:var(--med)}.dH{background:var(--bad-soft);color:var(--bad)}
+tr.done td{background:var(--done-soft)}tr.done td:nth-child(3){text-decoration:line-through;text-decoration-color:var(--faint)}
+details{border:1px solid var(--line);border-radius:var(--r);padding:0 14px;margin:8px 0;background:var(--surf)}
+summary{cursor:pointer;font-weight:600;padding:10px 0;color:var(--fg);list-style:none;display:flex;gap:8px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"";width:6px;height:6px;border-right:1.5px solid var(--faint);border-bottom:1.5px solid var(--faint);transform:rotate(-45deg);transition:transform .2s;flex:none}
+details[open] summary::before{transform:rotate(45deg)}
+details[open]{border-left:2px solid var(--info-line)}details p{margin:0 0 12px;color:var(--txt)}
+
+/* stepper (animation panel) */
+.stepper{border:1px solid var(--line);border-radius:var(--r-lg);margin:8px 0 14px;background:var(--surf);box-shadow:var(--sh);overflow:hidden}
+.stepper:focus-visible{outline-offset:0}
+.st-head{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--hd);border-bottom:1px solid var(--line);font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.st-head .st-count{margin-left:auto;font-size:11.5px;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.st-body{padding:12px 14px 4px}
+.st-prog{height:3px;background:var(--line);overflow:hidden}.st-prog i{display:block;height:100%;background:var(--acc);width:0;transition:width .3s}
+.st-view{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;padding:6px 0 2px;margin:0 auto}
+.cellw{display:flex;flex-direction:column;align-items:center;min-width:46px}
+.ptr{min-height:22px;font:600 11px ui-monospace,Consolas,monospace;margin-bottom:3px;display:flex;align-items:flex-end}
+.ptr b{background:var(--ink);color:var(--ink-fg);padding:1px 7px;border-radius:99px;white-space:nowrap;animation:drop .25s ease}
+.cell{min-width:46px;height:46px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:600 15px ui-monospace,Consolas,monospace;padding:0 7px;transition:background .25s,border-color .25s,transform .25s}
+.cell.in{background:var(--acc-soft);border-color:var(--acc);transform:translateY(-2px)}
+.cell.ok{background:var(--done-soft);border-color:var(--done)}
+.cell.dim{background:var(--soft);color:var(--mut);border-style:dashed;opacity:.65}
+.cell.pop{animation:pop .35s ease}
+.edge{align-self:flex-start;margin-top:31px;min-width:20px;text-align:center;color:var(--faint);font:700 16px ui-monospace,Consolas,monospace}
+.idx{font:11px ui-monospace,Consolas,monospace;color:var(--mut);margin-top:3px}
+.st-aux{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;min-height:30px;margin-top:8px}
+.st-aux .al{font:600 10px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}
+.chip{font:600 12.5px ui-monospace,Consolas,monospace;background:var(--hd);border:1px solid var(--line);border-radius:var(--r);padding:2px 9px;color:var(--fg)}
+.st-note{min-height:48px;margin:8px 0;font-size:14.5px;padding:10px 13px;background:var(--hd);border:1px solid var(--line);border-left:2px solid var(--info-line);border-radius:var(--r);color:var(--txt)}
+.st-ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 14px 12px}
+.st-ctl button{min-width:32px}
+.st-ctl button.pri{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.st-ctl input[type=range]{flex:1;min-width:90px;accent-color:var(--ink)}
+.st-ctl select{padding:0 8px}
+@keyframes pop{0%{transform:scale(.75)}60%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes drop{from{transform:translateY(-6px);opacity:0}to{transform:none;opacity:1}}
+
+/* previous / next */
+.foot{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.nxt{display:flex;flex-direction:column;gap:3px;padding:14px 16px;background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);text-decoration:none;color:var(--fg)}
+.nxt:hover{border-color:var(--faint)}.nxt.r{text-align:right;align-items:flex-end}.nxt small{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);display:flex;gap:6px;align-items:center}
+.nxt strong{font-size:15px;font-weight:600}
+.nxt.next{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}.nxt.next small{color:inherit;opacity:.75}
+.site-foot{max-width:1280px;margin:0 auto;padding:22px 16px 40px;display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between;color:var(--mut);font-size:13px;border-top:1px solid var(--line)}
+.site-foot a{color:var(--mut)}.site-foot a:hover{color:var(--fg)}
+
+/* landing page */
+.home{max-width:1120px;margin:0 auto;padding:28px 16px 60px}
+.home-hero{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:stretch}
+.home-hero .hero{margin:0;display:flex;flex-direction:column}
+.home-hero .hero h1{font-size:clamp(28px,4vw,40px)}
+.cta{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:14px 16px;display:flex;flex-direction:column;justify-content:center}
+.kpi b{font-size:26px;line-height:1.1;color:var(--fg);letter-spacing:-.02em;font-variant-numeric:tabular-nums}.kpi span{font-size:12.5px;color:var(--mut);margin-top:3px}
+.kpi.wide{grid-column:1/-1}
+.meter{height:6px;border-radius:99px;background:var(--soft);overflow:hidden;margin-top:10px}.meter i{display:block;height:100%;width:0;background:var(--done);border-radius:99px;transition:width .4s}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0 0}
+.how div{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;font-size:14px}
+.how b{display:flex;align-items:center;gap:8px;color:var(--fg);margin-bottom:4px}
+.how .no{width:22px;height:22px;border-radius:6px;background:var(--soft);display:grid;place-items:center;font:700 11px ui-monospace,monospace;color:var(--fg)}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:34px 0 4px}
+.tools h2{margin:0;margin-right:auto;font-size:20px}
+.search{position:relative}.search input{height:32px;width:220px;max-width:100%;padding:0 10px 0 32px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:13px}
+.search .ic{position:absolute;left:10px;top:8px;color:var(--faint)}
+.filters{display:inline-flex;gap:6px;flex-wrap:wrap}
+.filters button{height:32px;padding:0 12px;border:1px solid var(--line);border-radius:99px;background:var(--surf);color:var(--mut);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.filters button[aria-pressed=true]{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.phase{margin:26px 0 0}
+.phase-h{display:flex;align-items:baseline;gap:10px;margin:0 0 10px}
+.phase-h h2{margin:0;font-size:16px;scroll-margin-top:72px}.phase-h span{font-size:13px;color:var(--mut)}
+.phase-h .ph{font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;background:var(--soft);color:var(--fg);padding:4px 8px;border-radius:99px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.tcard{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden}
+.tcard[hidden]{display:none}
+.tcard-h{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 14px;background:var(--hd);border-bottom:1px solid var(--line)}
+.tcard-h .no{font:700 12px ui-monospace,Consolas,monospace;background:var(--ink);color:var(--ink-fg);border-radius:var(--r);padding:3px 7px}
+.tcard-h h3{font-size:16px;margin-right:auto}
+.st{font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--soft);color:var(--mut);white-space:nowrap}
+.st.doing{background:var(--warn-soft);color:var(--warn)}.st.done{background:var(--done-soft);color:var(--done)}
+.tcard-b{padding:12px 14px;display:flex;flex-direction:column;gap:10px;flex:1}
+.tcard-b p{margin:0;font-size:13.5px;color:var(--txt);flex:1}
+.meta{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--mut)}.meta span{display:inline-flex;gap:5px;align-items:center}
+.act{display:flex;gap:8px}
+.empty{text-align:center;color:var(--mut);padding:30px;border:1px dashed var(--line);border-radius:var(--r);margin-top:16px}
+
+@media (max-width:1020px){.wrap{display:block}nav.side{display:none}
+ .chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0;position:sticky;top:50px;z-index:10;background:var(--bg)}
+ .chips a{white-space:nowrap;font-size:12.5px;border:1px solid var(--line);background:var(--surf);padding:4px 11px;border-radius:99px;text-decoration:none;color:var(--fg)}
+ .home-hero{grid-template-columns:1fr}}
+@media (max-width:720px){.crumbs .cur,.crumbs .ic,.prog{display:none}.how{grid-template-columns:1fr}.foot{grid-template-columns:1fr}.btn .t-long{display:none}}
+@media (max-width:640px){body{font-size:15px}.hero{padding:18px 16px}.pat-b{padding:4px 12px 6px}.two{grid-template-columns:1fr}.cell{min-width:36px;height:38px;font-size:13px}.cellw{min-width:36px}.brand span{display:none}.pp{margin-left:0}.gi{border-left:0;border-top:1px solid var(--line2)}.gi:first-child{border-top:0}.search input{width:100%}.search{flex:1}.kpis{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media print{.bar,.pbar,nav.side,.chips,.st-ctl,.cp,.skip,.site-foot,.foot{display:none}.wrap{display:block}.code-java,.code-py{display:block!important}.pat{box-shadow:none;break-inside:avoid-page}body{background:#fff}}
+
+/* tree and graph drawings inside the stepper */
+.st-tree svg{display:block;margin:0 auto;height:auto}.st-tree line{stroke:var(--faint);stroke-width:1.75;opacity:.6}
+.tn circle{fill:var(--surf);stroke:var(--line);stroke-width:2;transition:fill .25s,stroke .25s}.tn.in circle{fill:var(--acc-soft);stroke:var(--acc)}.tn.ok circle{fill:var(--done-soft);stroke:var(--done)}.tn.dim circle{fill:var(--soft);stroke-dasharray:4 3;opacity:.7}
+.tn text{font:600 14px ui-monospace,Consolas,monospace;fill:var(--fg);text-anchor:middle;dominant-baseline:central}.tp{font:700 11px ui-monospace,Consolas,monospace;fill:var(--acc);text-anchor:middle}
+.ge{stroke:var(--faint);stroke-width:2;opacity:.5}.ge.on{stroke:var(--acc);stroke-width:3.5;opacity:1}.gw{font:600 11px ui-monospace,Consolas,monospace;fill:var(--mut);text-anchor:middle}.mk{fill:var(--faint);opacity:.7}.mk2{fill:var(--acc)}
+
+/* study planner page */
+.planner .hero{margin-bottom:18px}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:16px;overflow:hidden}
+.card-h{display:flex;align-items:center;gap:10px;min-height:46px;padding:6px 14px;background:var(--hd);border-bottom:1px solid var(--line)}
+.card-h h2{margin:0;font-size:15px;font-weight:600;margin-right:auto;color:var(--fg)}
+.card-h>span:not(.st){font-size:12.5px;color:var(--mut)}
+.card-b{padding:14px}
+.pl-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+.pl-col{min-width:0}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+.field{min-width:0}.field:nth-child(6),.field:nth-child(7){grid-column:1/-1}
+.flabel{display:block;font:600 11px/1.2 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+.field input[type=date],.field input[type=number],.field select{height:34px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:14px;max-width:100%}
+.field input[type=number]{width:96px}.field select{width:100%}.field input[type=date]{width:100%}
+.unit{font-size:13px;color:var(--mut);margin-left:8px}
+.fhint{font-size:12.5px;color:var(--mut);margin-top:6px}
+.qchips{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.qchips button,.presets button,.chips2 button{height:28px;padding:0 11px;border:1px solid var(--line);border-radius:99px;background:var(--surf);color:var(--fg);font:inherit;font-size:12.5px;cursor:pointer}
+.qchips button:hover,.presets button:hover,.chips2 button:hover{background:var(--soft)}
+.seg2{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;max-width:100%}
+.seg2 button{height:34px;padding:0 14px;border:0;background:var(--surf);color:var(--fg);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.seg2 button+button{border-left:1px solid var(--line)}
+.seg2 button[aria-pressed=true]{background:var(--ink);color:var(--ink-fg)}
+.toggles{display:grid;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line2);font-size:14px}
+.toggles label,.key-panel label{display:flex;gap:9px;align-items:center;cursor:pointer}
+.toggles input,.key-panel input[type=checkbox]{width:16px;height:16px;accent-color:var(--ink);margin:0}
+.presets{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.presets span{font-size:12.5px;color:var(--mut);margin-right:2px}
+#topics h5{margin:14px 0 4px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.trow{display:grid;grid-template-columns:20px 28px 1fr auto;gap:8px;align-items:center;padding:6px 6px;border-radius:var(--r);cursor:pointer;font-size:14px}
+.trow:hover{background:var(--soft)}.trow input{width:16px;height:16px;accent-color:var(--ink);margin:0}
+.trow .n{font:600 11.5px ui-monospace,Consolas,monospace;color:var(--faint)}.trow .est{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+/* coach */
+.chat{position:sticky;top:64px;display:flex;flex-direction:column;height:min(720px,calc(100vh - 84px));min-height:480px;margin-bottom:0}
+.chat .card-h .btn{height:28px}
+.key-panel{padding:12px 14px;border-bottom:1px solid var(--line);background:var(--surf);display:grid;gap:10px;font-size:13.5px}
+.key-panel[hidden]{display:none}
+.key-panel p{margin:0}.key-panel .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.key-panel input[type=password],.key-panel select{height:34px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:13.5px;min-width:0;flex:1}
+.msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;background:var(--bg)}
+.msg{max-width:92%}.msg.me{align-self:flex-end}
+.msg .who{font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:0 2px 4px}.msg.me .who{text-align:right}
+.msg .mb{padding:9px 12px;border-radius:var(--r-lg);font-size:14.5px;line-height:1.55;border:1px solid var(--line);background:var(--surf);color:var(--txt)}
+.msg.me .mb{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.msg .mb p{margin:0 0 6px}.msg .mb p:last-child{margin:0}.msg .mb ul,.msg .mb ol{margin:4px 0;padding-left:20px}.msg .mb code{font-size:.9em}
+.msg.sys{align-self:stretch;max-width:100%}.msg.sys .mb{background:var(--hd);border-left:2px solid var(--info-line);font-size:13.5px}
+.typing{display:flex;gap:4px;padding:6px 4px}.typing i{width:6px;height:6px;border-radius:50%;background:var(--faint);animation:blink 1.2s infinite}.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.chips2{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px 0;background:var(--surf);border-top:1px solid var(--line)}
+.composer{display:flex;gap:8px;align-items:flex-end;padding:10px 14px 14px;background:var(--surf)}
+.composer textarea{flex:1;resize:none;min-height:38px;max-height:120px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:14.5px;line-height:1.4}
+.composer .btn{height:38px}
+/* plan output */
+.sec-h{font-size:18px;margin:26px 0 10px}
+.kpis4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.kpis4 .kpi b{font-size:22px}
+.callout.alert{border-left-color:var(--warn-line);background:var(--warn-soft)}.callout.alert .lbl{color:var(--warn)}.callout ul{margin:4px 0;padding-left:20px}
+.warn-c{border-left-color:var(--warn-line)}
+.plan-bar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin:14px 0;box-shadow:var(--sh)}
+.pb-l{min-width:220px;flex:1;font-size:13.5px;color:var(--mut)}.pb-l b{color:var(--fg);font-size:15px}.pb-r{display:flex;gap:8px;flex-wrap:wrap}
+.wk{padding:0;margin:10px 0;border-left:1px solid var(--line)}
+details.wk[open]{border-left:2px solid var(--info-line)}
+.wk summary{padding:12px 14px;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.wk summary::before{align-self:center}
+.wn{font-weight:700;color:var(--fg)}.wd{font-size:13px;color:var(--mut)}.wt{font-size:13px;color:var(--mut);margin-right:auto}.wc{font-size:12.5px;font-weight:600;background:var(--soft);border-radius:99px;padding:2px 10px;color:var(--fg);font-variant-numeric:tabular-nums}
+.wk-b{padding:0 14px 12px}
+.day{border:1px solid var(--line);border-radius:var(--r);margin:8px 0;background:var(--surf);overflow:hidden}
+.day.today{border-color:var(--ink)}
+.day.rest{background:var(--hd);color:var(--mut)}
+.dh{display:flex;gap:10px;align-items:center;padding:7px 12px;background:var(--hd);border-bottom:1px solid var(--line2);font-size:13px}.dh b{color:var(--fg)}.dh span:last-child{margin-left:auto;color:var(--mut);font-variant-numeric:tabular-nums}
+.day.rest .dh{border-bottom:0}
+.pill-t{font-size:11px;font-weight:600;background:var(--ink);color:var(--ink-fg);padding:1px 8px;border-radius:99px}
+.task{display:grid;grid-template-columns:20px 84px 1fr auto;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line2);cursor:pointer;font-size:14px}
+.task:last-child{border-bottom:0}.task:hover{background:var(--hd)}
+.task input{width:17px;height:17px;accent-color:var(--done);margin:0}
+.task .kind{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;text-align:center;background:var(--soft);color:var(--mut)}
+.k-learn .kind{background:var(--info-soft);color:var(--info)}.k-code .kind{background:var(--soft);color:var(--fg)}.k-practice .kind{background:var(--med-soft);color:var(--med)}
+.k-review .kind{background:var(--done-soft);color:var(--done)}.k-checkpoint .kind,.k-mock .kind{background:var(--ink);color:var(--ink-fg)}
+.task .ttl{min-width:0;display:flex;flex-direction:column}.task .ttl a{color:var(--fg);text-decoration:none}.task .ttl a:hover{text-decoration:underline}
+.task .sub{font-size:12px;color:var(--mut)}.task .mins{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.task.is-done .ttl,.task.is-done .ttl a{text-decoration:line-through;text-decoration-color:var(--faint);color:var(--mut)}
+@media (max-width:1020px){.pl-grid{grid-template-columns:1fr}.chat{position:static;height:560px}.kpis4{grid-template-columns:1fr 1fr}}
+@media (max-width:640px){.fgrid{grid-template-columns:1fr}.field:nth-child(n){grid-column:auto}.task{grid-template-columns:20px 1fr auto}.task .kind{display:none}.wt{flex-basis:100%;order:3}.msg{max-width:100%}}
+@media print{.pl-grid,.hero,.plan-bar .pb-r,.chat{display:none}.wk{break-inside:avoid-page}details.wk>summary::before{display:none}}
+
+/* left rail */
+body.has-rail{padding-left:56px}
+.rail{position:fixed;inset:0 auto 0 0;width:56px;z-index:40;background:var(--surf);border-right:1px solid var(--line);padding:9px 8px;overflow:hidden;transition:width .18s ease;display:flex;flex-direction:column;gap:2px}
+.rail:hover,.rail:focus-within{width:240px;box-shadow:var(--sh-lg)}
+.rail-i{display:flex;align-items:center;gap:12px;height:38px;padding:0 10px;border-radius:var(--r);text-decoration:none;color:var(--txt);white-space:nowrap;font-size:14px}
+.rail-i:hover{background:var(--soft)}
+.rail-i[aria-current=page]{background:var(--soft);color:var(--fg);font-weight:600;box-shadow:inset 2px 0 0 var(--ink)}
+.rail-i .ic{width:18px;height:18px}
+.rail-logo{margin-bottom:6px;height:44px}.rail-logo .logo{width:24px;height:24px;flex:none}
+.rail .l{opacity:0;transition:opacity .12s}.rail:hover .l,.rail:focus-within .l{opacity:1}
+.rail-g{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);padding:14px 10px 4px;opacity:0;white-space:nowrap}
+.rail:hover .rail-g,.rail:focus-within .rail-g{opacity:1}
+.rail-sub{display:flex;flex-direction:column;margin:0 0 4px 22px;padding-left:12px;border-left:1px solid var(--line);opacity:0;max-height:0;overflow:hidden;transition:opacity .12s}
+.rail:hover .rail-sub,.rail:focus-within .rail-sub{opacity:1;max-height:260px}
+.rail-sub a{font-size:13px;color:var(--mut);text-decoration:none;padding:5px 8px;border-radius:var(--r);white-space:nowrap}.rail-sub a:hover{background:var(--soft);color:var(--fg)}
+.rail-bd{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:35}.rail-bd[hidden]{display:none}
+.rail-btn{display:none}
+@media (max-width:1020px){body.has-rail{padding-left:0}
+ .rail{transform:translateX(-100%);width:256px;transition:transform .2s ease;box-shadow:none}.rail.open{transform:none;box-shadow:var(--sh-lg)}
+ .rail:hover,.rail:focus-within{width:256px}.rail .l,.rail-g,.rail-sub{opacity:1}.rail-sub{max-height:260px}
+ .rail-btn{display:inline-flex}}
+@media print{.rail,.rail-bd{display:none}body.has-rail{padding-left:0}}
+
+/* systems pages and hub */
+pre.sh::before{content:"Command"}pre.out::before{content:"Output"}
+pre.sh{margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0;background:var(--ink);color:var(--ink-fg)}
+pre.sh::before{color:inherit;opacity:.65}
+pre.sh code{color:inherit;white-space:pre}
+pre.sh .cp{background:transparent;color:var(--ink-fg);border-color:rgba(248,250,252,.35)}pre.sh .cp:hover{background:rgba(248,250,252,.12);color:var(--ink-fg)}
+[data-theme=dark] pre.sh{background:#0b1324;color:#f1f5f9;border:1px solid var(--line)}
+pre.out{margin-top:0;border-top-left-radius:0;border-top-right-radius:0}
+.cmd{margin:14px 0 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);overflow:hidden}
+.cmd pre{margin:0;border-radius:0;border-left:0;border-right:0}.cmd>pre.sh{border-top:0}
+.cmd-b{padding:10px 14px 12px}.cmd-b p{margin:4px 0}
+.cmd-b pre.out{margin:6px 0 0;border:1px solid var(--line);border-radius:var(--r)}
+.out-l{margin-top:8px}
+.stamp{display:inline-block;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--done);background:var(--done-soft);border-radius:99px;padding:3px 9px}
+.stamp.ill{color:var(--warn);background:var(--warn-soft)}
+.noout{font-size:13px}
+.parts{margin:8px 0 0}.parts table{font-size:13px}.parts th,.parts td{padding:6px 10px}
+.analogy{margin:8px 0 2px}
+.tick{display:inline-flex;gap:7px;align-items:center;font-size:12.5px;color:var(--mut);cursor:pointer;margin-left:auto}
+.tick input{width:16px;height:16px;accent-color:var(--done);margin:0}.tick.is-done{color:var(--done);font-weight:600}
+.pat-h .tick{margin-left:auto}.pat-h .pp{margin-left:0}
+.lab .badge{background:var(--soft);color:var(--fg)}.lab .badge .ic{width:16px;height:16px}
+.lab{border-left:2px solid var(--info-line)}
+.case{border:1px solid var(--line);border-left:2px solid var(--warn-line);background:var(--hd);border-radius:var(--r);padding:12px 16px;margin:14px 0}
+.case h4{margin:4px 0 6px;font-size:16px;color:var(--fg)}.case p{margin:6px 0}
+.qa{padding:0 14px}.qa summary{font-weight:600}
+.qa-b{padding:0 0 12px}.qa-b ul{margin:4px 0 10px;padding-left:20px}.qa-b li{margin:3px 0}
+.angle{background:var(--hd);border:1px solid var(--line);border-left:2px solid var(--info-line);border-radius:var(--r);padding:8px 12px;font-size:14px}
+table.playbook td:first-child{font-weight:600;color:var(--fg)}
+table.cheat td:first-child{font-family:ui-monospace,Consolas,monospace;font-size:13px;white-space:pre-wrap;color:var(--fg)}
+/* hub */
+.courses{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ccard{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden}
+.ccard .tcard-h{min-height:52px}.ccard .tcard-h h2{margin:0;font-size:19px;margin-right:auto;color:var(--fg)}
+.ccard .tcard-h .no{padding:5px 8px;display:inline-flex}.ccard .tcard-h .no .ic{width:18px;height:18px}
+.ticks{margin:0;padding-left:20px;font-size:14px;color:var(--txt)}.ticks li{margin:3px 0}
+.tcard.planned{opacity:.7;background:var(--hd)}.tcard.planned .no{background:var(--soft);color:var(--mut)}
+@media (max-width:820px){.courses{grid-template-columns:1fr}}
+/* diagrams */
+.viz{margin:8px 0;padding:10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+.viz figcaption{font-size:13px;color:var(--mut);margin-top:6px;text-align:center}
+.dg{width:100%;height:auto;display:block}
+.dg-box{fill:var(--hd);stroke:var(--line);stroke-width:1.5}.dg-box.acc{fill:var(--acc-soft);stroke:var(--acc)}.dg-box.ok{fill:var(--done-soft);stroke:var(--done)}.dg-box.warn{fill:var(--warn-soft);stroke:var(--warn-line)}.dg-box.ink{fill:var(--ink);stroke:var(--ink)}
+.dg-t{font:600 13px system-ui,sans-serif;fill:var(--fg)}.dg-t.ink{fill:var(--ink-fg)}.dg-s{font:12px system-ui,sans-serif;fill:var(--mut)}
+.dg-s.ink{fill:#cbd5e1}
+.dg-a{stroke:var(--faint);stroke-width:2}.dg-a.acc{stroke:var(--acc)}.dg-m{fill:var(--faint)}
+
+/* short view: folded detail inside lessons */
+details.more{border:0;border-left:2px solid var(--line);border-radius:0;padding:0 0 0 12px;margin:8px 0;background:none}
+details.more>summary{font-size:13px;font-weight:600;color:var(--info);display:inline-flex;align-items:center;gap:6px}
+details.more>summary svg{width:14px;height:14px}
+details.more[open]{border-left-color:var(--info-line)}
+.blk.warn details.more>summary{color:var(--warn-ink,var(--fg))}
+.quick details summary{font-weight:500}
+#b-density .t-short{display:none}
+@media(max-width:700px){#b-density .t-long{display:none}#b-density .t-short{display:inline}}
+
+/* reader: one step at a time */
+.vh{display:none!important}
+.vnav{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:28px 0 8px}
+body:not(.focus) .vnav{display:none}
+.vnav a{display:flex;flex-direction:column;gap:2px;padding:12px 16px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);text-decoration:none;color:var(--fg);box-shadow:var(--sh);transition:border-color .15s,background .15s}
+.vnav a:hover{border-color:var(--acc);background:var(--soft)}
+.vnav small{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:600}
+.vnav b{font-size:14px;font-weight:600;line-height:1.35}
+.vnav a.vn{text-align:right;align-items:flex-end;background:var(--ink);border-color:var(--ink);color:var(--ink-fg)}
+.vnav a.vn small{color:#cbd5e1}.vnav a.vn:hover{background:var(--ink);opacity:.92}
+.vpos{font-size:12px;color:var(--mut);white-space:nowrap}
+body:not(.focus) .vpos{display:none}
+#b-view .t-short{display:none}
+@media(max-width:700px){#b-view .t-long{display:none}#b-view .t-short{display:inline}.vnav{grid-template-columns:1fr}.vpos{display:none}}
+.chips a.on{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+@media print{.vh{display:block!important}.vnav,.vpos{display:none!important}}
+
+/* layout: content uses the room it is given; the left menu can be pinned open */
+body.has-rail{transition:padding-left .18s ease}
+body.has-rail .wrap{max-width:1680px}
+.wrap.has-track{grid-template-columns:232px minmax(0,1fr);gap:28px}
+aside.track{display:none}
+@media (min-width:1480px){.wrap.has-track{grid-template-columns:232px minmax(0,1fr) 268px}aside.track{display:block;position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto;padding:20px 0}}
+@media (min-width:1480px) and (max-width:1699px){body.rail-pinned .wrap.has-track{grid-template-columns:232px minmax(0,1fr)}body.rail-pinned aside.track{display:none}}
+@media (max-width:1020px){.wrap.has-track{display:block}aside.track{display:none!important}}
+body.rail-pinned{padding-left:240px}
+body.rail-pinned .rail{width:240px}
+body.rail-pinned .rail .l,body.rail-pinned .rail-g{opacity:1}
+body.rail-pinned .rail-sub{opacity:1;max-height:260px}
+.rail-pin{margin-top:auto;border:0;background:none;cursor:pointer;font:inherit;width:100%;text-align:left;color:var(--mut)}
+.rail-pin svg.ic{transition:transform .18s}
+body.rail-pinned .rail-pin svg.ic{transform:rotate(180deg)}
+@media (max-width:1020px){.rail-pin{display:none}body.rail-pinned{padding-left:0}}
+@media print{body.rail-pinned{padding-left:0}aside.track{display:none!important}}
+/* right-hand progress tracker */
+.tk{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--sh)}
+.tk-top{display:flex;align-items:center;gap:14px}
+.tk-ring{width:64px;height:64px;flex:none}
+.tk-ring circle{fill:none;stroke-width:6}
+.tk-ring .bg{stroke:var(--line)}
+.tk-ring .fg{stroke:var(--done);stroke-linecap:round;transition:stroke-dashoffset .4s ease}
+.tk-ring text{font:700 15px system-ui,sans-serif;fill:var(--fg)}
+.tk-top b{display:block;font-size:15px}
+.tk-top span{font-size:12.5px;color:var(--mut)}
+.tk h4{margin:16px 0 6px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.tk-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+.tk-list a{display:flex;gap:10px;align-items:flex-start;padding:7px 8px;border-radius:8px;text-decoration:none;color:var(--txt);font-size:13px;line-height:1.35}
+.tk-list a:hover{background:var(--soft)}
+.tk-list .d{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line);flex:none;margin-top:1px;display:grid;place-items:center;font-size:10px;line-height:1;color:#fff}
+.tk-list a.done .d{background:var(--done);border-color:var(--done)}
+.tk-list a.done .d::after{content:"¹3"}
+.tk-list a.cur{background:var(--acc-soft);color:var(--fg);font-weight:600}
+.tk-list a.cur .d{border-color:var(--acc)}
+.tk-go{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:14px;padding:9px 12px;border-radius:var(--r);background:var(--ink);color:var(--ink-fg);font-size:13px;font-weight:600;text-decoration:none}
+.tk-go:hover{opacity:.92}
+.tk-rev{display:block;margin-top:8px;text-align:center;font-size:12.5px;color:var(--info);text-decoration:none;font-weight:600}
+
+/* the three-line button only opens the left menu on small screens */
+.bar .rail-btn,.bar-in .rail-btn{display:none}
+@media (max-width:1020px){.bar .rail-btn,.bar-in .rail-btn{display:inline-flex}}
+
+/* quick revision page */
+.revise{max-width:1000px}
+.rv-top{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:6px 0 14px}
+.sel{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mut)}
+.sel select{font:inherit;font-size:13px;height:32px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);max-width:260px}
+.sel select:disabled{opacity:.5}
+.rv-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 10px}
+.rv-bar input[type=search]{width:100%;height:34px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:13.5px}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--txt);cursor:pointer}
+.mtag{display:inline-block;font:600 11px/1 system-ui,sans-serif;padding:3px 6px;border-radius:6px;background:var(--soft);color:var(--mut);margin-right:6px;vertical-align:1px}
+.co{display:inline-block;font:600 11px/1 system-ui,sans-serif;padding:3px 7px;border-radius:999px;background:var(--acc-soft);color:var(--acc);margin-left:6px;white-space:nowrap}
+.fc{border:1px solid var(--line);border-radius:14px;background:var(--surf);box-shadow:var(--sh);padding:28px 24px;min-height:200px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;outline-offset:3px}
+.fc:hover{border-color:var(--acc)}
+.fc-m{font-size:12px;color:var(--mut)}
+.fc-t{font-size:20px;line-height:1.5;font-weight:600;margin:18px 0;color:var(--fg)}
+.fc-h{font-size:12px;color:var(--mut)}
+.fc-a{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;justify-content:center}
+.how-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.hw{border:1px solid var(--line);border-radius:12px;background:var(--surf);padding:16px 18px;box-shadow:var(--sh)}
+.hw h3{margin:0 0 8px;font-size:16px}
+.hw ol,.hw ul{margin:6px 0 8px;padding-left:20px}.hw li{margin:3px 0}
+.hw .ex{margin-top:10px;padding:10px 14px;border-left:3px solid var(--info-line);background:var(--info-soft);border-radius:0 var(--r) var(--r) 0}
+.hw .ex p{margin:4px 0}
+
+.dg-life{stroke:var(--line);stroke-width:1.5;stroke-dasharray:4 4}
+.dg-a.dash{stroke-dasharray:5 4}
+.dg-a.bad{stroke:var(--warn-line)}
+.dg-t.acc{fill:var(--fg)}
+
+/* deep lessons: step-by-step flows, annotated real output, worked interview scenarios */
+.walk{list-style:none;counter-reset:w;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.walk li{counter-increment:w;position:relative;padding:10px 14px 10px 52px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+.walk li::before{content:counter(w);position:absolute;left:14px;top:10px;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--ink-fg);font:700 13px/26px system-ui,sans-serif;text-align:center}
+.walk li b{display:block;margin-bottom:2px}
+.walk li span{color:var(--txt);font-size:14px;line-height:1.55}
+.annot{margin:10px 0 0}
+.annot table{font-size:13px}
+.annot td:first-child{white-space:pre-wrap;word-break:break-word;min-width:160px}
+.scen{border:1px solid var(--info-line);background:var(--info-soft);border-radius:12px;padding:16px 18px;margin-top:18px}
+.scen h4{margin:6px 0 8px;font-size:17px}
+.scen .ask{font-size:15px;margin:0 0 6px}
+.scen-s{margin:12px 0}
+.scen-s ul,.scen-s ol{margin:6px 0 0;padding-left:22px}.scen-s li{margin:5px 0;line-height:1.55}
+.scen-s.warn{border-left:3px solid var(--warn-line);padding-left:12px}
+.scen details{background:var(--surf)}
+.scen details.more.scen-a{border:1px solid var(--line);border-left:3px solid var(--done);border-radius:var(--r);padding:0 14px;background:var(--surf)}
+.scen details.more.scen-a>summary{font-weight:700;color:var(--fg)}
+
+.sdfig{margin:18px 0}.sdfig svg{width:100%;height:auto;display:block}
+.sd-sh{fill:var(--surf);stroke:var(--faint);stroke-width:2}
+.sd-sh.ok{fill:var(--done-soft);stroke:var(--done)}.sd-sh.bad{fill:var(--bad-soft);stroke:var(--bad)}.sd-sh.warn{fill:var(--warn-soft);stroke:var(--warn)}.sd-sh.acc{fill:var(--acc-soft);stroke:var(--acc)}.sd-sh.ink{fill:var(--ink);stroke:var(--ink)}
+.sd-top{fill:var(--soft)}.sd-sh.ok.sd-top{fill:var(--done-soft)}
+.sd-pp{fill:var(--acc-soft);stroke:var(--acc);stroke-width:1.8}.sd-pp.bad{fill:var(--bad-soft);stroke:var(--bad)}.sd-pp.ok{fill:var(--done-soft);stroke:var(--done)}.sd-pp.warn{fill:var(--warn-soft);stroke:var(--warn)}
+.sd-ln{fill:var(--line);}.sd-ln2{fill:none;stroke:var(--faint);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sd-led{fill:var(--faint)}.sd-led.ok{fill:var(--done)}.sd-led.bad{fill:var(--bad)}.sd-led.warn{fill:var(--warn)}.sd-led.acc{fill:var(--acc)}
+.sd-bolt{fill:var(--acc)}.sd-bolt.ok{fill:var(--done)}.sd-bolt.warn{fill:var(--warn)}
+.sd-job{fill:var(--soft);stroke:var(--line);stroke-width:1}.sd-job.on{fill:var(--acc);stroke:var(--acc)}
+.sd-ex{fill:var(--bad)}
+.sd-arc{fill:none;stroke:var(--line);stroke-width:7;stroke-linecap:round}.sd-arc.on{stroke:var(--done)}.sd-arc.on.bad{stroke:var(--bad)}.sd-arc.on.warn{stroke:var(--warn)}
+.sd-needle{stroke:var(--fg);stroke-width:2.5;stroke-linecap:round}.sd-hub{fill:var(--fg)}
+.sd-gv{font:700 13px system-ui,sans-serif;fill:var(--fg)}.sd-gv.bad{fill:var(--bad)}.sd-gv.ok{fill:var(--done)}
+.sd-l{font:600 12.5px system-ui,sans-serif;fill:var(--fg)}.sd-c{font:11.5px system-ui,sans-serif;fill:var(--mut)}
+.sd-n{font:600 12px system-ui,sans-serif;fill:var(--mut)}.sd-n.bad{fill:var(--bad)}.sd-n.ok{fill:var(--done)}.sd-n.warn{fill:var(--warn)}.sd-n.acc{fill:var(--acc)}
+.sd-a{stroke:var(--faint);stroke-width:2.2;fill:none}.sd-a.acc{stroke:var(--acc)}.sd-a.ok{stroke:var(--done)}.sd-a.bad{stroke:var(--bad)}.sd-a.warn{stroke:var(--warn)}.sd-a.dash{stroke-dasharray:5 5}
+.sd-badge{fill:var(--soft);stroke:var(--line)}.sd-badge.ok{fill:var(--done-soft);stroke:var(--done)}.sd-badge.bad{fill:var(--bad-soft);stroke:var(--bad)}.sd-badge.warn{fill:var(--warn-soft);stroke:var(--warn)}.sd-badge.acc{fill:var(--acc-soft);stroke:var(--acc)}
+.sd-bt{font:700 11.5px system-ui,sans-serif;fill:var(--fg)}
+.sd-panel{fill:var(--surf);stroke:var(--line);stroke-width:1.5}.sd-panel.bad{fill:var(--bad-soft);stroke:var(--bad-line)}.sd-panel.ok{fill:var(--done-soft);stroke:var(--done-line)}.sd-panel.warn{fill:var(--warn-soft);stroke:var(--warn-line)}
+.sd-pt{font:700 13px system-ui,sans-serif;fill:var(--fg);letter-spacing:.2px}.sd-pt.bad{fill:var(--bad)}.sd-pt.ok{fill:var(--done)}.sd-pt.warn{fill:var(--warn)}
+.sd-pc{font:12.5px system-ui,sans-serif;fill:var(--txt)}
+
+.sdw{display:grid;grid-template-columns:230px minmax(0,1fr);gap:34px;max-width:1120px;margin:0 auto;padding:22px 20px 60px}
+.sdw main{min-width:0;max-width:780px}
+.sdnav{position:sticky;top:76px;align-self:start;font-size:13.5px}
+.sdnav h4{margin:0 0 8px;font-size:11.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--faint)}
+.sdnav a{display:flex;gap:9px;align-items:center;padding:6px 8px;border-radius:6px;color:var(--mut);text-decoration:none;border-left:3px solid transparent}
+.sdnav a b{width:20px;height:20px;border-radius:50%;background:var(--soft);color:var(--mut);display:inline-grid;place-items:center;font-size:11px;flex:none}
+.sdnav a:hover{background:var(--soft);color:var(--fg)}
+.sdnav a.on{color:var(--fg);font-weight:600;background:var(--acc-soft);border-left-color:var(--acc)}.sdnav a.on b{background:var(--acc);color:#fff}
+.sdnav .done{margin-top:14px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--surf);font-size:13px}
+.sdhero{padding:6px 0 10px}
+.sdhero .eyebrow{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--mut);margin-bottom:8px}
+.sdhero .tag{background:var(--acc-soft);color:var(--acc);border:1px solid var(--acc-line);padding:2px 9px;border-radius:999px;font-weight:600;font-size:12px}
+.sdhero h1{margin:0 0 8px;font-size:clamp(27px,4.2vw,38px);line-height:1.15;color:var(--fg);letter-spacing:-.4px}
+.sdhero .lead{font-size:17.5px;color:var(--txt);max-width:660px;margin:0 0 14px}
+.sdmeta{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px}.sdmeta span{background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:3px 11px;font-size:12.5px;color:var(--mut)}
+.sdsec{margin:38px 0 0;scroll-margin-top:84px}
+.sdsec>h2{display:flex;align-items:center;gap:11px;margin:0 0 4px;font-size:23px;color:var(--fg);letter-spacing:-.2px}
+.sdsec>h2 .n{width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--ink-fg);display:inline-grid;place-items:center;font-size:14px;font-weight:700;flex:none}
+.sdsec>h2 small{font-size:12.5px;font-weight:600;color:var(--faint);letter-spacing:.7px;text-transform:uppercase;margin-left:auto}
+.sdsec .sub{margin:0 0 14px;color:var(--mut)}
+.sdsec p{margin:0 0 12px}
+.sdstory{font-size:16.5px;line-height:1.75}
+.sdstory p:first-of-type::first-letter{float:left;font-size:44px;line-height:.9;padding:5px 8px 0 0;font-weight:800;color:var(--acc)}
+.sdquote{border-left:4px solid var(--acc);background:var(--acc-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0;color:var(--fg)}
+.sdquote p:last-child{margin-bottom:0}
+.sdone{background:var(--ink);color:var(--ink-fg);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:17px;line-height:1.5}
+.sdone b{color:inherit;border-bottom:2px solid var(--acc-line)}
+.sdsteps{list-style:none;margin:8px 0;padding:0;counter-reset:s;display:grid;gap:14px}
+.sdsteps>li{counter-increment:s;border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:14px 16px 6px 56px;position:relative;box-shadow:var(--sh)}
+.sdsteps>li::before{content:counter(s);position:absolute;left:14px;top:13px;width:30px;height:30px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font-weight:700}
+.sdsteps h3{margin:0 0 3px;font-size:17px;color:var(--fg)}.sdsteps p{margin:0 0 8px}
+.sdsteps .sdfig{margin:6px 0 8px}
+.sdgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:8px 0}
+.sdcard{border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:13px 15px;box-shadow:var(--sh)}
+.sdcard h3{margin:0 0 4px;font-size:15.5px;color:var(--fg);display:flex;gap:8px;align-items:center}.sdcard p{margin:0;font-size:14.5px}
+.sdcard.bad{border-color:var(--bad-line);background:var(--bad-soft)}.sdcard.ok{border-color:var(--done-line);background:var(--done-soft)}
+.sdreal{display:grid;gap:10px;margin:8px 0}
+.sdreal>div{border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:12px 15px;display:grid;grid-template-columns:110px 1fr;gap:14px}
+.sdreal b.co{color:var(--acc);font-size:14px}.sdreal p{margin:0 0 4px;font-size:14.5px}.sdreal a{font-size:13px}
+.sdnote{font-size:13px;color:var(--faint);margin:6px 0 0}
+.sdq{border:1px solid var(--line);background:var(--surf);border-radius:12px;margin:14px 0;box-shadow:var(--sh);overflow:hidden}
+.sdq>header{padding:14px 18px;background:var(--hd);border-bottom:1px solid var(--line)}
+.sdq>header .who{font-size:12px;color:var(--faint);text-transform:uppercase;letter-spacing:.7px;font-weight:600}
+.sdq>header h3{margin:2px 0 4px;font-size:18px;color:var(--fg)}.sdq>header p{margin:0;font-size:14.5px;color:var(--mut)}
+.sdq .body{padding:6px 18px 16px}
+.sdq h4{margin:16px 0 6px;font-size:12.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--faint)}
+.sdq ol.think{margin:0;padding-left:20px}.sdq ol.think li{margin:0 0 6px}.sdq ol.think li span{display:block;color:var(--mut);font-size:14.5px}
+.sdq .say{border-left:4px solid var(--done);background:var(--done-soft);padding:10px 15px;border-radius:0 8px 8px 0;font-size:15px}.sdq .say p{margin:0 0 8px}.sdq .say p:last-child{margin:0}
+.sdq .say .lbl2{display:block;font-size:11.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--done);font-weight:700;margin-bottom:4px}
+.sdq details{border:1px solid var(--line);border-radius:8px;margin:6px 0;background:var(--bg)}.sdq summary{cursor:pointer;padding:8px 12px;font-weight:600;color:var(--fg);font-size:14.5px}.sdq details p{margin:0;padding:0 12px 10px;font-size:14.5px}
+.sdq .slips{margin:0;padding-left:20px;color:var(--mut);font-size:14.5px}
+.sdrecap{border:1px solid var(--done-line);background:var(--done-soft);border-radius:12px;padding:6px 18px 12px}
+.sdrecap ul{margin:6px 0 10px;padding-left:20px}.sdrecap li{margin:0 0 5px}
+.sddeeper{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.sddeeper a{border:1px solid var(--line);border-radius:8px;padding:7px 12px;background:var(--surf);text-decoration:none;font-size:13.5px}
+.sdfoot{display:flex;justify-content:space-between;gap:12px;margin:40px 0 0}
+.sdfoot a{flex:1;border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:12px 16px;text-decoration:none;color:var(--fg);box-shadow:var(--sh)}
+.sdfoot a small{display:block;color:var(--faint);font-size:12px}.sdfoot a.r{text-align:right}
+.sdx{border:1px solid var(--line);background:var(--surf);border-radius:12px;padding:14px 18px 8px;margin:14px 0;box-shadow:var(--sh)}.sdx h3{margin:0 0 4px;font-size:17px;color:var(--fg);display:flex;gap:10px;align-items:center}.sdx .xn{width:26px;height:26px;border-radius:7px;background:var(--done);color:#fff;display:inline-grid;place-items:center;font-size:13px}.sdx .what{margin:0 0 8px;color:var(--txt)}.sdx pre.out{margin:6px 0 10px;max-height:340px;overflow:auto}.sdmore{margin:8px 0 6px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}.sdmore summary{cursor:pointer;padding:8px 12px;font-weight:600;font-size:14px;color:var(--acc)}.sdmore pre.sh{margin:0 12px 10px;max-height:380px;overflow:auto}.sdmore p{margin:0 12px 10px;font-size:14.5px}
+.sdtable{width:100%;border-collapse:collapse;font-size:14.5px;margin:8px 0}.sdtable th,.sdtable td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}.sdtable th{background:var(--soft);color:var(--fg)}
+.sdland .path{position:relative;margin:18px 0 8px;padding-left:44px}
+.sdland .path::before{content:"";position:absolute;left:-30px;top:12px;bottom:12px;width:3px;background:linear-gradient(var(--acc),var(--done));border-radius:2px}
+.sdland .node{position:relative;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:11px 15px;margin:0 0 10px;text-decoration:none;color:inherit;box-shadow:var(--sh)}
+.sdland .node::before{content:attr(data-n);position:absolute;left:-44px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;background:var(--surf);border:3px solid var(--acc);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--fg)}
+.sdland .node b{display:block;color:var(--fg);font-size:16px}.sdland .node span{color:var(--mut);font-size:13.5px}
+.sdland .node.soon{opacity:.6;background:var(--soft)}.sdland .node.soon::before{border-color:var(--line)}
+.sdland .node:not(.soon):hover{border-color:var(--acc);transform:translateX(2px)}
+.sdland .pill{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--done-soft);color:var(--done);border:1px solid var(--done-line);white-space:nowrap}
+.sdland .pill.soon{background:var(--soft);color:var(--faint);border-color:var(--line)}
+.sdland .tick-ok{color:var(--done);font-weight:700}
+.sdland h2{margin:34px 0 4px;font-size:24px;color:var(--fg)}
+.sdland .grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.sdland .pcard{border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:13px 15px;text-decoration:none;color:inherit;display:block;box-shadow:var(--sh)}
+.sdland .pcard b{display:block;color:var(--fg);font-size:15.5px;margin-bottom:2px}.sdland .pcard span{color:var(--mut);font-size:13.5px}.sdland .pcard .row{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.sdland .pcard.soon{opacity:.6;background:var(--soft)}.sdland .pcard:not(.soon):hover{border-color:var(--acc)}
+@media(max-width:1020px){.sdw{grid-template-columns:1fr;gap:0;padding:14px 14px 50px}.sdnav{position:static;display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:6px;-webkit-overflow-scrolling:touch}.sdnav h4,.sdnav .done{display:none}.sdnav a{flex:none;border:1px solid var(--line);border-radius:999px;padding:5px 11px;border-left-width:1px;white-space:nowrap}.sdnav a b{display:none}.sdreal>div{grid-template-columns:1fr;gap:4px}.sdsteps>li{padding-left:52px}}
+@media(max-width:560px){.sdsec>h2{font-size:20px}.sdsec>h2 small{display:none}.sdfoot{flex-direction:column}}
+</style></head>
+<body class="has-rail" data-sd="04-databases">
+<a class="skip" href="#content">Skip to content</a>
+<nav class="rail" id="rail" aria-label="Sections"><a class="rail-i rail-logo" href="../index.html" title="Mastery home"><span class="logo" aria-hidden="true">M</span><span class="l"><b>Mastery</b></span></a><div class="rail-g">Courses</div><a class="rail-i" href="../index.html" title="Home"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 7.5 8 2.5l5.5 5M4 6.5v7h8v-7"/></svg><span class="l">Home</span></a><a class="rail-i" href="../dsa.html" title="DSA Mastery"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m5.5 4.5-3.5 3.5 3.5 3.5M10.5 4.5l3.5 3.5-3.5 3.5"/></svg><span class="l">DSA Mastery</span></a><a class="rail-i" href="../design/index.html" aria-current="page" title="System design"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m8 2 6.5 3.5L8 9 1.5 5.5z"/><path d="m1.5 8.5 6.5 3.5 6.5-3.5"/></svg><span class="l">System design</span></a><a class="rail-i" href="../systems.html" title="Systems Mastery"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3" width="11" height="4" rx="1"/><rect x="2.5" y="9" width="11" height="4" rx="1"/><path d="M5 5h.01M5 11h.01"/></svg><span class="l">Systems Mastery</span></a><div class="rail-g">Tools</div><a class="rail-i" href="../revise.html" title="Quick revision"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg><span class="l">Quick revision</span></a><a class="rail-i" href="../plan.html" title="DSA study planner"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="10" rx="1.5"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/></svg><span class="l">DSA study planner</span></a><a class="rail-i" href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener" title="GitHub"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M9 2.5h4.5V7M13.5 2.5 7 9M12 9v4.5H2.5V4H7"/></svg><span class="l">GitHub</span></a><button class="rail-i rail-pin" id="rail-pin" type="button" aria-pressed="false" title="Keep the menu open"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg><span class="l">Pin menu</span></button></nav><div class="rail-bd" id="rail-bd" hidden></div>
+<header class="bar"><div class="bar-in"><button id="b-rail" class="iconbtn rail-btn" aria-label="Open the sections menu" aria-expanded="false" aria-controls="rail"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"/></svg></button><a class="brand" href="index.html" aria-label="System design home"><span class="logo" aria-hidden="true">SD</span><b>System <span>Design</span></b></a>
+<nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Course map</a><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3.5 4.5 4.5L6 12.5"/></svg><span class="cur">Chapter 4 · Where the data lives</span></nav>
+<span style="margin-left:auto"></span><button id="b-theme" class="iconbtn" title="Toggle light / dark" aria-label="Toggle light or dark theme"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5a5.5 5.5 0 0 0 0 11z" fill="currentColor"/></svg></button></div></header>
+<div class="sdw"><nav class="sdnav" aria-label="On this page"><h4>On this page</h4><a href="#story"><b>1</b>The story</a><a href="#idea"><b>2</b>The idea</a><a href="#how"><b>3</b>How it works</a><a href="#try"><b>4</b>See it for real</a><a href="#breaks"><b>5</b>How it breaks</a><a href="#real"><b>6</b>Real companies</a><a href="#interview"><b>7</b>In the interview</a><a href="#recap"><b>8</b>Remember</a><label class="done"><input type="checkbox" id="sd-done"> I finished this page</label></nav>
+<main id="content" class="sdmain"><header class="sdhero"><div class="eyebrow"><span class="tag">Chapter 4 of 9</span>The ShopKart story</div><h1>Where the data lives</h1><p class="lead">Three bad days, one lesson: a database is not a box of files. Indexes make finding fast, transactions make sharing safe, and the log makes saving permanent.</p><div class="sdmeta"><span>about 20 minutes</span><span>4 steps</span><span>4 real experiments</span><span>3 interview questions</span></div></header>
+<section class="sdsec" id="story"><h2><span class="n">1</span>Three bad days in one week<small>The story</small></h2><div class="sdstory"><p>ShopKart has a balancer, four servers and a cache. The pages are fast again, then the data starts to bite. On Monday a customer complains that "my orders" takes <strong>8 seconds</strong>. The query asks for one customer's orders, but the database reads every order the shop has ever taken, a few million rows, and throws almost all of them away.</p><p>On Tuesday the last pair of limited-edition trainers sells <strong>twice</strong>. Two customers pressed Buy within the same second. Each request read "stock: 1", each decided it was fine, and each wrote "stock: 0". Both customers got a confirmation email, and one of them will be disappointed.</p><p>On Friday there is a power cut and the server restarts. Three orders that customers had <strong>already paid for</strong> are missing: the early version confirmed an order before it was safely on disk. These are three different bugs with one root cause. The next sections show the three tools that fix them.</p></div><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 720 276" role="img" aria-label="ShopKart&#x27;s three bad days with data"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="sd-panel warn" x="0" y="0" width="230.667" height="276" rx="10"/><text class="sd-pt warn" x="14" y="26" text-anchor="start">Monday: slow page</text><circle class="sd-pp warn" cx="59.33333333333333" cy="101.5" r="7.7"/><path class="sd-pp warn" d="M46.1333,134.5 v-8.8 a13.2,13.2 0 0 1 26.4,0 v8.8 z"/><line class="sd-a warn" x1="79.33333333333333" y1="118" x2="121.33333333333333" y2="118" marker-end="url(#dga)"/><path class="sd-sh warn" d="M139.33333333333331,102.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh warn sd-top" cx="161.33333333333331" cy="102.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M139.33333333333331,120 a22.0,9 0 0 0 44,0"/><rect class="sd-badge warn" x="35.3333" y="161" width="160" height="22" rx="11"/><text class="sd-bt warn" x="115.33333333333333" y="176" text-anchor="middle">My orders: 8 seconds</text><text class="sd-pc" x="115.333" y="224" text-anchor="middle">The &quot;my orders&quot; page reads</text><text class="sd-pc" x="115.333" y="239" text-anchor="middle">every order ShopKart has ever</text><text class="sd-pc" x="115.333" y="254" text-anchor="middle">taken, to find one customer&#x27;s</text><text class="sd-pc" x="115.333" y="269" text-anchor="middle">few.</text><rect class="sd-panel bad" x="244.667" y="0" width="230.667" height="276" rx="10"/><text class="sd-pt bad" x="258.667" y="26" text-anchor="start">Tuesday: two buyers</text><circle class="sd-pp bad" cx="304.0" cy="73" r="7"/><path class="sd-pp bad" d="M292,103 v-8 a12,12 0 0 1 24,0 v8 z"/><circle class="sd-pp bad" cx="304.0" cy="129" r="7"/><path class="sd-pp bad" d="M292,159 v-8 a12,12 0 0 1 24,0 v8 z"/><line class="sd-a bad" x1="324.0" y1="88" x2="370.0" y2="114" marker-end="url(#dga)"/><line class="sd-a bad" x1="324.0" y1="144" x2="370.0" y2="128" marker-end="url(#dga)"/><path class="sd-sh bad" d="M384.0,104.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh bad sd-top" cx="406.0" cy="104.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M384.0,122 a22.0,9 0 0 0 44,0"/><rect class="sd-badge bad" x="347.6" y="161" width="116.8" height="22" rx="11"/><text class="sd-bt bad" x="406.0" y="176" text-anchor="middle">1 left, 2 sold</text><text class="sd-pc" x="360" y="224" text-anchor="middle">The last pair of trainers: two</text><text class="sd-pc" x="360" y="239" text-anchor="middle">customers press Buy in the same</text><text class="sd-pc" x="360" y="254" text-anchor="middle">second. Both are told yes.</text><rect class="sd-panel bad" x="489.333" y="0" width="230.667" height="276" rx="10"/><text class="sd-pt bad" x="503.333" y="26" text-anchor="start">Friday: lost orders</text><rect class="sd-sh bad" x="528.6666666666666" y="96" width="56" height="48" rx="7"/><rect class="sd-ln" x="538.6666666666666" y="108" width="28" height="4" rx="2"/><rect class="sd-ln" x="538.6666666666666" y="118" width="28" height="4" rx="2"/><circle class="sd-led bad" cx="573.6666666666666" cy="110" r="3"/><circle class="sd-led bad" cx="573.6666666666666" cy="120" r="3"/><rect class="sd-ln" x="538.6666666666666" y="128" width="36" height="4" rx="2"/><path class="sd-sh bad" d="M644.6666666666666,100 L665.6666666666666,136 L623.6666666666666,136 z"/><rect class="sd-ex" x="643.0666666666666" y="112" width="3.2" height="12" rx="1.4"/><circle class="sd-ex" cx="644.6666666666666" cy="129" r="2"/><rect class="sd-badge bad" x="531.867" y="161" width="145.6" height="22" rx="11"/><text class="sd-bt bad" x="604.6666666666666" y="176" text-anchor="middle">3 paid orders gone</text><text class="sd-pc" x="604.667" y="224" text-anchor="middle">A power cut restarts the</text><text class="sd-pc" x="604.667" y="239" text-anchor="middle">server. Three orders that</text><text class="sd-pc" x="604.667" y="254" text-anchor="middle">customers had paid for are not</text><text class="sd-pc" x="604.667" y="269" text-anchor="middle">there.</text></svg><figcaption>Three different failures, one cause: the shop treated its data like a pile of files.</figcaption></figure></section>
+<section class="sdsec" id="idea"><h2><span class="n">2</span>The idea: a database makes three promises<small>The idea</small></h2><div class="sdone">A <strong>relational database</strong> stores data in tables and promises three things: it finds rows fast (<strong>indexes</strong>), it keeps many users from corrupting each other's work (<strong>transactions</strong>), and it never loses what it said it saved (the <strong>write-ahead log</strong>).</div><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 720 270" role="img" aria-label="The three things a database gives you"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><circle class="sd-pp" cx="50" cy="102.75" r="8.05"/><path class="sd-pp" d="M36.2,137.25 v-9.2 a13.8,13.8 0 0 1 27.6,0 v9.2 z"/><text class="sd-n " x="50" y="160" text-anchor="middle">Shop</text><line class="sd-a acc" x1="80" y1="120" x2="168" y2="120" marker-end="url(#dga)"/><text class="sd-c" x="124.0" y="113.0" text-anchor="middle">SQL</text><path class="sd-sh" d="M188.0,104.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh sd-top" cx="210" cy="104.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M188.0,122 a22.0,9 0 0 0 44,0"/><text class="sd-l" x="210" y="162" text-anchor="middle">Database</text><line class="sd-a ok" x1="240" y1="100" x2="346" y2="52" marker-end="url(#dga)"/><line class="sd-a ok" x1="240" y1="120" x2="322" y2="120" marker-end="url(#dga)"/><line class="sd-a ok" x1="240" y1="140" x2="306" y2="206" marker-end="url(#dga)"/><rect class="sd-badge ok" x="354" y="39" width="52" height="22" rx="11"/><text class="sd-bt ok" x="380" y="54" text-anchor="middle">Index</text><text class="sd-n " x="414" y="54" text-anchor="start">find rows without reading the whole table</text><rect class="sd-badge ok" x="332.4" y="109" width="95.2" height="22" rx="11"/><text class="sd-bt ok" x="380" y="124" text-anchor="middle">Transaction</text><text class="sd-n " x="440" y="124" text-anchor="start">all or nothing, one buyer at a time</text><rect class="sd-badge ok" x="318" y="197" width="124" height="22" rx="11"/><text class="sd-bt ok" x="380" y="212" text-anchor="middle">Write-ahead log</text><text class="sd-n " x="450" y="212" text-anchor="start">writes survive a crash</text><text class="sd-n " x="360" y="254" text-anchor="middle">A database is a promise: fast to find, safe to share, safe to keep.</text></svg></figure><p>Together the last two are part of the famous <strong>ACID</strong> guarantees: a transaction is all or nothing (atomic), leaves the data valid (consistent), does not trip over other users (isolated) and survives a crash (durable). PostgreSQL does all of this, and the experiments below use real PostgreSQL.</p></section>
+<section class="sdsec" id="how"><h2><span class="n">3</span>How it works, step by step<small>How it works</small></h2><ol class="sdsteps"><li><h3>Keep data in tables and ask with SQL</h3><p>A relational database stores data as <strong>tables</strong> of rows (orders, customers, stock). You ask questions in <strong>SQL</strong>, and the database decides how to find the answer. It also protects the data with rules, so a bad row is rejected instead of saved.</p><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 640 98" role="img" aria-label="Tables inside a database"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><path class="sd-sh ok" d="M48.0,24.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh ok sd-top" cx="70" cy="24.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M48.0,42 a22.0,9 0 0 0 44,0"/><text class="sd-l" x="70" y="82" text-anchor="middle">database</text><rect class="sd-badge acc" x="160.4" y="29" width="59.2" height="22" rx="11"/><text class="sd-bt acc" x="190" y="44" text-anchor="middle">orders</text><rect class="sd-badge acc" x="239.6" y="29" width="80.8" height="22" rx="11"/><text class="sd-bt acc" x="280" y="44" text-anchor="middle">customers</text><rect class="sd-badge acc" x="344" y="29" width="52" height="22" rx="11"/><text class="sd-bt acc" x="370" y="44" text-anchor="middle">stock</text><line class="sd-a acc" x1="412" y1="40" x2="480" y2="40" marker-end="url(#dga)"/><text class="sd-n acc" x="560" y="44" text-anchor="middle">ask with SQL</text></svg></figure></li><li><h3>Add an index so it does not read everything</h3><p>Without an index, finding one customer's orders means reading <strong>every row</strong>. An <strong>index</strong> is a sorted list of customer ids that points to the rows, like the index of a book. The database jumps straight there.</p><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 640 128" role="img" aria-label="A query with and without an index"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><path class="sd-sh bad" d="M38.0,22.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh bad sd-top" cx="60" cy="22.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M38.0,40 a22.0,9 0 0 0 44,0"/><line class="sd-a bad" x1="90" y1="38" x2="190" y2="38" marker-end="url(#dga)"/><text class="sd-c" x="140.0" y="31.0" text-anchor="middle">no index</text><rect class="sd-badge bad" x="218" y="27" width="124" height="22" rx="11"/><text class="sd-bt bad" x="280" y="42" text-anchor="middle">reads every row</text><path class="sd-sh ok" d="M38.0,74.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh ok sd-top" cx="60" cy="74.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M38.0,92 a22.0,9 0 0 0 44,0"/><line class="sd-a ok" x1="90" y1="90" x2="190" y2="90" marker-end="url(#dga)"/><text class="sd-c" x="140.0" y="83.0" text-anchor="middle">index</text><rect class="sd-badge ok" x="221.6" y="79" width="116.8" height="22" rx="11"/><text class="sd-bt ok" x="280" y="94" text-anchor="middle">reads 25 pages</text><text class="sd-n ok" x="500" y="66" text-anchor="middle">same answer, far less work</text></svg></figure></li><li><h3>Let the database referee two buyers</h3><p>Two buyers each read "1 left", then each write "0 left": both are told yes. This is a <strong>lost update</strong>. Fix it by letting the database do the subtraction in one statement, or by <strong>locking</strong> the row so the second buyer waits for the first.</p><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 640 112" role="img" aria-label="Two buyers and a row lock"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><circle class="sd-pp" cx="50" cy="15.25" r="5.95"/><path class="sd-pp" d="M39.8,40.75 v-6.8 a10.2,10.2 0 0 1 20.4,0 v6.8 z"/><circle class="sd-pp" cx="50" cy="63.25" r="5.95"/><path class="sd-pp" d="M39.8,88.75 v-6.8 a10.2,10.2 0 0 1 20.4,0 v6.8 z"/><line class="sd-a bad" x1="76" y1="28" x2="190" y2="46" marker-end="url(#dga)"/><line class="sd-a bad" x1="76" y1="76" x2="190" y2="58" marker-end="url(#dga)"/><path class="sd-sh ok" d="M208.0,36.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh ok sd-top" cx="230" cy="36.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M208.0,54 a22.0,9 0 0 0 44,0"/><rect class="sd-badge ok" x="328.8" y="17" width="102.4" height="22" rx="11"/><text class="sd-bt ok" x="380" y="32" text-anchor="middle">lock the row</text><rect class="sd-badge ok" x="318" y="65" width="124" height="22" rx="11"/><text class="sd-bt ok" x="380" y="80" text-anchor="middle">the other waits</text><text class="sd-n ok" x="530" y="54" text-anchor="middle">one sale, one refusal</text></svg></figure></li><li><h3>Write to a log before you say yes</h3><p>Before changing the table, the database appends the change to the <strong>write-ahead log</strong> on disk. Only then does it say "committed". If the server dies, it replays the log on restart, so every committed order is still there.</p><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 640 112" role="img" aria-label="The write-ahead log"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="sd-sh ok" x="22" y="20" width="56" height="48" rx="7"/><rect class="sd-ln" x="32" y="32" width="28" height="4" rx="2"/><rect class="sd-ln" x="32" y="42" width="28" height="4" rx="2"/><circle class="sd-led ok" cx="67" cy="34" r="3"/><circle class="sd-led ok" cx="67" cy="44" r="3"/><rect class="sd-ln" x="32" y="52" width="36" height="4" rx="2"/><line class="sd-a acc" x1="80" y1="44" x2="160" y2="44" marker-end="url(#dga)"/><text class="sd-c" x="120.0" y="37.0" text-anchor="middle">1. log it</text><path class="sd-sh warn" d="M174.0,28.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh warn sd-top" cx="196" cy="28.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M174.0,46 a22.0,9 0 0 0 44,0"/><text class="sd-l" x="196" y="86" text-anchor="middle">log</text><line class="sd-a ok" x1="224" y1="44" x2="304" y2="44" marker-end="url(#dga)"/><text class="sd-c" x="264.0" y="37.0" text-anchor="middle">2. say yes</text><rect class="sd-badge ok" x="339.6" y="33" width="80.8" height="22" rx="11"/><text class="sd-bt ok" x="380" y="48" text-anchor="middle">committed</text><line class="sd-a warn dash" x1="432" y1="44" x2="500" y2="44" marker-end="url(#dga)"/><text class="sd-c" x="466.0" y="37.0" text-anchor="middle">3. later</text><path class="sd-sh" d="M518.0,28.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh sd-top" cx="540" cy="28.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M518.0,46 a22.0,9 0 0 0 44,0"/><text class="sd-l" x="540" y="86" text-anchor="middle">table</text></svg></figure></li></ol></section>
+<section class="sdsec" id="try"><h2><span class="n">4</span>See it for real<small>Real experiments</small></h2><p class="sub">Every output below was recorded from a real run on Debian Linux as an ordinary user. Read it line by line.</p><div class="sdexp"><p>Four experiments on a real PostgreSQL database. First: the query plan before and after an index. Then: a lost update reproduced and fixed. Then: killing the server on purpose to see the log bring the data back. Last: why updates make a table grow.</p><article class="sdx"><h3><span class="xn">1</span>The same query before and after an index</h3><p class="what">The same query, before and after. Without an index PostgreSQL reads <strong>all</strong> 500,000 rows and throws away almost all of them (<code>Rows Removed by Filter</code>). After <code>create index</code>, it uses the index to jump straight to the few matching rows. Nothing about the query changed; only the available access path.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>--- plan for one customer, no index on customer_id:
+Gather (actual rows=25 loops=1)
+  Workers Planned: 2
+  Workers Launched: 2
+  -&gt;  Parallel Seq Scan on orders (actual rows=8 loops=3)
+        Filter: (customer_id = 4242)
+        Rows Removed by Filter: 166658
+--- the same query after creating the index:
+Bitmap Heap Scan on orders (actual rows=25 loops=1)
+  Recheck Cond: (customer_id = 4242)
+  Heap Blocks: exact=25
+  -&gt;  Bitmap Index Scan on orders_customer_idx (actual rows=25 loops=1)
+        Index Cond: (customer_id = 4242)</code></pre><div class="annot"><span class="lbl">Read it line by line</span><div class="tw"><table><thead><tr><th>In the output</th><th>What it means</th></tr></thead><tbody><tr><td><code>Parallel Seq Scan on orders (inside a Gather)</code></td><td>reads the whole table, here split over three processes (two workers and the leader)</td></tr><tr><td><code>Rows Removed by Filter: 166658 (per process)</code></td><td>each process read about a third of the table and discarded nearly everything: the work was wasted</td></tr><tr><td><code>Bitmap Index Scan on orders_customer_idx / Bitmap Heap Scan</code></td><td>after the index: look up matching row locations in the index, then fetch just those table pages</td></tr><tr><td><code>actual rows=25 / Heap Blocks: exact=25</code></td><td>this customer has 25 orders in 25 table pages: that is all that has to be read now</td></tr></tbody></table></div></div><details class="sdmore"><summary>Show the command and the full explanation</summary><pre class="sh"><code>. ~/pg/rig.sh; pgup
+echo &quot;--- plan for one customer, no index on customer_id:&quot;
+q -At -c &quot;explain (analyze, costs off, timing off, summary off) select * from orders where customer_id = 4242&quot;
+q -c &quot;create index orders_customer_idx on orders(customer_id)&quot;
+echo &quot;--- the same query after creating the index:&quot;
+q -At -c &quot;explain (analyze, costs off, timing off, summary off) select * from orders where customer_id = 4242&quot;
+pgdown</code></pre><p class="muted">The same code runs on any Debian or Ubuntu machine as an ordinary user; nothing needs root.</p></details></article><article class="sdx"><h3><span class="xn">2</span>A lost update, and two ways to fix it</h3><p class="what">The classic bug, reproduced. Two clients each read 100, wait (as real code does while it computes), then write. The result is <strong>70 or 50, not 20</strong>: one withdrawal vanished and nothing reported an error. Making the update a single atomic statement fixes it (20), and so does locking the row you read with <code>FOR UPDATE</code>: the second client waits for the first to finish, then reads the new value and gets 20.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>--- application-style read, think, write (two clients at once):
+balance is now: 50   (100 - 30 - 50 should be 20)
+--- the same two withdrawals as single atomic statements:
+balance is now: 20
+--- read-modify-write protected by a row lock:
+balance is now: 20</code></pre><div class="annot"><span class="lbl">Read it line by line</span><div class="tw"><table><thead><tr><th>In the output</th><th>What it means</th></tr></thead><tbody><tr><td><code>balance is now: 50  (100 - 30 - 50 should be 20)</code></td><td>the last writer overwrote the first: a lost update (you may see 70 instead depending on timing)</td></tr><tr><td><code>balance is now: 20 (atomic statements)</code></td><td>the database applied both decrements to the current value: correct</td></tr><tr><td><code>balance is now: 20 (row lock)</code></td><td>the second transaction waited on the lock, then saw the committed value: correct</td></tr></tbody></table></div></div><details class="sdmore"><summary>Show the command and the full explanation</summary><pre class="sh"><code>. ~/pg/rig.sh; pgup
+q -c &quot;create table acct(id int primary key, balance int); insert into acct values (1, 100)&quot;
+echo &quot;--- application-style read, think, write (two clients at once):&quot;
+( b=$(q -At -c &quot;select balance from acct where id=1&quot;); sleep 0.6; q -c &quot;update acct set balance=$((b-30)) where id=1&quot; ) &amp;
+( b=$(q -At -c &quot;select balance from acct where id=1&quot;); sleep 1.0; q -c &quot;update acct set balance=$((b-50)) where id=1&quot; ) &amp;
+wait
+echo &quot;balance is now: $(q -At -c &#x27;select balance from acct where id=1&#x27;)   (100 - 30 - 50 should be 20)&quot;
+echo &quot;--- the same two withdrawals as single atomic statements:&quot;
+q -c &quot;update acct set balance = 100 where id=1&quot;
+( q -c &quot;update acct set balance = balance - 30 where id=1&quot; ) &amp; ( q -c &quot;update acct set balance = balance - 50 where id=1&quot; ) &amp; wait
+echo &quot;balance is now: $(q -At -c &#x27;select balance from acct where id=1&#x27;)&quot;
+echo &quot;--- read-modify-write protected by a row lock:&quot;
+q -c &quot;update acct set balance = 100 where id=1&quot;
+w() { q -At -c &quot;begin; select balance from acct where id=1 for update;&quot; -c &quot;select pg_sleep($2)&quot; -c &quot;update acct set balance = balance - $1 where id=1; commit;&quot; &gt;/dev/null; }
+w 30 0.6 &amp; sleep 0.1; w 50 0.1 &amp; wait
+echo &quot;balance is now: $(q -At -c &#x27;select balance from acct where id=1&#x27;)&quot;
+pgdown</code></pre><p class="muted">The same code runs on any Debian or Ubuntu machine as an ordinary user; nothing needs root.</p></details></article><article class="sdx"><h3><span class="xn">3</span>Kill the server and see committed rows survive</h3><p class="what">Durability, tested by violence. After rows are committed the server process is killed with <code>kill -9</code>: no chance to shut down cleanly. On restart PostgreSQL finds the data files behind the log, <strong>replays the write-ahead log</strong>, and reports that it was not properly shut down and recovered automatically. All 6,000 committed rows are there. (We turned <code>fsync</code> off for speed, which is safe against a killed process because the operating system still holds the written data; it would not be safe against power loss, which is why production keeps <code>fsync</code> on.)</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>committed rows before the crash: 1000
+WAL position:  0/16DEC830
+WAL position after 5000 more rows: 0/16E3AE00  (the log grew)
+--- kill -9 the server (no clean shutdown):
+pg_ctl: another server might be running; trying to start server anyway
+--- server log from the restart:
+2026-10-31 14:13:16.870 UTC [84070] LOG:  database system is ready to accept connections
+2026-10-31 14:13:18.019 UTC [84097] LOG:  database system was not properly shut down; automatic recovery in pr
+2026-10-31 14:13:18.022 UTC [84097] LOG:  redo done at 0/16E3ADD8 system usage: CPU: user: 0.00 s, system: 0.0
+2026-10-31 14:13:18.025 UTC [84094] LOG:  database system is ready to accept connections
+rows after the restart: 6000</code></pre><div class="annot"><span class="lbl">Read it line by line</span><div class="tw"><table><thead><tr><th>In the output</th><th>What it means</th></tr></thead><tbody><tr><td><code>pg_ctl: another server might be running; trying to start server anyway</code></td><td>pg_ctl saw the stale pid file left by the killed server and started anyway: expected after kill -9</td></tr><tr><td><code>committed rows before the crash: 1000</code></td><td>the starting data</td></tr><tr><td><code>WAL position grows after the insert</code></td><td>each change was appended to the log</td></tr><tr><td><code>database system was not properly shut down; automatic recovery in progress</code></td><td>PostgreSQL noticed the unclean stop and replayed its log</td></tr><tr><td><code>rows after the restart: 6000</code></td><td>every committed row survived the crash</td></tr></tbody></table></div></div><details class="sdmore"><summary>Show the command and the full explanation</summary><pre class="sh"><code>. ~/pg/rig.sh; pgup
+q -c &quot;create table survive(n int); insert into survive select generate_series(1, 1000)&quot;
+echo &quot;committed rows before the crash: $(q -At -c &#x27;select count(*) from survive&#x27;)&quot;
+echo &quot;WAL position:  $(q -At -c &#x27;select pg_current_wal_lsn()&#x27;)&quot;
+q -c &quot;insert into survive select generate_series(1, 5000)&quot;
+echo &quot;WAL position after 5000 more rows: $(q -At -c &#x27;select pg_current_wal_lsn()&#x27;)  (the log grew)&quot;
+echo &quot;--- kill -9 the server (no clean shutdown):&quot;
+kill -9 $(head -1 $P/data/postmaster.pid); sleep 1
+pgup
+echo &quot;--- server log from the restart:&quot;
+grep -E &quot;not properly shut down|automatic recovery|redo done|ready to accept&quot; $P/log | tail -4 | cut -c1-110
+echo &quot;rows after the restart: $(q -At -c &#x27;select count(*) from survive&#x27;)&quot;
+pgdown</code></pre><p class="muted">The same code runs on any Debian or Ubuntu machine as an ordinary user; nothing needs root.</p></details></article><article class="sdx"><h3><span class="xn">4</span>Why a table grows when you update it</h3><p class="what">Bloat, measured. Every full-table update writes a new version of every row, so the table roughly doubles after the first update and grows again after the second. After a plain <code>VACUUM</code> the dead space becomes reusable, so a third update does <strong>not</strong> grow the file. <code>VACUUM FULL</code> rewrites the table to its minimal size but needs an exclusive lock, so it is a maintenance-window tool. The practical lesson: keep autovacuum healthy and avoid long transactions that stop it from cleaning.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>size after loading:        14 MB
+size after updating every row once:  27 MB   (old versions kept)
+size after a second update: 40 MB
+size after VACUUM and a third update: 40 MB   (dead space reused)
+size after VACUUM FULL:      13 MB   (table rewritten compactly; takes an exclusive lock)</code></pre><div class="annot"><span class="lbl">Read it line by line</span><div class="tw"><table><thead><tr><th>In the output</th><th>What it means</th></tr></thead><tbody><tr><td><code>size after loading: 14 MB</code></td><td>the starting size for 100,000 rows</td></tr><tr><td><code>after updating every row once: 27 MB</code></td><td>the old versions are still there next to the new ones</td></tr><tr><td><code>after a second update: 40 MB</code></td><td>bloat keeps growing without vacuum</td></tr><tr><td><code>after VACUUM and a third update: 40 MB (no growth)</code></td><td>dead space was reused: vacuum did its job without shrinking the file</td></tr><tr><td><code>after VACUUM FULL: 13 MB</code></td><td>rewritten compactly; the lock made it a maintenance operation</td></tr></tbody></table></div></div><details class="sdmore"><summary>Show the command and the full explanation</summary><pre class="sh"><code>. ~/pg/rig.sh; pgup
+q -c &quot;create table bloat(id int primary key, pad text); insert into bloat select g, repeat(&#x27;x&#x27;, 100) from generate_series(1, 100000) g&quot;
+size() { q -At -c &quot;select pg_size_pretty(pg_table_size(&#x27;bloat&#x27;))&quot;; }
+echo &quot;size after loading:        $(size)&quot;
+q -c &quot;update bloat set pad = repeat(&#x27;y&#x27;, 100)&quot;
+echo &quot;size after updating every row once:  $(size)   (old versions kept)&quot;
+q -c &quot;update bloat set pad = repeat(&#x27;z&#x27;, 100)&quot;
+echo &quot;size after a second update: $(size)&quot;
+q -c &quot;vacuum bloat&quot;
+q -c &quot;update bloat set pad = repeat(&#x27;w&#x27;, 100)&quot;
+echo &quot;size after VACUUM and a third update: $(size)   (dead space reused)&quot;
+q -c &quot;vacuum full bloat&quot;
+echo &quot;size after VACUUM FULL:      $(size)   (table rewritten compactly; takes an exclusive lock)&quot;
+pgdown</code></pre><p class="muted">The same code runs on any Debian or Ubuntu machine as an ordinary user; nothing needs root.</p></details></article></div></section>
+<section class="sdsec" id="breaks"><h2><span class="n">5</span>How it breaks in production<small>Failure modes</small></h2><div class="sdgrid"><div class="sdcard bad"><h3><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg> A missing index</h3><p>A page that should take milliseconds takes seconds, and gets worse as the table grows. Fix: read the query plan, look for a full table scan, and add an index on the column you filter by.</p></div><div class="sdcard "><h3><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg> Too many indexes</h3><p>Every index is extra work on every write and extra disk space. In the practice database an index on one integer column took about an eighth of the table's size. Add indexes for the queries you really run.</p></div><div class="sdcard bad"><h3><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg> Read, think, then write</h3><p>Reading a value in your code, changing it, and writing it back lets two users overwrite each other. Fix: one atomic statement, a row lock, or a unique constraint that makes the second attempt fail.</p></div><div class="sdcard "><h3><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg> Deadlocks</h3><p>Two transactions each hold a lock the other needs, and both wait forever. The database notices and cancels one. Fix: lock rows in the same order everywhere, and keep transactions short.</p></div><div class="sdcard "><h3><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg> Bloat from old versions</h3><p>An update writes a new version of the row and keeps the old one for readers who still need it. In the experiment, 100,000 rows grew from 14 MB to 27 MB to 40 MB with no cleanup. Let vacuum run, and watch dead rows.</p></div><div class="sdcard bad"><h3><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg> Too many connections</h3><p>Each connection to the database costs memory, and four servers each opening many connections add up quickly. Fix: use a connection pool so a few connections are shared by many requests.</p></div></div></section>
+<section class="sdsec" id="real"><h2><span class="n">6</span>How real companies do it<small>Real companies</small></h2><div class="sdreal"><div><b class="co">PostgreSQL</b><div><p>The official documentation explains write-ahead logging: changes to data files are written only after the log record describing them has been flushed to permanent storage, which is what lets the database recover after a crash.</p><a href="https://www.postgresql.org/docs/current/wal-intro.html" target="_blank" rel="noopener">PostgreSQL documentation: Write-Ahead Logging (WAL)</a></div></div><div><b class="co">PostgreSQL</b><div><p>The documentation on MVCC explains how PostgreSQL keeps several versions of a row so that readers do not block writers, which is why old versions pile up until vacuum removes them.</p><a href="https://www.postgresql.org/docs/current/mvcc-intro.html" target="_blank" rel="noopener">PostgreSQL documentation: Concurrency Control, Introduction</a></div></div><div><b class="co">Everyone</b><div><p>Markus Winand's free guide "Use The Index, Luke" teaches how database indexes work and how to design them for real queries, across several database systems.</p><a href="https://use-the-index-luke.com/" target="_blank" rel="noopener">Use The Index, Luke</a></div></div></div><p class="sdnote">Summaries of public engineering write-ups; check the linked source for details.</p></section>
+<section class="sdsec" id="interview"><h2><span class="n">7</span>In the interview<small>Top-company questions</small></h2><p class="sub">Say your answer aloud first, then compare with the model answer. These are the shapes of question candidates report, not official lists.</p><article class="sdq"><header><span class="who">The most reported database question: reported by candidates, not official.</span><h3>&quot;This query is slow. How do you find out why, and what do you do?&quot;</h3><p>The most common database question in interviews and on call. They want a method, not a guess.</p></header><div class="body"><h4>1. Ask first</h4><ul><li><b>How slow, how often, and how big is the table?</b> <span class='muted'>A 2 s query run once a day is different from a 50 ms query run 5,000 times a second.</span></li><li><b>Is it slow always, or only sometimes?</b> <span class='muted'>Always slow suggests a missing index; sometimes slow suggests locks, a bad plan after a statistics change, or load.</span></li></ul><h4>2. How to think about it</h4><ol class='think'><li><b>Get the actual query and its plan.</b><span><code>EXPLAIN (ANALYZE, BUFFERS)</code> on the real query with real parameter values. Look for a Seq Scan on a big table, a large gap between estimated and actual rows, a Sort spilling to disk, or nested loops over many rows.</span></li><li><b>Diagnose from the plan.</b><span>Seq Scan with many rows removed means a missing or unusable index. Wrong estimates mean stale statistics (<code>ANALYZE</code>) or correlated columns. A Sort over a huge set means an index could deliver the order.</span></li><li><b>Choose the index to fit the query.</b><span>Equality columns first, then range or sort; consider a covering index (<code>include</code>) if the query reads few columns; check functions in the WHERE clause (<code>lower(email)</code>) need a matching expression index.</span></li><li><b>Weigh the cost.</b><span>Each index slows writes and uses memory. Measure on a copy with production-like data; create indexes without blocking writers (<code>create index concurrently</code>).</span></li><li><b>Verify and monitor.</b><span>Re-run EXPLAIN ANALYZE, compare latency percentiles before and after, and watch that write throughput did not suffer.</span></li></ol><h4>3. How to say it</h4><div class="say"><span class="lbl2">A model answer, about two minutes aloud</span><p>"First I get the real query with real parameters and run EXPLAIN ANALYZE. I look for a sequential scan on a large table, estimates far from actual rows, or a sort that spills. A Seq Scan with almost all rows removed means a missing or unusable index; bad estimates mean I should refresh statistics.</p><p>I design the index around the query: equality columns first, then the range or sort column, and I check things like a function applied to a column that would stop the index being used. I weigh the write cost and the space, build it concurrently so writers are not blocked, and then re-run the plan and compare latency percentiles before and after. If a single index is not enough I look at the query itself: select fewer columns, paginate with a keyset instead of a big offset, or cache the result."</p></div><h4>4. Likely follow-ups</h4><details><summary>Why might the planner ignore your index?</summary><p>The query uses a function or type cast on the column, the table is small, the condition matches most rows (a scan is cheaper), or statistics are stale.</p></details><details><summary>What is a covering index?</summary><p>An index that contains every column the query needs (<code>include (...)</code>), so PostgreSQL answers from the index alone without visiting the table.</p></details><details><summary>What are the downsides of OFFSET pagination?</summary><p>The database still reads and discards all skipped rows, so deep pages get slower; keyset pagination (<code>where id &gt; last_seen order by id limit n</code>) stays fast.</p></details><h4>Common slips</h4><ul class='slips'><li>Adding an index without looking at the plan.</li><li>Indexing every column "just in case".</li><li>Forgetting that a function on a column prevents the plain index from being used.</li></ul></div></article><article class="sdq"><header><span class="who">A staple of tickets, hotels and inventory design questions: reported by candidates, not official.</span><h3>&quot;Two users try to book the last seat at the same moment. How do you make sure only one succeeds?&quot;</h3><p>A staple of design interviews (tickets, rooms, inventory). They want you to name the race and give at least two concrete fixes with trade-offs.</p></header><div class="body"><h4>1. Ask first</h4><ul><li><b>One database or several? Is the inventory in a single row or many?</b> <span class='muted'>A single primary database makes row locks and constraints enough; sharded or multi-service inventory needs more.</span></li><li><b>What happens on conflict: wait, fail or retry?</b> <span class='muted'>Failing fast with a clear message is usually better for the second buyer than waiting.</span></li></ul><h4>2. How to think about it</h4><ol class='think'><li><b>Name the race.</b><span>Both read <code>seats_left = 1</code>, both decide to sell, both decrement: oversell. It is a read-modify-write race.</span></li><li><b>Fix 1: atomic conditional update.</b><span><code>update seats set left = left - 1 where event = 7 and left &gt; 0</code>, then check how many rows were updated: zero means sold out. The database serialises the two updates; no explicit lock or retry loop.</span></li><li><b>Fix 2: row lock.</b><span><code>begin; select ... for update; check; update; commit;</code> The second transaction waits, then sees the new value. Simple but holds the lock while your code runs: keep the transaction short.</span></li><li><b>Fix 3: optimistic version check or a unique constraint.</b><span>For individual seats, a unique constraint on <code>(event, seat)</code> makes the second insert fail: the database enforces it, so it holds under any concurrency.</span></li><li><b>Handle the edges.</b><span>Retries after serialization failures or deadlocks; a reservation with a short expiry (hold the seat for 10 minutes) with a job to release expired holds; idempotency keys so a retried request does not book twice.</span></li><li><b>Mention scale.</b><span>A hot single row (the last seat of a famous concert) is serialised on its lock: that is correct but limits throughput; queue the requests or shard by event.</span></li></ol><h4>3. How to say it</h4><div class="say"><span class="lbl2">A model answer, about two minutes aloud</span><p>"The race is read-modify-write: both requests see one seat left and both sell it. I would let the database make the decision atomically. The simplest way is a conditional update, <code>update seats set left = left - 1 where event_id = 7 and left &gt; 0</code>, then check the number of rows changed: if it is zero, the seat is gone. For individual seats a unique constraint on event and seat does the same job and cannot be bypassed.</p><p>Alternatively I would take a row lock with SELECT FOR UPDATE in a short transaction. I would keep transactions short, retry on deadlock or serialization errors, hold a seat with an expiry during payment, and use an idempotency key so a retried request does not book twice. For a very hot event all buyers serialise on one row, which is correct but limits throughput, so I would queue requests or partition by event."</p></div><h4>4. Likely follow-ups</h4><details><summary>What if the inventory is in a different service from the database that records the order?</summary><p>You cannot use one transaction. Reserve first (with an expiry), then confirm after payment, and compensate on failure: a saga with idempotent steps (later modules).</p></details><details><summary>Optimistic or pessimistic locking?</summary><p>Optimistic works well when conflicts are rare (retry on the rare conflict, no waiting); pessimistic when conflicts are frequent or retries are costly.</p></details><details><summary>Why not just use serializable isolation everywhere?</summary><p>It is correct but aborts some transactions under contention, which you must retry, and costs throughput; use it where the invariant is complex, not by default.</p></details><h4>Common slips</h4><ul class='slips'><li>Checking availability in the application and then updating separately.</li><li>Holding a row lock during a slow external call such as payment.</li><li>Forgetting what happens on a retry: a double booking.</li></ul></div></article><article class="sdq"><header><span class="who">A common depth question on durability: reported by candidates, not official.</span><h3>&quot;What happens inside PostgreSQL when I update a row and commit? What if the server crashes right after the commit?&quot;</h3><p>They are testing whether you understand durability beyond the word, and whether you know why databases need maintenance.</p></header><div class="body"><h4>1. Ask first</h4><ul><li><b>Is it okay to describe PostgreSQL specifically?</b> <span class='muted'>Yes: the ideas (log first, snapshots) are shared by most systems; mention where they differ.</span></li></ul><h4>2. How to think about it</h4><ol class='think'><li><b>Walk the write path.</b><span>The transaction finds the row, writes a new row version (MVCC), appends a log record to the WAL buffer, and at commit flushes the WAL to disk. Only then is the client told the commit succeeded. Data pages stay in memory and are written later by a background process (checkpointing).</span></li><li><b>Answer the crash question.</b><span>Data files may be stale, but the log has the commit. On restart PostgreSQL replays the log from the last checkpoint, so the committed update is present; uncommitted changes are discarded.</span></li><li><b>Mention what makes it real.</b><span>The guarantee depends on <code>fsync</code> being honest all the way down (disk caches, battery-backed controllers, cloud disks) and on <code>synchronous_commit</code>.</span></li><li><b>Connect to replication.</b><span>Replicas stream the same WAL. Synchronous replication waits for a replica to confirm before acknowledging commit: durable against losing the primary at the cost of latency; asynchronous is faster but can lose the last commits on failover.</span></li><li><b>Mention the maintenance cost of MVCC.</b><span>Old versions need vacuum; long transactions block cleanup and cause bloat, so monitor transaction age and autovacuum.</span></li></ol><h4>3. How to say it</h4><div class="say"><span class="lbl2">A model answer, about two minutes aloud</span><p>"The update creates a new version of the row, since PostgreSQL never overwrites in place, and appends a record to the write-ahead log. At commit the log is flushed to disk and only then is the client told it succeeded; the data pages themselves are written later in the background. If the server crashes right after the commit, the data files may be behind but the log has the change, so on restart PostgreSQL replays the log and the committed update is there, while uncommitted work is discarded.</p><p>That durability depends on fsync being honest through the whole storage stack. Replicas work by streaming and replaying the same log; synchronous replication waits for a replica's confirmation before commit returns, so a failover cannot lose it, at the price of latency. The cost of keeping old versions is vacuum: dead rows must be cleaned, and long-running transactions prevent that, so I would monitor transaction age and bloat."</p></div><h4>4. Likely follow-ups</h4><details><summary>What is a checkpoint?</summary><p>A point where all dirty data pages up to a log position are flushed to the data files, so recovery only has to replay the log after it.</p></details><details><summary>How can a replica be behind the primary?</summary><p>It replays the log asynchronously: network delay or heavy replay can make it lag, so reads from a replica may be stale (read-your-writes needs care).</p></details><details><summary>What is the risk of <code>synchronous_commit = off</code>?</summary><p>A crash can lose the last few commits (up to a short window) but not corrupt the database: a latency-for-durability trade.</p></details><h4>Common slips</h4><ul class='slips'><li>Saying the data is written to the table first.</li><li>Not mentioning that durability depends on the disk honouring flushes.</li><li>Forgetting the maintenance cost of MVCC.</li></ul></div></article></section>
+<section class="sdsec" id="recap"><h2><span class="n">8</span>Remember this<small>Recap</small></h2><div class="sdrecap"><h3 style="margin:12px 0 0">The page in 6 lines</h3><ul><li>A database makes three promises: fast lookups, safe sharing and no lost commits.</li><li>An index lets a query jump to its rows; without one the database scans the whole table.</li><li>Reading, changing and writing back in your code loses updates; do the change inside the database.</li><li>Fixes for the last item: one atomic update, a row lock (SELECT FOR UPDATE), or a unique constraint.</li><li>The write-ahead log is written first, so committed data survives a crash; it is replayed on restart.</li><li>Updates keep old versions until vacuum cleans them: watch table size and dead rows.</li></ul></div><h3 style="margin:18px 0 6px">Check yourself</h3><details><summary>What does an index trade for faster reads?</summary><p>Extra disk space and slower writes, because every write must update the index too.</p></details><details><summary>How do you stop two buyers getting the last item?</summary><p>Make the check and the update one atomic step: update stock = stock - 1 where stock &gt; 0, or lock the row first.</p></details><details><summary>Why does a committed row survive a power cut?</summary><p>The change was written to the write-ahead log on disk before the database said committed, and the log is replayed on restart.</p></details><p class="sub" style="margin-top:14px">Want every experiment, lab and edge case? The reference lessons for this topic:</p><div class="sddeeper"><a href="../systems/S18_data_storage.html#l1"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Why a database and ACID</a><a href="../systems/S18_data_storage.html#l2"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Indexes and query plans</a><a href="../systems/S18_data_storage.html#l3"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Transactions and isolation</a><a href="../systems/S18_data_storage.html#l4"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> MVCC, the log and vacuum</a><a href="../systems/S18_data_storage.html#l5"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Schema design and the N+1 trap</a><a href="../systems/S18_data_storage.html#l6"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Connections, pooling and locks</a></div></section>
+<nav class="sdfoot"><a class="" href="03-caching.html"><small>Previous</small><strong>Make it fast</strong></a><a class="r" href="05-scaling-data.html"><small>Next</small><strong>When one database is not enough</strong></a></nav></main></div>
+<footer class="site-foot"><span>Mastery: free, open study sheets. Progress is saved in your browser only.</span><span><a href="index.html">Course map</a> · <a href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener">GitHub</a></span></footer>
+<script>(function(){var IC={};
+var slug=document.body.getAttribute('data-sd'),K='sd2-done';
+function get(){try{return JSON.parse(localStorage.getItem(K)||'{}')}catch(e){return{}}}
+var cb=document.getElementById('sd-done');if(cb){var s=get();cb.checked=!!s[slug];cb.onchange=function(){var s=get();if(cb.checked)s[slug]=1;else delete s[slug];try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}}}
+var links=[].slice.call(document.querySelectorAll('.sdnav a'));var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'))}).filter(Boolean);
+if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(a){a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id)})}})},{rootMargin:'-20% 0px -70% 0px'});secs.forEach(function(s){io.observe(s)})}
+var tb=document.getElementById('b-theme');if(tb){var R=document.documentElement;var t=null;try{t=localStorage.getItem('theme')}catch(e){}if(t)R.setAttribute('data-theme',t);tb.onclick=function(){var n=R.getAttribute('data-theme')==='dark'?'light':'dark';R.setAttribute('data-theme',n);try{localStorage.setItem('theme',n)}catch(e){}}}
+})();</script>
+</body></html>

@@ -65,7 +65,7 @@ DATA = dict(
     scenario=scen("dw", 0),
     who="The most reported cross-company question: reported by candidates, not official.",
     real=[
-        dict(company="Instagram", text="Their engineering blog describes generating **64-bit IDs** from a timestamp, a logical shard id and a per-shard sequence, computed inside PostgreSQL: the same recipe as the ranges-and-Snowflake approach above.", url="https://instagram-engineering.com/sharding-ids-at-instagram-1cf5a71e5a5c", source="Instagram Engineering: Sharding and IDs at Instagram"),
+        dict(company="Instagram", text="Their engineering blog describes generating **64-bit IDs** from a timestamp, a logical shard id and a per-shard sequence, computed inside PostgreSQL: the same recipe as the ranges-and-Snowflake approach above.", url="https://web.archive.org/web/2022/https://instagram-engineering.com/sharding-ids-at-instagram-1cf5a71e5a5c", source="Instagram Engineering: Sharding and IDs at Instagram (archived copy)"),
         dict(company="Twitter", text="Twitter's open-sourced **Snowflake** generator packs time, machine and sequence into 64 bits so any server can mint unique, roughly time-ordered IDs without coordination.", url="https://github.com/twitter-archive/snowflake", source="twitter-archive/snowflake"),
     ],
     recap=dict(

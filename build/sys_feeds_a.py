@@ -2,7 +2,7 @@
 import sysviz as v
 from sys_warm2_a import RIG_REDIS as _R
 
-RIG = _R.replace("~/warm", "~/feed").replace("$HOME/warm", "$HOME/feed").replace("6396", "6398").replace("export W=$HOME/feed", "export F=$HOME/feed").replace("$W/", "$F/").replace('. ./rig.sh; echo "rig ready in $W:', '. ./rig.sh; echo "rig ready in $F:')
+RIG = _R.replace("~/warm", "~/feed").replace("$HOME/warm", "$HOME/feed").replace("6396", "6398").replace("export W=$HOME/feed", "export F=$HOME/feed").replace("$W/", "$F/").replace("--dir $W", "--dir $F").replace('. ./rig.sh; echo "rig ready in $W:', '. ./rig.sh; echo "rig ready in $F:')
 
 FANOUT_VIZ = v.figure(
     720, 250,
@@ -102,10 +102,10 @@ print('feed:5 holds %d post ids (capped at %d); newest first: %s' % (r.cmd('LLEN
 EOF
 python3 fanout.py; redisdown''',
                      e="The two sides of push, on a real in-memory store. Updating a follower's feed is cheap (a push and a trim on a capped list), but it is **one operation per follower**: a post by an author with 10,000 followers needs 10,000 of them, roughly a hundred times the work of a post by an author with 100 followers (real systems batch and pipeline these across many workers, but the count of updates is the same). The read, in contrast, is a **single list lookup of about a tenth of a millisecond**: that asymmetry (very cheap reads, expensive celebrity writes) is exactly what the hybrid design balances.",
-                     annot=[("post by an author with 100 followers: 100 feed updates in ~N ms", "an ordinary post is cheap to fan out"),
-                            ("post by an author with 10000 followers: 10000 feed updates in ~N ms (about 100x the work)", "write amplification grows linearly with followers"),
-                            ("reading one user's feed (one LRANGE of 20 post ids): ~0.1 ms per read", "the read is a single in-memory list lookup"),
-                            ("feed:5 holds 200 post ids (capped at 200)", "capped lists bound memory per user")]),
+                     annot=[("post by an author with 100 followers: 100 feed updates in 13 ms", "an ordinary post is cheap to fan out"),
+                            ("post by an author with 10000 followers: 10000 feed updates in 1112 ms (about 100x the work)", "write amplification grows linearly with followers: about 0.11 ms per follower here"),
+                            ("reading one user's feed (one LRANGE of 20 post ids): 0.057 ms per read", "the read is a single in-memory list lookup"),
+                            ("feed:5 holds 3 post ids (capped at 200); newest first", "each of the three posts reached user 5 and the list is capped, so memory per user is bounded")]),
             ]),
         ],
         scenario=dict(

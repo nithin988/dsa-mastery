@@ -94,7 +94,7 @@ def gauge(x, y, pct, label=None, kind=""):
            f'<path class="sd-arc on {kind}" d="M{x - r},{y} A{r},{r} 0 0 1 {x + r * math.cos(a):g},{y - r * math.sin(a):g}"/>'
            f'<line class="sd-needle {kind}" x1="{x}" y1="{y}" x2="{nx:g}" y2="{ny:g}"/><circle class="sd-hub {kind}" cx="{x}" cy="{y}" r="3.5"/>'
            f'<text class="sd-gv {kind}" x="{x}" y="{y + 16}" text-anchor="middle">{pct}%</text>')
-    return out + (_lbl(x, y + 30, label, None) if label else "")
+    return out + (_lbl(x, y + 36, label, None) if label else "")
 
 
 def _lbl(x, y, label, sub):

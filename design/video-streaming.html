@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Design video streaming | System Design | Mastery</title>
+<meta name="description" content="Looks like a file download problem. It is really a delivery cost problem with a processing pipeline in front."><meta name="theme-color" content="#0f172a">
+<meta property="og:type" content="article"><meta property="og:site_name" content="Mastery"><meta property="og:title" content="Design video streaming">
+<meta property="og:description" content="Looks like a file download problem. It is really a delivery cost problem with a processing pipeline in front."><meta property="og:url" content="https://nithin988.github.io/dsa-mastery/design/video-streaming.html">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f172a'/%3E%3Ctext x='16' y='21' font-family='monospace' font-size='13' font-weight='700' fill='%23f8fafc' text-anchor='middle'%3EDSA%3C/text%3E%3C/svg%3E">
+<style>/* DSA Mastery: shared stylesheet. Tokens and components follow the Kimaru Platform design system
+   (slate neutrals, semantic colour, rounded-md cards, shadow-sm, 16px stroke icons). See docs/DESIGN_SYSTEM.md. */
+:root{
+ --bg:#f8fafc;--surf:#fff;--hd:#f8fafc;--soft:#f1f5f9;--line:#e2e8f0;--line2:#f1f5f9;
+ --fg:#0f172a;--txt:#334155;--mut:#475569;--faint:#64748b;
+ --ink:#0f172a;--ink-fg:#f8fafc;
+ --acc:#3162b4;--acc-soft:#eaf0fa;--acc-line:#bcd0ee;
+ --ok:#15803d;--ok-soft:#f0fdf4;--ok-line:#86efac;
+ --warn:#b45309;--warn-soft:#fffbeb;--warn-line:#fbbf24;
+ --med:#a16207;--med-soft:#fefce8;
+ --bad:#b91c1c;--bad-soft:#fef2f2;--bad-line:#f87171;
+ --risk:#c2410c;--risk-soft:#fff7ed;
+ --info:#0369a1;--info-soft:#f0f9ff;--info-line:#38bdf8;
+ --done:#0f766e;--done-soft:#f0fdfa;--done-line:#5eead4;
+ --code:#f8fafc;--ring:#3162b4;
+ --sh:0 1px 2px rgba(15,23,42,.06);--sh-lg:0 10px 30px rgba(15,23,42,.12);
+ --r:6px;--r-lg:8px;
+ color-scheme:light}
+:root[data-theme=dark]{
+ --bg:#020617;--surf:#0f172a;--hd:#0b1324;--soft:#1e293b;--line:#1e293b;--line2:#172033;
+ --fg:#f1f5f9;--txt:#cbd5e1;--mut:#a3b1c6;--faint:#94a3b8;
+ --ink:#f1f5f9;--ink-fg:#0f172a;
+ --acc:#8db4f0;--acc-soft:#14233d;--acc-line:#2c4a7a;
+ --ok:#4ade80;--ok-soft:#0c2a18;--ok-line:#166534;
+ --warn:#fbbf24;--warn-soft:#2b2008;--warn-line:#a16207;
+ --med:#facc15;--med-soft:#2a2308;
+ --bad:#f87171;--bad-soft:#2d1214;--bad-line:#b91c1c;
+ --risk:#fb923c;--risk-soft:#2b1708;
+ --info:#38bdf8;--info-soft:#0a2233;--info-line:#0369a1;
+ --done:#2dd4bf;--done-soft:#0a2624;--done-line:#0f766e;
+ --code:#0b1324;--ring:#8db4f0;
+ --sh:none;--sh-lg:0 10px 30px rgba(0,0,0,.5);color-scheme:dark}
+
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:var(--acc);text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:4px}
+code{background:var(--soft);padding:1px 5px;border-radius:4px;font:0.88em ui-monospace,"Cascadia Code",Consolas,Menlo,monospace;color:var(--fg)}
+.mut,.muted{color:var(--mut)}.muted{font-size:13px;font-weight:400}
+.skip{position:absolute;left:12px;top:-60px;z-index:100;background:var(--ink);color:var(--ink-fg);padding:8px 14px;border-radius:var(--r);text-decoration:none;font-size:14px}.skip:focus{top:8px}
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.33;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-3px}
+.ic.fill{fill:currentColor;stroke:none}.ic.lg{width:20px;height:20px}
+
+/* buttons: primary = dark, secondary = light, confirmed = teal (design system section 5) */
+.btn,.bar button,.st-ctl button,.st-ctl select{font:inherit;font-size:13px;font-weight:500;line-height:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);cursor:pointer;text-decoration:none;box-shadow:var(--sh);transition:background .15s,border-color .15s}
+.btn:hover,.bar button:hover,.st-ctl button:hover{background:var(--soft)}
+.btn.pri,.bar button.on,.btn.on{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.btn.pri:hover{opacity:.9;background:var(--ink)}
+.btn.sec{background:var(--soft)}
+.btn.lg{height:40px;padding:0 18px;font-size:14px}
+.iconbtn{width:32px;padding:0!important}
+
+/* top bar (sticky 48px, like ReviewBar) */
+.bar{position:sticky;top:0;z-index:30;background:var(--surf);border-bottom:1px solid var(--line);box-shadow:var(--sh)}
+.bar-in{max-width:1280px;margin:0 auto;height:48px;display:flex;gap:8px;align-items:center;padding:0 16px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;text-decoration:none;color:var(--fg);letter-spacing:-.01em;margin-right:4px}
+.brand b{font-weight:700}.brand span{color:var(--faint);font-weight:600}
+.logo{width:24px;height:24px;border-radius:6px;background:var(--ink);color:var(--ink-fg);display:grid;place-items:center;font:700 11px ui-monospace,Consolas,monospace;letter-spacing:-.02em}
+.crumbs{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mut);min-width:0;margin-right:auto}
+.crumbs a{color:var(--mut);text-decoration:none}.crumbs a:hover{color:var(--fg)}
+.crumbs .cur{color:var(--fg);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crumbs .ic{color:var(--faint);width:14px;height:14px}
+.prog{font-size:12.5px;color:var(--mut);white-space:nowrap;padding:0 4px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.seg button{border:0!important;border-radius:0!important;box-shadow:none!important;background:var(--surf)}
+.seg button+button{border-left:1px solid var(--line)!important}
+.pbar{height:2px;background:var(--line)}.pbar i{display:block;height:100%;width:0;background:var(--acc);transition:width .4s}
+
+/* topic switcher panel */
+.menu{position:relative}
+.panel{position:absolute;right:0;top:40px;width:min(380px,92vw);max-height:min(70vh,640px);overflow:auto;background:var(--surf);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-lg);padding:6px;z-index:50}
+.panel[hidden]{display:none}
+.panel h5{margin:10px 8px 4px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.panel a{display:grid;grid-template-columns:26px 1fr auto;gap:8px;align-items:center;padding:7px 8px;border-radius:var(--r);text-decoration:none;color:var(--fg);font-size:13.5px}
+.panel a:hover{background:var(--soft)}.panel a[aria-current=page]{background:var(--soft);font-weight:600}
+.panel .n{font:600 11px ui-monospace,Consolas,monospace;color:var(--faint)}
+.panel .c{font-size:11.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.panel .c.done{color:var(--done);font-weight:600}
+
+/* layout */
+.wrap{max-width:1280px;margin:0 auto;padding:0 16px;display:grid;grid-template-columns:248px minmax(0,1fr);gap:32px}
+nav.side{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto;padding:20px 0;font-size:13.5px}
+nav.side h4{margin:16px 0 6px;padding:0 10px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+nav.side a{display:flex;gap:8px;align-items:center;padding:6px 10px;border-radius:var(--r);text-decoration:none;color:var(--txt)}
+nav.side a:hover{background:var(--soft)}nav.side a.act{background:var(--soft);color:var(--fg);font-weight:600;box-shadow:inset 2px 0 0 var(--ink)}
+nav.side .dot{width:8px;height:8px;border-radius:50%;flex:none}.dot.hot{background:var(--warn)}.dot.sec{background:var(--faint)}
+nav.side .cnt{margin-left:auto;font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}
+main{min-width:0;padding:24px 0 90px}
+.chips{display:none}
+
+/* page header (hero) */
+.hero{background:var(--surf);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh);padding:24px 26px;margin-bottom:20px}
+.eyebrow{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);display:flex;align-items:center;gap:8px}
+.eyebrow .tag{background:var(--soft);border-radius:99px;padding:3px 9px;color:var(--fg);letter-spacing:.06em}
+.hero h1{font-size:clamp(24px,3.4vw,32px);line-height:1.2;margin:10px 0 10px;letter-spacing:-.02em;color:var(--fg);font-weight:700}
+.lead{font-size:15.5px;color:var(--txt);margin:0;max-width:72ch}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.stat{display:inline-flex;gap:6px;align-items:center;background:var(--hd);border:1px solid var(--line);border-radius:99px;padding:3px 12px;font-size:12.5px;color:var(--mut)}.stat b{color:var(--fg);font-variant-numeric:tabular-nums}
+
+/* headings */
+h2{font-size:20px;font-weight:700;margin:40px 0 10px;letter-spacing:-.01em;scroll-margin-top:72px;color:var(--fg)}
+h3{margin:0;font-size:20px;font-weight:600;letter-spacing:-.01em;color:var(--fg)}
+
+/* callouts: neutral box + 2px left accent (design system section 6) */
+.callout{border:1px solid var(--line);border-left:2px solid var(--faint);background:var(--hd);padding:10px 14px;border-radius:var(--r);margin:14px 0}
+.callout.intu{border-left-color:var(--info-line)}.callout p{margin:4px 0}
+.callout .lbl{margin-bottom:2px}
+
+/* pattern card: header bar + body (design system section 6) */
+.pat{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);margin:22px 0;scroll-margin-top:72px;overflow:hidden}
+.pat-h{display:flex;gap:12px;align-items:center;flex-wrap:wrap;min-height:50px;padding:8px 16px;background:var(--hd);border-bottom:1px solid var(--line)}
+.pat-h h3{font-size:18px}
+.badge{width:28px;height:28px;border-radius:var(--r);background:var(--ink);color:var(--ink-fg);display:flex;align-items:center;justify-content:center;font:700 13px ui-monospace,Consolas,monospace;flex:none}
+.tier{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;white-space:nowrap}
+.tier.hot{background:var(--warn-soft);color:var(--warn)}.tier.sec{background:var(--soft);color:var(--mut)}
+.pp{margin-left:auto;font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.pat-b{padding:6px 16px 8px}
+.glance{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0;margin:8px 0 6px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.gi{padding:10px 14px;font-size:14px;border-left:1px solid var(--line2)}.gi:first-child{border-left:0}
+.lbl{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.lbl .ic{width:14px;height:14px}
+.blk{margin:16px 0}.blk p{margin:4px 0}
+.blk ol,.blk ul{margin:4px 0;padding-left:22px}.blk li{margin:4px 0}
+.blk.warn{border:1px solid var(--line);border-left:2px solid var(--warn-line);background:var(--warn-soft);border-radius:var(--r);padding:10px 14px}.blk.warn .lbl{color:var(--warn)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cx{display:flex;gap:8px;align-items:center;background:var(--ok-soft);color:var(--ok);border:1px solid var(--line);border-left:2px solid var(--ok-line);border-radius:var(--r);padding:8px 14px;font-weight:600;font-size:14px;margin:14px 0}
+
+/* code */
+pre{background:var(--code);border:1px solid var(--line);border-radius:var(--r);padding:34px 15px 13px;overflow-x:auto;margin:8px 0;position:relative;font-size:13px;line-height:1.55;color:var(--fg)}
+pre::before{position:absolute;left:12px;top:8px;font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+pre.code-java::before{content:"Java"}pre.code-py::before{content:"Python"}pre.trace::before{content:"Trace"}
+pre code{background:none;padding:0;font-size:inherit;color:inherit}
+.code-java,.code-py{display:none}body[data-lang=java] .code-java,body[data-lang=py] .code-py{display:block}
+.cp{position:absolute;top:5px;right:6px;font:500 12px system-ui,sans-serif;height:24px;padding:0 9px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--mut);cursor:pointer}
+.cp:hover{color:var(--fg);background:var(--soft)}
+.trace{border-left:2px solid var(--faint)}
+
+/* tables */
+.tw{overflow-x:auto;margin:10px 0;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:9px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line2)}
+th{background:var(--hd);font:600 11px/1.2 system-ui,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);border-bottom:1px solid var(--line);position:sticky;top:0}
+tbody tr:hover td{background:var(--hd)}tr:last-child td{border-bottom:0}
+.ladder td:first-child{width:36px;text-align:center}.ladder .t{white-space:nowrap}.ladder .c{white-space:nowrap;font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+input.pk{width:18px;height:18px;accent-color:var(--done);cursor:pointer;margin:0}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;white-space:nowrap}
+.dE{background:var(--ok-soft);color:var(--ok)}.dM{background:var(--med-soft);color:var(--med)}.dH{background:var(--bad-soft);color:var(--bad)}
+tr.done td{background:var(--done-soft)}tr.done td:nth-child(3){text-decoration:line-through;text-decoration-color:var(--faint)}
+details{border:1px solid var(--line);border-radius:var(--r);padding:0 14px;margin:8px 0;background:var(--surf)}
+summary{cursor:pointer;font-weight:600;padding:10px 0;color:var(--fg);list-style:none;display:flex;gap:8px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"";width:6px;height:6px;border-right:1.5px solid var(--faint);border-bottom:1.5px solid var(--faint);transform:rotate(-45deg);transition:transform .2s;flex:none}
+details[open] summary::before{transform:rotate(45deg)}
+details[open]{border-left:2px solid var(--info-line)}details p{margin:0 0 12px;color:var(--txt)}
+
+/* stepper (animation panel) */
+.stepper{border:1px solid var(--line);border-radius:var(--r-lg);margin:8px 0 14px;background:var(--surf);box-shadow:var(--sh);overflow:hidden}
+.stepper:focus-visible{outline-offset:0}
+.st-head{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--hd);border-bottom:1px solid var(--line);font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.st-head .st-count{margin-left:auto;font-size:11.5px;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.st-body{padding:12px 14px 4px}
+.st-prog{height:3px;background:var(--line);overflow:hidden}.st-prog i{display:block;height:100%;background:var(--acc);width:0;transition:width .3s}
+.st-view{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;padding:6px 0 2px;margin:0 auto}
+.cellw{display:flex;flex-direction:column;align-items:center;min-width:46px}
+.ptr{min-height:22px;font:600 11px ui-monospace,Consolas,monospace;margin-bottom:3px;display:flex;align-items:flex-end}
+.ptr b{background:var(--ink);color:var(--ink-fg);padding:1px 7px;border-radius:99px;white-space:nowrap;animation:drop .25s ease}
+.cell{min-width:46px;height:46px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:600 15px ui-monospace,Consolas,monospace;padding:0 7px;transition:background .25s,border-color .25s,transform .25s}
+.cell.in{background:var(--acc-soft);border-color:var(--acc);transform:translateY(-2px)}
+.cell.ok{background:var(--done-soft);border-color:var(--done)}
+.cell.dim{background:var(--soft);color:var(--mut);border-style:dashed;opacity:.65}
+.cell.pop{animation:pop .35s ease}
+.edge{align-self:flex-start;margin-top:31px;min-width:20px;text-align:center;color:var(--faint);font:700 16px ui-monospace,Consolas,monospace}
+.idx{font:11px ui-monospace,Consolas,monospace;color:var(--mut);margin-top:3px}
+.st-aux{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;min-height:30px;margin-top:8px}
+.st-aux .al{font:600 10px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}
+.chip{font:600 12.5px ui-monospace,Consolas,monospace;background:var(--hd);border:1px solid var(--line);border-radius:var(--r);padding:2px 9px;color:var(--fg)}
+.st-note{min-height:48px;margin:8px 0;font-size:14.5px;padding:10px 13px;background:var(--hd);border:1px solid var(--line);border-left:2px solid var(--info-line);border-radius:var(--r);color:var(--txt)}
+.st-ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 14px 12px}
+.st-ctl button{min-width:32px}
+.st-ctl button.pri{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.st-ctl input[type=range]{flex:1;min-width:90px;accent-color:var(--ink)}
+.st-ctl select{padding:0 8px}
+@keyframes pop{0%{transform:scale(.75)}60%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes drop{from{transform:translateY(-6px);opacity:0}to{transform:none;opacity:1}}
+
+/* previous / next */
+.foot{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.nxt{display:flex;flex-direction:column;gap:3px;padding:14px 16px;background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);text-decoration:none;color:var(--fg)}
+.nxt:hover{border-color:var(--faint)}.nxt.r{text-align:right;align-items:flex-end}.nxt small{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);display:flex;gap:6px;align-items:center}
+.nxt strong{font-size:15px;font-weight:600}
+.nxt.next{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}.nxt.next small{color:inherit;opacity:.75}
+.site-foot{max-width:1280px;margin:0 auto;padding:22px 16px 40px;display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between;color:var(--mut);font-size:13px;border-top:1px solid var(--line)}
+.site-foot a{color:var(--mut)}.site-foot a:hover{color:var(--fg)}
+
+/* landing page */
+.home{max-width:1120px;margin:0 auto;padding:28px 16px 60px}
+.home-hero{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:stretch}
+.home-hero .hero{margin:0;display:flex;flex-direction:column}
+.home-hero .hero h1{font-size:clamp(28px,4vw,40px)}
+.cta{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:14px 16px;display:flex;flex-direction:column;justify-content:center}
+.kpi b{font-size:26px;line-height:1.1;color:var(--fg);letter-spacing:-.02em;font-variant-numeric:tabular-nums}.kpi span{font-size:12.5px;color:var(--mut);margin-top:3px}
+.kpi.wide{grid-column:1/-1}
+.meter{height:6px;border-radius:99px;background:var(--soft);overflow:hidden;margin-top:10px}.meter i{display:block;height:100%;width:0;background:var(--done);border-radius:99px;transition:width .4s}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0 0}
+.how div{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;font-size:14px}
+.how b{display:flex;align-items:center;gap:8px;color:var(--fg);margin-bottom:4px}
+.how .no{width:22px;height:22px;border-radius:6px;background:var(--soft);display:grid;place-items:center;font:700 11px ui-monospace,monospace;color:var(--fg)}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:34px 0 4px}
+.tools h2{margin:0;margin-right:auto;font-size:20px}
+.search{position:relative}.search input{height:32px;width:220px;max-width:100%;padding:0 10px 0 32px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:13px}
+.search .ic{position:absolute;left:10px;top:8px;color:var(--faint)}
+.filters{display:inline-flex;gap:6px;flex-wrap:wrap}
+.filters button{height:32px;padding:0 12px;border:1px solid var(--line);border-radius:99px;background:var(--surf);color:var(--mut);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.filters button[aria-pressed=true]{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.phase{margin:26px 0 0}
+.phase-h{display:flex;align-items:baseline;gap:10px;margin:0 0 10px}
+.phase-h h2{margin:0;font-size:16px;scroll-margin-top:72px}.phase-h span{font-size:13px;color:var(--mut)}
+.phase-h .ph{font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;background:var(--soft);color:var(--fg);padding:4px 8px;border-radius:99px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.tcard{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden}
+.tcard[hidden]{display:none}
+.tcard-h{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 14px;background:var(--hd);border-bottom:1px solid var(--line)}
+.tcard-h .no{font:700 12px ui-monospace,Consolas,monospace;background:var(--ink);color:var(--ink-fg);border-radius:var(--r);padding:3px 7px}
+.tcard-h h3{font-size:16px;margin-right:auto}
+.st{font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--soft);color:var(--mut);white-space:nowrap}
+.st.doing{background:var(--warn-soft);color:var(--warn)}.st.done{background:var(--done-soft);color:var(--done)}
+.tcard-b{padding:12px 14px;display:flex;flex-direction:column;gap:10px;flex:1}
+.tcard-b p{margin:0;font-size:13.5px;color:var(--txt);flex:1}
+.meta{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--mut)}.meta span{display:inline-flex;gap:5px;align-items:center}
+.act{display:flex;gap:8px}
+.empty{text-align:center;color:var(--mut);padding:30px;border:1px dashed var(--line);border-radius:var(--r);margin-top:16px}
+
+@media (max-width:1020px){.wrap{display:block}nav.side{display:none}
+ .chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0;position:sticky;top:50px;z-index:10;background:var(--bg)}
+ .chips a{white-space:nowrap;font-size:12.5px;border:1px solid var(--line);background:var(--surf);padding:4px 11px;border-radius:99px;text-decoration:none;color:var(--fg)}
+ .home-hero{grid-template-columns:1fr}}
+@media (max-width:720px){.crumbs .cur,.crumbs .ic,.prog{display:none}.how{grid-template-columns:1fr}.foot{grid-template-columns:1fr}.btn .t-long{display:none}}
+@media (max-width:640px){body{font-size:15px}.hero{padding:18px 16px}.pat-b{padding:4px 12px 6px}.two{grid-template-columns:1fr}.cell{min-width:36px;height:38px;font-size:13px}.cellw{min-width:36px}.brand span{display:none}.pp{margin-left:0}.gi{border-left:0;border-top:1px solid var(--line2)}.gi:first-child{border-top:0}.search input{width:100%}.search{flex:1}.kpis{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media print{.bar,.pbar,nav.side,.chips,.st-ctl,.cp,.skip,.site-foot,.foot{display:none}.wrap{display:block}.code-java,.code-py{display:block!important}.pat{box-shadow:none;break-inside:avoid-page}body{background:#fff}}
+
+/* tree and graph drawings inside the stepper */
+.st-tree svg{display:block;margin:0 auto;height:auto}.st-tree line{stroke:var(--faint);stroke-width:1.75;opacity:.6}
+.tn circle{fill:var(--surf);stroke:var(--line);stroke-width:2;transition:fill .25s,stroke .25s}.tn.in circle{fill:var(--acc-soft);stroke:var(--acc)}.tn.ok circle{fill:var(--done-soft);stroke:var(--done)}.tn.dim circle{fill:var(--soft);stroke-dasharray:4 3;opacity:.7}
+.tn text{font:600 14px ui-monospace,Consolas,monospace;fill:var(--fg);text-anchor:middle;dominant-baseline:central}.tp{font:700 11px ui-monospace,Consolas,monospace;fill:var(--acc);text-anchor:middle}
+.ge{stroke:var(--faint);stroke-width:2;opacity:.5}.ge.on{stroke:var(--acc);stroke-width:3.5;opacity:1}.gw{font:600 11px ui-monospace,Consolas,monospace;fill:var(--mut);text-anchor:middle}.mk{fill:var(--faint);opacity:.7}.mk2{fill:var(--acc)}
+
+/* study planner page */
+.planner .hero{margin-bottom:18px}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:16px;overflow:hidden}
+.card-h{display:flex;align-items:center;gap:10px;min-height:46px;padding:6px 14px;background:var(--hd);border-bottom:1px solid var(--line)}
+.card-h h2{margin:0;font-size:15px;font-weight:600;margin-right:auto;color:var(--fg)}
+.card-h>span:not(.st){font-size:12.5px;color:var(--mut)}
+.card-b{padding:14px}
+.pl-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+.pl-col{min-width:0}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+.field{min-width:0}.field:nth-child(6),.field:nth-child(7){grid-column:1/-1}
+.flabel{display:block;font:600 11px/1.2 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+.field input[type=date],.field input[type=number],.field select{height:34px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:14px;max-width:100%}
+.field input[type=number]{width:96px}.field select{width:100%}.field input[type=date]{width:100%}
+.unit{font-size:13px;color:var(--mut);margin-left:8px}
+.fhint{font-size:12.5px;color:var(--mut);margin-top:6px}
+.qchips{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.qchips button,.presets button,.chips2 button{height:28px;padding:0 11px;border:1px solid var(--line);border-radius:99px;background:var(--surf);color:var(--fg);font:inherit;font-size:12.5px;cursor:pointer}
+.qchips button:hover,.presets button:hover,.chips2 button:hover{background:var(--soft)}
+.seg2{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;max-width:100%}
+.seg2 button{height:34px;padding:0 14px;border:0;background:var(--surf);color:var(--fg);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.seg2 button+button{border-left:1px solid var(--line)}
+.seg2 button[aria-pressed=true]{background:var(--ink);color:var(--ink-fg)}
+.toggles{display:grid;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line2);font-size:14px}
+.toggles label,.key-panel label{display:flex;gap:9px;align-items:center;cursor:pointer}
+.toggles input,.key-panel input[type=checkbox]{width:16px;height:16px;accent-color:var(--ink);margin:0}
+.presets{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.presets span{font-size:12.5px;color:var(--mut);margin-right:2px}
+#topics h5{margin:14px 0 4px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.trow{display:grid;grid-template-columns:20px 28px 1fr auto;gap:8px;align-items:center;padding:6px 6px;border-radius:var(--r);cursor:pointer;font-size:14px}
+.trow:hover{background:var(--soft)}.trow input{width:16px;height:16px;accent-color:var(--ink);margin:0}
+.trow .n{font:600 11.5px ui-monospace,Consolas,monospace;color:var(--faint)}.trow .est{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+/* coach */
+.chat{position:sticky;top:64px;display:flex;flex-direction:column;height:min(720px,calc(100vh - 84px));min-height:480px;margin-bottom:0}
+.chat .card-h .btn{height:28px}
+.key-panel{padding:12px 14px;border-bottom:1px solid var(--line);background:var(--surf);display:grid;gap:10px;font-size:13.5px}
+.key-panel[hidden]{display:none}
+.key-panel p{margin:0}.key-panel .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.key-panel input[type=password],.key-panel select{height:34px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:13.5px;min-width:0;flex:1}
+.msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;background:var(--bg)}
+.msg{max-width:92%}.msg.me{align-self:flex-end}
+.msg .who{font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:0 2px 4px}.msg.me .who{text-align:right}
+.msg .mb{padding:9px 12px;border-radius:var(--r-lg);font-size:14.5px;line-height:1.55;border:1px solid var(--line);background:var(--surf);color:var(--txt)}
+.msg.me .mb{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.msg .mb p{margin:0 0 6px}.msg .mb p:last-child{margin:0}.msg .mb ul,.msg .mb ol{margin:4px 0;padding-left:20px}.msg .mb code{font-size:.9em}
+.msg.sys{align-self:stretch;max-width:100%}.msg.sys .mb{background:var(--hd);border-left:2px solid var(--info-line);font-size:13.5px}
+.typing{display:flex;gap:4px;padding:6px 4px}.typing i{width:6px;height:6px;border-radius:50%;background:var(--faint);animation:blink 1.2s infinite}.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.chips2{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px 0;background:var(--surf);border-top:1px solid var(--line)}
+.composer{display:flex;gap:8px;align-items:flex-end;padding:10px 14px 14px;background:var(--surf)}
+.composer textarea{flex:1;resize:none;min-height:38px;max-height:120px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:14.5px;line-height:1.4}
+.composer .btn{height:38px}
+/* plan output */
+.sec-h{font-size:18px;margin:26px 0 10px}
+.kpis4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.kpis4 .kpi b{font-size:22px}
+.callout.alert{border-left-color:var(--warn-line);background:var(--warn-soft)}.callout.alert .lbl{color:var(--warn)}.callout ul{margin:4px 0;padding-left:20px}
+.warn-c{border-left-color:var(--warn-line)}
+.plan-bar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin:14px 0;box-shadow:var(--sh)}
+.pb-l{min-width:220px;flex:1;font-size:13.5px;color:var(--mut)}.pb-l b{color:var(--fg);font-size:15px}.pb-r{display:flex;gap:8px;flex-wrap:wrap}
+.wk{padding:0;margin:10px 0;border-left:1px solid var(--line)}
+details.wk[open]{border-left:2px solid var(--info-line)}
+.wk summary{padding:12px 14px;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.wk summary::before{align-self:center}
+.wn{font-weight:700;color:var(--fg)}.wd{font-size:13px;color:var(--mut)}.wt{font-size:13px;color:var(--mut);margin-right:auto}.wc{font-size:12.5px;font-weight:600;background:var(--soft);border-radius:99px;padding:2px 10px;color:var(--fg);font-variant-numeric:tabular-nums}
+.wk-b{padding:0 14px 12px}
+.day{border:1px solid var(--line);border-radius:var(--r);margin:8px 0;background:var(--surf);overflow:hidden}
+.day.today{border-color:var(--ink)}
+.day.rest{background:var(--hd);color:var(--mut)}
+.dh{display:flex;gap:10px;align-items:center;padding:7px 12px;background:var(--hd);border-bottom:1px solid var(--line2);font-size:13px}.dh b{color:var(--fg)}.dh span:last-child{margin-left:auto;color:var(--mut);font-variant-numeric:tabular-nums}
+.day.rest .dh{border-bottom:0}
+.pill-t{font-size:11px;font-weight:600;background:var(--ink);color:var(--ink-fg);padding:1px 8px;border-radius:99px}
+.task{display:grid;grid-template-columns:20px 84px 1fr auto;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line2);cursor:pointer;font-size:14px}
+.task:last-child{border-bottom:0}.task:hover{background:var(--hd)}
+.task input{width:17px;height:17px;accent-color:var(--done);margin:0}
+.task .kind{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;text-align:center;background:var(--soft);color:var(--mut)}
+.k-learn .kind{background:var(--info-soft);color:var(--info)}.k-code .kind{background:var(--soft);color:var(--fg)}.k-practice .kind{background:var(--med-soft);color:var(--med)}
+.k-review .kind{background:var(--done-soft);color:var(--done)}.k-checkpoint .kind,.k-mock .kind{background:var(--ink);color:var(--ink-fg)}
+.task .ttl{min-width:0;display:flex;flex-direction:column}.task .ttl a{color:var(--fg);text-decoration:none}.task .ttl a:hover{text-decoration:underline}
+.task .sub{font-size:12px;color:var(--mut)}.task .mins{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.task.is-done .ttl,.task.is-done .ttl a{text-decoration:line-through;text-decoration-color:var(--faint);color:var(--mut)}
+@media (max-width:1020px){.pl-grid{grid-template-columns:1fr}.chat{position:static;height:560px}.kpis4{grid-template-columns:1fr 1fr}}
+@media (max-width:640px){.fgrid{grid-template-columns:1fr}.field:nth-child(n){grid-column:auto}.task{grid-template-columns:20px 1fr auto}.task .kind{display:none}.wt{flex-basis:100%;order:3}.msg{max-width:100%}}
+@media print{.pl-grid,.hero,.plan-bar .pb-r,.chat{display:none}.wk{break-inside:avoid-page}details.wk>summary::before{display:none}}
+
+/* left rail */
+body.has-rail{padding-left:56px}
+.rail{position:fixed;inset:0 auto 0 0;width:56px;z-index:40;background:var(--surf);border-right:1px solid var(--line);padding:9px 8px;overflow:hidden;transition:width .18s ease;display:flex;flex-direction:column;gap:2px}
+.rail:hover,.rail:focus-within{width:240px;box-shadow:var(--sh-lg)}
+.rail-i{display:flex;align-items:center;gap:12px;height:38px;padding:0 10px;border-radius:var(--r);text-decoration:none;color:var(--txt);white-space:nowrap;font-size:14px}
+.rail-i:hover{background:var(--soft)}
+.rail-i[aria-current=page]{background:var(--soft);color:var(--fg);font-weight:600;box-shadow:inset 2px 0 0 var(--ink)}
+.rail-i .ic{width:18px;height:18px}
+.rail-logo{margin-bottom:6px;height:44px}.rail-logo .logo{width:24px;height:24px;flex:none}
+.rail .l{opacity:0;transition:opacity .12s}.rail:hover .l,.rail:focus-within .l{opacity:1}
+.rail-g{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);padding:14px 10px 4px;opacity:0;white-space:nowrap}
+.rail:hover .rail-g,.rail:focus-within .rail-g{opacity:1}
+.rail-sub{display:flex;flex-direction:column;margin:0 0 4px 22px;padding-left:12px;border-left:1px solid var(--line);opacity:0;max-height:0;overflow:hidden;transition:opacity .12s}
+.rail:hover .rail-sub,.rail:focus-within .rail-sub{opacity:1;max-height:260px}
+.rail-sub a{font-size:13px;color:var(--mut);text-decoration:none;padding:5px 8px;border-radius:var(--r);white-space:nowrap}.rail-sub a:hover{background:var(--soft);color:var(--fg)}
+.rail-bd{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:35}.rail-bd[hidden]{display:none}
+.rail-btn{display:none}
+@media (max-width:1020px){body.has-rail{padding-left:0}
+ .rail{transform:translateX(-100%);width:256px;transition:transform .2s ease;box-shadow:none}.rail.open{transform:none;box-shadow:var(--sh-lg)}
+ .rail:hover,.rail:focus-within{width:256px}.rail .l,.rail-g,.rail-sub{opacity:1}.rail-sub{max-height:260px}
+ .rail-btn{display:inline-flex}}
+@media print{.rail,.rail-bd{display:none}body.has-rail{padding-left:0}}
+
+/* systems pages and hub */
+pre.sh::before{content:"Command"}pre.out::before{content:"Output"}
+pre.sh{margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0;background:var(--ink);color:var(--ink-fg)}
+pre.sh::before{color:inherit;opacity:.65}
+pre.sh code{color:inherit;white-space:pre}
+pre.sh .cp{background:transparent;color:var(--ink-fg);border-color:rgba(248,250,252,.35)}pre.sh .cp:hover{background:rgba(248,250,252,.12);color:var(--ink-fg)}
+[data-theme=dark] pre.sh{background:#0b1324;color:#f1f5f9;border:1px solid var(--line)}
+pre.out{margin-top:0;border-top-left-radius:0;border-top-right-radius:0}
+.cmd{margin:14px 0 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);overflow:hidden}
+.cmd pre{margin:0;border-radius:0;border-left:0;border-right:0}.cmd>pre.sh{border-top:0}
+.cmd-b{padding:10px 14px 12px}.cmd-b p{margin:4px 0}
+.cmd-b pre.out{margin:6px 0 0;border:1px solid var(--line);border-radius:var(--r)}
+.out-l{margin-top:8px}
+.stamp{display:inline-block;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--done);background:var(--done-soft);border-radius:99px;padding:3px 9px}
+.stamp.ill{color:var(--warn);background:var(--warn-soft)}
+.noout{font-size:13px}
+.parts{margin:8px 0 0}.parts table{font-size:13px}.parts th,.parts td{padding:6px 10px}
+.analogy{margin:8px 0 2px}
+.tick{display:inline-flex;gap:7px;align-items:center;font-size:12.5px;color:var(--mut);cursor:pointer;margin-left:auto}
+.tick input{width:16px;height:16px;accent-color:var(--done);margin:0}.tick.is-done{color:var(--done);font-weight:600}
+.pat-h .tick{margin-left:auto}.pat-h .pp{margin-left:0}
+.lab .badge{background:var(--soft);color:var(--fg)}.lab .badge .ic{width:16px;height:16px}
+.lab{border-left:2px solid var(--info-line)}
+.case{border:1px solid var(--line);border-left:2px solid var(--warn-line);background:var(--hd);border-radius:var(--r);padding:12px 16px;margin:14px 0}
+.case h4{margin:4px 0 6px;font-size:16px;color:var(--fg)}.case p{margin:6px 0}
+.qa{padding:0 14px}.qa summary{font-weight:600}
+.qa-b{padding:0 0 12px}.qa-b ul{margin:4px 0 10px;padding-left:20px}.qa-b li{margin:3px 0}
+.angle{background:var(--hd);border:1px solid var(--line);border-left:2px solid var(--info-line);border-radius:var(--r);padding:8px 12px;font-size:14px}
+table.playbook td:first-child{font-weight:600;color:var(--fg)}
+table.cheat td:first-child{font-family:ui-monospace,Consolas,monospace;font-size:13px;white-space:pre-wrap;color:var(--fg)}
+/* hub */
+.courses{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ccard{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden}
+.ccard .tcard-h{min-height:52px}.ccard .tcard-h h2{margin:0;font-size:19px;margin-right:auto;color:var(--fg)}
+.ccard .tcard-h .no{padding:5px 8px;display:inline-flex}.ccard .tcard-h .no .ic{width:18px;height:18px}
+.ticks{margin:0;padding-left:20px;font-size:14px;color:var(--txt)}.ticks li{margin:3px 0}
+.tcard.planned{opacity:.7;background:var(--hd)}.tcard.planned .no{background:var(--soft);color:var(--mut)}
+@media (max-width:820px){.courses{grid-template-columns:1fr}}
+/* diagrams */
+.viz{margin:8px 0;padding:10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+.viz figcaption{font-size:13px;color:var(--mut);margin-top:6px;text-align:center}
+.dg{width:100%;height:auto;display:block}
+.dg-box{fill:var(--hd);stroke:var(--line);stroke-width:1.5}.dg-box.acc{fill:var(--acc-soft);stroke:var(--acc)}.dg-box.ok{fill:var(--done-soft);stroke:var(--done)}.dg-box.warn{fill:var(--warn-soft);stroke:var(--warn-line)}.dg-box.ink{fill:var(--ink);stroke:var(--ink)}
+.dg-t{font:600 13px system-ui,sans-serif;fill:var(--fg)}.dg-t.ink{fill:var(--ink-fg)}.dg-s{font:12px system-ui,sans-serif;fill:var(--mut)}
+.dg-s.ink{fill:#cbd5e1}
+.dg-a{stroke:var(--faint);stroke-width:2}.dg-a.acc{stroke:var(--acc)}.dg-m{fill:var(--faint)}
+
+/* short view: folded detail inside lessons */
+details.more{border:0;border-left:2px solid var(--line);border-radius:0;padding:0 0 0 12px;margin:8px 0;background:none}
+details.more>summary{font-size:13px;font-weight:600;color:var(--info);display:inline-flex;align-items:center;gap:6px}
+details.more>summary svg{width:14px;height:14px}
+details.more[open]{border-left-color:var(--info-line)}
+.blk.warn details.more>summary{color:var(--warn-ink,var(--fg))}
+.quick details summary{font-weight:500}
+#b-density .t-short{display:none}
+@media(max-width:700px){#b-density .t-long{display:none}#b-density .t-short{display:inline}}
+
+/* reader: one step at a time */
+.vh{display:none!important}
+.vnav{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:28px 0 8px}
+body:not(.focus) .vnav{display:none}
+.vnav a{display:flex;flex-direction:column;gap:2px;padding:12px 16px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);text-decoration:none;color:var(--fg);box-shadow:var(--sh);transition:border-color .15s,background .15s}
+.vnav a:hover{border-color:var(--acc);background:var(--soft)}
+.vnav small{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:600}
+.vnav b{font-size:14px;font-weight:600;line-height:1.35}
+.vnav a.vn{text-align:right;align-items:flex-end;background:var(--ink);border-color:var(--ink);color:var(--ink-fg)}
+.vnav a.vn small{color:#cbd5e1}.vnav a.vn:hover{background:var(--ink);opacity:.92}
+.vpos{font-size:12px;color:var(--mut);white-space:nowrap}
+body:not(.focus) .vpos{display:none}
+#b-view .t-short{display:none}
+@media(max-width:700px){#b-view .t-long{display:none}#b-view .t-short{display:inline}.vnav{grid-template-columns:1fr}.vpos{display:none}}
+.chips a.on{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+@media print{.vh{display:block!important}.vnav,.vpos{display:none!important}}
+
+/* layout: content uses the room it is given; the left menu can be pinned open */
+body.has-rail{transition:padding-left .18s ease}
+body.has-rail .wrap{max-width:1680px}
+.wrap.has-track{grid-template-columns:232px minmax(0,1fr);gap:28px}
+aside.track{display:none}
+@media (min-width:1480px){.wrap.has-track{grid-template-columns:232px minmax(0,1fr) 268px}aside.track{display:block;position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto;padding:20px 0}}
+@media (min-width:1480px) and (max-width:1699px){body.rail-pinned .wrap.has-track{grid-template-columns:232px minmax(0,1fr)}body.rail-pinned aside.track{display:none}}
+@media (max-width:1020px){.wrap.has-track{display:block}aside.track{display:none!important}}
+body.rail-pinned{padding-left:240px}
+body.rail-pinned .rail{width:240px}
+body.rail-pinned .rail .l,body.rail-pinned .rail-g{opacity:1}
+body.rail-pinned .rail-sub{opacity:1;max-height:260px}
+.rail-pin{margin-top:auto;border:0;background:none;cursor:pointer;font:inherit;width:100%;text-align:left;color:var(--mut)}
+.rail-pin svg.ic{transition:transform .18s}
+body.rail-pinned .rail-pin svg.ic{transform:rotate(180deg)}
+@media (max-width:1020px){.rail-pin{display:none}body.rail-pinned{padding-left:0}}
+@media print{body.rail-pinned{padding-left:0}aside.track{display:none!important}}
+/* right-hand progress tracker */
+.tk{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--sh)}
+.tk-top{display:flex;align-items:center;gap:14px}
+.tk-ring{width:64px;height:64px;flex:none}
+.tk-ring circle{fill:none;stroke-width:6}
+.tk-ring .bg{stroke:var(--line)}
+.tk-ring .fg{stroke:var(--done);stroke-linecap:round;transition:stroke-dashoffset .4s ease}
+.tk-ring text{font:700 15px system-ui,sans-serif;fill:var(--fg)}
+.tk-top b{display:block;font-size:15px}
+.tk-top span{font-size:12.5px;color:var(--mut)}
+.tk h4{margin:16px 0 6px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.tk-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+.tk-list a{display:flex;gap:10px;align-items:flex-start;padding:7px 8px;border-radius:8px;text-decoration:none;color:var(--txt);font-size:13px;line-height:1.35}
+.tk-list a:hover{background:var(--soft)}
+.tk-list .d{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line);flex:none;margin-top:1px;display:grid;place-items:center;font-size:10px;line-height:1;color:#fff}
+.tk-list a.done .d{background:var(--done);border-color:var(--done)}
+.tk-list a.done .d::after{content:"¹3"}
+.tk-list a.cur{background:var(--acc-soft);color:var(--fg);font-weight:600}
+.tk-list a.cur .d{border-color:var(--acc)}
+.tk-go{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:14px;padding:9px 12px;border-radius:var(--r);background:var(--ink);color:var(--ink-fg);font-size:13px;font-weight:600;text-decoration:none}
+.tk-go:hover{opacity:.92}
+.tk-rev{display:block;margin-top:8px;text-align:center;font-size:12.5px;color:var(--info);text-decoration:none;font-weight:600}
+
+/* the three-line button only opens the left menu on small screens */
+.bar .rail-btn,.bar-in .rail-btn{display:none}
+@media (max-width:1020px){.bar .rail-btn,.bar-in .rail-btn{display:inline-flex}}
+
+/* quick revision page */
+.revise{max-width:1000px}
+.rv-top{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:6px 0 14px}
+.sel{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mut)}
+.sel select{font:inherit;font-size:13px;height:32px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);max-width:260px}
+.sel select:disabled{opacity:.5}
+.rv-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 10px}
+.rv-bar input[type=search]{width:100%;height:34px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:13.5px}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--txt);cursor:pointer}
+.mtag{display:inline-block;font:600 11px/1 system-ui,sans-serif;padding:3px 6px;border-radius:6px;background:var(--soft);color:var(--mut);margin-right:6px;vertical-align:1px}
+.co{display:inline-block;font:600 11px/1 system-ui,sans-serif;padding:3px 7px;border-radius:999px;background:var(--acc-soft);color:var(--acc);margin-left:6px;white-space:nowrap}
+.fc{border:1px solid var(--line);border-radius:14px;background:var(--surf);box-shadow:var(--sh);padding:28px 24px;min-height:200px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;outline-offset:3px}
+.fc:hover{border-color:var(--acc)}
+.fc-m{font-size:12px;color:var(--mut)}
+.fc-t{font-size:20px;line-height:1.5;font-weight:600;margin:18px 0;color:var(--fg)}
+.fc-h{font-size:12px;color:var(--mut)}
+.fc-a{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;justify-content:center}
+.how-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.hw{border:1px solid var(--line);border-radius:12px;background:var(--surf);padding:16px 18px;box-shadow:var(--sh)}
+.hw h3{margin:0 0 8px;font-size:16px}
+.hw ol,.hw ul{margin:6px 0 8px;padding-left:20px}.hw li{margin:3px 0}
+.hw .ex{margin-top:10px;padding:10px 14px;border-left:3px solid var(--info-line);background:var(--info-soft);border-radius:0 var(--r) var(--r) 0}
+.hw .ex p{margin:4px 0}
+
+.dg-life{stroke:var(--line);stroke-width:1.5;stroke-dasharray:4 4}
+.dg-a.dash{stroke-dasharray:5 4}
+.dg-a.bad{stroke:var(--warn-line)}
+.dg-t.acc{fill:var(--fg)}
+
+/* deep lessons: step-by-step flows, annotated real output, worked interview scenarios */
+.walk{list-style:none;counter-reset:w;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.walk li{counter-increment:w;position:relative;padding:10px 14px 10px 52px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+.walk li::before{content:counter(w);position:absolute;left:14px;top:10px;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--ink-fg);font:700 13px/26px system-ui,sans-serif;text-align:center}
+.walk li b{display:block;margin-bottom:2px}
+.walk li span{color:var(--txt);font-size:14px;line-height:1.55}
+.annot{margin:10px 0 0}
+.annot table{font-size:13px}
+.annot td:first-child{white-space:pre-wrap;word-break:break-word;min-width:160px}
+.scen{border:1px solid var(--info-line);background:var(--info-soft);border-radius:12px;padding:16px 18px;margin-top:18px}
+.scen h4{margin:6px 0 8px;font-size:17px}
+.scen .ask{font-size:15px;margin:0 0 6px}
+.scen-s{margin:12px 0}
+.scen-s ul,.scen-s ol{margin:6px 0 0;padding-left:22px}.scen-s li{margin:5px 0;line-height:1.55}
+.scen-s.warn{border-left:3px solid var(--warn-line);padding-left:12px}
+.scen details{background:var(--surf)}
+.scen details.more.scen-a{border:1px solid var(--line);border-left:3px solid var(--done);border-radius:var(--r);padding:0 14px;background:var(--surf)}
+.scen details.more.scen-a>summary{font-weight:700;color:var(--fg)}
+
+.sdfig{margin:18px 0}.sdfig svg{width:100%;height:auto;display:block}
+.sd-sh{fill:var(--surf);stroke:var(--faint);stroke-width:2}
+.sd-sh.ok{fill:var(--done-soft);stroke:var(--done)}.sd-sh.bad{fill:var(--bad-soft);stroke:var(--bad)}.sd-sh.warn{fill:var(--warn-soft);stroke:var(--warn)}.sd-sh.acc{fill:var(--acc-soft);stroke:var(--acc)}.sd-sh.ink{fill:var(--ink);stroke:var(--ink)}
+.sd-top{fill:var(--soft)}.sd-sh.ok.sd-top{fill:var(--done-soft)}
+.sd-pp{fill:var(--acc-soft);stroke:var(--acc);stroke-width:1.8}.sd-pp.bad{fill:var(--bad-soft);stroke:var(--bad)}.sd-pp.ok{fill:var(--done-soft);stroke:var(--done)}.sd-pp.warn{fill:var(--warn-soft);stroke:var(--warn)}
+.sd-ln{fill:var(--line);}.sd-ln2{fill:none;stroke:var(--faint);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sd-led{fill:var(--faint)}.sd-led.ok{fill:var(--done)}.sd-led.bad{fill:var(--bad)}.sd-led.warn{fill:var(--warn)}.sd-led.acc{fill:var(--acc)}
+.sd-bolt{fill:var(--acc)}.sd-bolt.ok{fill:var(--done)}.sd-bolt.warn{fill:var(--warn)}
+.sd-job{fill:var(--soft);stroke:var(--line);stroke-width:1}.sd-job.on{fill:var(--acc);stroke:var(--acc)}
+.sd-ex{fill:var(--bad)}
+.sd-arc{fill:none;stroke:var(--line);stroke-width:7;stroke-linecap:round}.sd-arc.on{stroke:var(--done)}.sd-arc.on.bad{stroke:var(--bad)}.sd-arc.on.warn{stroke:var(--warn)}
+.sd-needle{stroke:var(--fg);stroke-width:2.5;stroke-linecap:round}.sd-hub{fill:var(--fg)}
+.sd-gv{font:700 13px system-ui,sans-serif;fill:var(--fg)}.sd-gv.bad{fill:var(--bad)}.sd-gv.ok{fill:var(--done)}
+.sd-l{font:600 12.5px system-ui,sans-serif;fill:var(--fg)}.sd-c{font:11.5px system-ui,sans-serif;fill:var(--mut)}
+.sd-n{font:600 12px system-ui,sans-serif;fill:var(--mut)}.sd-n.bad{fill:var(--bad)}.sd-n.ok{fill:var(--done)}.sd-n.warn{fill:var(--warn)}.sd-n.acc{fill:var(--acc)}
+.sd-a{stroke:var(--faint);stroke-width:2.2;fill:none}.sd-a.acc{stroke:var(--acc)}.sd-a.ok{stroke:var(--done)}.sd-a.bad{stroke:var(--bad)}.sd-a.warn{stroke:var(--warn)}.sd-a.dash{stroke-dasharray:5 5}
+.sd-badge{fill:var(--soft);stroke:var(--line)}.sd-badge.ok{fill:var(--done-soft);stroke:var(--done)}.sd-badge.bad{fill:var(--bad-soft);stroke:var(--bad)}.sd-badge.warn{fill:var(--warn-soft);stroke:var(--warn)}.sd-badge.acc{fill:var(--acc-soft);stroke:var(--acc)}
+.sd-bt{font:700 11.5px system-ui,sans-serif;fill:var(--fg)}
+.sd-panel{fill:var(--surf);stroke:var(--line);stroke-width:1.5}.sd-panel.bad{fill:var(--bad-soft);stroke:var(--bad-line)}.sd-panel.ok{fill:var(--done-soft);stroke:var(--done-line)}.sd-panel.warn{fill:var(--warn-soft);stroke:var(--warn-line)}
+.sd-pt{font:700 13px system-ui,sans-serif;fill:var(--fg);letter-spacing:.2px}.sd-pt.bad{fill:var(--bad)}.sd-pt.ok{fill:var(--done)}.sd-pt.warn{fill:var(--warn)}
+.sd-pc{font:12.5px system-ui,sans-serif;fill:var(--txt)}
+
+.sdw{display:grid;grid-template-columns:230px minmax(0,1fr);gap:34px;max-width:1120px;margin:0 auto;padding:22px 20px 60px}
+.sdw main{min-width:0;max-width:780px}
+.sdnav{position:sticky;top:76px;align-self:start;font-size:13.5px}
+.sdnav h4{margin:0 0 8px;font-size:11.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--faint)}
+.sdnav a{display:flex;gap:9px;align-items:center;padding:6px 8px;border-radius:6px;color:var(--mut);text-decoration:none;border-left:3px solid transparent}
+.sdnav a b{width:20px;height:20px;border-radius:50%;background:var(--soft);color:var(--mut);display:inline-grid;place-items:center;font-size:11px;flex:none}
+.sdnav a:hover{background:var(--soft);color:var(--fg)}
+.sdnav a.on{color:var(--fg);font-weight:600;background:var(--acc-soft);border-left-color:var(--acc)}.sdnav a.on b{background:var(--acc);color:#fff}
+.sdnav .done{margin-top:14px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--surf);font-size:13px}
+.sdhero{padding:6px 0 10px}
+.sdhero .eyebrow{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--mut);margin-bottom:8px}
+.sdhero .tag{background:var(--acc-soft);color:var(--acc);border:1px solid var(--acc-line);padding:2px 9px;border-radius:999px;font-weight:600;font-size:12px}
+.sdhero h1{margin:0 0 8px;font-size:clamp(27px,4.2vw,38px);line-height:1.15;color:var(--fg);letter-spacing:-.4px}
+.sdhero .lead{font-size:17.5px;color:var(--txt);max-width:660px;margin:0 0 14px}
+.sdmeta{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px}.sdmeta span{background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:3px 11px;font-size:12.5px;color:var(--mut)}
+.sdsec{margin:38px 0 0;scroll-margin-top:84px}
+.sdsec>h2{display:flex;align-items:center;gap:11px;margin:0 0 4px;font-size:23px;color:var(--fg);letter-spacing:-.2px}
+.sdsec>h2 .n{width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--ink-fg);display:inline-grid;place-items:center;font-size:14px;font-weight:700;flex:none}
+.sdsec>h2 small{font-size:12.5px;font-weight:600;color:var(--faint);letter-spacing:.7px;text-transform:uppercase;margin-left:auto}
+.sdsec .sub{margin:0 0 14px;color:var(--mut)}
+.sdsec p{margin:0 0 12px}
+.sdstory{font-size:16.5px;line-height:1.75}
+.sdstory p:first-of-type::first-letter{float:left;font-size:44px;line-height:.9;padding:5px 8px 0 0;font-weight:800;color:var(--acc)}
+.sdquote{border-left:4px solid var(--acc);background:var(--acc-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0;color:var(--fg)}
+.sdquote p:last-child{margin-bottom:0}
+.sdone{background:var(--ink);color:var(--ink-fg);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:17px;line-height:1.5}
+.sdone b{color:inherit;border-bottom:2px solid var(--acc-line)}
+.sdsteps{list-style:none;margin:8px 0;padding:0;counter-reset:s;display:grid;gap:14px}
+.sdsteps>li{counter-increment:s;border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:14px 16px 6px 56px;position:relative;box-shadow:var(--sh)}
+.sdsteps>li::before{content:counter(s);position:absolute;left:14px;top:13px;width:30px;height:30px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font-weight:700}
+.sdsteps h3{margin:0 0 3px;font-size:17px;color:var(--fg)}.sdsteps p{margin:0 0 8px}
+.sdsteps .sdfig{margin:6px 0 8px}
+.sdgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:8px 0}
+.sdcard{border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:13px 15px;box-shadow:var(--sh)}
+.sdcard h3{margin:0 0 4px;font-size:15.5px;color:var(--fg);display:flex;gap:8px;align-items:center}.sdcard p{margin:0;font-size:14.5px}
+.sdcard.bad{border-color:var(--bad-line);background:var(--bad-soft)}.sdcard.ok{border-color:var(--done-line);background:var(--done-soft)}
+.sdreal{display:grid;gap:10px;margin:8px 0}
+.sdreal>div{border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:12px 15px;display:grid;grid-template-columns:110px 1fr;gap:14px}
+.sdreal b.co{color:var(--acc);font-size:14px}.sdreal p{margin:0 0 4px;font-size:14.5px}.sdreal a{font-size:13px}
+.sdnote{font-size:13px;color:var(--faint);margin:6px 0 0}
+.sdq{border:1px solid var(--line);background:var(--surf);border-radius:12px;margin:14px 0;box-shadow:var(--sh);overflow:hidden}
+.sdq>header{padding:14px 18px;background:var(--hd);border-bottom:1px solid var(--line)}
+.sdq>header .who{font-size:12px;color:var(--faint);text-transform:uppercase;letter-spacing:.7px;font-weight:600}
+.sdq>header h3{margin:2px 0 4px;font-size:18px;color:var(--fg)}.sdq>header p{margin:0;font-size:14.5px;color:var(--mut)}
+.sdq .body{padding:6px 18px 16px}
+.sdq h4{margin:16px 0 6px;font-size:12.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--faint)}
+.sdq ol.think{margin:0;padding-left:20px}.sdq ol.think li{margin:0 0 6px}.sdq ol.think li span{display:block;color:var(--mut);font-size:14.5px}
+.sdq .say{border-left:4px solid var(--done);background:var(--done-soft);padding:10px 15px;border-radius:0 8px 8px 0;font-size:15px}.sdq .say p{margin:0 0 8px}.sdq .say p:last-child{margin:0}
+.sdq .say .lbl2{display:block;font-size:11.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--done);font-weight:700;margin-bottom:4px}
+.sdq details{border:1px solid var(--line);border-radius:8px;margin:6px 0;background:var(--bg)}.sdq summary{cursor:pointer;padding:8px 12px;font-weight:600;color:var(--fg);font-size:14.5px}.sdq details p{margin:0;padding:0 12px 10px;font-size:14.5px}
+.sdq .slips{margin:0;padding-left:20px;color:var(--mut);font-size:14.5px}
+.sdrecap{border:1px solid var(--done-line);background:var(--done-soft);border-radius:12px;padding:6px 18px 12px}
+.sdrecap ul{margin:6px 0 10px;padding-left:20px}.sdrecap li{margin:0 0 5px}
+.sddeeper{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.sddeeper a{border:1px solid var(--line);border-radius:8px;padding:7px 12px;background:var(--surf);text-decoration:none;font-size:13.5px}
+.sdfoot{display:flex;justify-content:space-between;gap:12px;margin:40px 0 0}
+.sdfoot a{flex:1;border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:12px 16px;text-decoration:none;color:var(--fg);box-shadow:var(--sh)}
+.sdfoot a small{display:block;color:var(--faint);font-size:12px}.sdfoot a.r{text-align:right}
+.sdx{border:1px solid var(--line);background:var(--surf);border-radius:12px;padding:14px 18px 8px;margin:14px 0;box-shadow:var(--sh)}.sdx h3{margin:0 0 4px;font-size:17px;color:var(--fg);display:flex;gap:10px;align-items:center}.sdx .xn{width:26px;height:26px;border-radius:7px;background:var(--done);color:#fff;display:inline-grid;place-items:center;font-size:13px}.sdx .what{margin:0 0 8px;color:var(--txt)}.sdx pre.out{margin:6px 0 10px;max-height:340px;overflow:auto}.sdmore{margin:8px 0 6px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}.sdmore summary{cursor:pointer;padding:8px 12px;font-weight:600;font-size:14px;color:var(--acc)}.sdmore pre.sh{margin:0 12px 10px;max-height:380px;overflow:auto}.sdmore p{margin:0 12px 10px;font-size:14.5px}
+.sdtable{width:100%;border-collapse:collapse;font-size:14.5px;margin:8px 0}.sdtable th,.sdtable td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}.sdtable th{background:var(--soft);color:var(--fg)}
+.sdland .path{position:relative;margin:18px 0 8px;padding-left:44px}
+.sdland .path::before{content:"";position:absolute;left:-30px;top:12px;bottom:12px;width:3px;background:linear-gradient(var(--acc),var(--done));border-radius:2px}
+.sdland .node{position:relative;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:11px 15px;margin:0 0 10px;text-decoration:none;color:inherit;box-shadow:var(--sh)}
+.sdland .node::before{content:attr(data-n);position:absolute;left:-44px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;background:var(--surf);border:3px solid var(--acc);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--fg)}
+.sdland .node b{display:block;color:var(--fg);font-size:16px}.sdland .node span{color:var(--mut);font-size:13.5px}
+.sdland .node.soon{opacity:.6;background:var(--soft)}.sdland .node.soon::before{border-color:var(--line)}
+.sdland .node:not(.soon):hover{border-color:var(--acc);transform:translateX(2px)}
+.sdland .pill{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--done-soft);color:var(--done);border:1px solid var(--done-line);white-space:nowrap}
+.sdland .pill.soon{background:var(--soft);color:var(--faint);border-color:var(--line)}
+.sdland .tick-ok{color:var(--done);font-weight:700}
+.sdland h2{margin:34px 0 4px;font-size:24px;color:var(--fg)}
+.sdland .grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.sdland .pcard{border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:13px 15px;text-decoration:none;color:inherit;display:block;box-shadow:var(--sh)}
+.sdland .pcard b{display:block;color:var(--fg);font-size:15.5px;margin-bottom:2px}.sdland .pcard span{color:var(--mut);font-size:13.5px}.sdland .pcard .row{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.sdland .pcard.soon{opacity:.6;background:var(--soft)}.sdland .pcard:not(.soon):hover{border-color:var(--acc)}
+@media(max-width:1020px){.sdw{grid-template-columns:1fr;gap:0;padding:14px 14px 50px}.sdnav{position:static;display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:6px;-webkit-overflow-scrolling:touch}.sdnav h4,.sdnav .done{display:none}.sdnav a{flex:none;border:1px solid var(--line);border-radius:999px;padding:5px 11px;border-left-width:1px;white-space:nowrap}.sdnav a b{display:none}.sdreal>div{grid-template-columns:1fr;gap:4px}.sdsteps>li{padding-left:52px}}
+@media(max-width:560px){.sdsec>h2{font-size:20px}.sdsec>h2 small{display:none}.sdfoot{flex-direction:column}}
+</style></head>
+<body class="has-rail" data-sd="video-streaming">
+<a class="skip" href="#content">Skip to content</a>
+<nav class="rail" id="rail" aria-label="Sections"><a class="rail-i rail-logo" href="../index.html" title="Mastery home"><span class="logo" aria-hidden="true">M</span><span class="l"><b>Mastery</b></span></a><div class="rail-g">Courses</div><a class="rail-i" href="../index.html" title="Home"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 7.5 8 2.5l5.5 5M4 6.5v7h8v-7"/></svg><span class="l">Home</span></a><a class="rail-i" href="../dsa.html" title="DSA Mastery"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m5.5 4.5-3.5 3.5 3.5 3.5M10.5 4.5l3.5 3.5-3.5 3.5"/></svg><span class="l">DSA Mastery</span></a><a class="rail-i" href="../design/index.html" aria-current="page" title="System design"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m8 2 6.5 3.5L8 9 1.5 5.5z"/><path d="m1.5 8.5 6.5 3.5 6.5-3.5"/></svg><span class="l">System design</span></a><a class="rail-i" href="../systems.html" title="Systems Mastery"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3" width="11" height="4" rx="1"/><rect x="2.5" y="9" width="11" height="4" rx="1"/><path d="M5 5h.01M5 11h.01"/></svg><span class="l">Systems Mastery</span></a><div class="rail-g">Tools</div><a class="rail-i" href="../revise.html" title="Quick revision"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg><span class="l">Quick revision</span></a><a class="rail-i" href="../plan.html" title="DSA study planner"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="10" rx="1.5"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/></svg><span class="l">DSA study planner</span></a><a class="rail-i" href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener" title="GitHub"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M9 2.5h4.5V7M13.5 2.5 7 9M12 9v4.5H2.5V4H7"/></svg><span class="l">GitHub</span></a><button class="rail-i rail-pin" id="rail-pin" type="button" aria-pressed="false" title="Keep the menu open"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg><span class="l">Pin menu</span></button></nav><div class="rail-bd" id="rail-bd" hidden></div>
+<header class="bar"><div class="bar-in"><button id="b-rail" class="iconbtn rail-btn" aria-label="Open the sections menu" aria-expanded="false" aria-controls="rail"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"/></svg></button><a class="brand" href="index.html" aria-label="System design home"><span class="logo" aria-hidden="true">SD</span><b>System <span>Design</span></b></a>
+<nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Course map</a><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3.5 4.5 4.5L6 12.5"/></svg><span class="cur">Problem 5 · Design video streaming</span></nav>
+<span style="margin-left:auto"></span><button id="b-theme" class="iconbtn" title="Toggle light / dark" aria-label="Toggle light or dark theme"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5a5.5 5.5 0 0 0 0 11z" fill="currentColor"/></svg></button></div></header>
+<div class="sdw"><nav class="sdnav" aria-label="On this page"><h4>On this page</h4><a href="#ask"><b>1</b>The question</a><a href="#clarify"><b>2</b>What to ask</a><a href="#numbers"><b>3</b>The numbers</a><a href="#design"><b>4</b>First design</a><a href="#hard"><b>5</b>The hard part</a><a href="#scale"><b>6</b>Scale and failure</a><a href="#say"><b>7</b>Say it in 2 minutes</a><a href="#recap"><b>8</b>Remember</a><label class="done"><input type="checkbox" id="sd-done"> I finished this page</label></nav>
+<main id="content" class="sdmain"><header class="sdhero"><div class="eyebrow"><span class="tag">Problem 5 of 10</span>Whiteboard walkthrough</div><h1>Design video streaming</h1><p class="lead">Looks like a file download problem. It is really a delivery cost problem with a processing pipeline in front.</p><div class="sdmeta"><span>about 30 minutes</span><span>1 real experiments</span><span>A staple at media and large consumer companies</span></div></header>
+<section class="sdsec" id="ask"><h2><span class="n">1</span>The film that froze on the train<small>The question</small></h2><div class="sdstory"><p>ShopKart launches a small video section: product demos, around 3 minutes each. The first version stores one MP4 per video and serves it from the web server. In the office it works. Then a customer opens a demo on a commuter train and sends a screenshot of a spinner that has been turning for a minute.</p><p>The team learns two things at once. Phones have wildly different speeds, and a single file cannot adapt to any of them. And the bandwidth bill for the demos is already bigger than the bill for everything else. The question becomes: how would you do this for the whole internet, the way YouTube or Netflix do?</p></div><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 720 276" role="img" aria-label="From one big file to small pieces"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="sd-panel warn" x="0" y="0" width="230.667" height="276" rx="10"/><text class="sd-pt warn" x="14" y="26" text-anchor="start">One big file</text><rect class="sd-sh warn" x="101.33333333333333" y="92" width="28" height="48" rx="6"/><rect class="sd-ln" x="108.33333333333333" y="131" width="14" height="3" rx="1.5"/><rect class="sd-badge warn" x="49.7333" y="149" width="131.2" height="22" rx="11"/><text class="sd-bt warn" x="115.33333333333333" y="164" text-anchor="middle">movie.mp4 3.9 GB</text><text class="sd-pc" x="115.333" y="224" text-anchor="middle">The first idea: send the whole</text><text class="sd-pc" x="115.333" y="239" text-anchor="middle">file. The viewer waits for</text><text class="sd-pc" x="115.333" y="254" text-anchor="middle">gigabytes before pressing play.</text><rect class="sd-panel bad" x="244.667" y="0" width="230.667" height="276" rx="10"/><text class="sd-pt bad" x="258.667" y="26" text-anchor="start">A slow train</text><rect class="sd-sh bad" x="346.0" y="92" width="28" height="48" rx="6"/><rect class="sd-ln" x="353.0" y="131" width="14" height="3" rx="1.5"/><path class="sd-sh bad" d="M360.0,142 L381.0,178 L339.0,178 z"/><rect class="sd-ex" x="358.4" y="154" width="3.2" height="12" rx="1.4"/><circle class="sd-ex" cx="360.0" cy="171" r="2"/><text class="sd-pc" x="360" y="224" text-anchor="middle">In a tunnel the speed drops</text><text class="sd-pc" x="360" y="239" text-anchor="middle">from 5 Mbps to 0.3. A fixed</text><text class="sd-pc" x="360" y="254" text-anchor="middle">1080p stream freezes again and</text><text class="sd-pc" x="360" y="269" text-anchor="middle">again.</text><rect class="sd-panel ok" x="489.333" y="0" width="230.667" height="276" rx="10"/><text class="sd-pt ok" x="503.333" y="26" text-anchor="start">Small pieces</text><rect class="sd-sh ok" x="550.6666666666666" y="92" width="28" height="48" rx="6"/><rect class="sd-ln" x="557.6666666666666" y="131" width="14" height="3" rx="1.5"/><rect class="sd-badge ok" x="600.267" y="89" width="80.8" height="22" rx="11"/><text class="sd-bt ok" x="640.6666666666666" y="104" text-anchor="middle">4 s piece</text><rect class="sd-badge ok" x="600.267" y="117" width="80.8" height="22" rx="11"/><text class="sd-bt ok" x="640.6666666666666" y="132" text-anchor="middle">4 s piece</text><rect class="sd-badge ok" x="600.267" y="145" width="80.8" height="22" rx="11"/><text class="sd-bt ok" x="640.6666666666666" y="160" text-anchor="middle">4 s piece</text><text class="sd-pc" x="604.667" y="224" text-anchor="middle">Cut the film into 4 second</text><text class="sd-pc" x="604.667" y="239" text-anchor="middle">pieces, in several qualities.</text><text class="sd-pc" x="604.667" y="254" text-anchor="middle">The player picks one piece at a</text><text class="sd-pc" x="604.667" y="269" text-anchor="middle">time.</text></svg></figure><div class="sdquote"><p><b>The interviewer says:</b> Design YouTube or Netflix: upload, process and stream video to millions of viewers.</p><p class="muted" style="margin-top:6px"><b>What they are looking for:</b> A staple design question. They want the upload and processing pipeline, storage, delivery through a CDN and adaptive playback, with numbers.</p></div></section>
+<section class="sdsec" id="clarify"><h2><span class="n">2</span>What to ask before drawing anything<small>Requirements</small></h2><p class="sub">Two minutes of questions is what separates a design from a guess. Write the answers on the board.</p><ul><li><b>Video on demand or live? Upload volume, viewers, regions, device types, and are downloads allowed offline?</b> <span class='muted'>Assume video on demand: 500 hours uploaded per minute, a billion hours watched per day, global audience, all devices.</span></li></ul><p>Functional: upload a video; process it so it plays on any device; stream it with fast start and no freezing; seek anywhere. Non-functional: playback starts in a second or two, quality adapts to the connection, uploads never get lost, and delivery cost stays under control. Assume video on demand, not live.</p></section>
+<section class="sdsec" id="numbers"><h2><span class="n">3</span>The numbers that shape the design<small>Estimates</small></h2><table class="sdtable"><thead><tr><th>Quantity</th><th>Estimate and what it tells you</th></tr></thead><tbody><tr><td>Upload volume</td><td>500 hours of video arrive every minute (the scenario's assumption). That is 30,000 hours per hour, or <strong>720,000 hours of source video per day</strong>.</td></tr><tr><td>Storage per title</td><td>The recorded ladder below stores one 2 hour film in four qualities: 0.21 + 0.68 + 1.57 + 3.87 = <strong>6.3 GB</strong>, about 3.15 GB per hour. At 720,000 hours a day that is roughly <strong>2.3 PB of new renditions per day</strong> before replication. This is our estimate, not a published figure.</td></tr><tr><td>Delivery volume</td><td>Assume a billion hours watched per day at an average of 3 Mbps. 3 Mbps is 0.375 MB per second, so one hour is 1.35 GB. Times a billion: about <strong>1.4 exabytes per day</strong>. Delivery dwarfs storage.</td></tr><tr><td>What it means</td><td>Storage is cheap compared with delivery, so we happily store many copies of each title. The design goal is to serve almost every viewer from a cache close to them, and to keep the origin nearly idle.</td></tr><tr><td>Segments</td><td>A 2 hour film in 4 second segments is <strong>1,800 segments per rendition</strong>. Small enough to cache and retry, large enough to avoid a flood of tiny requests.</td></tr></tbody></table><div class="sdexp"><article class="sdx"><h3><span class="xn">1</span>A manifest and the storage cost of a bitrate ladder</h3><p class="what">What the player and the CDN actually see. The <strong>master playlist</strong> advertises each rendition with its bandwidth and resolution; the <strong>media playlist</strong> lists segment files, four seconds each. A two-hour film is 1,800 small files per rendition, served as ordinary static files, which is why a CDN can cache and deliver them. The ladder multiplies storage by about two and a half (all four renditions together), a small price compared with the bandwidth cost of delivery.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>#EXTM3U   (a master playlist: one line per rendition)
+#EXT-X-STREAM-INF:BANDWIDTH=235000,RESOLUTION=426x240
+240p/index.m3u8
+#EXT-X-STREAM-INF:BANDWIDTH=750000,RESOLUTION=854x480
+480p/index.m3u8
+#EXT-X-STREAM-INF:BANDWIDTH=1750000,RESOLUTION=1280x720
+720p/index.m3u8
+#EXT-X-STREAM-INF:BANDWIDTH=4300000,RESOLUTION=1920x1080
+1080p/index.m3u8
+
+#EXTM3U   (a media playlist for 720p: the first 4 of the segments)
+#EXT-X-TARGETDURATION:4
+#EXTINF:4.0,
+seg0000.ts
+#EXTINF:4.0,
+seg0001.ts
+#EXTINF:4.0,
+seg0002.ts
+#EXTINF:4.0,
+seg0003.ts
+
+a 2-hour film at each quality (one rendition):
+  240p     235 kbps    0.21 GB   1800 segments of 4 s
+  480p     750 kbps    0.68 GB   1800 segments of 4 s
+  720p    1750 kbps    1.57 GB   1800 segments of 4 s
+  1080p   4300 kbps    3.87 GB   1800 segments of 4 s
+the whole ladder costs 6.3 GB per title before replication: storage is cheap compared with delivery bandwidth.</code></pre><div class="annot"><span class="lbl">Read it line by line</span><div class="tw"><table><thead><tr><th>In the output</th><th>What it means</th></tr></thead><tbody><tr><td><code>#EXT-X-STREAM-INF:BANDWIDTH=235000,RESOLUTION=426x240</code></td><td>one rendition advertised with its bitrate and size</td></tr><tr><td><code>#EXTINF:4.0, seg0000.ts</code></td><td>a four-second segment file: the unit of download and of adaptation</td></tr><tr><td><code>1080p 4300 kbps ... 1800 segments of 4 s</code></td><td>a two-hour film is a few thousand small cacheable files per rendition</td></tr></tbody></table></div></div><details class="sdmore"><summary>Show the command and the full explanation</summary><pre class="sh"><code>python3 - &lt;&lt;&#x27;EOF&#x27;
+LADDER = [(&#x27;240p&#x27;, 235), (&#x27;480p&#x27;, 750), (&#x27;720p&#x27;, 1750), (&#x27;1080p&#x27;, 4300)]       # name, kilobits per second
+SEG = 4                                                                          # seconds per segment
+print(&#x27;#EXTM3U   (a master playlist: one line per rendition)&#x27;)
+for name, kbps in LADDER: print(&#x27;#EXT-X-STREAM-INF:BANDWIDTH=%d,RESOLUTION=%s\n%s/index.m3u8&#x27; % (kbps * 1000, {&#x27;240p&#x27;: &#x27;426x240&#x27;, &#x27;480p&#x27;: &#x27;854x480&#x27;, &#x27;720p&#x27;: &#x27;1280x720&#x27;, &#x27;1080p&#x27;: &#x27;1920x1080&#x27;}[name], name))
+print()
+print(&#x27;#EXTM3U   (a media playlist for 720p: the first 4 of the segments)&#x27;)
+print(&#x27;#EXT-X-TARGETDURATION:%d&#x27; % SEG)
+for i in range(4): print(&#x27;#EXTINF:%d.0,\nseg%04d.ts&#x27; % (SEG, i))
+print()
+dur = 2 * 3600
+print(&#x27;a 2-hour film at each quality (one rendition):&#x27;)
+for name, kbps in LADDER: print(&#x27;  %-6s %5d kbps  %6.2f GB   %d segments of %d s&#x27; % (name, kbps, kbps * 1000 / 8 * dur / 1e9, dur // SEG, SEG))
+print(&#x27;the whole ladder costs %.1f GB per title before replication: storage is cheap compared with delivery bandwidth.&#x27; % (sum(k for _, k in LADDER) * 1000 / 8 * dur / 1e9))
+EOF</code></pre><p class="muted">The same code runs on any Debian or Ubuntu machine as an ordinary user; nothing needs root.</p></details></article></div></section>
+<section class="sdsec" id="design"><h2><span class="n">4</span>A first design that works<small>Architecture</small></h2><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 720 250" role="img" aria-label="Video streaming design"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><circle class="sd-pp" cx="50" cy="39" r="7"/><path class="sd-pp" d="M38,69 v-8 a12,12 0 0 1 24,0 v8 z"/><line class="sd-a acc" x1="78" y1="54" x2="140" y2="54" marker-end="url(#dga)"/><text class="sd-c" x="109.0" y="47.0" text-anchor="middle">upload</text><path class="sd-sh acc" d="M150,66 a14,14 0 0 1 2,-27 a20,20 0 0 1 38,-4 a15,15 0 0 1 8,31 z"/><text class="sd-l" x="180" y="84" text-anchor="middle">raw store</text><line class="sd-a acc" x1="214" y1="54" x2="276" y2="54" marker-end="url(#dga)"/><text class="sd-c" x="245.0" y="47.0" text-anchor="middle">event</text><rect class="sd-sh acc" x="286" y="38" width="88" height="32" rx="16"/><rect class="sd-job on" x="296" y="47" width="14" height="14" rx="3"/><rect class="sd-job on" x="314" y="47" width="14" height="14" rx="3"/><rect class="sd-job on" x="332" y="47" width="14" height="14" rx="3"/><rect class="sd-job" x="350" y="47" width="14" height="14" rx="3"/><text class="sd-l" x="330" y="86" text-anchor="middle">job queue</text><line class="sd-a acc" x1="376" y1="54" x2="438" y2="54" marker-end="url(#dga)"/><rect class="sd-sh acc" x="448" y="30" width="56" height="48" rx="7"/><rect class="sd-ln" x="458" y="42" width="28" height="4" rx="2"/><rect class="sd-ln" x="458" y="52" width="28" height="4" rx="2"/><circle class="sd-led acc" cx="493" cy="44" r="3"/><circle class="sd-led acc" cx="493" cy="54" r="3"/><rect class="sd-ln" x="458" y="62" width="36" height="4" rx="2"/><text class="sd-l" x="476" y="94" text-anchor="middle">transcoders</text><line class="sd-a acc" x1="506" y1="54" x2="568" y2="54" marker-end="url(#dga)"/><text class="sd-c" x="537.0" y="47.0" text-anchor="middle">segments</text><path class="sd-sh acc" d="M580,66 a14,14 0 0 1 2,-27 a20,20 0 0 1 38,-4 a15,15 0 0 1 8,31 z"/><text class="sd-l" x="610" y="84" text-anchor="middle">segment store</text><path class="sd-sh acc" d="M588.0,154.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh acc sd-top" cx="610" cy="154.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M588.0,172 a22.0,9 0 0 0 44,0"/><text class="sd-l" x="610" y="212" text-anchor="middle">metadata</text><line class="sd-a acc dash" x1="476" y1="86" x2="570" y2="160" marker-end="url(#dga)"/><text class="sd-c" x="523.0" y="116.0" text-anchor="middle">status</text><path class="sd-sh ok" d="M300,190 a14,14 0 0 1 2,-27 a20,20 0 0 1 38,-4 a15,15 0 0 1 8,31 z"/><text class="sd-l" x="330" y="208" text-anchor="middle">CDN edges</text><line class="sd-a ok" x1="570" y1="176" x2="380" y2="176" marker-end="url(#dga)"/><text class="sd-c" x="475.0" y="169.0" text-anchor="middle">fill on demand</text><rect class="sd-sh ok" x="106" y="144" width="28" height="48" rx="6"/><rect class="sd-ln" x="113" y="183" width="14" height="3" rx="1.5"/><text class="sd-l" x="120" y="208" text-anchor="middle">player</text><line class="sd-a ok" x1="290" y1="176" x2="150" y2="170" marker-end="url(#dga)"/><text class="sd-c" x="220.0" y="166.0" text-anchor="middle">segments</text><text class="sd-n " x="360" y="240" text-anchor="middle">Write path on the top row (slow, asynchronous). Read path on the bottom row (fast, from the edge).</text></svg></figure><ol class="sdsteps"><li><h3>Upload straight to storage, in resumable parts</h3><p>The API checks the user and quota, then hands back a presigned URL (a temporary address that lets the client write to the store directly). The client uploads in parts, and if the connection drops it resumes where it stopped. The video bytes never pass through your app servers.</p><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 640 112" role="img" aria-label="Resumable upload"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><circle class="sd-pp" cx="60" cy="33" r="7"/><path class="sd-pp" d="M48,63 v-8 a12,12 0 0 1 24,0 v8 z"/><line class="sd-a acc" x1="88" y1="48" x2="170" y2="48" marker-end="url(#dga)"/><text class="sd-c" x="129.0" y="41.0" text-anchor="middle">ask URL</text><rect class="sd-sh" x="178" y="24" width="56" height="48" rx="7"/><rect class="sd-ln" x="188" y="36" width="28" height="4" rx="2"/><rect class="sd-ln" x="188" y="46" width="28" height="4" rx="2"/><circle class="sd-led " cx="223" cy="38" r="3"/><circle class="sd-led " cx="223" cy="48" r="3"/><rect class="sd-ln" x="188" y="56" width="36" height="4" rx="2"/><text class="sd-l" x="206" y="88" text-anchor="middle">API</text><line class="sd-a acc" x1="236" y1="48" x2="320" y2="48" marker-end="url(#dga)"/><text class="sd-c" x="278.0" y="41.0" text-anchor="middle">presigned</text><rect class="sd-sh acc" x="336" y="24" width="28" height="48" rx="6"/><rect class="sd-ln" x="343" y="63" width="14" height="3" rx="1.5"/><line class="sd-a acc" x1="378" y1="48" x2="480" y2="48" marker-end="url(#dga)"/><text class="sd-c" x="429.0" y="41.0" text-anchor="middle">parts</text><path class="sd-sh acc" d="M490,60 a14,14 0 0 1 2,-27 a20,20 0 0 1 38,-4 a15,15 0 0 1 8,31 z"/><text class="sd-l" x="520" y="78" text-anchor="middle">raw store</text></svg></figure></li><li><h3>Transcode in parallel into a ladder</h3><p>Transcoding means re-encoding the video into other sizes and bitrates. A workflow splits the source into chunks, a pool of workers encodes chunks in parallel into a ladder of 240p, 480p, 720p and 1080p, and the results are cut into segments. If a worker dies, only its chunk runs again.</p><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 640 112" role="img" aria-label="Parallel transcoding"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><path class="sd-sh acc" d="M30,60 a14,14 0 0 1 2,-27 a20,20 0 0 1 38,-4 a15,15 0 0 1 8,31 z"/><text class="sd-l" x="60" y="78" text-anchor="middle">source</text><line class="sd-a acc" x1="94" y1="48" x2="160" y2="48" marker-end="url(#dga)"/><text class="sd-c" x="127.0" y="41.0" text-anchor="middle">split</text><rect class="sd-sh acc" x="170" y="32" width="88" height="32" rx="16"/><rect class="sd-job on" x="180" y="41" width="14" height="14" rx="3"/><rect class="sd-job on" x="198" y="41" width="14" height="14" rx="3"/><rect class="sd-job on" x="216" y="41" width="14" height="14" rx="3"/><rect class="sd-job" x="234" y="41" width="14" height="14" rx="3"/><text class="sd-l" x="214" y="80" text-anchor="middle">chunk jobs</text><line class="sd-a acc" x1="260" y1="48" x2="330" y2="48" marker-end="url(#dga)"/><rect class="sd-sh acc" x="338" y="24" width="56" height="48" rx="7"/><rect class="sd-ln" x="348" y="36" width="28" height="4" rx="2"/><rect class="sd-ln" x="348" y="46" width="28" height="4" rx="2"/><circle class="sd-led acc" cx="383" cy="38" r="3"/><circle class="sd-led acc" cx="383" cy="48" r="3"/><rect class="sd-ln" x="348" y="56" width="36" height="4" rx="2"/><text class="sd-l" x="366" y="88" text-anchor="middle">workers</text><line class="sd-a acc" x1="396" y1="48" x2="470" y2="48" marker-end="url(#dga)"/><text class="sd-c" x="433.0" y="41.0" text-anchor="middle">encode</text><rect class="sd-badge ok" x="486" y="11" width="88" height="22" rx="11"/><text class="sd-bt ok" x="530" y="26" text-anchor="middle">240p  480p</text><rect class="sd-badge ok" x="482.4" y="39" width="95.2" height="22" rx="11"/><text class="sd-bt ok" x="530" y="54" text-anchor="middle">720p  1080p</text><text class="sd-n " x="530" y="84" text-anchor="middle">four renditions</text></svg></figure></li><li><h3>A manifest tells the player what exists</h3><p>A manifest is a small text file that lists every quality and every segment address. The player downloads it first, then asks for segments one by one. The first segment is chosen small and low quality so the picture starts fast.</p><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 640 116" role="img" aria-label="Manifest and segments"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="sd-sh ok" x="46" y="24" width="28" height="48" rx="6"/><rect class="sd-ln" x="53" y="63" width="14" height="3" rx="1.5"/><text class="sd-l" x="60" y="88" text-anchor="middle">player</text><line class="sd-a ok" x1="88" y1="48" x2="180" y2="48" marker-end="url(#dga)"/><text class="sd-c" x="134.0" y="41.0" text-anchor="middle">1 manifest</text><rect class="sd-badge acc" x="196" y="19" width="88" height="22" rx="11"/><text class="sd-bt acc" x="240" y="34" text-anchor="middle">480p index</text><rect class="sd-badge acc" x="192.4" y="47" width="95.2" height="22" rx="11"/><text class="sd-bt acc" x="240" y="62" text-anchor="middle">1080p index</text><line class="sd-a ok" x1="300" y1="48" x2="390" y2="48" marker-end="url(#dga)"/><text class="sd-c" x="345.0" y="41.0" text-anchor="middle">2 segments</text><rect class="sd-badge ok" x="406" y="11" width="88" height="22" rx="11"/><text class="sd-bt ok" x="450" y="26" text-anchor="middle">seg0000.ts</text><rect class="sd-badge ok" x="406" y="37" width="88" height="22" rx="11"/><text class="sd-bt ok" x="450" y="52" text-anchor="middle">seg0001.ts</text><rect class="sd-badge ok" x="406" y="63" width="88" height="22" rx="11"/><text class="sd-bt ok" x="450" y="78" text-anchor="middle">seg0002.ts</text></svg></figure></li><li><h3>Serve from a CDN, not from your origin</h3><p>A CDN (content delivery network) is a fleet of caches near viewers. The first viewer of a segment causes one fetch from the origin; the next thousand are answered by the edge. Popular new releases can be copied to the edges before anyone asks.</p><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 640 112" role="img" aria-label="CDN delivery"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><circle class="sd-pp" cx="44.0" cy="33.5" r="4.9"/><path class="sd-pp" d="M35.6,54.5 v-5.6 a8.4,8.4 0 0 1 16.8,0 v5.6 z"/><circle class="sd-pp" cx="70.0" cy="39.5" r="4.9"/><path class="sd-pp" d="M61.6,60.5 v-5.6 a8.4,8.4 0 0 1 16.8,0 v5.6 z"/><circle class="sd-pp" cx="96.0" cy="33.5" r="4.9"/><path class="sd-pp" d="M87.6,54.5 v-5.6 a8.4,8.4 0 0 1 16.8,0 v5.6 z"/><line class="sd-a ok" x1="120" y1="48" x2="210" y2="48" marker-end="url(#dga)"/><text class="sd-c" x="165.0" y="41.0" text-anchor="middle">segment</text><rect class="sd-sh ok" x="224" y="26" width="52" height="44" rx="10"/><path class="sd-bolt ok" d="M253,33 L240,51 L249,51 L245,63 L260,44 L251,44 z"/><text class="sd-l" x="250" y="86" text-anchor="middle">edge</text><line class="sd-a warn dash" x1="276" y1="48" x2="380" y2="48" marker-end="url(#dga)"/><text class="sd-c" x="328.0" y="41.0" text-anchor="middle">miss only</text><path class="sd-sh acc" d="M390,60 a14,14 0 0 1 2,-27 a20,20 0 0 1 38,-4 a15,15 0 0 1 8,31 z"/><text class="sd-l" x="420" y="78" text-anchor="middle">origin store</text><text class="sd-n " x="560" y="52" text-anchor="middle">hit ratio is the cost lever</text></svg></figure></li></ol></section>
+<section class="sdsec" id="hard"><h2><span class="n">5</span>The hard part: adaptive playback and the cost of delivery<small>The hard part</small></h2><p class="sub">Every interview has one part where the answer is not obvious. Spend your time here.</p><p>The player measures how fast the last segment arrived and chooses the quality of the next one. This is adaptive bitrate streaming (ABR). Fast network: climb the ladder. Tunnel: step down before the buffer empties. Because each segment is a separate small request, switching costs nothing.</p><p>The second hard part is money. Because delivery is about 1.4 exabytes a day in our estimate, the CDN hit ratio is the biggest cost lever. Short segments adapt faster but create more requests; longer ones are cheaper to serve but react slowly. Say which you picked and why. Newer codecs save bandwidth but not every device can play them, so you often encode more than one.</p><div class="sdexp"><article class="sdx"><h3><span class="xn">1</span>Always high quality, always low quality, or adaptive: who stalls?</h3><p class="what">Adaptive bitrate on a bumpy network. The viewer moves through good Wi-Fi, a tunnel and a weak 4G area. <strong>Always playing the best quality</strong> stalls repeatedly whenever the bandwidth drops below the video's bitrate. <strong>Always playing the lowest quality</strong> never stalls but looks poor throughout. The <strong>adaptive</strong> player measures the last download and its buffer, chooses the highest rendition it can finish in time (more cautiously when the buffer is low), and gets close to the best of both: very few or no stalls with a much better average quality than the lowest setting. Real players (and Netflix's research on this) use more refined buffer-based algorithms, but the trade-off is the same.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>70 segments of 4 s (280 s of video) over a bandwidth trace with a tunnel in it:
+strategy                    stalls  stalled for average quality
+always 1080p (4300 kbps)        43      766.2 s        4300 kbps
+always 240p (235 kbps)           0        0.0 s         235 kbps
+adaptive                         2       18.6 s        2192 kbps</code></pre><div class="annot"><span class="lbl">Read it line by line</span><div class="tw"><table><thead><tr><th>In the output</th><th>What it means</th></tr></thead><tbody><tr><td><code>always 1080p (4300 kbps): 43 stalls, 766 s stalled</code></td><td>ignores the network: runs dry whenever bandwidth drops, and the stalls pile up</td></tr><tr><td><code>always 240p (235 kbps): 0 stalls, average 235 kbps</code></td><td>safe but poor quality for the whole film</td></tr><tr><td><code>adaptive: 2 stalls (18.6 s), average 2192 kbps</code></td><td>chooses quality per segment from throughput and buffer: about nine times the quality of 240p, with a tiny fraction of the stalls</td></tr></tbody></table></div></div><details class="sdmore"><summary>Show the command and the full explanation</summary><pre class="sh"><code>python3 - &lt;&lt;&#x27;EOF&#x27;
+import random
+rng = random.Random(11)
+LADDER = [235, 750, 1750, 4300]                       # kbps
+SEG = 4                                                # seconds of video per segment
+# a bandwidth trace: a phone moving between good Wi-Fi, a tunnel, and 4G (kbps), changing every segment time
+bw = []
+for phase, (lo, hi, n) in enumerate(((5000, 8000, 20), (300, 900, 10), (1500, 3500, 20), (200, 600, 8), (3000, 6000, 12))):
+    bw += [rng.uniform(lo, hi) for _ in range(n)]
+def play(chooser):
+    buffer, t, stalls, stall_time, rates, last_tp = 8.0, 0.0, 0, 0.0, [], bw[0]
+    for i, tp in enumerate(bw):
+        rate = chooser(last_tp, buffer)
+        download = rate * SEG / tp                                   # seconds to download this segment at the current bandwidth
+        if download &gt; buffer:                                        # the buffer runs dry while downloading: a stall
+            stalls += 1; stall_time += download - buffer; buffer = 0.0
+        else: buffer -= download
+        buffer = min(buffer + SEG, 30.0); last_tp = tp; rates.append(rate)
+    return stalls, stall_time, sum(rates) / len(rates)
+fixed_high = lambda tp, buf: 4300
+fixed_low = lambda tp, buf: 235
+def adaptive(tp, buf):
+    safe = tp * (0.6 if buf &lt; 10 else 0.85)                          # be cautious when the buffer is low
+    return max([r for r in LADDER if r &lt;= safe] or [LADDER[0]])
+print(&#x27;70 segments of 4 s (%d s of video) over a bandwidth trace with a tunnel in it:&#x27; % (70 * SEG))
+print(&#x27;%-26s %7s %12s %15s&#x27; % (&#x27;strategy&#x27;, &#x27;stalls&#x27;, &#x27;stalled for&#x27;, &#x27;average quality&#x27;))
+for name, f in ((&#x27;always 1080p (4300 kbps)&#x27;, fixed_high), (&#x27;always 240p (235 kbps)&#x27;, fixed_low), (&#x27;adaptive&#x27;, adaptive)):
+    s, st, avg = play(f); print(&#x27;%-26s %7d %10.1f s %11.0f kbps&#x27; % (name, s, st, avg))
+EOF</code></pre><p class="muted">The same code runs on any Debian or Ubuntu machine as an ordinary user; nothing needs root.</p></details></article></div></section>
+<section class="sdsec" id="scale"><h2><span class="n">6</span>Scale, failure and trade-offs<small>Deep dive</small></h2><div class="sdgrid"><div class="sdcard "><h3>Processing falls behind</h3><p>A burst of uploads fills the queue. Playback of existing videos is unaffected; only new videos wait. Add workers, prioritise short and popular uploads, and show a clear processing status.</p></div><div class="sdcard "><h3>A new release is hot</h3><p>Millions ask for the same first segments in the same minute. Pre-warm the edges, and use an origin shield (one mid-tier cache that collapses many edge misses into one origin request).</p></div><div class="sdcard ok"><h3>A CDN region fails</h3><p>Players retry another edge or another CDN named in the manifest. Keep the manifest short-lived so you can steer traffic.</p></div><div class="sdcard "><h3>Lost uploads</h3><p>Resumable multipart upload plus a completion call that verifies size and hash. Never mark a video ready until every rendition exists.</p></div><div class="sdcard bad"><h3>Piracy and abuse</h3><p>Use DRM (encrypted segments with licensed keys) for protected content, signed URLs that expire, and safety scanning in the pipeline before publishing.</p></div></div></section>
+<section class="sdsec" id="say"><h2><span class="n">7</span>Say it in two minutes<small>The answer</small></h2><article class="sdq"><header><span class="who">A staple media question: reported by candidates, not official.</span><h3>&quot;Design YouTube or Netflix: upload, process and stream video to millions of viewers.&quot;</h3><p>A staple design question. They want the upload and processing pipeline, storage, delivery through a CDN and adaptive playback, with numbers.</p></header><div class="body"><h4>3. How to say it</h4><div class="say"><span class="lbl2">A model answer, about two minutes aloud</span><p>"Bandwidth is the dominant cost: a billion hours a day at a few megabits is on the order of an exabyte a day, so everything serves the CDN. Uploads go straight to an object store with resumable multipart upload and presigned URLs, and an event queues a processing job. The pipeline splits the source into chunks, transcodes them in parallel into a ladder of renditions and codecs, packages short segments and HLS or DASH manifests, generates thumbnails and runs safety checks, orchestrated as a workflow with retries and idempotent tasks.</p><p>Segments sit in an object store with metadata in a database. Viewers fetch the manifest and the player picks a rendition per segment from measured throughput and buffer, dropping quality before the buffer runs dry. CDN edges serve the segments, with popular titles pre-positioned and origin shielding to protect the store. Processing can lag without affecting playback of existing titles, and a CDN failure falls back to another. The trade-offs are encode and storage cost against quality options, segment length against latency, and codec efficiency against device support."</p></div><h4>4. Likely follow-ups</h4><details><summary>Why short segments rather than one big file?</summary><p>Adaptation per segment, fast start, seeking, cacheable small objects and resumable delivery.</p></details><details><summary>How do you start playback quickly?</summary><p>Start with a low rendition and a small first segment, prefetch, keep manifests small and served from the edge.</p></details><details><summary>How would live streaming differ?</summary><p>Segments are produced continuously by a packager, the manifest is updated, end-to-end delay is a few segments, and a CDN with low-latency modes distributes them.</p></details><h4>Common slips</h4><ul class='slips'><li>Serving one big file from the application servers.</li><li>No transcoding or bitrate ladder.</li><li>Ignoring that bandwidth, not compute, is the main cost.</li></ul></div></article><h3 style="margin:18px 0 6px">What companies have published</h3><div class="sdreal"><div><b class="co">Netflix</b><div><p>Netflix describes <strong>Open Connect</strong>, its own content delivery network, with caching servers placed inside internet service provider networks so that video travels a short distance to the viewer.</p><a href="https://openconnect.netflix.com/" target="_blank" rel="noopener">Netflix Open Connect</a></div></div><div><b class="co">Netflix</b><div><p>The Netflix Tech Blog has written about <strong>per-title encoding</strong>: choosing the bitrate ladder for each title based on how complex it is, instead of using one fixed ladder for everything.</p><a href="https://netflixtechblog.com/per-title-encode-optimization-7e99442b62a2" target="_blank" rel="noopener">Netflix Tech Blog: Per-Title Encode Optimization</a></div></div></div><p class="sdnote">Summaries of public engineering write-ups; check the source for details.</p></section>
+<section class="sdsec" id="recap"><h2><span class="n">8</span>Remember this<small>Recap</small></h2><div class="sdrecap"><h3 style="margin:12px 0 0">The page in 6 lines</h3><ul><li>Delivery is the cost: about 1.4 exabytes a day in our estimate. Design for the CDN.</li><li>Upload straight to object storage with presigned URLs and resumable parts.</li><li>A queue and parallel workers turn one source into a ladder of renditions and segments.</li><li>A manifest lists the qualities and segments; the player adapts one segment at a time.</li><li>Adaptive playback stalls far less than fixed 1080p in the recorded run (2 stalls against 43).</li><li>Processing can lag without hurting playback; say how you pre-warm a hot release.</li></ul></div><h3 style="margin:18px 0 6px">Check yourself</h3><details><summary>Why cut video into 4 second segments?</summary><p>Each is a small cacheable request, the player can change quality between segments, and a failed piece is cheap to retry.</p></details><details><summary>Why not stream through your own app servers?</summary><p>Delivery is the dominant cost; a CDN serves most requests from the edge and keeps the origin nearly idle.</p></details><details><summary>What does the manifest contain?</summary><p>The list of renditions with their bitrates, and the addresses of each segment.</p></details><p class="sub" style="margin-top:14px">Want every experiment, lab and edge case? The reference lessons for this topic:</p><div class="sddeeper"><a href="../systems/S29_media_files_streaming.html#l1"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Video streaming, full lesson</a><a href="../systems/S21_search_blob_special_stores.html#l2"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Object storage and blobs</a><a href="../systems/S17_caching_and_cdns.html#l1"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Caching and CDNs</a></div></section>
+<nav class="sdfoot"><a class="" href="chat.html"><small>Previous</small><strong>Design a chat system</strong></a><a class="r" href="file-storage.html"><small>Next</small><strong>Design file storage and sync</strong></a></nav></main></div>
+<footer class="site-foot"><span>Mastery: free, open study sheets. Progress is saved in your browser only.</span><span><a href="index.html">Course map</a> · <a href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener">GitHub</a></span></footer>
+<script>(function(){var IC={};
+var slug=document.body.getAttribute('data-sd'),K='sd2-done';
+function get(){try{return JSON.parse(localStorage.getItem(K)||'{}')}catch(e){return{}}}
+var cb=document.getElementById('sd-done');if(cb){var s=get();cb.checked=!!s[slug];cb.onchange=function(){var s=get();if(cb.checked)s[slug]=1;else delete s[slug];try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}}}
+var links=[].slice.call(document.querySelectorAll('.sdnav a'));var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'))}).filter(Boolean);
+if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(a){a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id)})}})},{rootMargin:'-20% 0px -70% 0px'});secs.forEach(function(s){io.observe(s)})}
+var tb=document.getElementById('b-theme');if(tb){var R=document.documentElement;var t=null;try{t=localStorage.getItem('theme')}catch(e){}if(t)R.setAttribute('data-theme',t);tb.onclick=function(){var n=R.getAttribute('data-theme')==='dark'?'light':'dark';R.setAttribute('data-theme',n);try{localStorage.setItem('theme',n)}catch(e){}}}
+})();</script>
+</body></html>

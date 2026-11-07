@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Design ride hailing and nearby search | System Design | Mastery</title>
+<meta name="description" content="Mostly a write problem in disguise: a million moving points, and a search that must only look in the right few cells."><meta name="theme-color" content="#0f172a">
+<meta property="og:type" content="article"><meta property="og:site_name" content="Mastery"><meta property="og:title" content="Design ride hailing and nearby search">
+<meta property="og:description" content="Mostly a write problem in disguise: a million moving points, and a search that must only look in the right few cells."><meta property="og:url" content="https://nithin988.github.io/dsa-mastery/design/ride-hailing.html">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f172a'/%3E%3Ctext x='16' y='21' font-family='monospace' font-size='13' font-weight='700' fill='%23f8fafc' text-anchor='middle'%3EDSA%3C/text%3E%3C/svg%3E">
+<style>/* DSA Mastery: shared stylesheet. Tokens and components follow the Kimaru Platform design system
+   (slate neutrals, semantic colour, rounded-md cards, shadow-sm, 16px stroke icons). See docs/DESIGN_SYSTEM.md. */
+:root{
+ --bg:#f8fafc;--surf:#fff;--hd:#f8fafc;--soft:#f1f5f9;--line:#e2e8f0;--line2:#f1f5f9;
+ --fg:#0f172a;--txt:#334155;--mut:#475569;--faint:#64748b;
+ --ink:#0f172a;--ink-fg:#f8fafc;
+ --acc:#3162b4;--acc-soft:#eaf0fa;--acc-line:#bcd0ee;
+ --ok:#15803d;--ok-soft:#f0fdf4;--ok-line:#86efac;
+ --warn:#b45309;--warn-soft:#fffbeb;--warn-line:#fbbf24;
+ --med:#a16207;--med-soft:#fefce8;
+ --bad:#b91c1c;--bad-soft:#fef2f2;--bad-line:#f87171;
+ --risk:#c2410c;--risk-soft:#fff7ed;
+ --info:#0369a1;--info-soft:#f0f9ff;--info-line:#38bdf8;
+ --done:#0f766e;--done-soft:#f0fdfa;--done-line:#5eead4;
+ --code:#f8fafc;--ring:#3162b4;
+ --sh:0 1px 2px rgba(15,23,42,.06);--sh-lg:0 10px 30px rgba(15,23,42,.12);
+ --r:6px;--r-lg:8px;
+ color-scheme:light}
+:root[data-theme=dark]{
+ --bg:#020617;--surf:#0f172a;--hd:#0b1324;--soft:#1e293b;--line:#1e293b;--line2:#172033;
+ --fg:#f1f5f9;--txt:#cbd5e1;--mut:#a3b1c6;--faint:#94a3b8;
+ --ink:#f1f5f9;--ink-fg:#0f172a;
+ --acc:#8db4f0;--acc-soft:#14233d;--acc-line:#2c4a7a;
+ --ok:#4ade80;--ok-soft:#0c2a18;--ok-line:#166534;
+ --warn:#fbbf24;--warn-soft:#2b2008;--warn-line:#a16207;
+ --med:#facc15;--med-soft:#2a2308;
+ --bad:#f87171;--bad-soft:#2d1214;--bad-line:#b91c1c;
+ --risk:#fb923c;--risk-soft:#2b1708;
+ --info:#38bdf8;--info-soft:#0a2233;--info-line:#0369a1;
+ --done:#2dd4bf;--done-soft:#0a2624;--done-line:#0f766e;
+ --code:#0b1324;--ring:#8db4f0;
+ --sh:none;--sh-lg:0 10px 30px rgba(0,0,0,.5);color-scheme:dark}
+
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:var(--acc);text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:4px}
+code{background:var(--soft);padding:1px 5px;border-radius:4px;font:0.88em ui-monospace,"Cascadia Code",Consolas,Menlo,monospace;color:var(--fg)}
+.mut,.muted{color:var(--mut)}.muted{font-size:13px;font-weight:400}
+.skip{position:absolute;left:12px;top:-60px;z-index:100;background:var(--ink);color:var(--ink-fg);padding:8px 14px;border-radius:var(--r);text-decoration:none;font-size:14px}.skip:focus{top:8px}
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.33;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-3px}
+.ic.fill{fill:currentColor;stroke:none}.ic.lg{width:20px;height:20px}
+
+/* buttons: primary = dark, secondary = light, confirmed = teal (design system section 5) */
+.btn,.bar button,.st-ctl button,.st-ctl select{font:inherit;font-size:13px;font-weight:500;line-height:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);cursor:pointer;text-decoration:none;box-shadow:var(--sh);transition:background .15s,border-color .15s}
+.btn:hover,.bar button:hover,.st-ctl button:hover{background:var(--soft)}
+.btn.pri,.bar button.on,.btn.on{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.btn.pri:hover{opacity:.9;background:var(--ink)}
+.btn.sec{background:var(--soft)}
+.btn.lg{height:40px;padding:0 18px;font-size:14px}
+.iconbtn{width:32px;padding:0!important}
+
+/* top bar (sticky 48px, like ReviewBar) */
+.bar{position:sticky;top:0;z-index:30;background:var(--surf);border-bottom:1px solid var(--line);box-shadow:var(--sh)}
+.bar-in{max-width:1280px;margin:0 auto;height:48px;display:flex;gap:8px;align-items:center;padding:0 16px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;text-decoration:none;color:var(--fg);letter-spacing:-.01em;margin-right:4px}
+.brand b{font-weight:700}.brand span{color:var(--faint);font-weight:600}
+.logo{width:24px;height:24px;border-radius:6px;background:var(--ink);color:var(--ink-fg);display:grid;place-items:center;font:700 11px ui-monospace,Consolas,monospace;letter-spacing:-.02em}
+.crumbs{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mut);min-width:0;margin-right:auto}
+.crumbs a{color:var(--mut);text-decoration:none}.crumbs a:hover{color:var(--fg)}
+.crumbs .cur{color:var(--fg);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crumbs .ic{color:var(--faint);width:14px;height:14px}
+.prog{font-size:12.5px;color:var(--mut);white-space:nowrap;padding:0 4px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.seg button{border:0!important;border-radius:0!important;box-shadow:none!important;background:var(--surf)}
+.seg button+button{border-left:1px solid var(--line)!important}
+.pbar{height:2px;background:var(--line)}.pbar i{display:block;height:100%;width:0;background:var(--acc);transition:width .4s}
+
+/* topic switcher panel */
+.menu{position:relative}
+.panel{position:absolute;right:0;top:40px;width:min(380px,92vw);max-height:min(70vh,640px);overflow:auto;background:var(--surf);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-lg);padding:6px;z-index:50}
+.panel[hidden]{display:none}
+.panel h5{margin:10px 8px 4px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.panel a{display:grid;grid-template-columns:26px 1fr auto;gap:8px;align-items:center;padding:7px 8px;border-radius:var(--r);text-decoration:none;color:var(--fg);font-size:13.5px}
+.panel a:hover{background:var(--soft)}.panel a[aria-current=page]{background:var(--soft);font-weight:600}
+.panel .n{font:600 11px ui-monospace,Consolas,monospace;color:var(--faint)}
+.panel .c{font-size:11.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.panel .c.done{color:var(--done);font-weight:600}
+
+/* layout */
+.wrap{max-width:1280px;margin:0 auto;padding:0 16px;display:grid;grid-template-columns:248px minmax(0,1fr);gap:32px}
+nav.side{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto;padding:20px 0;font-size:13.5px}
+nav.side h4{margin:16px 0 6px;padding:0 10px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+nav.side a{display:flex;gap:8px;align-items:center;padding:6px 10px;border-radius:var(--r);text-decoration:none;color:var(--txt)}
+nav.side a:hover{background:var(--soft)}nav.side a.act{background:var(--soft);color:var(--fg);font-weight:600;box-shadow:inset 2px 0 0 var(--ink)}
+nav.side .dot{width:8px;height:8px;border-radius:50%;flex:none}.dot.hot{background:var(--warn)}.dot.sec{background:var(--faint)}
+nav.side .cnt{margin-left:auto;font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}
+main{min-width:0;padding:24px 0 90px}
+.chips{display:none}
+
+/* page header (hero) */
+.hero{background:var(--surf);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh);padding:24px 26px;margin-bottom:20px}
+.eyebrow{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);display:flex;align-items:center;gap:8px}
+.eyebrow .tag{background:var(--soft);border-radius:99px;padding:3px 9px;color:var(--fg);letter-spacing:.06em}
+.hero h1{font-size:clamp(24px,3.4vw,32px);line-height:1.2;margin:10px 0 10px;letter-spacing:-.02em;color:var(--fg);font-weight:700}
+.lead{font-size:15.5px;color:var(--txt);margin:0;max-width:72ch}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.stat{display:inline-flex;gap:6px;align-items:center;background:var(--hd);border:1px solid var(--line);border-radius:99px;padding:3px 12px;font-size:12.5px;color:var(--mut)}.stat b{color:var(--fg);font-variant-numeric:tabular-nums}
+
+/* headings */
+h2{font-size:20px;font-weight:700;margin:40px 0 10px;letter-spacing:-.01em;scroll-margin-top:72px;color:var(--fg)}
+h3{margin:0;font-size:20px;font-weight:600;letter-spacing:-.01em;color:var(--fg)}
+
+/* callouts: neutral box + 2px left accent (design system section 6) */
+.callout{border:1px solid var(--line);border-left:2px solid var(--faint);background:var(--hd);padding:10px 14px;border-radius:var(--r);margin:14px 0}
+.callout.intu{border-left-color:var(--info-line)}.callout p{margin:4px 0}
+.callout .lbl{margin-bottom:2px}
+
+/* pattern card: header bar + body (design system section 6) */
+.pat{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);margin:22px 0;scroll-margin-top:72px;overflow:hidden}
+.pat-h{display:flex;gap:12px;align-items:center;flex-wrap:wrap;min-height:50px;padding:8px 16px;background:var(--hd);border-bottom:1px solid var(--line)}
+.pat-h h3{font-size:18px}
+.badge{width:28px;height:28px;border-radius:var(--r);background:var(--ink);color:var(--ink-fg);display:flex;align-items:center;justify-content:center;font:700 13px ui-monospace,Consolas,monospace;flex:none}
+.tier{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;white-space:nowrap}
+.tier.hot{background:var(--warn-soft);color:var(--warn)}.tier.sec{background:var(--soft);color:var(--mut)}
+.pp{margin-left:auto;font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.pat-b{padding:6px 16px 8px}
+.glance{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0;margin:8px 0 6px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.gi{padding:10px 14px;font-size:14px;border-left:1px solid var(--line2)}.gi:first-child{border-left:0}
+.lbl{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.lbl .ic{width:14px;height:14px}
+.blk{margin:16px 0}.blk p{margin:4px 0}
+.blk ol,.blk ul{margin:4px 0;padding-left:22px}.blk li{margin:4px 0}
+.blk.warn{border:1px solid var(--line);border-left:2px solid var(--warn-line);background:var(--warn-soft);border-radius:var(--r);padding:10px 14px}.blk.warn .lbl{color:var(--warn)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cx{display:flex;gap:8px;align-items:center;background:var(--ok-soft);color:var(--ok);border:1px solid var(--line);border-left:2px solid var(--ok-line);border-radius:var(--r);padding:8px 14px;font-weight:600;font-size:14px;margin:14px 0}
+
+/* code */
+pre{background:var(--code);border:1px solid var(--line);border-radius:var(--r);padding:34px 15px 13px;overflow-x:auto;margin:8px 0;position:relative;font-size:13px;line-height:1.55;color:var(--fg)}
+pre::before{position:absolute;left:12px;top:8px;font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+pre.code-java::before{content:"Java"}pre.code-py::before{content:"Python"}pre.trace::before{content:"Trace"}
+pre code{background:none;padding:0;font-size:inherit;color:inherit}
+.code-java,.code-py{display:none}body[data-lang=java] .code-java,body[data-lang=py] .code-py{display:block}
+.cp{position:absolute;top:5px;right:6px;font:500 12px system-ui,sans-serif;height:24px;padding:0 9px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--mut);cursor:pointer}
+.cp:hover{color:var(--fg);background:var(--soft)}
+.trace{border-left:2px solid var(--faint)}
+
+/* tables */
+.tw{overflow-x:auto;margin:10px 0;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:9px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line2)}
+th{background:var(--hd);font:600 11px/1.2 system-ui,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);border-bottom:1px solid var(--line);position:sticky;top:0}
+tbody tr:hover td{background:var(--hd)}tr:last-child td{border-bottom:0}
+.ladder td:first-child{width:36px;text-align:center}.ladder .t{white-space:nowrap}.ladder .c{white-space:nowrap;font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+input.pk{width:18px;height:18px;accent-color:var(--done);cursor:pointer;margin:0}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;white-space:nowrap}
+.dE{background:var(--ok-soft);color:var(--ok)}.dM{background:var(--med-soft);color:var(--med)}.dH{background:var(--bad-soft);color:var(--bad)}
+tr.done td{background:var(--done-soft)}tr.done td:nth-child(3){text-decoration:line-through;text-decoration-color:var(--faint)}
+details{border:1px solid var(--line);border-radius:var(--r);padding:0 14px;margin:8px 0;background:var(--surf)}
+summary{cursor:pointer;font-weight:600;padding:10px 0;color:var(--fg);list-style:none;display:flex;gap:8px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"";width:6px;height:6px;border-right:1.5px solid var(--faint);border-bottom:1.5px solid var(--faint);transform:rotate(-45deg);transition:transform .2s;flex:none}
+details[open] summary::before{transform:rotate(45deg)}
+details[open]{border-left:2px solid var(--info-line)}details p{margin:0 0 12px;color:var(--txt)}
+
+/* stepper (animation panel) */
+.stepper{border:1px solid var(--line);border-radius:var(--r-lg);margin:8px 0 14px;background:var(--surf);box-shadow:var(--sh);overflow:hidden}
+.stepper:focus-visible{outline-offset:0}
+.st-head{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--hd);border-bottom:1px solid var(--line);font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.st-head .st-count{margin-left:auto;font-size:11.5px;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.st-body{padding:12px 14px 4px}
+.st-prog{height:3px;background:var(--line);overflow:hidden}.st-prog i{display:block;height:100%;background:var(--acc);width:0;transition:width .3s}
+.st-view{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;padding:6px 0 2px;margin:0 auto}
+.cellw{display:flex;flex-direction:column;align-items:center;min-width:46px}
+.ptr{min-height:22px;font:600 11px ui-monospace,Consolas,monospace;margin-bottom:3px;display:flex;align-items:flex-end}
+.ptr b{background:var(--ink);color:var(--ink-fg);padding:1px 7px;border-radius:99px;white-space:nowrap;animation:drop .25s ease}
+.cell{min-width:46px;height:46px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:600 15px ui-monospace,Consolas,monospace;padding:0 7px;transition:background .25s,border-color .25s,transform .25s}
+.cell.in{background:var(--acc-soft);border-color:var(--acc);transform:translateY(-2px)}
+.cell.ok{background:var(--done-soft);border-color:var(--done)}
+.cell.dim{background:var(--soft);color:var(--mut);border-style:dashed;opacity:.65}
+.cell.pop{animation:pop .35s ease}
+.edge{align-self:flex-start;margin-top:31px;min-width:20px;text-align:center;color:var(--faint);font:700 16px ui-monospace,Consolas,monospace}
+.idx{font:11px ui-monospace,Consolas,monospace;color:var(--mut);margin-top:3px}
+.st-aux{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;min-height:30px;margin-top:8px}
+.st-aux .al{font:600 10px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}
+.chip{font:600 12.5px ui-monospace,Consolas,monospace;background:var(--hd);border:1px solid var(--line);border-radius:var(--r);padding:2px 9px;color:var(--fg)}
+.st-note{min-height:48px;margin:8px 0;font-size:14.5px;padding:10px 13px;background:var(--hd);border:1px solid var(--line);border-left:2px solid var(--info-line);border-radius:var(--r);color:var(--txt)}
+.st-ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 14px 12px}
+.st-ctl button{min-width:32px}
+.st-ctl button.pri{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.st-ctl input[type=range]{flex:1;min-width:90px;accent-color:var(--ink)}
+.st-ctl select{padding:0 8px}
+@keyframes pop{0%{transform:scale(.75)}60%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes drop{from{transform:translateY(-6px);opacity:0}to{transform:none;opacity:1}}
+
+/* previous / next */
+.foot{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.nxt{display:flex;flex-direction:column;gap:3px;padding:14px 16px;background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);text-decoration:none;color:var(--fg)}
+.nxt:hover{border-color:var(--faint)}.nxt.r{text-align:right;align-items:flex-end}.nxt small{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);display:flex;gap:6px;align-items:center}
+.nxt strong{font-size:15px;font-weight:600}
+.nxt.next{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}.nxt.next small{color:inherit;opacity:.75}
+.site-foot{max-width:1280px;margin:0 auto;padding:22px 16px 40px;display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between;color:var(--mut);font-size:13px;border-top:1px solid var(--line)}
+.site-foot a{color:var(--mut)}.site-foot a:hover{color:var(--fg)}
+
+/* landing page */
+.home{max-width:1120px;margin:0 auto;padding:28px 16px 60px}
+.home-hero{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:stretch}
+.home-hero .hero{margin:0;display:flex;flex-direction:column}
+.home-hero .hero h1{font-size:clamp(28px,4vw,40px)}
+.cta{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:14px 16px;display:flex;flex-direction:column;justify-content:center}
+.kpi b{font-size:26px;line-height:1.1;color:var(--fg);letter-spacing:-.02em;font-variant-numeric:tabular-nums}.kpi span{font-size:12.5px;color:var(--mut);margin-top:3px}
+.kpi.wide{grid-column:1/-1}
+.meter{height:6px;border-radius:99px;background:var(--soft);overflow:hidden;margin-top:10px}.meter i{display:block;height:100%;width:0;background:var(--done);border-radius:99px;transition:width .4s}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0 0}
+.how div{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;font-size:14px}
+.how b{display:flex;align-items:center;gap:8px;color:var(--fg);margin-bottom:4px}
+.how .no{width:22px;height:22px;border-radius:6px;background:var(--soft);display:grid;place-items:center;font:700 11px ui-monospace,monospace;color:var(--fg)}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:34px 0 4px}
+.tools h2{margin:0;margin-right:auto;font-size:20px}
+.search{position:relative}.search input{height:32px;width:220px;max-width:100%;padding:0 10px 0 32px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:13px}
+.search .ic{position:absolute;left:10px;top:8px;color:var(--faint)}
+.filters{display:inline-flex;gap:6px;flex-wrap:wrap}
+.filters button{height:32px;padding:0 12px;border:1px solid var(--line);border-radius:99px;background:var(--surf);color:var(--mut);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.filters button[aria-pressed=true]{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.phase{margin:26px 0 0}
+.phase-h{display:flex;align-items:baseline;gap:10px;margin:0 0 10px}
+.phase-h h2{margin:0;font-size:16px;scroll-margin-top:72px}.phase-h span{font-size:13px;color:var(--mut)}
+.phase-h .ph{font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;background:var(--soft);color:var(--fg);padding:4px 8px;border-radius:99px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.tcard{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden}
+.tcard[hidden]{display:none}
+.tcard-h{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 14px;background:var(--hd);border-bottom:1px solid var(--line)}
+.tcard-h .no{font:700 12px ui-monospace,Consolas,monospace;background:var(--ink);color:var(--ink-fg);border-radius:var(--r);padding:3px 7px}
+.tcard-h h3{font-size:16px;margin-right:auto}
+.st{font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--soft);color:var(--mut);white-space:nowrap}
+.st.doing{background:var(--warn-soft);color:var(--warn)}.st.done{background:var(--done-soft);color:var(--done)}
+.tcard-b{padding:12px 14px;display:flex;flex-direction:column;gap:10px;flex:1}
+.tcard-b p{margin:0;font-size:13.5px;color:var(--txt);flex:1}
+.meta{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--mut)}.meta span{display:inline-flex;gap:5px;align-items:center}
+.act{display:flex;gap:8px}
+.empty{text-align:center;color:var(--mut);padding:30px;border:1px dashed var(--line);border-radius:var(--r);margin-top:16px}
+
+@media (max-width:1020px){.wrap{display:block}nav.side{display:none}
+ .chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0;position:sticky;top:50px;z-index:10;background:var(--bg)}
+ .chips a{white-space:nowrap;font-size:12.5px;border:1px solid var(--line);background:var(--surf);padding:4px 11px;border-radius:99px;text-decoration:none;color:var(--fg)}
+ .home-hero{grid-template-columns:1fr}}
+@media (max-width:720px){.crumbs .cur,.crumbs .ic,.prog{display:none}.how{grid-template-columns:1fr}.foot{grid-template-columns:1fr}.btn .t-long{display:none}}
+@media (max-width:640px){body{font-size:15px}.hero{padding:18px 16px}.pat-b{padding:4px 12px 6px}.two{grid-template-columns:1fr}.cell{min-width:36px;height:38px;font-size:13px}.cellw{min-width:36px}.brand span{display:none}.pp{margin-left:0}.gi{border-left:0;border-top:1px solid var(--line2)}.gi:first-child{border-top:0}.search input{width:100%}.search{flex:1}.kpis{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media print{.bar,.pbar,nav.side,.chips,.st-ctl,.cp,.skip,.site-foot,.foot{display:none}.wrap{display:block}.code-java,.code-py{display:block!important}.pat{box-shadow:none;break-inside:avoid-page}body{background:#fff}}
+
+/* tree and graph drawings inside the stepper */
+.st-tree svg{display:block;margin:0 auto;height:auto}.st-tree line{stroke:var(--faint);stroke-width:1.75;opacity:.6}
+.tn circle{fill:var(--surf);stroke:var(--line);stroke-width:2;transition:fill .25s,stroke .25s}.tn.in circle{fill:var(--acc-soft);stroke:var(--acc)}.tn.ok circle{fill:var(--done-soft);stroke:var(--done)}.tn.dim circle{fill:var(--soft);stroke-dasharray:4 3;opacity:.7}
+.tn text{font:600 14px ui-monospace,Consolas,monospace;fill:var(--fg);text-anchor:middle;dominant-baseline:central}.tp{font:700 11px ui-monospace,Consolas,monospace;fill:var(--acc);text-anchor:middle}
+.ge{stroke:var(--faint);stroke-width:2;opacity:.5}.ge.on{stroke:var(--acc);stroke-width:3.5;opacity:1}.gw{font:600 11px ui-monospace,Consolas,monospace;fill:var(--mut);text-anchor:middle}.mk{fill:var(--faint);opacity:.7}.mk2{fill:var(--acc)}
+
+/* study planner page */
+.planner .hero{margin-bottom:18px}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:16px;overflow:hidden}
+.card-h{display:flex;align-items:center;gap:10px;min-height:46px;padding:6px 14px;background:var(--hd);border-bottom:1px solid var(--line)}
+.card-h h2{margin:0;font-size:15px;font-weight:600;margin-right:auto;color:var(--fg)}
+.card-h>span:not(.st){font-size:12.5px;color:var(--mut)}
+.card-b{padding:14px}
+.pl-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+.pl-col{min-width:0}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+.field{min-width:0}.field:nth-child(6),.field:nth-child(7){grid-column:1/-1}
+.flabel{display:block;font:600 11px/1.2 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+.field input[type=date],.field input[type=number],.field select{height:34px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:14px;max-width:100%}
+.field input[type=number]{width:96px}.field select{width:100%}.field input[type=date]{width:100%}
+.unit{font-size:13px;color:var(--mut);margin-left:8px}
+.fhint{font-size:12.5px;color:var(--mut);margin-top:6px}
+.qchips{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.qchips button,.presets button,.chips2 button{height:28px;padding:0 11px;border:1px solid var(--line);border-radius:99px;background:var(--surf);color:var(--fg);font:inherit;font-size:12.5px;cursor:pointer}
+.qchips button:hover,.presets button:hover,.chips2 button:hover{background:var(--soft)}
+.seg2{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;max-width:100%}
+.seg2 button{height:34px;padding:0 14px;border:0;background:var(--surf);color:var(--fg);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.seg2 button+button{border-left:1px solid var(--line)}
+.seg2 button[aria-pressed=true]{background:var(--ink);color:var(--ink-fg)}
+.toggles{display:grid;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line2);font-size:14px}
+.toggles label,.key-panel label{display:flex;gap:9px;align-items:center;cursor:pointer}
+.toggles input,.key-panel input[type=checkbox]{width:16px;height:16px;accent-color:var(--ink);margin:0}
+.presets{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.presets span{font-size:12.5px;color:var(--mut);margin-right:2px}
+#topics h5{margin:14px 0 4px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.trow{display:grid;grid-template-columns:20px 28px 1fr auto;gap:8px;align-items:center;padding:6px 6px;border-radius:var(--r);cursor:pointer;font-size:14px}
+.trow:hover{background:var(--soft)}.trow input{width:16px;height:16px;accent-color:var(--ink);margin:0}
+.trow .n{font:600 11.5px ui-monospace,Consolas,monospace;color:var(--faint)}.trow .est{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+/* coach */
+.chat{position:sticky;top:64px;display:flex;flex-direction:column;height:min(720px,calc(100vh - 84px));min-height:480px;margin-bottom:0}
+.chat .card-h .btn{height:28px}
+.key-panel{padding:12px 14px;border-bottom:1px solid var(--line);background:var(--surf);display:grid;gap:10px;font-size:13.5px}
+.key-panel[hidden]{display:none}
+.key-panel p{margin:0}.key-panel .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.key-panel input[type=password],.key-panel select{height:34px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:13.5px;min-width:0;flex:1}
+.msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;background:var(--bg)}
+.msg{max-width:92%}.msg.me{align-self:flex-end}
+.msg .who{font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:0 2px 4px}.msg.me .who{text-align:right}
+.msg .mb{padding:9px 12px;border-radius:var(--r-lg);font-size:14.5px;line-height:1.55;border:1px solid var(--line);background:var(--surf);color:var(--txt)}
+.msg.me .mb{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.msg .mb p{margin:0 0 6px}.msg .mb p:last-child{margin:0}.msg .mb ul,.msg .mb ol{margin:4px 0;padding-left:20px}.msg .mb code{font-size:.9em}
+.msg.sys{align-self:stretch;max-width:100%}.msg.sys .mb{background:var(--hd);border-left:2px solid var(--info-line);font-size:13.5px}
+.typing{display:flex;gap:4px;padding:6px 4px}.typing i{width:6px;height:6px;border-radius:50%;background:var(--faint);animation:blink 1.2s infinite}.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.chips2{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px 0;background:var(--surf);border-top:1px solid var(--line)}
+.composer{display:flex;gap:8px;align-items:flex-end;padding:10px 14px 14px;background:var(--surf)}
+.composer textarea{flex:1;resize:none;min-height:38px;max-height:120px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:14.5px;line-height:1.4}
+.composer .btn{height:38px}
+/* plan output */
+.sec-h{font-size:18px;margin:26px 0 10px}
+.kpis4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.kpis4 .kpi b{font-size:22px}
+.callout.alert{border-left-color:var(--warn-line);background:var(--warn-soft)}.callout.alert .lbl{color:var(--warn)}.callout ul{margin:4px 0;padding-left:20px}
+.warn-c{border-left-color:var(--warn-line)}
+.plan-bar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin:14px 0;box-shadow:var(--sh)}
+.pb-l{min-width:220px;flex:1;font-size:13.5px;color:var(--mut)}.pb-l b{color:var(--fg);font-size:15px}.pb-r{display:flex;gap:8px;flex-wrap:wrap}
+.wk{padding:0;margin:10px 0;border-left:1px solid var(--line)}
+details.wk[open]{border-left:2px solid var(--info-line)}
+.wk summary{padding:12px 14px;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.wk summary::before{align-self:center}
+.wn{font-weight:700;color:var(--fg)}.wd{font-size:13px;color:var(--mut)}.wt{font-size:13px;color:var(--mut);margin-right:auto}.wc{font-size:12.5px;font-weight:600;background:var(--soft);border-radius:99px;padding:2px 10px;color:var(--fg);font-variant-numeric:tabular-nums}
+.wk-b{padding:0 14px 12px}
+.day{border:1px solid var(--line);border-radius:var(--r);margin:8px 0;background:var(--surf);overflow:hidden}
+.day.today{border-color:var(--ink)}
+.day.rest{background:var(--hd);color:var(--mut)}
+.dh{display:flex;gap:10px;align-items:center;padding:7px 12px;background:var(--hd);border-bottom:1px solid var(--line2);font-size:13px}.dh b{color:var(--fg)}.dh span:last-child{margin-left:auto;color:var(--mut);font-variant-numeric:tabular-nums}
+.day.rest .dh{border-bottom:0}
+.pill-t{font-size:11px;font-weight:600;background:var(--ink);color:var(--ink-fg);padding:1px 8px;border-radius:99px}
+.task{display:grid;grid-template-columns:20px 84px 1fr auto;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line2);cursor:pointer;font-size:14px}
+.task:last-child{border-bottom:0}.task:hover{background:var(--hd)}
+.task input{width:17px;height:17px;accent-color:var(--done);margin:0}
+.task .kind{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;text-align:center;background:var(--soft);color:var(--mut)}
+.k-learn .kind{background:var(--info-soft);color:var(--info)}.k-code .kind{background:var(--soft);color:var(--fg)}.k-practice .kind{background:var(--med-soft);color:var(--med)}
+.k-review .kind{background:var(--done-soft);color:var(--done)}.k-checkpoint .kind,.k-mock .kind{background:var(--ink);color:var(--ink-fg)}
+.task .ttl{min-width:0;display:flex;flex-direction:column}.task .ttl a{color:var(--fg);text-decoration:none}.task .ttl a:hover{text-decoration:underline}
+.task .sub{font-size:12px;color:var(--mut)}.task .mins{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.task.is-done .ttl,.task.is-done .ttl a{text-decoration:line-through;text-decoration-color:var(--faint);color:var(--mut)}
+@media (max-width:1020px){.pl-grid{grid-template-columns:1fr}.chat{position:static;height:560px}.kpis4{grid-template-columns:1fr 1fr}}
+@media (max-width:640px){.fgrid{grid-template-columns:1fr}.field:nth-child(n){grid-column:auto}.task{grid-template-columns:20px 1fr auto}.task .kind{display:none}.wt{flex-basis:100%;order:3}.msg{max-width:100%}}
+@media print{.pl-grid,.hero,.plan-bar .pb-r,.chat{display:none}.wk{break-inside:avoid-page}details.wk>summary::before{display:none}}
+
+/* left rail */
+body.has-rail{padding-left:56px}
+.rail{position:fixed;inset:0 auto 0 0;width:56px;z-index:40;background:var(--surf);border-right:1px solid var(--line);padding:9px 8px;overflow:hidden;transition:width .18s ease;display:flex;flex-direction:column;gap:2px}
+.rail:hover,.rail:focus-within{width:240px;box-shadow:var(--sh-lg)}
+.rail-i{display:flex;align-items:center;gap:12px;height:38px;padding:0 10px;border-radius:var(--r);text-decoration:none;color:var(--txt);white-space:nowrap;font-size:14px}
+.rail-i:hover{background:var(--soft)}
+.rail-i[aria-current=page]{background:var(--soft);color:var(--fg);font-weight:600;box-shadow:inset 2px 0 0 var(--ink)}
+.rail-i .ic{width:18px;height:18px}
+.rail-logo{margin-bottom:6px;height:44px}.rail-logo .logo{width:24px;height:24px;flex:none}
+.rail .l{opacity:0;transition:opacity .12s}.rail:hover .l,.rail:focus-within .l{opacity:1}
+.rail-g{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);padding:14px 10px 4px;opacity:0;white-space:nowrap}
+.rail:hover .rail-g,.rail:focus-within .rail-g{opacity:1}
+.rail-sub{display:flex;flex-direction:column;margin:0 0 4px 22px;padding-left:12px;border-left:1px solid var(--line);opacity:0;max-height:0;overflow:hidden;transition:opacity .12s}
+.rail:hover .rail-sub,.rail:focus-within .rail-sub{opacity:1;max-height:260px}
+.rail-sub a{font-size:13px;color:var(--mut);text-decoration:none;padding:5px 8px;border-radius:var(--r);white-space:nowrap}.rail-sub a:hover{background:var(--soft);color:var(--fg)}
+.rail-bd{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:35}.rail-bd[hidden]{display:none}
+.rail-btn{display:none}
+@media (max-width:1020px){body.has-rail{padding-left:0}
+ .rail{transform:translateX(-100%);width:256px;transition:transform .2s ease;box-shadow:none}.rail.open{transform:none;box-shadow:var(--sh-lg)}
+ .rail:hover,.rail:focus-within{width:256px}.rail .l,.rail-g,.rail-sub{opacity:1}.rail-sub{max-height:260px}
+ .rail-btn{display:inline-flex}}
+@media print{.rail,.rail-bd{display:none}body.has-rail{padding-left:0}}
+
+/* systems pages and hub */
+pre.sh::before{content:"Command"}pre.out::before{content:"Output"}
+pre.sh{margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0;background:var(--ink);color:var(--ink-fg)}
+pre.sh::before{color:inherit;opacity:.65}
+pre.sh code{color:inherit;white-space:pre}
+pre.sh .cp{background:transparent;color:var(--ink-fg);border-color:rgba(248,250,252,.35)}pre.sh .cp:hover{background:rgba(248,250,252,.12);color:var(--ink-fg)}
+[data-theme=dark] pre.sh{background:#0b1324;color:#f1f5f9;border:1px solid var(--line)}
+pre.out{margin-top:0;border-top-left-radius:0;border-top-right-radius:0}
+.cmd{margin:14px 0 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);overflow:hidden}
+.cmd pre{margin:0;border-radius:0;border-left:0;border-right:0}.cmd>pre.sh{border-top:0}
+.cmd-b{padding:10px 14px 12px}.cmd-b p{margin:4px 0}
+.cmd-b pre.out{margin:6px 0 0;border:1px solid var(--line);border-radius:var(--r)}
+.out-l{margin-top:8px}
+.stamp{display:inline-block;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--done);background:var(--done-soft);border-radius:99px;padding:3px 9px}
+.stamp.ill{color:var(--warn);background:var(--warn-soft)}
+.noout{font-size:13px}
+.parts{margin:8px 0 0}.parts table{font-size:13px}.parts th,.parts td{padding:6px 10px}
+.analogy{margin:8px 0 2px}
+.tick{display:inline-flex;gap:7px;align-items:center;font-size:12.5px;color:var(--mut);cursor:pointer;margin-left:auto}
+.tick input{width:16px;height:16px;accent-color:var(--done);margin:0}.tick.is-done{color:var(--done);font-weight:600}
+.pat-h .tick{margin-left:auto}.pat-h .pp{margin-left:0}
+.lab .badge{background:var(--soft);color:var(--fg)}.lab .badge .ic{width:16px;height:16px}
+.lab{border-left:2px solid var(--info-line)}
+.case{border:1px solid var(--line);border-left:2px solid var(--warn-line);background:var(--hd);border-radius:var(--r);padding:12px 16px;margin:14px 0}
+.case h4{margin:4px 0 6px;font-size:16px;color:var(--fg)}.case p{margin:6px 0}
+.qa{padding:0 14px}.qa summary{font-weight:600}
+.qa-b{padding:0 0 12px}.qa-b ul{margin:4px 0 10px;padding-left:20px}.qa-b li{margin:3px 0}
+.angle{background:var(--hd);border:1px solid var(--line);border-left:2px solid var(--info-line);border-radius:var(--r);padding:8px 12px;font-size:14px}
+table.playbook td:first-child{font-weight:600;color:var(--fg)}
+table.cheat td:first-child{font-family:ui-monospace,Consolas,monospace;font-size:13px;white-space:pre-wrap;color:var(--fg)}
+/* hub */
+.courses{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ccard{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden}
+.ccard .tcard-h{min-height:52px}.ccard .tcard-h h2{margin:0;font-size:19px;margin-right:auto;color:var(--fg)}
+.ccard .tcard-h .no{padding:5px 8px;display:inline-flex}.ccard .tcard-h .no .ic{width:18px;height:18px}
+.ticks{margin:0;padding-left:20px;font-size:14px;color:var(--txt)}.ticks li{margin:3px 0}
+.tcard.planned{opacity:.7;background:var(--hd)}.tcard.planned .no{background:var(--soft);color:var(--mut)}
+@media (max-width:820px){.courses{grid-template-columns:1fr}}
+/* diagrams */
+.viz{margin:8px 0;padding:10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+.viz figcaption{font-size:13px;color:var(--mut);margin-top:6px;text-align:center}
+.dg{width:100%;height:auto;display:block}
+.dg-box{fill:var(--hd);stroke:var(--line);stroke-width:1.5}.dg-box.acc{fill:var(--acc-soft);stroke:var(--acc)}.dg-box.ok{fill:var(--done-soft);stroke:var(--done)}.dg-box.warn{fill:var(--warn-soft);stroke:var(--warn-line)}.dg-box.ink{fill:var(--ink);stroke:var(--ink)}
+.dg-t{font:600 13px system-ui,sans-serif;fill:var(--fg)}.dg-t.ink{fill:var(--ink-fg)}.dg-s{font:12px system-ui,sans-serif;fill:var(--mut)}
+.dg-s.ink{fill:#cbd5e1}
+.dg-a{stroke:var(--faint);stroke-width:2}.dg-a.acc{stroke:var(--acc)}.dg-m{fill:var(--faint)}
+
+/* short view: folded detail inside lessons */
+details.more{border:0;border-left:2px solid var(--line);border-radius:0;padding:0 0 0 12px;margin:8px 0;background:none}
+details.more>summary{font-size:13px;font-weight:600;color:var(--info);display:inline-flex;align-items:center;gap:6px}
+details.more>summary svg{width:14px;height:14px}
+details.more[open]{border-left-color:var(--info-line)}
+.blk.warn details.more>summary{color:var(--warn-ink,var(--fg))}
+.quick details summary{font-weight:500}
+#b-density .t-short{display:none}
+@media(max-width:700px){#b-density .t-long{display:none}#b-density .t-short{display:inline}}
+
+/* reader: one step at a time */
+.vh{display:none!important}
+.vnav{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:28px 0 8px}
+body:not(.focus) .vnav{display:none}
+.vnav a{display:flex;flex-direction:column;gap:2px;padding:12px 16px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);text-decoration:none;color:var(--fg);box-shadow:var(--sh);transition:border-color .15s,background .15s}
+.vnav a:hover{border-color:var(--acc);background:var(--soft)}
+.vnav small{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:600}
+.vnav b{font-size:14px;font-weight:600;line-height:1.35}
+.vnav a.vn{text-align:right;align-items:flex-end;background:var(--ink);border-color:var(--ink);color:var(--ink-fg)}
+.vnav a.vn small{color:#cbd5e1}.vnav a.vn:hover{background:var(--ink);opacity:.92}
+.vpos{font-size:12px;color:var(--mut);white-space:nowrap}
+body:not(.focus) .vpos{display:none}
+#b-view .t-short{display:none}
+@media(max-width:700px){#b-view .t-long{display:none}#b-view .t-short{display:inline}.vnav{grid-template-columns:1fr}.vpos{display:none}}
+.chips a.on{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+@media print{.vh{display:block!important}.vnav,.vpos{display:none!important}}
+
+/* layout: content uses the room it is given; the left menu can be pinned open */
+body.has-rail{transition:padding-left .18s ease}
+body.has-rail .wrap{max-width:1680px}
+.wrap.has-track{grid-template-columns:232px minmax(0,1fr);gap:28px}
+aside.track{display:none}
+@media (min-width:1480px){.wrap.has-track{grid-template-columns:232px minmax(0,1fr) 268px}aside.track{display:block;position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto;padding:20px 0}}
+@media (min-width:1480px) and (max-width:1699px){body.rail-pinned .wrap.has-track{grid-template-columns:232px minmax(0,1fr)}body.rail-pinned aside.track{display:none}}
+@media (max-width:1020px){.wrap.has-track{display:block}aside.track{display:none!important}}
+body.rail-pinned{padding-left:240px}
+body.rail-pinned .rail{width:240px}
+body.rail-pinned .rail .l,body.rail-pinned .rail-g{opacity:1}
+body.rail-pinned .rail-sub{opacity:1;max-height:260px}
+.rail-pin{margin-top:auto;border:0;background:none;cursor:pointer;font:inherit;width:100%;text-align:left;color:var(--mut)}
+.rail-pin svg.ic{transition:transform .18s}
+body.rail-pinned .rail-pin svg.ic{transform:rotate(180deg)}
+@media (max-width:1020px){.rail-pin{display:none}body.rail-pinned{padding-left:0}}
+@media print{body.rail-pinned{padding-left:0}aside.track{display:none!important}}
+/* right-hand progress tracker */
+.tk{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--sh)}
+.tk-top{display:flex;align-items:center;gap:14px}
+.tk-ring{width:64px;height:64px;flex:none}
+.tk-ring circle{fill:none;stroke-width:6}
+.tk-ring .bg{stroke:var(--line)}
+.tk-ring .fg{stroke:var(--done);stroke-linecap:round;transition:stroke-dashoffset .4s ease}
+.tk-ring text{font:700 15px system-ui,sans-serif;fill:var(--fg)}
+.tk-top b{display:block;font-size:15px}
+.tk-top span{font-size:12.5px;color:var(--mut)}
+.tk h4{margin:16px 0 6px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.tk-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+.tk-list a{display:flex;gap:10px;align-items:flex-start;padding:7px 8px;border-radius:8px;text-decoration:none;color:var(--txt);font-size:13px;line-height:1.35}
+.tk-list a:hover{background:var(--soft)}
+.tk-list .d{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line);flex:none;margin-top:1px;display:grid;place-items:center;font-size:10px;line-height:1;color:#fff}
+.tk-list a.done .d{background:var(--done);border-color:var(--done)}
+.tk-list a.done .d::after{content:"¹3"}
+.tk-list a.cur{background:var(--acc-soft);color:var(--fg);font-weight:600}
+.tk-list a.cur .d{border-color:var(--acc)}
+.tk-go{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:14px;padding:9px 12px;border-radius:var(--r);background:var(--ink);color:var(--ink-fg);font-size:13px;font-weight:600;text-decoration:none}
+.tk-go:hover{opacity:.92}
+.tk-rev{display:block;margin-top:8px;text-align:center;font-size:12.5px;color:var(--info);text-decoration:none;font-weight:600}
+
+/* the three-line button only opens the left menu on small screens */
+.bar .rail-btn,.bar-in .rail-btn{display:none}
+@media (max-width:1020px){.bar .rail-btn,.bar-in .rail-btn{display:inline-flex}}
+
+/* quick revision page */
+.revise{max-width:1000px}
+.rv-top{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:6px 0 14px}
+.sel{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mut)}
+.sel select{font:inherit;font-size:13px;height:32px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);max-width:260px}
+.sel select:disabled{opacity:.5}
+.rv-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 10px}
+.rv-bar input[type=search]{width:100%;height:34px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:13.5px}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--txt);cursor:pointer}
+.mtag{display:inline-block;font:600 11px/1 system-ui,sans-serif;padding:3px 6px;border-radius:6px;background:var(--soft);color:var(--mut);margin-right:6px;vertical-align:1px}
+.co{display:inline-block;font:600 11px/1 system-ui,sans-serif;padding:3px 7px;border-radius:999px;background:var(--acc-soft);color:var(--acc);margin-left:6px;white-space:nowrap}
+.fc{border:1px solid var(--line);border-radius:14px;background:var(--surf);box-shadow:var(--sh);padding:28px 24px;min-height:200px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;outline-offset:3px}
+.fc:hover{border-color:var(--acc)}
+.fc-m{font-size:12px;color:var(--mut)}
+.fc-t{font-size:20px;line-height:1.5;font-weight:600;margin:18px 0;color:var(--fg)}
+.fc-h{font-size:12px;color:var(--mut)}
+.fc-a{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;justify-content:center}
+.how-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.hw{border:1px solid var(--line);border-radius:12px;background:var(--surf);padding:16px 18px;box-shadow:var(--sh)}
+.hw h3{margin:0 0 8px;font-size:16px}
+.hw ol,.hw ul{margin:6px 0 8px;padding-left:20px}.hw li{margin:3px 0}
+.hw .ex{margin-top:10px;padding:10px 14px;border-left:3px solid var(--info-line);background:var(--info-soft);border-radius:0 var(--r) var(--r) 0}
+.hw .ex p{margin:4px 0}
+
+.dg-life{stroke:var(--line);stroke-width:1.5;stroke-dasharray:4 4}
+.dg-a.dash{stroke-dasharray:5 4}
+.dg-a.bad{stroke:var(--warn-line)}
+.dg-t.acc{fill:var(--fg)}
+
+/* deep lessons: step-by-step flows, annotated real output, worked interview scenarios */
+.walk{list-style:none;counter-reset:w;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.walk li{counter-increment:w;position:relative;padding:10px 14px 10px 52px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+.walk li::before{content:counter(w);position:absolute;left:14px;top:10px;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--ink-fg);font:700 13px/26px system-ui,sans-serif;text-align:center}
+.walk li b{display:block;margin-bottom:2px}
+.walk li span{color:var(--txt);font-size:14px;line-height:1.55}
+.annot{margin:10px 0 0}
+.annot table{font-size:13px}
+.annot td:first-child{white-space:pre-wrap;word-break:break-word;min-width:160px}
+.scen{border:1px solid var(--info-line);background:var(--info-soft);border-radius:12px;padding:16px 18px;margin-top:18px}
+.scen h4{margin:6px 0 8px;font-size:17px}
+.scen .ask{font-size:15px;margin:0 0 6px}
+.scen-s{margin:12px 0}
+.scen-s ul,.scen-s ol{margin:6px 0 0;padding-left:22px}.scen-s li{margin:5px 0;line-height:1.55}
+.scen-s.warn{border-left:3px solid var(--warn-line);padding-left:12px}
+.scen details{background:var(--surf)}
+.scen details.more.scen-a{border:1px solid var(--line);border-left:3px solid var(--done);border-radius:var(--r);padding:0 14px;background:var(--surf)}
+.scen details.more.scen-a>summary{font-weight:700;color:var(--fg)}
+
+.sdfig{margin:18px 0}.sdfig svg{width:100%;height:auto;display:block}
+.sd-sh{fill:var(--surf);stroke:var(--faint);stroke-width:2}
+.sd-sh.ok{fill:var(--done-soft);stroke:var(--done)}.sd-sh.bad{fill:var(--bad-soft);stroke:var(--bad)}.sd-sh.warn{fill:var(--warn-soft);stroke:var(--warn)}.sd-sh.acc{fill:var(--acc-soft);stroke:var(--acc)}.sd-sh.ink{fill:var(--ink);stroke:var(--ink)}
+.sd-top{fill:var(--soft)}.sd-sh.ok.sd-top{fill:var(--done-soft)}
+.sd-pp{fill:var(--acc-soft);stroke:var(--acc);stroke-width:1.8}.sd-pp.bad{fill:var(--bad-soft);stroke:var(--bad)}.sd-pp.ok{fill:var(--done-soft);stroke:var(--done)}.sd-pp.warn{fill:var(--warn-soft);stroke:var(--warn)}
+.sd-ln{fill:var(--line);}.sd-ln2{fill:none;stroke:var(--faint);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sd-led{fill:var(--faint)}.sd-led.ok{fill:var(--done)}.sd-led.bad{fill:var(--bad)}.sd-led.warn{fill:var(--warn)}.sd-led.acc{fill:var(--acc)}
+.sd-bolt{fill:var(--acc)}.sd-bolt.ok{fill:var(--done)}.sd-bolt.warn{fill:var(--warn)}
+.sd-job{fill:var(--soft);stroke:var(--line);stroke-width:1}.sd-job.on{fill:var(--acc);stroke:var(--acc)}
+.sd-ex{fill:var(--bad)}
+.sd-arc{fill:none;stroke:var(--line);stroke-width:7;stroke-linecap:round}.sd-arc.on{stroke:var(--done)}.sd-arc.on.bad{stroke:var(--bad)}.sd-arc.on.warn{stroke:var(--warn)}
+.sd-needle{stroke:var(--fg);stroke-width:2.5;stroke-linecap:round}.sd-hub{fill:var(--fg)}
+.sd-gv{font:700 13px system-ui,sans-serif;fill:var(--fg)}.sd-gv.bad{fill:var(--bad)}.sd-gv.ok{fill:var(--done)}
+.sd-l{font:600 12.5px system-ui,sans-serif;fill:var(--fg)}.sd-c{font:11.5px system-ui,sans-serif;fill:var(--mut)}
+.sd-n{font:600 12px system-ui,sans-serif;fill:var(--mut)}.sd-n.bad{fill:var(--bad)}.sd-n.ok{fill:var(--done)}.sd-n.warn{fill:var(--warn)}.sd-n.acc{fill:var(--acc)}
+.sd-a{stroke:var(--faint);stroke-width:2.2;fill:none}.sd-a.acc{stroke:var(--acc)}.sd-a.ok{stroke:var(--done)}.sd-a.bad{stroke:var(--bad)}.sd-a.warn{stroke:var(--warn)}.sd-a.dash{stroke-dasharray:5 5}
+.sd-badge{fill:var(--soft);stroke:var(--line)}.sd-badge.ok{fill:var(--done-soft);stroke:var(--done)}.sd-badge.bad{fill:var(--bad-soft);stroke:var(--bad)}.sd-badge.warn{fill:var(--warn-soft);stroke:var(--warn)}.sd-badge.acc{fill:var(--acc-soft);stroke:var(--acc)}
+.sd-bt{font:700 11.5px system-ui,sans-serif;fill:var(--fg)}
+.sd-panel{fill:var(--surf);stroke:var(--line);stroke-width:1.5}.sd-panel.bad{fill:var(--bad-soft);stroke:var(--bad-line)}.sd-panel.ok{fill:var(--done-soft);stroke:var(--done-line)}.sd-panel.warn{fill:var(--warn-soft);stroke:var(--warn-line)}
+.sd-pt{font:700 13px system-ui,sans-serif;fill:var(--fg);letter-spacing:.2px}.sd-pt.bad{fill:var(--bad)}.sd-pt.ok{fill:var(--done)}.sd-pt.warn{fill:var(--warn)}
+.sd-pc{font:12.5px system-ui,sans-serif;fill:var(--txt)}
+
+.sdw{display:grid;grid-template-columns:230px minmax(0,1fr);gap:34px;max-width:1120px;margin:0 auto;padding:22px 20px 60px}
+.sdw main{min-width:0;max-width:780px}
+.sdnav{position:sticky;top:76px;align-self:start;font-size:13.5px}
+.sdnav h4{margin:0 0 8px;font-size:11.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--faint)}
+.sdnav a{display:flex;gap:9px;align-items:center;padding:6px 8px;border-radius:6px;color:var(--mut);text-decoration:none;border-left:3px solid transparent}
+.sdnav a b{width:20px;height:20px;border-radius:50%;background:var(--soft);color:var(--mut);display:inline-grid;place-items:center;font-size:11px;flex:none}
+.sdnav a:hover{background:var(--soft);color:var(--fg)}
+.sdnav a.on{color:var(--fg);font-weight:600;background:var(--acc-soft);border-left-color:var(--acc)}.sdnav a.on b{background:var(--acc);color:#fff}
+.sdnav .done{margin-top:14px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--surf);font-size:13px}
+.sdhero{padding:6px 0 10px}
+.sdhero .eyebrow{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--mut);margin-bottom:8px}
+.sdhero .tag{background:var(--acc-soft);color:var(--acc);border:1px solid var(--acc-line);padding:2px 9px;border-radius:999px;font-weight:600;font-size:12px}
+.sdhero h1{margin:0 0 8px;font-size:clamp(27px,4.2vw,38px);line-height:1.15;color:var(--fg);letter-spacing:-.4px}
+.sdhero .lead{font-size:17.5px;color:var(--txt);max-width:660px;margin:0 0 14px}
+.sdmeta{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px}.sdmeta span{background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:3px 11px;font-size:12.5px;color:var(--mut)}
+.sdsec{margin:38px 0 0;scroll-margin-top:84px}
+.sdsec>h2{display:flex;align-items:center;gap:11px;margin:0 0 4px;font-size:23px;color:var(--fg);letter-spacing:-.2px}
+.sdsec>h2 .n{width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--ink-fg);display:inline-grid;place-items:center;font-size:14px;font-weight:700;flex:none}
+.sdsec>h2 small{font-size:12.5px;font-weight:600;color:var(--faint);letter-spacing:.7px;text-transform:uppercase;margin-left:auto}
+.sdsec .sub{margin:0 0 14px;color:var(--mut)}
+.sdsec p{margin:0 0 12px}
+.sdstory{font-size:16.5px;line-height:1.75}
+.sdstory p:first-of-type::first-letter{float:left;font-size:44px;line-height:.9;padding:5px 8px 0 0;font-weight:800;color:var(--acc)}
+.sdquote{border-left:4px solid var(--acc);background:var(--acc-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0;color:var(--fg)}
+.sdquote p:last-child{margin-bottom:0}
+.sdone{background:var(--ink);color:var(--ink-fg);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:17px;line-height:1.5}
+.sdone b{color:inherit;border-bottom:2px solid var(--acc-line)}
+.sdsteps{list-style:none;margin:8px 0;padding:0;counter-reset:s;display:grid;gap:14px}
+.sdsteps>li{counter-increment:s;border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:14px 16px 6px 56px;position:relative;box-shadow:var(--sh)}
+.sdsteps>li::before{content:counter(s);position:absolute;left:14px;top:13px;width:30px;height:30px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font-weight:700}
+.sdsteps h3{margin:0 0 3px;font-size:17px;color:var(--fg)}.sdsteps p{margin:0 0 8px}
+.sdsteps .sdfig{margin:6px 0 8px}
+.sdgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:8px 0}
+.sdcard{border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:13px 15px;box-shadow:var(--sh)}
+.sdcard h3{margin:0 0 4px;font-size:15.5px;color:var(--fg);display:flex;gap:8px;align-items:center}.sdcard p{margin:0;font-size:14.5px}
+.sdcard.bad{border-color:var(--bad-line);background:var(--bad-soft)}.sdcard.ok{border-color:var(--done-line);background:var(--done-soft)}
+.sdreal{display:grid;gap:10px;margin:8px 0}
+.sdreal>div{border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:12px 15px;display:grid;grid-template-columns:110px 1fr;gap:14px}
+.sdreal b.co{color:var(--acc);font-size:14px}.sdreal p{margin:0 0 4px;font-size:14.5px}.sdreal a{font-size:13px}
+.sdnote{font-size:13px;color:var(--faint);margin:6px 0 0}
+.sdq{border:1px solid var(--line);background:var(--surf);border-radius:12px;margin:14px 0;box-shadow:var(--sh);overflow:hidden}
+.sdq>header{padding:14px 18px;background:var(--hd);border-bottom:1px solid var(--line)}
+.sdq>header .who{font-size:12px;color:var(--faint);text-transform:uppercase;letter-spacing:.7px;font-weight:600}
+.sdq>header h3{margin:2px 0 4px;font-size:18px;color:var(--fg)}.sdq>header p{margin:0;font-size:14.5px;color:var(--mut)}
+.sdq .body{padding:6px 18px 16px}
+.sdq h4{margin:16px 0 6px;font-size:12.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--faint)}
+.sdq ol.think{margin:0;padding-left:20px}.sdq ol.think li{margin:0 0 6px}.sdq ol.think li span{display:block;color:var(--mut);font-size:14.5px}
+.sdq .say{border-left:4px solid var(--done);background:var(--done-soft);padding:10px 15px;border-radius:0 8px 8px 0;font-size:15px}.sdq .say p{margin:0 0 8px}.sdq .say p:last-child{margin:0}
+.sdq .say .lbl2{display:block;font-size:11.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--done);font-weight:700;margin-bottom:4px}
+.sdq details{border:1px solid var(--line);border-radius:8px;margin:6px 0;background:var(--bg)}.sdq summary{cursor:pointer;padding:8px 12px;font-weight:600;color:var(--fg);font-size:14.5px}.sdq details p{margin:0;padding:0 12px 10px;font-size:14.5px}
+.sdq .slips{margin:0;padding-left:20px;color:var(--mut);font-size:14.5px}
+.sdrecap{border:1px solid var(--done-line);background:var(--done-soft);border-radius:12px;padding:6px 18px 12px}
+.sdrecap ul{margin:6px 0 10px;padding-left:20px}.sdrecap li{margin:0 0 5px}
+.sddeeper{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.sddeeper a{border:1px solid var(--line);border-radius:8px;padding:7px 12px;background:var(--surf);text-decoration:none;font-size:13.5px}
+.sdfoot{display:flex;justify-content:space-between;gap:12px;margin:40px 0 0}
+.sdfoot a{flex:1;border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:12px 16px;text-decoration:none;color:var(--fg);box-shadow:var(--sh)}
+.sdfoot a small{display:block;color:var(--faint);font-size:12px}.sdfoot a.r{text-align:right}
+.sdx{border:1px solid var(--line);background:var(--surf);border-radius:12px;padding:14px 18px 8px;margin:14px 0;box-shadow:var(--sh)}.sdx h3{margin:0 0 4px;font-size:17px;color:var(--fg);display:flex;gap:10px;align-items:center}.sdx .xn{width:26px;height:26px;border-radius:7px;background:var(--done);color:#fff;display:inline-grid;place-items:center;font-size:13px}.sdx .what{margin:0 0 8px;color:var(--txt)}.sdx pre.out{margin:6px 0 10px;max-height:340px;overflow:auto}.sdmore{margin:8px 0 6px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}.sdmore summary{cursor:pointer;padding:8px 12px;font-weight:600;font-size:14px;color:var(--acc)}.sdmore pre.sh{margin:0 12px 10px;max-height:380px;overflow:auto}.sdmore p{margin:0 12px 10px;font-size:14.5px}
+.sdtable{width:100%;border-collapse:collapse;font-size:14.5px;margin:8px 0}.sdtable th,.sdtable td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}.sdtable th{background:var(--soft);color:var(--fg)}
+.sdland .path{position:relative;margin:18px 0 8px;padding-left:44px}
+.sdland .path::before{content:"";position:absolute;left:-30px;top:12px;bottom:12px;width:3px;background:linear-gradient(var(--acc),var(--done));border-radius:2px}
+.sdland .node{position:relative;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:11px 15px;margin:0 0 10px;text-decoration:none;color:inherit;box-shadow:var(--sh)}
+.sdland .node::before{content:attr(data-n);position:absolute;left:-44px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;background:var(--surf);border:3px solid var(--acc);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--fg)}
+.sdland .node b{display:block;color:var(--fg);font-size:16px}.sdland .node span{color:var(--mut);font-size:13.5px}
+.sdland .node.soon{opacity:.6;background:var(--soft)}.sdland .node.soon::before{border-color:var(--line)}
+.sdland .node:not(.soon):hover{border-color:var(--acc);transform:translateX(2px)}
+.sdland .pill{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--done-soft);color:var(--done);border:1px solid var(--done-line);white-space:nowrap}
+.sdland .pill.soon{background:var(--soft);color:var(--faint);border-color:var(--line)}
+.sdland .tick-ok{color:var(--done);font-weight:700}
+.sdland h2{margin:34px 0 4px;font-size:24px;color:var(--fg)}
+.sdland .grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.sdland .pcard{border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:13px 15px;text-decoration:none;color:inherit;display:block;box-shadow:var(--sh)}
+.sdland .pcard b{display:block;color:var(--fg);font-size:15.5px;margin-bottom:2px}.sdland .pcard span{color:var(--mut);font-size:13.5px}.sdland .pcard .row{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.sdland .pcard.soon{opacity:.6;background:var(--soft)}.sdland .pcard:not(.soon):hover{border-color:var(--acc)}
+@media(max-width:1020px){.sdw{grid-template-columns:1fr;gap:0;padding:14px 14px 50px}.sdnav{position:static;display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:6px;-webkit-overflow-scrolling:touch}.sdnav h4,.sdnav .done{display:none}.sdnav a{flex:none;border:1px solid var(--line);border-radius:999px;padding:5px 11px;border-left-width:1px;white-space:nowrap}.sdnav a b{display:none}.sdreal>div{grid-template-columns:1fr;gap:4px}.sdsteps>li{padding-left:52px}}
+@media(max-width:560px){.sdsec>h2{font-size:20px}.sdsec>h2 small{display:none}.sdfoot{flex-direction:column}}
+</style></head>
+<body class="has-rail" data-sd="ride-hailing">
+<a class="skip" href="#content">Skip to content</a>
+<nav class="rail" id="rail" aria-label="Sections"><a class="rail-i rail-logo" href="../index.html" title="Mastery home"><span class="logo" aria-hidden="true">M</span><span class="l"><b>Mastery</b></span></a><div class="rail-g">Courses</div><a class="rail-i" href="../index.html" title="Home"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 7.5 8 2.5l5.5 5M4 6.5v7h8v-7"/></svg><span class="l">Home</span></a><a class="rail-i" href="../dsa.html" title="DSA Mastery"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m5.5 4.5-3.5 3.5 3.5 3.5M10.5 4.5l3.5 3.5-3.5 3.5"/></svg><span class="l">DSA Mastery</span></a><a class="rail-i" href="../design/index.html" aria-current="page" title="System design"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m8 2 6.5 3.5L8 9 1.5 5.5z"/><path d="m1.5 8.5 6.5 3.5 6.5-3.5"/></svg><span class="l">System design</span></a><a class="rail-i" href="../systems.html" title="Systems Mastery"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3" width="11" height="4" rx="1"/><rect x="2.5" y="9" width="11" height="4" rx="1"/><path d="M5 5h.01M5 11h.01"/></svg><span class="l">Systems Mastery</span></a><div class="rail-g">Tools</div><a class="rail-i" href="../revise.html" title="Quick revision"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg><span class="l">Quick revision</span></a><a class="rail-i" href="../plan.html" title="DSA study planner"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="10" rx="1.5"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/></svg><span class="l">DSA study planner</span></a><a class="rail-i" href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener" title="GitHub"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M9 2.5h4.5V7M13.5 2.5 7 9M12 9v4.5H2.5V4H7"/></svg><span class="l">GitHub</span></a><button class="rail-i rail-pin" id="rail-pin" type="button" aria-pressed="false" title="Keep the menu open"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg><span class="l">Pin menu</span></button></nav><div class="rail-bd" id="rail-bd" hidden></div>
+<header class="bar"><div class="bar-in"><button id="b-rail" class="iconbtn rail-btn" aria-label="Open the sections menu" aria-expanded="false" aria-controls="rail"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"/></svg></button><a class="brand" href="index.html" aria-label="System design home"><span class="logo" aria-hidden="true">SD</span><b>System <span>Design</span></b></a>
+<nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Course map</a><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3.5 4.5 4.5L6 12.5"/></svg><span class="cur">Problem 7 · Design ride hailing and nearby search</span></nav>
+<span style="margin-left:auto"></span><button id="b-theme" class="iconbtn" title="Toggle light / dark" aria-label="Toggle light or dark theme"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5a5.5 5.5 0 0 0 0 11z" fill="currentColor"/></svg></button></div></header>
+<div class="sdw"><nav class="sdnav" aria-label="On this page"><h4>On this page</h4><a href="#ask"><b>1</b>The question</a><a href="#clarify"><b>2</b>What to ask</a><a href="#numbers"><b>3</b>The numbers</a><a href="#design"><b>4</b>First design</a><a href="#hard"><b>5</b>The hard part</a><a href="#scale"><b>6</b>Scale and failure</a><a href="#say"><b>7</b>Say it in 2 minutes</a><a href="#recap"><b>8</b>Remember</a><label class="done"><input type="checkbox" id="sd-done"> I finished this page</label></nav>
+<main id="content" class="sdmain"><header class="sdhero"><div class="eyebrow"><span class="tag">Problem 7 of 10</span>Whiteboard walkthrough</div><h1>Design ride hailing and nearby search</h1><p class="lead">Mostly a write problem in disguise: a million moving points, and a search that must only look in the right few cells.</p><div class="sdmeta"><span>about 30 minutes</span><span>1 real experiments</span><span>A frequent location based design question</span></div></header>
+<section class="sdsec" id="ask"><h2><span class="n">1</span>Where is the nearest driver?<small>The question</small></h2><div class="sdstory"><p>ShopKart starts same day delivery in one city with a few hundred couriers on bikes. The first version stores each courier's last position in a database table and, for each order, computes the distance to every courier. With 300 couriers nobody notices. A year later the fleet is 100,000 and the dispatch screen takes a full minute to offer a job.</p><p>Two things grew at once. Couriers send their position every few seconds, which is a stream of writes that never stops. And every order needs a search for who is closest. This is the same shape as ride hailing: how do you find the nearest moving things quickly?</p></div><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 720 276" role="img" aria-label="From brute force to cells"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="sd-panel warn" x="0" y="0" width="230.667" height="276" rx="10"/><text class="sd-pt warn" x="14" y="26" text-anchor="start">Check everyone</text><circle class="sd-pp warn" cx="67.33333333333333" cy="71.2" r="5.04"/><path class="sd-pp warn" d="M58.6933,92.8 v-5.76 a8.64,8.64 0 0 1 17.28,0 v5.76 z"/><circle class="sd-pp warn" cx="91.33333333333333" cy="77.2" r="5.04"/><path class="sd-pp warn" d="M82.6933,98.8 v-5.76 a8.64,8.64 0 0 1 17.28,0 v5.76 z"/><circle class="sd-pp warn" cx="115.33333333333333" cy="71.2" r="5.04"/><path class="sd-pp warn" d="M106.693,92.8 v-5.76 a8.64,8.64 0 0 1 17.28,0 v5.76 z"/><circle class="sd-pp warn" cx="139.33333333333331" cy="77.2" r="5.04"/><path class="sd-pp warn" d="M130.693,98.8 v-5.76 a8.64,8.64 0 0 1 17.28,0 v5.76 z"/><circle class="sd-pp warn" cx="163.33333333333331" cy="71.2" r="5.04"/><path class="sd-pp warn" d="M154.693,92.8 v-5.76 a8.64,8.64 0 0 1 17.28,0 v5.76 z"/><rect class="sd-badge warn" x="53.3333" y="133" width="124" height="22" rx="11"/><text class="sd-bt warn" x="115.33333333333333" y="148" text-anchor="middle">100,000 drivers</text><text class="sd-n warn" x="115.33333333333333" y="178" text-anchor="middle">56.8 ms per search</text><text class="sd-pc" x="115.333" y="224" text-anchor="middle">The first idea: measure the</text><text class="sd-pc" x="115.333" y="239" text-anchor="middle">distance to every driver. It</text><text class="sd-pc" x="115.333" y="254" text-anchor="middle">works for ten drivers, not for</text><text class="sd-pc" x="115.333" y="269" text-anchor="middle">a city.</text><rect class="sd-panel bad" x="244.667" y="0" width="230.667" height="276" rx="10"/><text class="sd-pt bad" x="258.667" y="26" text-anchor="start">The edge of the box</text><circle class="sd-pp bad" cx="360.0" cy="101.5" r="7.7"/><path class="sd-pp bad" d="M346.8,134.5 v-8.8 a13.2,13.2 0 0 1 26.4,0 v8.8 z"/><rect class="sd-badge bad" x="278.4" y="149" width="59.2" height="22" rx="11"/><text class="sd-bt bad" x="308.0" y="164" text-anchor="middle">cell A</text><rect class="sd-badge bad" x="382.4" y="149" width="59.2" height="22" rx="11"/><text class="sd-bt bad" x="412.0" y="164" text-anchor="middle">cell B</text><text class="sd-pc" x="360" y="224" text-anchor="middle">Cut the map into boxes and look</text><text class="sd-pc" x="360" y="239" text-anchor="middle">only in the rider&#x27;s box.</text><text class="sd-pc" x="360" y="254" text-anchor="middle">Drivers just across the line</text><text class="sd-pc" x="360" y="269" text-anchor="middle">are missed.</text><rect class="sd-panel ok" x="489.333" y="0" width="230.667" height="276" rx="10"/><text class="sd-pt ok" x="503.333" y="26" text-anchor="start">Box plus neighbours</text><circle class="sd-pp ok" cx="604.6666666666666" cy="101.5" r="7.7"/><path class="sd-pp ok" d="M591.467,134.5 v-8.8 a13.2,13.2 0 0 1 26.4,0 v8.8 z"/><rect class="sd-badge ok" x="571.467" y="149" width="66.4" height="22" rx="11"/><text class="sd-bt ok" x="604.6666666666666" y="164" text-anchor="middle">9 cells</text><text class="sd-pc" x="604.667" y="224" text-anchor="middle">Look in the rider&#x27;s box and the</text><text class="sd-pc" x="604.667" y="239" text-anchor="middle">eight around it. Same answer as</text><text class="sd-pc" x="604.667" y="254" text-anchor="middle">checking everyone, far less</text><text class="sd-pc" x="604.667" y="269" text-anchor="middle">work.</text></svg></figure><div class="sdquote"><p><b>The interviewer says:</b> Design the matching of riders to the nearest drivers for a ride-hailing service.</p><p class="muted" style="margin-top:6px"><b>What they are looking for:</b> The geospatial design question (and the first half of the Uber problem). They want the index, the update path, the search, scale and failure.</p></div></section>
+<section class="sdsec" id="clarify"><h2><span class="n">2</span>What to ask before drawing anything<small>Requirements</small></h2><p class="sub">Two minutes of questions is what separates a design from a guess. Write the answers on the board.</p><ul><li><b>How many drivers and riders, location update frequency, and what does "nearest" mean (distance, ETA, availability)?</b> <span class='muted'>Assume 1 million active drivers updating every 4 seconds, 100,000 ride requests a minute at peak; ETA matters more than straight-line distance.</span></li></ul><p>Functional: drivers report location; a rider requests a ride; the system finds nearby available drivers, offers the ride, and tracks the trip. Non-functional: a match in a few seconds, the system tolerates losing a server without losing the trip, and one driver is never matched to two riders.</p></section>
+<section class="sdsec" id="numbers"><h2><span class="n">3</span>The numbers that shape the design<small>Estimates</small></h2><table class="sdtable"><thead><tr><th>Quantity</th><th>Estimate and what it tells you</th></tr></thead><tbody><tr><td>Location updates</td><td>1 million active drivers each ping every 4 seconds: 1,000,000 / 4 = <strong>250,000 updates per second</strong>. These writes dominate.</td></tr><tr><td>Searches</td><td>100,000 ride requests per minute at peak is about <strong>1,700 searches per second</strong>. Much less than the updates.</td></tr><tr><td>Data size</td><td>Only the latest position matters: id, latitude, longitude, time, say 50 bytes each. A million drivers is <strong>50 MB</strong>. It fits in the memory of one machine; the trouble is the update rate, not the size.</td></tr><tr><td>Cell size</td><td>In the recorded experiment, geohash precision 6 gives cells about 0.61 km by 0.97 km, and precision 7 about 0.15 km by 0.12 km. Choose a cell about the size of the search radius.</td></tr><tr><td>Why an index</td><td>The recorded brute force search over 100,000 drivers took 56.8 ms and the cell index with neighbours took 2.20 ms, examining 1,789 candidates instead of 100,000.</td></tr></tbody></table><div class="sdexp"><article class="sdx"><h3><span class="xn">1</span>Geohash cells against brute force, measured</h3><p class="what">A geohash index built from scratch and checked against the truth. The encoder reproduces the well-known reference value, and the table shows how each extra character shrinks the cell (about a kilometre at six characters). With 100,000 drivers, brute force computes 100,000 distances; the index looks only at the rider's cell and its eight neighbours (a few hundred candidates), then filters by exact distance. The experiment also shows the <strong>boundary problem</strong>: searching only the rider's own cell <strong>misses</strong> drivers who are close but just across a cell edge, while the nine-cell search returns <strong>exactly</strong> the brute-force answer. (Timings depend on the machine; the candidate counts and the correctness comparison do not.)</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>known value: encode(57.64911, 10.40744, 11) = u4pruydqqvj   (the Wikipedia example is u4pruydqqvj)
+precision  cell height x width at this latitude
+   4        19.55 km x  30.93 km
+   5         4.89 km x   3.86 km
+   6         0.61 km x   0.97 km
+   7         0.15 km x   0.12 km
+
+drivers within 0.5 km of the rider: brute force finds 290 in 56.8 ms
+  index, own cell only:           finds 128 in 0.38 ms   &lt;- misses 162 nearby drivers across the cell boundary
+  index, cell + 8 neighbours:     finds 290 in 2.20 ms   same answer as brute force: True
+  candidates examined: 1789 instead of 100000</code></pre><div class="annot"><span class="lbl">Read it line by line</span><div class="tw"><table><thead><tr><th>In the output</th><th>What it means</th></tr></thead><tbody><tr><td><code>known value: encode(57.64911, 10.40744, 11) = u4pruydqqvj</code></td><td>matches the reference geohash: the encoder is correct</td></tr><tr><td><code>6   0.61 km x 0.97 km</code></td><td>six characters is a cell of about a kilometre</td></tr><tr><td><code>brute force finds 290 in ~180 ms</code></td><td>computes 100,000 distances</td></tr><tr><td><code>index, own cell only: finds 128 ... misses 162 nearby drivers across the cell boundary</code></td><td>the boundary problem: close points in different cells</td></tr><tr><td><code>index, cell + 8 neighbours: finds 290 ... same answer as brute force: True; candidates examined: 1789 instead of 100000</code></td><td>nine cells plus a distance filter are exact and examine under 2 percent of the points</td></tr></tbody></table></div></div><details class="sdmore"><summary>Show the command and the full explanation</summary><pre class="sh"><code>mkdir -p ~/spec &amp;&amp; cd ~/spec &amp;&amp; python3 - &lt;&lt;&#x27;EOF&#x27;
+import math, random, time
+from collections import defaultdict
+B32 = &#x27;0123456789bcdefghjkmnpqrstuvwxyz&#x27;
+def encode(lat, lon, precision):
+    lat_r, lon_r, bits, even, h, ch = [-90.0, 90.0], [-180.0, 180.0], 0, True, &#x27;&#x27;, 0
+    while len(h) &lt; precision:
+        rng, val = (lon_r, lon) if even else (lat_r, lat)
+        mid = (rng[0] + rng[1]) / 2
+        if val &gt;= mid: ch = (ch &lt;&lt; 1) | 1; rng[0] = mid
+        else: ch &lt;&lt;= 1; rng[1] = mid
+        even = not even; bits += 1
+        if bits == 5: h += B32[ch]; bits = 0; ch = 0
+    return h
+def decode_center(h):
+    lat_r, lon_r, even = [-90.0, 90.0], [-180.0, 180.0], True
+    for c in h:
+        v = B32.index(c)
+        for b in range(4, -1, -1):
+            rng = lon_r if even else lat_r; mid = (rng[0] + rng[1]) / 2
+            if (v &gt;&gt; b) &amp; 1: rng[0] = mid
+            else: rng[1] = mid
+            even = not even
+    return (lat_r[0] + lat_r[1]) / 2, (lon_r[0] + lon_r[1]) / 2, (lat_r[1] - lat_r[0]), (lon_r[1] - lon_r[0])
+def haversine(a, b):
+    la1, lo1, la2, lo2 = map(math.radians, (a[0], a[1], b[0], b[1])); d = math.sin((la2 - la1) / 2) ** 2 + math.cos(la1) * math.cos(la2) * math.sin((lo2 - lo1) / 2) ** 2
+    return 6371.0 * 2 * math.asin(math.sqrt(d))
+print(&#x27;known value: encode(57.64911, 10.40744, 11) = %s   (the Wikipedia example is u4pruydqqvj)&#x27; % encode(57.64911, 10.40744, 11))
+print(&#x27;precision  cell height x width at this latitude&#x27;)
+for p in (4, 5, 6, 7):
+    lat, lon, dh, dw = decode_center(encode(37.77, -122.42, p)); print(&#x27;   %d       %6.2f km x %6.2f km&#x27; % (p, dh * 111.2, dw * 111.2 * math.cos(math.radians(lat))))
+rng = random.Random(2)
+pts = [(37.70 + rng.random() * 0.15, -122.52 + rng.random() * 0.20) for _ in range(100000)]       # 100,000 drivers over a city
+P = 6
+cells = defaultdict(list)
+for i, p in enumerate(pts): cells[encode(p[0], p[1], P)].append(i)
+def neighbours(h):
+    lat, lon, dh, dw = decode_center(h)
+    return {encode(lat + a * dh, lon + b * dw, P) for a in (-1, 0, 1) for b in (-1, 0, 1)}
+def near_index(q, radius_km, cell_set):
+    cand = [i for c in cell_set for i in cells.get(c, ())]
+    return sorted((i for i in cand if haversine(q, pts[i]) &lt;= radius_km), key=lambda i: haversine(q, pts[i]))
+def near_scan(q, radius_km): return sorted((i for i in range(len(pts)) if haversine(q, pts[i]) &lt;= radius_km), key=lambda i: haversine(q, pts[i]))
+q = (37.7749, -122.4194); R = 0.5
+t = time.perf_counter(); truth = near_scan(q, R); scan_ms = (time.perf_counter() - t) * 1000
+t = time.perf_counter(); same = near_index(q, R, {encode(q[0], q[1], P)}); one_ms = (time.perf_counter() - t) * 1000
+t = time.perf_counter(); nine = near_index(q, R, neighbours(encode(q[0], q[1], P))); nine_ms = (time.perf_counter() - t) * 1000
+print()
+print(&#x27;drivers within %.1f km of the rider: brute force finds %d in %.1f ms&#x27; % (R, len(truth), scan_ms))
+print(&#x27;  index, own cell only:           finds %d in %.2f ms   &lt;- misses %d nearby drivers across the cell boundary&#x27; % (len(same), one_ms, len(truth) - len(same)))
+print(&#x27;  index, cell + 8 neighbours:     finds %d in %.2f ms   same answer as brute force: %s&#x27; % (len(nine), nine_ms, nine == truth))
+print(&#x27;  candidates examined: %d instead of %d&#x27; % (sum(len(cells.get(c, ())) for c in neighbours(encode(q[0], q[1], P))), len(pts)))
+EOF</code></pre><p class="muted">The same code runs on any Debian or Ubuntu machine as an ordinary user; nothing needs root.</p></details></article></div></section>
+<section class="sdsec" id="design"><h2><span class="n">4</span>A first design that works<small>Architecture</small></h2><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 720 250" role="img" aria-label="Ride hailing design"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="sd-sh acc" x="46" y="26" width="28" height="48" rx="6"/><rect class="sd-ln" x="53" y="65" width="14" height="3" rx="1.5"/><text class="sd-l" x="60" y="90" text-anchor="middle">driver app</text><line class="sd-a acc" x1="90" y1="50" x2="170" y2="50" marker-end="url(#dga)"/><text class="sd-c" x="130.0" y="43.0" text-anchor="middle">ping every 4 s</text><rect class="sd-sh acc" x="176" y="34" width="88" height="32" rx="16"/><rect class="sd-job on" x="186" y="43" width="14" height="14" rx="3"/><rect class="sd-job on" x="204" y="43" width="14" height="14" rx="3"/><rect class="sd-job on" x="222" y="43" width="14" height="14" rx="3"/><rect class="sd-job" x="240" y="43" width="14" height="14" rx="3"/><text class="sd-l" x="220" y="82" text-anchor="middle">location stream</text><line class="sd-a acc" x1="266" y1="50" x2="346" y2="50" marker-end="url(#dga)"/><rect class="sd-sh acc" x="358" y="26" width="56" height="48" rx="7"/><rect class="sd-ln" x="368" y="38" width="28" height="4" rx="2"/><rect class="sd-ln" x="368" y="48" width="28" height="4" rx="2"/><circle class="sd-led acc" cx="403" cy="40" r="3"/><circle class="sd-led acc" cx="403" cy="50" r="3"/><rect class="sd-ln" x="368" y="58" width="36" height="4" rx="2"/><text class="sd-l" x="386" y="90" text-anchor="middle">geo service</text><line class="sd-a acc" x1="416" y1="50" x2="496" y2="50" marker-end="url(#dga)"/><text class="sd-c" x="456.0" y="43.0" text-anchor="middle">update cell</text><rect class="sd-sh acc" x="514" y="28" width="52" height="44" rx="10"/><path class="sd-bolt acc" d="M543,35 L530,53 L539,53 L535,65 L550,46 L541,46 z"/><text class="sd-l" x="540" y="88" text-anchor="middle">cell index</text><text class="sd-c" x="540" y="102" text-anchor="middle">in memory</text><circle class="sd-pp" cx="60" cy="155" r="7"/><path class="sd-pp" d="M48,185 v-8 a12,12 0 0 1 24,0 v8 z"/><line class="sd-a ok" x1="88" y1="170" x2="170" y2="170" marker-end="url(#dga)"/><text class="sd-c" x="129.0" y="163.0" text-anchor="middle">request</text><rect class="sd-sh ok" x="178" y="146" width="56" height="48" rx="7"/><rect class="sd-ln" x="188" y="158" width="28" height="4" rx="2"/><rect class="sd-ln" x="188" y="168" width="28" height="4" rx="2"/><circle class="sd-led ok" cx="223" cy="160" r="3"/><circle class="sd-led ok" cx="223" cy="170" r="3"/><rect class="sd-ln" x="188" y="178" width="36" height="4" rx="2"/><text class="sd-l" x="206" y="210" text-anchor="middle">match service</text><line class="sd-a ok" x1="236" y1="170" x2="346" y2="170" marker-end="url(#dga)"/><text class="sd-c" x="291.0" y="163.0" text-anchor="middle">9 cells</text><rect class="sd-sh ok" x="360" y="148" width="52" height="44" rx="10"/><path class="sd-bolt ok" d="M389,155 L376,173 L385,173 L381,185 L396,166 L387,166 z"/><text class="sd-l" x="386" y="208" text-anchor="middle">cell index</text><line class="sd-a ok" x1="416" y1="170" x2="496" y2="170" marker-end="url(#dga)"/><text class="sd-c" x="456.0" y="163.0" text-anchor="middle">top N</text><rect class="sd-sh ok" x="512" y="146" width="56" height="48" rx="7"/><rect class="sd-ln" x="522" y="158" width="28" height="4" rx="2"/><rect class="sd-ln" x="522" y="168" width="28" height="4" rx="2"/><circle class="sd-led ok" cx="557" cy="160" r="3"/><circle class="sd-led ok" cx="557" cy="170" r="3"/><rect class="sd-ln" x="522" y="178" width="36" height="4" rx="2"/><text class="sd-l" x="540" y="210" text-anchor="middle">ETA service</text><text class="sd-n " x="360" y="238" text-anchor="middle">Updates flow along the top. Searches flow along the bottom. Both use the same in memory index.</text></svg></figure><ol class="sdsteps"><li><h3>Divide the map into cells</h3><p>A geohash turns a latitude and longitude into a short string. Nearby places share the same beginning, so a string prefix is a cell. Each driver belongs to exactly one cell at a time. Other systems use S2 or H3 cells for the same idea.</p><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 640 112" role="img" aria-label="Geohash cells"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="sd-badge acc" x="76.8" y="19" width="66.4" height="22" rx="11"/><text class="sd-bt acc" x="110" y="34" text-anchor="middle">u4pruyd</text><rect class="sd-badge acc" x="76.8" y="51" width="66.4" height="22" rx="11"/><text class="sd-bt acc" x="110" y="66" text-anchor="middle">u4pruye</text><line class="sd-a acc" x1="190" y1="46" x2="290" y2="46" marker-end="url(#dga)"/><text class="sd-c" x="240.0" y="39.0" text-anchor="middle">same start</text><rect class="sd-badge ok" x="325.2" y="35" width="109.6" height="22" rx="11"/><text class="sd-bt ok" x="380" y="50" text-anchor="middle">u4pruy = cell</text><text class="sd-n " x="540" y="50" text-anchor="middle">neighbours share a prefix</text></svg></figure></li><li><h3>Keep the index in memory</h3><p>Store drivers in a map from cell to set of drivers. An update just rewrites the position, and moves the driver to a new set only when the cell changes. Entries expire if pings stop, so a lost phone disappears by itself.</p><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 640 112" role="img" aria-label="Update the index"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="sd-sh acc" x="46" y="24" width="28" height="48" rx="6"/><rect class="sd-ln" x="53" y="63" width="14" height="3" rx="1.5"/><text class="sd-l" x="60" y="88" text-anchor="middle">driver</text><line class="sd-a acc" x1="88" y1="48" x2="190" y2="48" marker-end="url(#dga)"/><text class="sd-c" x="139.0" y="41.0" text-anchor="middle">new position</text><rect class="sd-sh acc" x="204" y="26" width="52" height="44" rx="10"/><path class="sd-bolt acc" d="M233,33 L220,51 L229,51 L225,63 L240,44 L231,44 z"/><text class="sd-l" x="230" y="86" text-anchor="middle">cell u4pruy</text><line class="sd-a warn dash" x1="258" y1="48" x2="360" y2="48" marker-end="url(#dga)"/><text class="sd-c" x="309.0" y="41.0" text-anchor="middle">crossed line</text><rect class="sd-sh warn" x="374" y="26" width="52" height="44" rx="10"/><path class="sd-bolt warn" d="M403,33 L390,51 L399,51 L395,63 L410,44 L401,44 z"/><text class="sd-l" x="400" y="86" text-anchor="middle">cell u4pruz</text><text class="sd-n " x="540" y="52" text-anchor="middle">expires if silent</text></svg></figure></li><li><h3>Search the cell and its neighbours</h3><p>The rider's own cell is not enough, because a driver 50 metres away may sit across the line. Search the rider's cell plus the eight around it, then widen in rings until you have enough candidates. The recorded run shows the own cell alone missed 162 of 290 nearby drivers.</p><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 640 112" role="img" aria-label="Neighbour search"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><circle class="sd-pp" cx="60" cy="33" r="7"/><path class="sd-pp" d="M48,63 v-8 a12,12 0 0 1 24,0 v8 z"/><line class="sd-a ok" x1="88" y1="48" x2="180" y2="48" marker-end="url(#dga)"/><text class="sd-c" x="134.0" y="41.0" text-anchor="middle">9 cells</text><rect class="sd-sh ok" x="194" y="26" width="52" height="44" rx="10"/><path class="sd-bolt ok" d="M223,33 L210,51 L219,51 L215,63 L230,44 L221,44 z"/><text class="sd-l" x="220" y="86" text-anchor="middle">index</text><line class="sd-a ok" x1="246" y1="48" x2="340" y2="48" marker-end="url(#dga)"/><text class="sd-c" x="293.0" y="41.0" text-anchor="middle">candidates</text><rect class="sd-sh ok" x="352" y="24" width="56" height="48" rx="7"/><rect class="sd-ln" x="362" y="36" width="28" height="4" rx="2"/><rect class="sd-ln" x="362" y="46" width="28" height="4" rx="2"/><circle class="sd-led ok" cx="397" cy="38" r="3"/><circle class="sd-led ok" cx="397" cy="48" r="3"/><rect class="sd-ln" x="362" y="56" width="36" height="4" rx="2"/><text class="sd-l" x="380" y="88" text-anchor="middle">filter</text><line class="sd-a ok" x1="410" y1="48" x2="500" y2="48" marker-end="url(#dga)"/><text class="sd-c" x="455.0" y="41.0" text-anchor="middle">top N</text><rect class="sd-badge ok" x="519.6" y="37" width="80.8" height="22" rx="11"/><text class="sd-bt ok" x="560" y="52" text-anchor="middle">290 found</text></svg></figure></li><li><h3>Rank the few, then offer with a lock</h3><p>Straight line distance is a guess. Ask a routing service for the arrival time of only the best 10 or so candidates. Offer the ride to the best one with a short lease on that driver, so no other rider can be given the same driver while the offer is open.</p><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 640 112" role="img" aria-label="Rank and lease"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="sd-badge ok" x="50.4" y="37" width="59.2" height="22" rx="11"/><text class="sd-bt ok" x="80" y="52" text-anchor="middle">top 10</text><line class="sd-a ok" x1="120" y1="48" x2="200" y2="48" marker-end="url(#dga)"/><rect class="sd-sh ok" x="212" y="24" width="56" height="48" rx="7"/><rect class="sd-ln" x="222" y="36" width="28" height="4" rx="2"/><rect class="sd-ln" x="222" y="46" width="28" height="4" rx="2"/><circle class="sd-led ok" cx="257" cy="38" r="3"/><circle class="sd-led ok" cx="257" cy="48" r="3"/><rect class="sd-ln" x="222" y="56" width="36" height="4" rx="2"/><text class="sd-l" x="240" y="88" text-anchor="middle">ETA</text><line class="sd-a ok" x1="270" y1="48" x2="370" y2="48" marker-end="url(#dga)"/><text class="sd-c" x="320.0" y="41.0" text-anchor="middle">best one</text><rect class="sd-badge acc" x="370.8" y="37" width="138.4" height="22" rx="11"/><text class="sd-bt acc" x="440" y="52" text-anchor="middle">lease driver 15 s</text><line class="sd-a acc" x1="500" y1="48" x2="560" y2="48" marker-end="url(#dga)"/><rect class="sd-sh acc" x="576" y="24" width="28" height="48" rx="6"/><rect class="sd-ln" x="583" y="63" width="14" height="3" rx="1.5"/></svg></figure></li></ol></section>
+<section class="sdsec" id="hard"><h2><span class="n">5</span>The hard part: the boundary problem and the update storm<small>The hard part</small></h2><p class="sub">Every interview has one part where the answer is not obvious. Spend your time here.</p><p>The boundary problem is that cells cut the world into hard lines. Nearness does not respect lines, so you must always search the neighbouring cells as well. The second hard part is the write rate: 250,000 updates per second. Shard the index by cell id so a search touches a few shards and each shard handles a share of the writes. Splitting a crowded cell into smaller cells (an airport, a stadium) handles hotspots.</p><p>Because the index holds only the latest position and is rebuilt from the stream, it is soft state. If a shard dies, its drivers reappear on their next ping a few seconds later. That makes the design simple to run: trips and payments live in a durable database, locations live in memory.</p><div class="sdexp"><article class="sdx"><h3><span class="xn">1</span>The same idea in Redis: a geohash sorted set</h3><p class="what">The same idea as a database feature. Redis stores drivers as a sorted set whose <strong>score is a geohash integer</strong>, so <code>GEOSEARCH</code> can find members within a radius by scanning a few score ranges (the cell and its neighbours) and filtering by exact distance, returning them sorted with distances. A driver that moves is a single <code>GEOADD</code> on the same key: this is why in-memory geo indexes are the usual choice for moving objects, while static places go in PostGIS or a database index.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>--- Redis stores drivers in a geohash-encoded sorted set:
+drivers: 5
+--- the 3 nearest drivers within 3 km of the rider at (-122.4170, 37.7760):
+   d1 0.2440
+   d2 1.0801
+   d3 1.4481
+--- a driver moves: one command updates the index (this is the hot path for moving objects):
+   d4 0.1041
+   d1 0.2440
+   d2 1.0801
+--- the stored score is the 52-bit geohash integer: 1367859919124626</code></pre><div class="annot"><span class="lbl">Read it line by line</span><div class="tw"><table><thead><tr><th>In the output</th><th>What it means</th></tr></thead><tbody><tr><td><code>drivers: 5</code></td><td>five members in the geo set</td></tr><tr><td><code>d1 0.2440 / d2 1.0801 / d3 1.4481</code></td><td>the nearest three within three kilometres, with distances in km, sorted</td></tr><tr><td><code>after the move: d4 0.1041 is now the nearest</code></td><td>one GEOADD updated the position: cheap to keep fresh</td></tr><tr><td><code>the stored score is the 52-bit geohash integer: 1367859919124626</code></td><td>the sorted-set score encodes the location as a geohash</td></tr></tbody></table></div></div><details class="sdmore"><summary>Show the command and the full explanation</summary><pre class="sh"><code>. /dev/null; mkdir -p ~/spec &amp;&amp; cd ~/spec
+redis-server --port 6397 --bind 127.0.0.1 --save &quot;&quot; --appendonly no --daemonize yes --dir ~/spec &gt;/dev/null; sleep 0.5
+R=&quot;redis-cli -p 6397&quot;
+echo &quot;--- Redis stores drivers in a geohash-encoded sorted set:&quot;
+$R geoadd drivers -122.4194 37.7749 d1 -122.4089 37.7833 d2 -122.4312 37.7694 d3 -122.2711 37.8044 d4 -122.4783 37.8199 d5 &gt;/dev/null
+echo &quot;drivers: $($R zcard drivers)&quot;
+echo &quot;--- the 3 nearest drivers within 3 km of the rider at (-122.4170, 37.7760):&quot;
+$R geosearch drivers fromlonlat -122.4170 37.7760 byradius 3 km asc count 3 withdist | paste -sd&#x27; &#x27; | sed &#x27;s/ d/\nd/g&#x27; | sed &#x27;s/^/   /&#x27;
+echo &quot;--- a driver moves: one command updates the index (this is the hot path for moving objects):&quot;
+$R geoadd drivers -122.4180 37.7765 d4 &gt;/dev/null
+$R geosearch drivers fromlonlat -122.4170 37.7760 byradius 3 km asc count 3 withdist | paste -sd&#x27; &#x27; | sed &#x27;s/ d/\nd/g&#x27; | sed &#x27;s/^/   /&#x27;
+echo &quot;--- the stored score is the 52-bit geohash integer: $($R zscore drivers d1)&quot;
+$R shutdown nosave &gt;/dev/null 2&gt;&amp;1; true</code></pre><p class="muted">The same code runs on any Debian or Ubuntu machine as an ordinary user; nothing needs root.</p></details></article></div></section>
+<section class="sdsec" id="scale"><h2><span class="n">6</span>Scale, failure and trade-offs<small>Deep dive</small></h2><div class="sdgrid"><div class="sdcard "><h3>Hot cell at an airport</h3><p>Hundreds of drivers in a small cell. Split the cell into finer ones when it holds too many, and cap how many candidates one search reads.</p></div><div class="sdcard ok"><h3>A geo shard dies</h3><p>Its drivers reappear on the next ping. Search a wider radius for a few seconds and replicate shards for faster recovery.</p></div><div class="sdcard "><h3>Update storm</h3><p>A network blip makes every phone resend at once. Use the queue as a buffer, drop stale updates (only the newest position matters) and apply backpressure.</p></div><div class="sdcard bad"><h3>Two riders, one driver</h3><p>Take a lease on the driver before offering. Release it on decline or timeout, then move to the next candidate.</p></div><div class="sdcard "><h3>Moving across shards</h3><p>A driver crossing a shard boundary is written to the new shard and removed from the old. A short double listing is harmless because the lease decides who gets the ride.</p></div></div></section>
+<section class="sdsec" id="say"><h2><span class="n">7</span>Say it in two minutes<small>The answer</small></h2><article class="sdq"><header><span class="who">A frequent location question: reported by candidates, not official.</span><h3>&quot;Design the matching of riders to the nearest drivers for a ride-hailing service.&quot;</h3><p>The geospatial design question (and the first half of the Uber problem). They want the index, the update path, the search, scale and failure.</p></header><div class="body"><h4>3. How to say it</h4><div class="say"><span class="lbl2">A model answer, about two minutes aloud</span><p>"The load is mostly writes: a million drivers pinging every four seconds is about 250,000 location updates per second, while ride requests are around 1,700 searches per second. I would keep the latest position of each driver in an in-memory geospatial index keyed by cell, using geohash, S2 or H3 cells sized to the search radius. An update only changes the cell membership when the driver crosses a cell boundary, and entries expire if pings stop, so the index is soft state that rebuilds itself within seconds after a failure.</p><p>The index is sharded by cell so a query touches few shards, with finer splitting for hot cells. To match a rider I query their cell and its neighbours, expanding rings until there are enough candidates, filter by availability and distance, and rank the best few by ETA from a routing service rather than computing ETA for every driver. The offer uses a lease on the driver so two riders are not matched to the same one, falling back to the next candidate on a decline or timeout. Updates flow through a queue, and trips and payments live in durable stores."</p></div><h4>4. Likely follow-ups</h4><details><summary>Geohash, quadtree, S2 or H3?</summary><p>Geohash is simple and works with any sorted index; quadtrees adapt to density; S2 and H3 give uniform cell neighbours on a sphere (H3 hexagons make ring searches simple); the choice matters less than getting the boundary and update path right.</p></details><details><summary>How do you avoid matching one driver to two riders?</summary><p>A short lease or atomic compare-and-set on the driver's state (available to offered) so only one offer can exist at a time.</p></details><details><summary>How do you handle a stadium emptying?</summary><p>A hot cell: split into finer cells dynamically, shard it separately, and batch updates; apply backpressure on the pings.</p></details><h4>Common slips</h4><ul class='slips'><li>Computing distances to all drivers.</li><li>Ignoring the cell boundary problem.</li><li>Treating the location index as a durable store instead of soft state.</li></ul></div></article><h3 style="margin:18px 0 6px">What companies have published</h3><div class="sdreal"><div><b class="co">Uber</b><div><p>Uber describes <strong>H3</strong>, its open source hexagonal grid for dividing the world into cells, used for marketplace analysis and for finding things near a point.</p><a href="https://h3geo.org/docs/" target="_blank" rel="noopener">H3 documentation (open source project created at Uber)</a></div></div></div><p class="sdnote">Summaries of public engineering write-ups; check the source for details.</p></section>
+<section class="sdsec" id="recap"><h2><span class="n">8</span>Remember this<small>Recap</small></h2><div class="sdrecap"><h3 style="margin:12px 0 0">The page in 6 lines</h3><ul><li>It is write heavy: 250,000 location updates per second against about 1,700 searches.</li><li>Keep only the latest position, in memory, keyed by cell. Entries expire if pings stop.</li><li>Search the rider's cell and its eight neighbours: 290 found, same as brute force, 2.20 ms against 56.8 ms.</li><li>The own cell alone missed 162 nearby drivers: the boundary problem.</li><li>Rank only the top few by arrival time, then offer with a lease on the driver.</li><li>Locations are soft state rebuilt from the stream; trips and payments are durable.</li></ul></div><h3 style="margin:18px 0 6px">Check yourself</h3><details><summary>What is the boundary problem?</summary><p>A nearby driver may sit in the next cell, so searching one cell misses them; search the neighbours too.</p></details><details><summary>Why is the index in memory and not a database?</summary><p>The data is tiny but the update rate is huge, and only the latest position matters.</p></details><details><summary>How do you stop two riders getting one driver?</summary><p>Take a short lease on the driver before making the offer.</p></details><p class="sub" style="margin-top:14px">Want every experiment, lab and edge case? The reference lessons for this topic:</p><div class="sddeeper"><a href="../systems/S21_search_blob_special_stores.html#l4"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Geospatial: geohash, grids and quadtrees</a><a href="../systems/S19_scaling_data.html#l4"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Sharding across machines</a><a href="../systems/S22_distributed_systems.html#l5"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Retries and timeouts</a></div></section>
+<nav class="sdfoot"><a class="" href="file-storage.html"><small>Previous</small><strong>Design file storage and sync</strong></a><a class="r" href="search-autocomplete.html"><small>Next</small><strong>Design search and autocomplete</strong></a></nav></main></div>
+<footer class="site-foot"><span>Mastery: free, open study sheets. Progress is saved in your browser only.</span><span><a href="index.html">Course map</a> · <a href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener">GitHub</a></span></footer>
+<script>(function(){var IC={};
+var slug=document.body.getAttribute('data-sd'),K='sd2-done';
+function get(){try{return JSON.parse(localStorage.getItem(K)||'{}')}catch(e){return{}}}
+var cb=document.getElementById('sd-done');if(cb){var s=get();cb.checked=!!s[slug];cb.onchange=function(){var s=get();if(cb.checked)s[slug]=1;else delete s[slug];try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}}}
+var links=[].slice.call(document.querySelectorAll('.sdnav a'));var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'))}).filter(Boolean);
+if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(a){a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id)})}})},{rootMargin:'-20% 0px -70% 0px'});secs.forEach(function(s){io.observe(s)})}
+var tb=document.getElementById('b-theme');if(tb){var R=document.documentElement;var t=null;try{t=localStorage.getItem('theme')}catch(e){}if(t)R.setAttribute('data-theme',t);tb.onclick=function(){var n=R.getAttribute('data-theme')==='dark'?'light':'dark';R.setAttribute('data-theme',n);try{localStorage.setItem('theme',n)}catch(e){}}}
+})();</script>
+</body></html>

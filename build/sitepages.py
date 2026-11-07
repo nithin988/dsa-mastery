@@ -52,8 +52,13 @@ def hub_html(dsa, sysc):
               ["Arrays to dynamic programming in 19 topics", "Step-by-step animations of every pattern", "Study planner that fits your weeks"],
               [(dsa["topics"], "topics"), (dsa["problems"], "problems")], "Open DSA Mastery", "dsa")
     c2 = card("systems.html", "server", "Systems Mastery", "Linux, Git, troubleshooting and system design for engineers and interviews: real commands with real output, hands-on labs, playbooks and design walkthroughs.",
-              ["Linux and Git you can use under pressure", "Debugging and incident playbooks", "System design with numbers, not just boxes"],
+              ["Linux and Git you can use under pressure", "Debugging and incident playbooks", "Deep reference lessons behind System Design"],
               [(f"{live} of {sysc['total']}", "modules ready"), (sysc["labs"], "labs")], "Open Systems Mastery", "sys")
+    c3 = (f'<article class="ccard" data-course="sd"><div class="tcard-h"><span class="no">{icon("layers")}</span><h2>System Design</h2><span class="st">New</span></div>'
+          f'<div class="tcard-b"><p>One story, twenty pages: follow a small shop as it grows from one server to millions of customers, then practise the classic whiteboard problems with real experiments and model answers.</p>'
+          f'<ul class="ticks"><li>Nine chapters, each starts with something that broke</li><li>Ten interview problems: URL shortener to booking and payments</li><li>What top companies are reported to ask, and how to answer</li></ul>'
+          f'<div class="stats" style="margin:0"><span class="stat"><b>9</b> chapters</span><span class="stat"><b>10</b> problems</span><span class="stat"><b>1</b> playbook</span></div>'
+          f'<div class="act"><a class="btn pri lg" href="design/index.html"><span>Open System Design</span>{icon("arr-r")}</a></div></div></article>')
     hub_js = _read("hub.js")
     return (head("Mastery: free study courses for engineers", desc, SITE_URL)
             + f"""
@@ -64,8 +69,8 @@ def hub_html(dsa, sysc):
 <main id="content" class="home">
 <section class="hero" style="margin-bottom:20px"><div class="eyebrow"><span class="tag">Free and open</span>Works offline</div>
 <h1>Learn what engineering interviews and real jobs ask for</h1>
-<p class="lead">Two separate courses, built the same careful way: plain explanations first, then animations, real commands and code you can run, then practice. Pick where to start. Your progress is saved in your browser only.</p></section>
-<div class="courses">{c1}{c2}</div>
+<p class="lead">Three courses, built the same careful way: plain explanations first, then animations, real commands and code you can run, then practice. Pick where to start. Your progress is saved in your browser only.</p></section>
+<div class="courses">{c3}{c1}{c2}</div>
 <section class="how" aria-label="How the courses work">
 <div><b><span class="no">1</span>Understand</b>A mental model in plain words, with an everyday analogy, before any jargon.</div>
 <div><b><span class="no">2</span>See and try</b>Animations to watch it work, and labs or code you run yourself.</div>

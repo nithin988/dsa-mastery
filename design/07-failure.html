@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>When things fail | System Design | Mastery</title>
+<meta name="description" content="The network can lose a reply, clocks disagree, and machines die half way through a job. This chapter is about designing so that none of that hurts the customer."><meta name="theme-color" content="#0f172a">
+<meta property="og:type" content="article"><meta property="og:site_name" content="Mastery"><meta property="og:title" content="When things fail">
+<meta property="og:description" content="The network can lose a reply, clocks disagree, and machines die half way through a job. This chapter is about designing so that none of that hurts the customer."><meta property="og:url" content="https://nithin988.github.io/dsa-mastery/design/07-failure.html">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f172a'/%3E%3Ctext x='16' y='21' font-family='monospace' font-size='13' font-weight='700' fill='%23f8fafc' text-anchor='middle'%3EDSA%3C/text%3E%3C/svg%3E">
+<style>/* DSA Mastery: shared stylesheet. Tokens and components follow the Kimaru Platform design system
+   (slate neutrals, semantic colour, rounded-md cards, shadow-sm, 16px stroke icons). See docs/DESIGN_SYSTEM.md. */
+:root{
+ --bg:#f8fafc;--surf:#fff;--hd:#f8fafc;--soft:#f1f5f9;--line:#e2e8f0;--line2:#f1f5f9;
+ --fg:#0f172a;--txt:#334155;--mut:#475569;--faint:#64748b;
+ --ink:#0f172a;--ink-fg:#f8fafc;
+ --acc:#3162b4;--acc-soft:#eaf0fa;--acc-line:#bcd0ee;
+ --ok:#15803d;--ok-soft:#f0fdf4;--ok-line:#86efac;
+ --warn:#b45309;--warn-soft:#fffbeb;--warn-line:#fbbf24;
+ --med:#a16207;--med-soft:#fefce8;
+ --bad:#b91c1c;--bad-soft:#fef2f2;--bad-line:#f87171;
+ --risk:#c2410c;--risk-soft:#fff7ed;
+ --info:#0369a1;--info-soft:#f0f9ff;--info-line:#38bdf8;
+ --done:#0f766e;--done-soft:#f0fdfa;--done-line:#5eead4;
+ --code:#f8fafc;--ring:#3162b4;
+ --sh:0 1px 2px rgba(15,23,42,.06);--sh-lg:0 10px 30px rgba(15,23,42,.12);
+ --r:6px;--r-lg:8px;
+ color-scheme:light}
+:root[data-theme=dark]{
+ --bg:#020617;--surf:#0f172a;--hd:#0b1324;--soft:#1e293b;--line:#1e293b;--line2:#172033;
+ --fg:#f1f5f9;--txt:#cbd5e1;--mut:#a3b1c6;--faint:#94a3b8;
+ --ink:#f1f5f9;--ink-fg:#0f172a;
+ --acc:#8db4f0;--acc-soft:#14233d;--acc-line:#2c4a7a;
+ --ok:#4ade80;--ok-soft:#0c2a18;--ok-line:#166534;
+ --warn:#fbbf24;--warn-soft:#2b2008;--warn-line:#a16207;
+ --med:#facc15;--med-soft:#2a2308;
+ --bad:#f87171;--bad-soft:#2d1214;--bad-line:#b91c1c;
+ --risk:#fb923c;--risk-soft:#2b1708;
+ --info:#38bdf8;--info-soft:#0a2233;--info-line:#0369a1;
+ --done:#2dd4bf;--done-soft:#0a2624;--done-line:#0f766e;
+ --code:#0b1324;--ring:#8db4f0;
+ --sh:none;--sh-lg:0 10px 30px rgba(0,0,0,.5);color-scheme:dark}
+
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:var(--acc);text-underline-offset:2px}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:4px}
+code{background:var(--soft);padding:1px 5px;border-radius:4px;font:0.88em ui-monospace,"Cascadia Code",Consolas,Menlo,monospace;color:var(--fg)}
+.mut,.muted{color:var(--mut)}.muted{font-size:13px;font-weight:400}
+.skip{position:absolute;left:12px;top:-60px;z-index:100;background:var(--ink);color:var(--ink-fg);padding:8px 14px;border-radius:var(--r);text-decoration:none;font-size:14px}.skip:focus{top:8px}
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.33;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-3px}
+.ic.fill{fill:currentColor;stroke:none}.ic.lg{width:20px;height:20px}
+
+/* buttons: primary = dark, secondary = light, confirmed = teal (design system section 5) */
+.btn,.bar button,.st-ctl button,.st-ctl select{font:inherit;font-size:13px;font-weight:500;line-height:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:32px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);cursor:pointer;text-decoration:none;box-shadow:var(--sh);transition:background .15s,border-color .15s}
+.btn:hover,.bar button:hover,.st-ctl button:hover{background:var(--soft)}
+.btn.pri,.bar button.on,.btn.on{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.btn.pri:hover{opacity:.9;background:var(--ink)}
+.btn.sec{background:var(--soft)}
+.btn.lg{height:40px;padding:0 18px;font-size:14px}
+.iconbtn{width:32px;padding:0!important}
+
+/* top bar (sticky 48px, like ReviewBar) */
+.bar{position:sticky;top:0;z-index:30;background:var(--surf);border-bottom:1px solid var(--line);box-shadow:var(--sh)}
+.bar-in{max-width:1280px;margin:0 auto;height:48px;display:flex;gap:8px;align-items:center;padding:0 16px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:700;text-decoration:none;color:var(--fg);letter-spacing:-.01em;margin-right:4px}
+.brand b{font-weight:700}.brand span{color:var(--faint);font-weight:600}
+.logo{width:24px;height:24px;border-radius:6px;background:var(--ink);color:var(--ink-fg);display:grid;place-items:center;font:700 11px ui-monospace,Consolas,monospace;letter-spacing:-.02em}
+.crumbs{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mut);min-width:0;margin-right:auto}
+.crumbs a{color:var(--mut);text-decoration:none}.crumbs a:hover{color:var(--fg)}
+.crumbs .cur{color:var(--fg);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crumbs .ic{color:var(--faint);width:14px;height:14px}
+.prog{font-size:12.5px;color:var(--mut);white-space:nowrap;padding:0 4px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.seg button{border:0!important;border-radius:0!important;box-shadow:none!important;background:var(--surf)}
+.seg button+button{border-left:1px solid var(--line)!important}
+.pbar{height:2px;background:var(--line)}.pbar i{display:block;height:100%;width:0;background:var(--acc);transition:width .4s}
+
+/* topic switcher panel */
+.menu{position:relative}
+.panel{position:absolute;right:0;top:40px;width:min(380px,92vw);max-height:min(70vh,640px);overflow:auto;background:var(--surf);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh-lg);padding:6px;z-index:50}
+.panel[hidden]{display:none}
+.panel h5{margin:10px 8px 4px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.panel a{display:grid;grid-template-columns:26px 1fr auto;gap:8px;align-items:center;padding:7px 8px;border-radius:var(--r);text-decoration:none;color:var(--fg);font-size:13.5px}
+.panel a:hover{background:var(--soft)}.panel a[aria-current=page]{background:var(--soft);font-weight:600}
+.panel .n{font:600 11px ui-monospace,Consolas,monospace;color:var(--faint)}
+.panel .c{font-size:11.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.panel .c.done{color:var(--done);font-weight:600}
+
+/* layout */
+.wrap{max-width:1280px;margin:0 auto;padding:0 16px;display:grid;grid-template-columns:248px minmax(0,1fr);gap:32px}
+nav.side{position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto;padding:20px 0;font-size:13.5px}
+nav.side h4{margin:16px 0 6px;padding:0 10px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+nav.side a{display:flex;gap:8px;align-items:center;padding:6px 10px;border-radius:var(--r);text-decoration:none;color:var(--txt)}
+nav.side a:hover{background:var(--soft)}nav.side a.act{background:var(--soft);color:var(--fg);font-weight:600;box-shadow:inset 2px 0 0 var(--ink)}
+nav.side .dot{width:8px;height:8px;border-radius:50%;flex:none}.dot.hot{background:var(--warn)}.dot.sec{background:var(--faint)}
+nav.side .cnt{margin-left:auto;font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}
+main{min-width:0;padding:24px 0 90px}
+.chips{display:none}
+
+/* page header (hero) */
+.hero{background:var(--surf);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--sh);padding:24px 26px;margin-bottom:20px}
+.eyebrow{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);display:flex;align-items:center;gap:8px}
+.eyebrow .tag{background:var(--soft);border-radius:99px;padding:3px 9px;color:var(--fg);letter-spacing:.06em}
+.hero h1{font-size:clamp(24px,3.4vw,32px);line-height:1.2;margin:10px 0 10px;letter-spacing:-.02em;color:var(--fg);font-weight:700}
+.lead{font-size:15.5px;color:var(--txt);margin:0;max-width:72ch}
+.stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.stat{display:inline-flex;gap:6px;align-items:center;background:var(--hd);border:1px solid var(--line);border-radius:99px;padding:3px 12px;font-size:12.5px;color:var(--mut)}.stat b{color:var(--fg);font-variant-numeric:tabular-nums}
+
+/* headings */
+h2{font-size:20px;font-weight:700;margin:40px 0 10px;letter-spacing:-.01em;scroll-margin-top:72px;color:var(--fg)}
+h3{margin:0;font-size:20px;font-weight:600;letter-spacing:-.01em;color:var(--fg)}
+
+/* callouts: neutral box + 2px left accent (design system section 6) */
+.callout{border:1px solid var(--line);border-left:2px solid var(--faint);background:var(--hd);padding:10px 14px;border-radius:var(--r);margin:14px 0}
+.callout.intu{border-left-color:var(--info-line)}.callout p{margin:4px 0}
+.callout .lbl{margin-bottom:2px}
+
+/* pattern card: header bar + body (design system section 6) */
+.pat{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);margin:22px 0;scroll-margin-top:72px;overflow:hidden}
+.pat-h{display:flex;gap:12px;align-items:center;flex-wrap:wrap;min-height:50px;padding:8px 16px;background:var(--hd);border-bottom:1px solid var(--line)}
+.pat-h h3{font-size:18px}
+.badge{width:28px;height:28px;border-radius:var(--r);background:var(--ink);color:var(--ink-fg);display:flex;align-items:center;justify-content:center;font:700 13px ui-monospace,Consolas,monospace;flex:none}
+.tier{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;white-space:nowrap}
+.tier.hot{background:var(--warn-soft);color:var(--warn)}.tier.sec{background:var(--soft);color:var(--mut)}
+.pp{margin-left:auto;font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.pat-b{padding:6px 16px 8px}
+.glance{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0;margin:8px 0 6px;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.gi{padding:10px 14px;font-size:14px;border-left:1px solid var(--line2)}.gi:first-child{border-left:0}
+.lbl{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.lbl .ic{width:14px;height:14px}
+.blk{margin:16px 0}.blk p{margin:4px 0}
+.blk ol,.blk ul{margin:4px 0;padding-left:22px}.blk li{margin:4px 0}
+.blk.warn{border:1px solid var(--line);border-left:2px solid var(--warn-line);background:var(--warn-soft);border-radius:var(--r);padding:10px 14px}.blk.warn .lbl{color:var(--warn)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cx{display:flex;gap:8px;align-items:center;background:var(--ok-soft);color:var(--ok);border:1px solid var(--line);border-left:2px solid var(--ok-line);border-radius:var(--r);padding:8px 14px;font-weight:600;font-size:14px;margin:14px 0}
+
+/* code */
+pre{background:var(--code);border:1px solid var(--line);border-radius:var(--r);padding:34px 15px 13px;overflow-x:auto;margin:8px 0;position:relative;font-size:13px;line-height:1.55;color:var(--fg)}
+pre::before{position:absolute;left:12px;top:8px;font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+pre.code-java::before{content:"Java"}pre.code-py::before{content:"Python"}pre.trace::before{content:"Trace"}
+pre code{background:none;padding:0;font-size:inherit;color:inherit}
+.code-java,.code-py{display:none}body[data-lang=java] .code-java,body[data-lang=py] .code-py{display:block}
+.cp{position:absolute;top:5px;right:6px;font:500 12px system-ui,sans-serif;height:24px;padding:0 9px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--mut);cursor:pointer}
+.cp:hover{color:var(--fg);background:var(--soft)}
+.trace{border-left:2px solid var(--faint)}
+
+/* tables */
+.tw{overflow-x:auto;margin:10px 0;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:9px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line2)}
+th{background:var(--hd);font:600 11px/1.2 system-ui,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);border-bottom:1px solid var(--line);position:sticky;top:0}
+tbody tr:hover td{background:var(--hd)}tr:last-child td{border-bottom:0}
+.ladder td:first-child{width:36px;text-align:center}.ladder .t{white-space:nowrap}.ladder .c{white-space:nowrap;font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+input.pk{width:18px;height:18px;accent-color:var(--done);cursor:pointer;margin:0}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;white-space:nowrap}
+.dE{background:var(--ok-soft);color:var(--ok)}.dM{background:var(--med-soft);color:var(--med)}.dH{background:var(--bad-soft);color:var(--bad)}
+tr.done td{background:var(--done-soft)}tr.done td:nth-child(3){text-decoration:line-through;text-decoration-color:var(--faint)}
+details{border:1px solid var(--line);border-radius:var(--r);padding:0 14px;margin:8px 0;background:var(--surf)}
+summary{cursor:pointer;font-weight:600;padding:10px 0;color:var(--fg);list-style:none;display:flex;gap:8px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"";width:6px;height:6px;border-right:1.5px solid var(--faint);border-bottom:1.5px solid var(--faint);transform:rotate(-45deg);transition:transform .2s;flex:none}
+details[open] summary::before{transform:rotate(45deg)}
+details[open]{border-left:2px solid var(--info-line)}details p{margin:0 0 12px;color:var(--txt)}
+
+/* stepper (animation panel) */
+.stepper{border:1px solid var(--line);border-radius:var(--r-lg);margin:8px 0 14px;background:var(--surf);box-shadow:var(--sh);overflow:hidden}
+.stepper:focus-visible{outline-offset:0}
+.st-head{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--hd);border-bottom:1px solid var(--line);font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.st-head .st-count{margin-left:auto;font-size:11.5px;letter-spacing:0;text-transform:none;font-variant-numeric:tabular-nums}
+.st-body{padding:12px 14px 4px}
+.st-prog{height:3px;background:var(--line);overflow:hidden}.st-prog i{display:block;height:100%;background:var(--acc);width:0;transition:width .3s}
+.st-view{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;padding:6px 0 2px;margin:0 auto}
+.cellw{display:flex;flex-direction:column;align-items:center;min-width:46px}
+.ptr{min-height:22px;font:600 11px ui-monospace,Consolas,monospace;margin-bottom:3px;display:flex;align-items:flex-end}
+.ptr b{background:var(--ink);color:var(--ink-fg);padding:1px 7px;border-radius:99px;white-space:nowrap;animation:drop .25s ease}
+.cell{min-width:46px;height:46px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:600 15px ui-monospace,Consolas,monospace;padding:0 7px;transition:background .25s,border-color .25s,transform .25s}
+.cell.in{background:var(--acc-soft);border-color:var(--acc);transform:translateY(-2px)}
+.cell.ok{background:var(--done-soft);border-color:var(--done)}
+.cell.dim{background:var(--soft);color:var(--mut);border-style:dashed;opacity:.65}
+.cell.pop{animation:pop .35s ease}
+.edge{align-self:flex-start;margin-top:31px;min-width:20px;text-align:center;color:var(--faint);font:700 16px ui-monospace,Consolas,monospace}
+.idx{font:11px ui-monospace,Consolas,monospace;color:var(--mut);margin-top:3px}
+.st-aux{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;align-items:center;min-height:30px;margin-top:8px}
+.st-aux .al{font:600 10px ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--mut)}
+.chip{font:600 12.5px ui-monospace,Consolas,monospace;background:var(--hd);border:1px solid var(--line);border-radius:var(--r);padding:2px 9px;color:var(--fg)}
+.st-note{min-height:48px;margin:8px 0;font-size:14.5px;padding:10px 13px;background:var(--hd);border:1px solid var(--line);border-left:2px solid var(--info-line);border-radius:var(--r);color:var(--txt)}
+.st-ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 14px 12px}
+.st-ctl button{min-width:32px}
+.st-ctl button.pri{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.st-ctl input[type=range]{flex:1;min-width:90px;accent-color:var(--ink)}
+.st-ctl select{padding:0 8px}
+@keyframes pop{0%{transform:scale(.75)}60%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes drop{from{transform:translateY(-6px);opacity:0}to{transform:none;opacity:1}}
+
+/* previous / next */
+.foot{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.nxt{display:flex;flex-direction:column;gap:3px;padding:14px 16px;background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);text-decoration:none;color:var(--fg)}
+.nxt:hover{border-color:var(--faint)}.nxt.r{text-align:right;align-items:flex-end}.nxt small{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);display:flex;gap:6px;align-items:center}
+.nxt strong{font-size:15px;font-weight:600}
+.nxt.next{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}.nxt.next small{color:inherit;opacity:.75}
+.site-foot{max-width:1280px;margin:0 auto;padding:22px 16px 40px;display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between;color:var(--mut);font-size:13px;border-top:1px solid var(--line)}
+.site-foot a{color:var(--mut)}.site-foot a:hover{color:var(--fg)}
+
+/* landing page */
+.home{max-width:1120px;margin:0 auto;padding:28px 16px 60px}
+.home-hero{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:stretch}
+.home-hero .hero{margin:0;display:flex;flex-direction:column}
+.home-hero .hero h1{font-size:clamp(28px,4vw,40px)}
+.cta{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:14px 16px;display:flex;flex-direction:column;justify-content:center}
+.kpi b{font-size:26px;line-height:1.1;color:var(--fg);letter-spacing:-.02em;font-variant-numeric:tabular-nums}.kpi span{font-size:12.5px;color:var(--mut);margin-top:3px}
+.kpi.wide{grid-column:1/-1}
+.meter{height:6px;border-radius:99px;background:var(--soft);overflow:hidden;margin-top:10px}.meter i{display:block;height:100%;width:0;background:var(--done);border-radius:99px;transition:width .4s}
+.how{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0 0}
+.how div{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;font-size:14px}
+.how b{display:flex;align-items:center;gap:8px;color:var(--fg);margin-bottom:4px}
+.how .no{width:22px;height:22px;border-radius:6px;background:var(--soft);display:grid;place-items:center;font:700 11px ui-monospace,monospace;color:var(--fg)}
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:34px 0 4px}
+.tools h2{margin:0;margin-right:auto;font-size:20px}
+.search{position:relative}.search input{height:32px;width:220px;max-width:100%;padding:0 10px 0 32px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:13px}
+.search .ic{position:absolute;left:10px;top:8px;color:var(--faint)}
+.filters{display:inline-flex;gap:6px;flex-wrap:wrap}
+.filters button{height:32px;padding:0 12px;border:1px solid var(--line);border-radius:99px;background:var(--surf);color:var(--mut);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.filters button[aria-pressed=true]{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.phase{margin:26px 0 0}
+.phase-h{display:flex;align-items:baseline;gap:10px;margin:0 0 10px}
+.phase-h h2{margin:0;font-size:16px;scroll-margin-top:72px}.phase-h span{font-size:13px;color:var(--mut)}
+.phase-h .ph{font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;background:var(--soft);color:var(--fg);padding:4px 8px;border-radius:99px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.tcard{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden}
+.tcard[hidden]{display:none}
+.tcard-h{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 14px;background:var(--hd);border-bottom:1px solid var(--line)}
+.tcard-h .no{font:700 12px ui-monospace,Consolas,monospace;background:var(--ink);color:var(--ink-fg);border-radius:var(--r);padding:3px 7px}
+.tcard-h h3{font-size:16px;margin-right:auto}
+.st{font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--soft);color:var(--mut);white-space:nowrap}
+.st.doing{background:var(--warn-soft);color:var(--warn)}.st.done{background:var(--done-soft);color:var(--done)}
+.tcard-b{padding:12px 14px;display:flex;flex-direction:column;gap:10px;flex:1}
+.tcard-b p{margin:0;font-size:13.5px;color:var(--txt);flex:1}
+.meta{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--mut)}.meta span{display:inline-flex;gap:5px;align-items:center}
+.act{display:flex;gap:8px}
+.empty{text-align:center;color:var(--mut);padding:30px;border:1px dashed var(--line);border-radius:var(--r);margin-top:16px}
+
+@media (max-width:1020px){.wrap{display:block}nav.side{display:none}
+ .chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0;position:sticky;top:50px;z-index:10;background:var(--bg)}
+ .chips a{white-space:nowrap;font-size:12.5px;border:1px solid var(--line);background:var(--surf);padding:4px 11px;border-radius:99px;text-decoration:none;color:var(--fg)}
+ .home-hero{grid-template-columns:1fr}}
+@media (max-width:720px){.crumbs .cur,.crumbs .ic,.prog{display:none}.how{grid-template-columns:1fr}.foot{grid-template-columns:1fr}.btn .t-long{display:none}}
+@media (max-width:640px){body{font-size:15px}.hero{padding:18px 16px}.pat-b{padding:4px 12px 6px}.two{grid-template-columns:1fr}.cell{min-width:36px;height:38px;font-size:13px}.cellw{min-width:36px}.brand span{display:none}.pp{margin-left:0}.gi{border-left:0;border-top:1px solid var(--line2)}.gi:first-child{border-top:0}.search input{width:100%}.search{flex:1}.kpis{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media print{.bar,.pbar,nav.side,.chips,.st-ctl,.cp,.skip,.site-foot,.foot{display:none}.wrap{display:block}.code-java,.code-py{display:block!important}.pat{box-shadow:none;break-inside:avoid-page}body{background:#fff}}
+
+/* tree and graph drawings inside the stepper */
+.st-tree svg{display:block;margin:0 auto;height:auto}.st-tree line{stroke:var(--faint);stroke-width:1.75;opacity:.6}
+.tn circle{fill:var(--surf);stroke:var(--line);stroke-width:2;transition:fill .25s,stroke .25s}.tn.in circle{fill:var(--acc-soft);stroke:var(--acc)}.tn.ok circle{fill:var(--done-soft);stroke:var(--done)}.tn.dim circle{fill:var(--soft);stroke-dasharray:4 3;opacity:.7}
+.tn text{font:600 14px ui-monospace,Consolas,monospace;fill:var(--fg);text-anchor:middle;dominant-baseline:central}.tp{font:700 11px ui-monospace,Consolas,monospace;fill:var(--acc);text-anchor:middle}
+.ge{stroke:var(--faint);stroke-width:2;opacity:.5}.ge.on{stroke:var(--acc);stroke-width:3.5;opacity:1}.gw{font:600 11px ui-monospace,Consolas,monospace;fill:var(--mut);text-anchor:middle}.mk{fill:var(--faint);opacity:.7}.mk2{fill:var(--acc)}
+
+/* study planner page */
+.planner .hero{margin-bottom:18px}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);margin-bottom:16px;overflow:hidden}
+.card-h{display:flex;align-items:center;gap:10px;min-height:46px;padding:6px 14px;background:var(--hd);border-bottom:1px solid var(--line)}
+.card-h h2{margin:0;font-size:15px;font-weight:600;margin-right:auto;color:var(--fg)}
+.card-h>span:not(.st){font-size:12.5px;color:var(--mut)}
+.card-b{padding:14px}
+.pl-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;align-items:start}
+.pl-col{min-width:0}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+.field{min-width:0}.field:nth-child(6),.field:nth-child(7){grid-column:1/-1}
+.flabel{display:block;font:600 11px/1.2 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+.field input[type=date],.field input[type=number],.field select{height:34px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:14px;max-width:100%}
+.field input[type=number]{width:96px}.field select{width:100%}.field input[type=date]{width:100%}
+.unit{font-size:13px;color:var(--mut);margin-left:8px}
+.fhint{font-size:12.5px;color:var(--mut);margin-top:6px}
+.qchips{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.qchips button,.presets button,.chips2 button{height:28px;padding:0 11px;border:1px solid var(--line);border-radius:99px;background:var(--surf);color:var(--fg);font:inherit;font-size:12.5px;cursor:pointer}
+.qchips button:hover,.presets button:hover,.chips2 button:hover{background:var(--soft)}
+.seg2{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;max-width:100%}
+.seg2 button{height:34px;padding:0 14px;border:0;background:var(--surf);color:var(--fg);font:inherit;font-size:13px;font-weight:500;cursor:pointer}
+.seg2 button+button{border-left:1px solid var(--line)}
+.seg2 button[aria-pressed=true]{background:var(--ink);color:var(--ink-fg)}
+.toggles{display:grid;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line2);font-size:14px}
+.toggles label,.key-panel label{display:flex;gap:9px;align-items:center;cursor:pointer}
+.toggles input,.key-panel input[type=checkbox]{width:16px;height:16px;accent-color:var(--ink);margin:0}
+.presets{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.presets span{font-size:12.5px;color:var(--mut);margin-right:2px}
+#topics h5{margin:14px 0 4px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.trow{display:grid;grid-template-columns:20px 28px 1fr auto;gap:8px;align-items:center;padding:6px 6px;border-radius:var(--r);cursor:pointer;font-size:14px}
+.trow:hover{background:var(--soft)}.trow input{width:16px;height:16px;accent-color:var(--ink);margin:0}
+.trow .n{font:600 11.5px ui-monospace,Consolas,monospace;color:var(--faint)}.trow .est{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+/* coach */
+.chat{position:sticky;top:64px;display:flex;flex-direction:column;height:min(720px,calc(100vh - 84px));min-height:480px;margin-bottom:0}
+.chat .card-h .btn{height:28px}
+.key-panel{padding:12px 14px;border-bottom:1px solid var(--line);background:var(--surf);display:grid;gap:10px;font-size:13.5px}
+.key-panel[hidden]{display:none}
+.key-panel p{margin:0}.key-panel .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.key-panel input[type=password],.key-panel select{height:34px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:13.5px;min-width:0;flex:1}
+.msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;background:var(--bg)}
+.msg{max-width:92%}.msg.me{align-self:flex-end}
+.msg .who{font:600 10px/1 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:0 2px 4px}.msg.me .who{text-align:right}
+.msg .mb{padding:9px 12px;border-radius:var(--r-lg);font-size:14.5px;line-height:1.55;border:1px solid var(--line);background:var(--surf);color:var(--txt)}
+.msg.me .mb{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+.msg .mb p{margin:0 0 6px}.msg .mb p:last-child{margin:0}.msg .mb ul,.msg .mb ol{margin:4px 0;padding-left:20px}.msg .mb code{font-size:.9em}
+.msg.sys{align-self:stretch;max-width:100%}.msg.sys .mb{background:var(--hd);border-left:2px solid var(--info-line);font-size:13.5px}
+.typing{display:flex;gap:4px;padding:6px 4px}.typing i{width:6px;height:6px;border-radius:50%;background:var(--faint);animation:blink 1.2s infinite}.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.chips2{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px 0;background:var(--surf);border-top:1px solid var(--line)}
+.composer{display:flex;gap:8px;align-items:flex-end;padding:10px 14px 14px;background:var(--surf)}
+.composer textarea{flex:1;resize:none;min-height:38px;max-height:120px;padding:8px 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:14.5px;line-height:1.4}
+.composer .btn{height:38px}
+/* plan output */
+.sec-h{font-size:18px;margin:26px 0 10px}
+.kpis4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.kpis4 .kpi b{font-size:22px}
+.callout.alert{border-left-color:var(--warn-line);background:var(--warn-soft)}.callout.alert .lbl{color:var(--warn)}.callout ul{margin:4px 0;padding-left:20px}
+.warn-c{border-left-color:var(--warn-line)}
+.plan-bar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;background:var(--surf);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin:14px 0;box-shadow:var(--sh)}
+.pb-l{min-width:220px;flex:1;font-size:13.5px;color:var(--mut)}.pb-l b{color:var(--fg);font-size:15px}.pb-r{display:flex;gap:8px;flex-wrap:wrap}
+.wk{padding:0;margin:10px 0;border-left:1px solid var(--line)}
+details.wk[open]{border-left:2px solid var(--info-line)}
+.wk summary{padding:12px 14px;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.wk summary::before{align-self:center}
+.wn{font-weight:700;color:var(--fg)}.wd{font-size:13px;color:var(--mut)}.wt{font-size:13px;color:var(--mut);margin-right:auto}.wc{font-size:12.5px;font-weight:600;background:var(--soft);border-radius:99px;padding:2px 10px;color:var(--fg);font-variant-numeric:tabular-nums}
+.wk-b{padding:0 14px 12px}
+.day{border:1px solid var(--line);border-radius:var(--r);margin:8px 0;background:var(--surf);overflow:hidden}
+.day.today{border-color:var(--ink)}
+.day.rest{background:var(--hd);color:var(--mut)}
+.dh{display:flex;gap:10px;align-items:center;padding:7px 12px;background:var(--hd);border-bottom:1px solid var(--line2);font-size:13px}.dh b{color:var(--fg)}.dh span:last-child{margin-left:auto;color:var(--mut);font-variant-numeric:tabular-nums}
+.day.rest .dh{border-bottom:0}
+.pill-t{font-size:11px;font-weight:600;background:var(--ink);color:var(--ink-fg);padding:1px 8px;border-radius:99px}
+.task{display:grid;grid-template-columns:20px 84px 1fr auto;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line2);cursor:pointer;font-size:14px}
+.task:last-child{border-bottom:0}.task:hover{background:var(--hd)}
+.task input{width:17px;height:17px;accent-color:var(--done);margin:0}
+.task .kind{font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;text-align:center;background:var(--soft);color:var(--mut)}
+.k-learn .kind{background:var(--info-soft);color:var(--info)}.k-code .kind{background:var(--soft);color:var(--fg)}.k-practice .kind{background:var(--med-soft);color:var(--med)}
+.k-review .kind{background:var(--done-soft);color:var(--done)}.k-checkpoint .kind,.k-mock .kind{background:var(--ink);color:var(--ink-fg)}
+.task .ttl{min-width:0;display:flex;flex-direction:column}.task .ttl a{color:var(--fg);text-decoration:none}.task .ttl a:hover{text-decoration:underline}
+.task .sub{font-size:12px;color:var(--mut)}.task .mins{font-size:12.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+.task.is-done .ttl,.task.is-done .ttl a{text-decoration:line-through;text-decoration-color:var(--faint);color:var(--mut)}
+@media (max-width:1020px){.pl-grid{grid-template-columns:1fr}.chat{position:static;height:560px}.kpis4{grid-template-columns:1fr 1fr}}
+@media (max-width:640px){.fgrid{grid-template-columns:1fr}.field:nth-child(n){grid-column:auto}.task{grid-template-columns:20px 1fr auto}.task .kind{display:none}.wt{flex-basis:100%;order:3}.msg{max-width:100%}}
+@media print{.pl-grid,.hero,.plan-bar .pb-r,.chat{display:none}.wk{break-inside:avoid-page}details.wk>summary::before{display:none}}
+
+/* left rail */
+body.has-rail{padding-left:56px}
+.rail{position:fixed;inset:0 auto 0 0;width:56px;z-index:40;background:var(--surf);border-right:1px solid var(--line);padding:9px 8px;overflow:hidden;transition:width .18s ease;display:flex;flex-direction:column;gap:2px}
+.rail:hover,.rail:focus-within{width:240px;box-shadow:var(--sh-lg)}
+.rail-i{display:flex;align-items:center;gap:12px;height:38px;padding:0 10px;border-radius:var(--r);text-decoration:none;color:var(--txt);white-space:nowrap;font-size:14px}
+.rail-i:hover{background:var(--soft)}
+.rail-i[aria-current=page]{background:var(--soft);color:var(--fg);font-weight:600;box-shadow:inset 2px 0 0 var(--ink)}
+.rail-i .ic{width:18px;height:18px}
+.rail-logo{margin-bottom:6px;height:44px}.rail-logo .logo{width:24px;height:24px;flex:none}
+.rail .l{opacity:0;transition:opacity .12s}.rail:hover .l,.rail:focus-within .l{opacity:1}
+.rail-g{font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);padding:14px 10px 4px;opacity:0;white-space:nowrap}
+.rail:hover .rail-g,.rail:focus-within .rail-g{opacity:1}
+.rail-sub{display:flex;flex-direction:column;margin:0 0 4px 22px;padding-left:12px;border-left:1px solid var(--line);opacity:0;max-height:0;overflow:hidden;transition:opacity .12s}
+.rail:hover .rail-sub,.rail:focus-within .rail-sub{opacity:1;max-height:260px}
+.rail-sub a{font-size:13px;color:var(--mut);text-decoration:none;padding:5px 8px;border-radius:var(--r);white-space:nowrap}.rail-sub a:hover{background:var(--soft);color:var(--fg)}
+.rail-bd{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:35}.rail-bd[hidden]{display:none}
+.rail-btn{display:none}
+@media (max-width:1020px){body.has-rail{padding-left:0}
+ .rail{transform:translateX(-100%);width:256px;transition:transform .2s ease;box-shadow:none}.rail.open{transform:none;box-shadow:var(--sh-lg)}
+ .rail:hover,.rail:focus-within{width:256px}.rail .l,.rail-g,.rail-sub{opacity:1}.rail-sub{max-height:260px}
+ .rail-btn{display:inline-flex}}
+@media print{.rail,.rail-bd{display:none}body.has-rail{padding-left:0}}
+
+/* systems pages and hub */
+pre.sh::before{content:"Command"}pre.out::before{content:"Output"}
+pre.sh{margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0;border-bottom:0;background:var(--ink);color:var(--ink-fg)}
+pre.sh::before{color:inherit;opacity:.65}
+pre.sh code{color:inherit;white-space:pre}
+pre.sh .cp{background:transparent;color:var(--ink-fg);border-color:rgba(248,250,252,.35)}pre.sh .cp:hover{background:rgba(248,250,252,.12);color:var(--ink-fg)}
+[data-theme=dark] pre.sh{background:#0b1324;color:#f1f5f9;border:1px solid var(--line)}
+pre.out{margin-top:0;border-top-left-radius:0;border-top-right-radius:0}
+.cmd{margin:14px 0 18px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);overflow:hidden}
+.cmd pre{margin:0;border-radius:0;border-left:0;border-right:0}.cmd>pre.sh{border-top:0}
+.cmd-b{padding:10px 14px 12px}.cmd-b p{margin:4px 0}
+.cmd-b pre.out{margin:6px 0 0;border:1px solid var(--line);border-radius:var(--r)}
+.out-l{margin-top:8px}
+.stamp{display:inline-block;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--done);background:var(--done-soft);border-radius:99px;padding:3px 9px}
+.stamp.ill{color:var(--warn);background:var(--warn-soft)}
+.noout{font-size:13px}
+.parts{margin:8px 0 0}.parts table{font-size:13px}.parts th,.parts td{padding:6px 10px}
+.analogy{margin:8px 0 2px}
+.tick{display:inline-flex;gap:7px;align-items:center;font-size:12.5px;color:var(--mut);cursor:pointer;margin-left:auto}
+.tick input{width:16px;height:16px;accent-color:var(--done);margin:0}.tick.is-done{color:var(--done);font-weight:600}
+.pat-h .tick{margin-left:auto}.pat-h .pp{margin-left:0}
+.lab .badge{background:var(--soft);color:var(--fg)}.lab .badge .ic{width:16px;height:16px}
+.lab{border-left:2px solid var(--info-line)}
+.case{border:1px solid var(--line);border-left:2px solid var(--warn-line);background:var(--hd);border-radius:var(--r);padding:12px 16px;margin:14px 0}
+.case h4{margin:4px 0 6px;font-size:16px;color:var(--fg)}.case p{margin:6px 0}
+.qa{padding:0 14px}.qa summary{font-weight:600}
+.qa-b{padding:0 0 12px}.qa-b ul{margin:4px 0 10px;padding-left:20px}.qa-b li{margin:3px 0}
+.angle{background:var(--hd);border:1px solid var(--line);border-left:2px solid var(--info-line);border-radius:var(--r);padding:8px 12px;font-size:14px}
+table.playbook td:first-child{font-weight:600;color:var(--fg)}
+table.cheat td:first-child{font-family:ui-monospace,Consolas,monospace;font-size:13px;white-space:pre-wrap;color:var(--fg)}
+/* hub */
+.courses{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.ccard{background:var(--surf);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden}
+.ccard .tcard-h{min-height:52px}.ccard .tcard-h h2{margin:0;font-size:19px;margin-right:auto;color:var(--fg)}
+.ccard .tcard-h .no{padding:5px 8px;display:inline-flex}.ccard .tcard-h .no .ic{width:18px;height:18px}
+.ticks{margin:0;padding-left:20px;font-size:14px;color:var(--txt)}.ticks li{margin:3px 0}
+.tcard.planned{opacity:.7;background:var(--hd)}.tcard.planned .no{background:var(--soft);color:var(--mut)}
+@media (max-width:820px){.courses{grid-template-columns:1fr}}
+/* diagrams */
+.viz{margin:8px 0;padding:10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+.viz figcaption{font-size:13px;color:var(--mut);margin-top:6px;text-align:center}
+.dg{width:100%;height:auto;display:block}
+.dg-box{fill:var(--hd);stroke:var(--line);stroke-width:1.5}.dg-box.acc{fill:var(--acc-soft);stroke:var(--acc)}.dg-box.ok{fill:var(--done-soft);stroke:var(--done)}.dg-box.warn{fill:var(--warn-soft);stroke:var(--warn-line)}.dg-box.ink{fill:var(--ink);stroke:var(--ink)}
+.dg-t{font:600 13px system-ui,sans-serif;fill:var(--fg)}.dg-t.ink{fill:var(--ink-fg)}.dg-s{font:12px system-ui,sans-serif;fill:var(--mut)}
+.dg-s.ink{fill:#cbd5e1}
+.dg-a{stroke:var(--faint);stroke-width:2}.dg-a.acc{stroke:var(--acc)}.dg-m{fill:var(--faint)}
+
+/* short view: folded detail inside lessons */
+details.more{border:0;border-left:2px solid var(--line);border-radius:0;padding:0 0 0 12px;margin:8px 0;background:none}
+details.more>summary{font-size:13px;font-weight:600;color:var(--info);display:inline-flex;align-items:center;gap:6px}
+details.more>summary svg{width:14px;height:14px}
+details.more[open]{border-left-color:var(--info-line)}
+.blk.warn details.more>summary{color:var(--warn-ink,var(--fg))}
+.quick details summary{font-weight:500}
+#b-density .t-short{display:none}
+@media(max-width:700px){#b-density .t-long{display:none}#b-density .t-short{display:inline}}
+
+/* reader: one step at a time */
+.vh{display:none!important}
+.vnav{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:28px 0 8px}
+body:not(.focus) .vnav{display:none}
+.vnav a{display:flex;flex-direction:column;gap:2px;padding:12px 16px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);text-decoration:none;color:var(--fg);box-shadow:var(--sh);transition:border-color .15s,background .15s}
+.vnav a:hover{border-color:var(--acc);background:var(--soft)}
+.vnav small{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:600}
+.vnav b{font-size:14px;font-weight:600;line-height:1.35}
+.vnav a.vn{text-align:right;align-items:flex-end;background:var(--ink);border-color:var(--ink);color:var(--ink-fg)}
+.vnav a.vn small{color:#cbd5e1}.vnav a.vn:hover{background:var(--ink);opacity:.92}
+.vpos{font-size:12px;color:var(--mut);white-space:nowrap}
+body:not(.focus) .vpos{display:none}
+#b-view .t-short{display:none}
+@media(max-width:700px){#b-view .t-long{display:none}#b-view .t-short{display:inline}.vnav{grid-template-columns:1fr}.vpos{display:none}}
+.chips a.on{background:var(--ink);color:var(--ink-fg);border-color:var(--ink)}
+@media print{.vh{display:block!important}.vnav,.vpos{display:none!important}}
+
+/* layout: content uses the room it is given; the left menu can be pinned open */
+body.has-rail{transition:padding-left .18s ease}
+body.has-rail .wrap{max-width:1680px}
+.wrap.has-track{grid-template-columns:232px minmax(0,1fr);gap:28px}
+aside.track{display:none}
+@media (min-width:1480px){.wrap.has-track{grid-template-columns:232px minmax(0,1fr) 268px}aside.track{display:block;position:sticky;top:64px;align-self:start;max-height:calc(100vh - 80px);overflow:auto;padding:20px 0}}
+@media (min-width:1480px) and (max-width:1699px){body.rail-pinned .wrap.has-track{grid-template-columns:232px minmax(0,1fr)}body.rail-pinned aside.track{display:none}}
+@media (max-width:1020px){.wrap.has-track{display:block}aside.track{display:none!important}}
+body.rail-pinned{padding-left:240px}
+body.rail-pinned .rail{width:240px}
+body.rail-pinned .rail .l,body.rail-pinned .rail-g{opacity:1}
+body.rail-pinned .rail-sub{opacity:1;max-height:260px}
+.rail-pin{margin-top:auto;border:0;background:none;cursor:pointer;font:inherit;width:100%;text-align:left;color:var(--mut)}
+.rail-pin svg.ic{transition:transform .18s}
+body.rail-pinned .rail-pin svg.ic{transform:rotate(180deg)}
+@media (max-width:1020px){.rail-pin{display:none}body.rail-pinned{padding-left:0}}
+@media print{body.rail-pinned{padding-left:0}aside.track{display:none!important}}
+/* right-hand progress tracker */
+.tk{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--sh)}
+.tk-top{display:flex;align-items:center;gap:14px}
+.tk-ring{width:64px;height:64px;flex:none}
+.tk-ring circle{fill:none;stroke-width:6}
+.tk-ring .bg{stroke:var(--line)}
+.tk-ring .fg{stroke:var(--done);stroke-linecap:round;transition:stroke-dashoffset .4s ease}
+.tk-ring text{font:700 15px system-ui,sans-serif;fill:var(--fg)}
+.tk-top b{display:block;font-size:15px}
+.tk-top span{font-size:12.5px;color:var(--mut)}
+.tk h4{margin:16px 0 6px;font:600 10px/1.2 system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.tk-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+.tk-list a{display:flex;gap:10px;align-items:flex-start;padding:7px 8px;border-radius:8px;text-decoration:none;color:var(--txt);font-size:13px;line-height:1.35}
+.tk-list a:hover{background:var(--soft)}
+.tk-list .d{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line);flex:none;margin-top:1px;display:grid;place-items:center;font-size:10px;line-height:1;color:#fff}
+.tk-list a.done .d{background:var(--done);border-color:var(--done)}
+.tk-list a.done .d::after{content:"¹3"}
+.tk-list a.cur{background:var(--acc-soft);color:var(--fg);font-weight:600}
+.tk-list a.cur .d{border-color:var(--acc)}
+.tk-go{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:14px;padding:9px 12px;border-radius:var(--r);background:var(--ink);color:var(--ink-fg);font-size:13px;font-weight:600;text-decoration:none}
+.tk-go:hover{opacity:.92}
+.tk-rev{display:block;margin-top:8px;text-align:center;font-size:12.5px;color:var(--info);text-decoration:none;font-weight:600}
+
+/* the three-line button only opens the left menu on small screens */
+.bar .rail-btn,.bar-in .rail-btn{display:none}
+@media (max-width:1020px){.bar .rail-btn,.bar-in .rail-btn{display:inline-flex}}
+
+/* quick revision page */
+.revise{max-width:1000px}
+.rv-top{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:6px 0 14px}
+.sel{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mut)}
+.sel select{font:inherit;font-size:13px;height:32px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);max-width:260px}
+.sel select:disabled{opacity:.5}
+.rv-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 10px}
+.rv-bar input[type=search]{width:100%;height:34px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf);color:var(--fg);font:inherit;font-size:13.5px}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--txt);cursor:pointer}
+.mtag{display:inline-block;font:600 11px/1 system-ui,sans-serif;padding:3px 6px;border-radius:6px;background:var(--soft);color:var(--mut);margin-right:6px;vertical-align:1px}
+.co{display:inline-block;font:600 11px/1 system-ui,sans-serif;padding:3px 7px;border-radius:999px;background:var(--acc-soft);color:var(--acc);margin-left:6px;white-space:nowrap}
+.fc{border:1px solid var(--line);border-radius:14px;background:var(--surf);box-shadow:var(--sh);padding:28px 24px;min-height:200px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;outline-offset:3px}
+.fc:hover{border-color:var(--acc)}
+.fc-m{font-size:12px;color:var(--mut)}
+.fc-t{font-size:20px;line-height:1.5;font-weight:600;margin:18px 0;color:var(--fg)}
+.fc-h{font-size:12px;color:var(--mut)}
+.fc-a{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;justify-content:center}
+.how-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
+.hw{border:1px solid var(--line);border-radius:12px;background:var(--surf);padding:16px 18px;box-shadow:var(--sh)}
+.hw h3{margin:0 0 8px;font-size:16px}
+.hw ol,.hw ul{margin:6px 0 8px;padding-left:20px}.hw li{margin:3px 0}
+.hw .ex{margin-top:10px;padding:10px 14px;border-left:3px solid var(--info-line);background:var(--info-soft);border-radius:0 var(--r) var(--r) 0}
+.hw .ex p{margin:4px 0}
+
+.dg-life{stroke:var(--line);stroke-width:1.5;stroke-dasharray:4 4}
+.dg-a.dash{stroke-dasharray:5 4}
+.dg-a.bad{stroke:var(--warn-line)}
+.dg-t.acc{fill:var(--fg)}
+
+/* deep lessons: step-by-step flows, annotated real output, worked interview scenarios */
+.walk{list-style:none;counter-reset:w;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+.walk li{counter-increment:w;position:relative;padding:10px 14px 10px 52px;border:1px solid var(--line);border-radius:var(--r);background:var(--surf)}
+.walk li::before{content:counter(w);position:absolute;left:14px;top:10px;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--ink-fg);font:700 13px/26px system-ui,sans-serif;text-align:center}
+.walk li b{display:block;margin-bottom:2px}
+.walk li span{color:var(--txt);font-size:14px;line-height:1.55}
+.annot{margin:10px 0 0}
+.annot table{font-size:13px}
+.annot td:first-child{white-space:pre-wrap;word-break:break-word;min-width:160px}
+.scen{border:1px solid var(--info-line);background:var(--info-soft);border-radius:12px;padding:16px 18px;margin-top:18px}
+.scen h4{margin:6px 0 8px;font-size:17px}
+.scen .ask{font-size:15px;margin:0 0 6px}
+.scen-s{margin:12px 0}
+.scen-s ul,.scen-s ol{margin:6px 0 0;padding-left:22px}.scen-s li{margin:5px 0;line-height:1.55}
+.scen-s.warn{border-left:3px solid var(--warn-line);padding-left:12px}
+.scen details{background:var(--surf)}
+.scen details.more.scen-a{border:1px solid var(--line);border-left:3px solid var(--done);border-radius:var(--r);padding:0 14px;background:var(--surf)}
+.scen details.more.scen-a>summary{font-weight:700;color:var(--fg)}
+
+.sdfig{margin:18px 0}.sdfig svg{width:100%;height:auto;display:block}
+.sd-sh{fill:var(--surf);stroke:var(--faint);stroke-width:2}
+.sd-sh.ok{fill:var(--done-soft);stroke:var(--done)}.sd-sh.bad{fill:var(--bad-soft);stroke:var(--bad)}.sd-sh.warn{fill:var(--warn-soft);stroke:var(--warn)}.sd-sh.acc{fill:var(--acc-soft);stroke:var(--acc)}.sd-sh.ink{fill:var(--ink);stroke:var(--ink)}
+.sd-top{fill:var(--soft)}.sd-sh.ok.sd-top{fill:var(--done-soft)}
+.sd-pp{fill:var(--acc-soft);stroke:var(--acc);stroke-width:1.8}.sd-pp.bad{fill:var(--bad-soft);stroke:var(--bad)}.sd-pp.ok{fill:var(--done-soft);stroke:var(--done)}.sd-pp.warn{fill:var(--warn-soft);stroke:var(--warn)}
+.sd-ln{fill:var(--line);}.sd-ln2{fill:none;stroke:var(--faint);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sd-led{fill:var(--faint)}.sd-led.ok{fill:var(--done)}.sd-led.bad{fill:var(--bad)}.sd-led.warn{fill:var(--warn)}.sd-led.acc{fill:var(--acc)}
+.sd-bolt{fill:var(--acc)}.sd-bolt.ok{fill:var(--done)}.sd-bolt.warn{fill:var(--warn)}
+.sd-job{fill:var(--soft);stroke:var(--line);stroke-width:1}.sd-job.on{fill:var(--acc);stroke:var(--acc)}
+.sd-ex{fill:var(--bad)}
+.sd-arc{fill:none;stroke:var(--line);stroke-width:7;stroke-linecap:round}.sd-arc.on{stroke:var(--done)}.sd-arc.on.bad{stroke:var(--bad)}.sd-arc.on.warn{stroke:var(--warn)}
+.sd-needle{stroke:var(--fg);stroke-width:2.5;stroke-linecap:round}.sd-hub{fill:var(--fg)}
+.sd-gv{font:700 13px system-ui,sans-serif;fill:var(--fg)}.sd-gv.bad{fill:var(--bad)}.sd-gv.ok{fill:var(--done)}
+.sd-l{font:600 12.5px system-ui,sans-serif;fill:var(--fg)}.sd-c{font:11.5px system-ui,sans-serif;fill:var(--mut)}
+.sd-n{font:600 12px system-ui,sans-serif;fill:var(--mut)}.sd-n.bad{fill:var(--bad)}.sd-n.ok{fill:var(--done)}.sd-n.warn{fill:var(--warn)}.sd-n.acc{fill:var(--acc)}
+.sd-a{stroke:var(--faint);stroke-width:2.2;fill:none}.sd-a.acc{stroke:var(--acc)}.sd-a.ok{stroke:var(--done)}.sd-a.bad{stroke:var(--bad)}.sd-a.warn{stroke:var(--warn)}.sd-a.dash{stroke-dasharray:5 5}
+.sd-badge{fill:var(--soft);stroke:var(--line)}.sd-badge.ok{fill:var(--done-soft);stroke:var(--done)}.sd-badge.bad{fill:var(--bad-soft);stroke:var(--bad)}.sd-badge.warn{fill:var(--warn-soft);stroke:var(--warn)}.sd-badge.acc{fill:var(--acc-soft);stroke:var(--acc)}
+.sd-bt{font:700 11.5px system-ui,sans-serif;fill:var(--fg)}
+.sd-panel{fill:var(--surf);stroke:var(--line);stroke-width:1.5}.sd-panel.bad{fill:var(--bad-soft);stroke:var(--bad-line)}.sd-panel.ok{fill:var(--done-soft);stroke:var(--done-line)}.sd-panel.warn{fill:var(--warn-soft);stroke:var(--warn-line)}
+.sd-pt{font:700 13px system-ui,sans-serif;fill:var(--fg);letter-spacing:.2px}.sd-pt.bad{fill:var(--bad)}.sd-pt.ok{fill:var(--done)}.sd-pt.warn{fill:var(--warn)}
+.sd-pc{font:12.5px system-ui,sans-serif;fill:var(--txt)}
+
+.sdw{display:grid;grid-template-columns:230px minmax(0,1fr);gap:34px;max-width:1120px;margin:0 auto;padding:22px 20px 60px}
+.sdw main{min-width:0;max-width:780px}
+.sdnav{position:sticky;top:76px;align-self:start;font-size:13.5px}
+.sdnav h4{margin:0 0 8px;font-size:11.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--faint)}
+.sdnav a{display:flex;gap:9px;align-items:center;padding:6px 8px;border-radius:6px;color:var(--mut);text-decoration:none;border-left:3px solid transparent}
+.sdnav a b{width:20px;height:20px;border-radius:50%;background:var(--soft);color:var(--mut);display:inline-grid;place-items:center;font-size:11px;flex:none}
+.sdnav a:hover{background:var(--soft);color:var(--fg)}
+.sdnav a.on{color:var(--fg);font-weight:600;background:var(--acc-soft);border-left-color:var(--acc)}.sdnav a.on b{background:var(--acc);color:#fff}
+.sdnav .done{margin-top:14px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--surf);font-size:13px}
+.sdhero{padding:6px 0 10px}
+.sdhero .eyebrow{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--mut);margin-bottom:8px}
+.sdhero .tag{background:var(--acc-soft);color:var(--acc);border:1px solid var(--acc-line);padding:2px 9px;border-radius:999px;font-weight:600;font-size:12px}
+.sdhero h1{margin:0 0 8px;font-size:clamp(27px,4.2vw,38px);line-height:1.15;color:var(--fg);letter-spacing:-.4px}
+.sdhero .lead{font-size:17.5px;color:var(--txt);max-width:660px;margin:0 0 14px}
+.sdmeta{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px}.sdmeta span{background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:3px 11px;font-size:12.5px;color:var(--mut)}
+.sdsec{margin:38px 0 0;scroll-margin-top:84px}
+.sdsec>h2{display:flex;align-items:center;gap:11px;margin:0 0 4px;font-size:23px;color:var(--fg);letter-spacing:-.2px}
+.sdsec>h2 .n{width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--ink-fg);display:inline-grid;place-items:center;font-size:14px;font-weight:700;flex:none}
+.sdsec>h2 small{font-size:12.5px;font-weight:600;color:var(--faint);letter-spacing:.7px;text-transform:uppercase;margin-left:auto}
+.sdsec .sub{margin:0 0 14px;color:var(--mut)}
+.sdsec p{margin:0 0 12px}
+.sdstory{font-size:16.5px;line-height:1.75}
+.sdstory p:first-of-type::first-letter{float:left;font-size:44px;line-height:.9;padding:5px 8px 0 0;font-weight:800;color:var(--acc)}
+.sdquote{border-left:4px solid var(--acc);background:var(--acc-soft);padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0;color:var(--fg)}
+.sdquote p:last-child{margin-bottom:0}
+.sdone{background:var(--ink);color:var(--ink-fg);border-radius:10px;padding:16px 20px;margin:16px 0;font-size:17px;line-height:1.5}
+.sdone b{color:inherit;border-bottom:2px solid var(--acc-line)}
+.sdsteps{list-style:none;margin:8px 0;padding:0;counter-reset:s;display:grid;gap:14px}
+.sdsteps>li{counter-increment:s;border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:14px 16px 6px 56px;position:relative;box-shadow:var(--sh)}
+.sdsteps>li::before{content:counter(s);position:absolute;left:14px;top:13px;width:30px;height:30px;border-radius:50%;background:var(--acc);color:#fff;display:grid;place-items:center;font-weight:700}
+.sdsteps h3{margin:0 0 3px;font-size:17px;color:var(--fg)}.sdsteps p{margin:0 0 8px}
+.sdsteps .sdfig{margin:6px 0 8px}
+.sdgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin:8px 0}
+.sdcard{border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:13px 15px;box-shadow:var(--sh)}
+.sdcard h3{margin:0 0 4px;font-size:15.5px;color:var(--fg);display:flex;gap:8px;align-items:center}.sdcard p{margin:0;font-size:14.5px}
+.sdcard.bad{border-color:var(--bad-line);background:var(--bad-soft)}.sdcard.ok{border-color:var(--done-line);background:var(--done-soft)}
+.sdreal{display:grid;gap:10px;margin:8px 0}
+.sdreal>div{border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:12px 15px;display:grid;grid-template-columns:110px 1fr;gap:14px}
+.sdreal b.co{color:var(--acc);font-size:14px}.sdreal p{margin:0 0 4px;font-size:14.5px}.sdreal a{font-size:13px}
+.sdnote{font-size:13px;color:var(--faint);margin:6px 0 0}
+.sdq{border:1px solid var(--line);background:var(--surf);border-radius:12px;margin:14px 0;box-shadow:var(--sh);overflow:hidden}
+.sdq>header{padding:14px 18px;background:var(--hd);border-bottom:1px solid var(--line)}
+.sdq>header .who{font-size:12px;color:var(--faint);text-transform:uppercase;letter-spacing:.7px;font-weight:600}
+.sdq>header h3{margin:2px 0 4px;font-size:18px;color:var(--fg)}.sdq>header p{margin:0;font-size:14.5px;color:var(--mut)}
+.sdq .body{padding:6px 18px 16px}
+.sdq h4{margin:16px 0 6px;font-size:12.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--faint)}
+.sdq ol.think{margin:0;padding-left:20px}.sdq ol.think li{margin:0 0 6px}.sdq ol.think li span{display:block;color:var(--mut);font-size:14.5px}
+.sdq .say{border-left:4px solid var(--done);background:var(--done-soft);padding:10px 15px;border-radius:0 8px 8px 0;font-size:15px}.sdq .say p{margin:0 0 8px}.sdq .say p:last-child{margin:0}
+.sdq .say .lbl2{display:block;font-size:11.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--done);font-weight:700;margin-bottom:4px}
+.sdq details{border:1px solid var(--line);border-radius:8px;margin:6px 0;background:var(--bg)}.sdq summary{cursor:pointer;padding:8px 12px;font-weight:600;color:var(--fg);font-size:14.5px}.sdq details p{margin:0;padding:0 12px 10px;font-size:14.5px}
+.sdq .slips{margin:0;padding-left:20px;color:var(--mut);font-size:14.5px}
+.sdrecap{border:1px solid var(--done-line);background:var(--done-soft);border-radius:12px;padding:6px 18px 12px}
+.sdrecap ul{margin:6px 0 10px;padding-left:20px}.sdrecap li{margin:0 0 5px}
+.sddeeper{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.sddeeper a{border:1px solid var(--line);border-radius:8px;padding:7px 12px;background:var(--surf);text-decoration:none;font-size:13.5px}
+.sdfoot{display:flex;justify-content:space-between;gap:12px;margin:40px 0 0}
+.sdfoot a{flex:1;border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:12px 16px;text-decoration:none;color:var(--fg);box-shadow:var(--sh)}
+.sdfoot a small{display:block;color:var(--faint);font-size:12px}.sdfoot a.r{text-align:right}
+.sdx{border:1px solid var(--line);background:var(--surf);border-radius:12px;padding:14px 18px 8px;margin:14px 0;box-shadow:var(--sh)}.sdx h3{margin:0 0 4px;font-size:17px;color:var(--fg);display:flex;gap:10px;align-items:center}.sdx .xn{width:26px;height:26px;border-radius:7px;background:var(--done);color:#fff;display:inline-grid;place-items:center;font-size:13px}.sdx .what{margin:0 0 8px;color:var(--txt)}.sdx pre.out{margin:6px 0 10px;max-height:340px;overflow:auto}.sdmore{margin:8px 0 6px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}.sdmore summary{cursor:pointer;padding:8px 12px;font-weight:600;font-size:14px;color:var(--acc)}.sdmore pre.sh{margin:0 12px 10px;max-height:380px;overflow:auto}.sdmore p{margin:0 12px 10px;font-size:14.5px}
+.sdtable{width:100%;border-collapse:collapse;font-size:14.5px;margin:8px 0}.sdtable th,.sdtable td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}.sdtable th{background:var(--soft);color:var(--fg)}
+.sdland .path{position:relative;margin:18px 0 8px;padding-left:44px}
+.sdland .path::before{content:"";position:absolute;left:-30px;top:12px;bottom:12px;width:3px;background:linear-gradient(var(--acc),var(--done));border-radius:2px}
+.sdland .node{position:relative;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:11px 15px;margin:0 0 10px;text-decoration:none;color:inherit;box-shadow:var(--sh)}
+.sdland .node::before{content:attr(data-n);position:absolute;left:-44px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;background:var(--surf);border:3px solid var(--acc);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--fg)}
+.sdland .node b{display:block;color:var(--fg);font-size:16px}.sdland .node span{color:var(--mut);font-size:13.5px}
+.sdland .node.soon{opacity:.6;background:var(--soft)}.sdland .node.soon::before{border-color:var(--line)}
+.sdland .node:not(.soon):hover{border-color:var(--acc);transform:translateX(2px)}
+.sdland .pill{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--done-soft);color:var(--done);border:1px solid var(--done-line);white-space:nowrap}
+.sdland .pill.soon{background:var(--soft);color:var(--faint);border-color:var(--line)}
+.sdland .tick-ok{color:var(--done);font-weight:700}
+.sdland h2{margin:34px 0 4px;font-size:24px;color:var(--fg)}
+.sdland .grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.sdland .pcard{border:1px solid var(--line);background:var(--surf);border-radius:10px;padding:13px 15px;text-decoration:none;color:inherit;display:block;box-shadow:var(--sh)}
+.sdland .pcard b{display:block;color:var(--fg);font-size:15.5px;margin-bottom:2px}.sdland .pcard span{color:var(--mut);font-size:13.5px}.sdland .pcard .row{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.sdland .pcard.soon{opacity:.6;background:var(--soft)}.sdland .pcard:not(.soon):hover{border-color:var(--acc)}
+@media(max-width:1020px){.sdw{grid-template-columns:1fr;gap:0;padding:14px 14px 50px}.sdnav{position:static;display:flex;gap:6px;overflow-x:auto;padding-bottom:10px;margin-bottom:6px;-webkit-overflow-scrolling:touch}.sdnav h4,.sdnav .done{display:none}.sdnav a{flex:none;border:1px solid var(--line);border-radius:999px;padding:5px 11px;border-left-width:1px;white-space:nowrap}.sdnav a b{display:none}.sdreal>div{grid-template-columns:1fr;gap:4px}.sdsteps>li{padding-left:52px}}
+@media(max-width:560px){.sdsec>h2{font-size:20px}.sdsec>h2 small{display:none}.sdfoot{flex-direction:column}}
+</style></head>
+<body class="has-rail" data-sd="07-failure">
+<a class="skip" href="#content">Skip to content</a>
+<nav class="rail" id="rail" aria-label="Sections"><a class="rail-i rail-logo" href="../index.html" title="Mastery home"><span class="logo" aria-hidden="true">M</span><span class="l"><b>Mastery</b></span></a><div class="rail-g">Courses</div><a class="rail-i" href="../index.html" title="Home"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 7.5 8 2.5l5.5 5M4 6.5v7h8v-7"/></svg><span class="l">Home</span></a><a class="rail-i" href="../dsa.html" title="DSA Mastery"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m5.5 4.5-3.5 3.5 3.5 3.5M10.5 4.5l3.5 3.5-3.5 3.5"/></svg><span class="l">DSA Mastery</span></a><a class="rail-i" href="../design/index.html" aria-current="page" title="System design"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m8 2 6.5 3.5L8 9 1.5 5.5z"/><path d="m1.5 8.5 6.5 3.5 6.5-3.5"/></svg><span class="l">System design</span></a><a class="rail-i" href="../systems.html" title="Systems Mastery"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3" width="11" height="4" rx="1"/><rect x="2.5" y="9" width="11" height="4" rx="1"/><path d="M5 5h.01M5 11h.01"/></svg><span class="l">Systems Mastery</span></a><div class="rail-g">Tools</div><a class="rail-i" href="../revise.html" title="Quick revision"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m3 8.5 3.2 3.2L13 4.8"/></svg><span class="l">Quick revision</span></a><a class="rail-i" href="../plan.html" title="DSA study planner"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="10" rx="1.5"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/></svg><span class="l">DSA study planner</span></a><a class="rail-i" href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener" title="GitHub"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M9 2.5h4.5V7M13.5 2.5 7 9M12 9v4.5H2.5V4H7"/></svg><span class="l">GitHub</span></a><button class="rail-i rail-pin" id="rail-pin" type="button" aria-pressed="false" title="Keep the menu open"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3l5 5-5 5"/></svg><span class="l">Pin menu</span></button></nav><div class="rail-bd" id="rail-bd" hidden></div>
+<header class="bar"><div class="bar-in"><button id="b-rail" class="iconbtn rail-btn" aria-label="Open the sections menu" aria-expanded="false" aria-controls="rail"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11"/></svg></button><a class="brand" href="index.html" aria-label="System design home"><span class="logo" aria-hidden="true">SD</span><b>System <span>Design</span></b></a>
+<nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Course map</a><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3.5 4.5 4.5L6 12.5"/></svg><span class="cur">Chapter 7 · When things fail</span></nav>
+<span style="margin-left:auto"></span><button id="b-theme" class="iconbtn" title="Toggle light / dark" aria-label="Toggle light or dark theme"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5a5.5 5.5 0 0 0 0 11z" fill="currentColor"/></svg></button></div></header>
+<div class="sdw"><nav class="sdnav" aria-label="On this page"><h4>On this page</h4><a href="#story"><b>1</b>The story</a><a href="#idea"><b>2</b>The idea</a><a href="#how"><b>3</b>How it works</a><a href="#try"><b>4</b>See it for real</a><a href="#breaks"><b>5</b>How it breaks</a><a href="#real"><b>6</b>Real companies</a><a href="#interview"><b>7</b>In the interview</a><a href="#recap"><b>8</b>Remember</a><label class="done"><input type="checkbox" id="sd-done"> I finished this page</label></nav>
+<main id="content" class="sdmain"><header class="sdhero"><div class="eyebrow"><span class="tag">Chapter 7 of 9</span>The ShopKart story</div><h1>When things fail</h1><p class="lead">The network can lose a reply, clocks disagree, and machines die half way through a job. This chapter is about designing so that none of that hurts the customer.</p><div class="sdmeta"><span>about 20 minutes</span><span>4 steps</span><span>6 real experiments</span><span>3 interview questions</span></div></header>
+<section class="sdsec" id="story"><h2><span class="n">1</span>Tuesday afternoon, 40 double charges<small>The story</small></h2><div class="sdstory"><p>ShopKart now has queues, replicas and a cache, and most things work. Then a mobile network provider has a slow afternoon. Support starts getting emails: "You charged my card twice." By evening there are 40 of them, each for the same order, each for 50.</p><p>The cause is a single line of reasonable code. The shop calls the card network to charge the customer and waits 10 seconds. On a slow afternoon the card network <strong>did</strong> charge the card, but the reply got lost on the way back. The shop sees only a timeout, assumes failure, and tries again. The second request charges the card a second time.</p><p>The shop could not know. A timeout means "I do not know what happened", and that is the heart of distributed systems: parts of a system fail separately, and the others cannot tell a failure from slowness. The rest of this chapter is the toolkit for living with that.</p></div><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 720 276" role="img" aria-label="ShopKart payments, three moments"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="sd-panel " x="0" y="0" width="230.667" height="276" rx="10"/><text class="sd-pt " x="14" y="26" text-anchor="start">A normal payment</text><circle class="sd-pp" cx="115.33333333333333" cy="58" r="8.4"/><path class="sd-pp" d="M100.933,94 v-9.6 a14.4,14.4 0 0 1 28.8,0 v9.6 z"/><g transform="translate(115.333 144) scale(0.85) translate(-115.333 -144)"><rect class="sd-sh" x="35.33333333333333" y="120" width="56" height="48" rx="7"/><rect class="sd-ln" x="45.33333333333333" y="132" width="28" height="4" rx="2"/><rect class="sd-ln" x="45.33333333333333" y="142" width="28" height="4" rx="2"/><circle class="sd-led " cx="80.33333333333333" cy="134" r="3"/><circle class="sd-led " cx="80.33333333333333" cy="144" r="3"/><rect class="sd-ln" x="45.33333333333333" y="152" width="36" height="4" rx="2"/><text class="sd-l" x="63.33333333333333" y="184" text-anchor="middle">ShopKart</text><path class="sd-sh" d="M141.33333333333331,154 a14,14 0 0 1 2,-27 a20,20 0 0 1 38,-4 a15,15 0 0 1 8,31 z"/><text class="sd-l" x="171.33333333333331" y="172" text-anchor="middle">card network</text><line class="sd-a ok" x1="93.33333333333333" y1="140" x2="137.33333333333331" y2="140" marker-end="url(#dga)"/><rect class="sd-badge ok" x="74.9333" y="193" width="80.8" height="22" rx="11"/><text class="sd-bt ok" x="115.33333333333333" y="208" text-anchor="middle">paid once</text></g><text class="sd-pc" x="115.333" y="224" text-anchor="middle">The shop asks the card network</text><text class="sd-pc" x="115.333" y="239" text-anchor="middle">to charge 50. The charge works</text><text class="sd-pc" x="115.333" y="254" text-anchor="middle">and the reply comes back.</text><rect class="sd-panel bad" x="244.667" y="0" width="230.667" height="276" rx="10"/><text class="sd-pt bad" x="258.667" y="26" text-anchor="start">A slow network</text><circle class="sd-pp bad" cx="360.0" cy="58" r="8.4"/><path class="sd-pp bad" d="M345.6,94 v-9.6 a14.4,14.4 0 0 1 28.8,0 v9.6 z"/><g transform="translate(360 144) scale(0.85) translate(-360 -144)"><rect class="sd-sh warn" x="280.0" y="120" width="56" height="48" rx="7"/><rect class="sd-ln" x="290.0" y="132" width="28" height="4" rx="2"/><rect class="sd-ln" x="290.0" y="142" width="28" height="4" rx="2"/><circle class="sd-led warn" cx="325.0" cy="134" r="3"/><circle class="sd-led warn" cx="325.0" cy="144" r="3"/><rect class="sd-ln" x="290.0" y="152" width="36" height="4" rx="2"/><text class="sd-l" x="308.0" y="184" text-anchor="middle">ShopKart</text><path class="sd-sh ok" d="M386.0,154 a14,14 0 0 1 2,-27 a20,20 0 0 1 38,-4 a15,15 0 0 1 8,31 z"/><text class="sd-l" x="416.0" y="172" text-anchor="middle">card network</text><line class="sd-a ok" x1="338.0" y1="140" x2="382.0" y2="140" marker-end="url(#dga)"/><rect class="sd-badge bad" x="283.6" y="193" width="152.8" height="22" rx="11"/><text class="sd-bt bad" x="360.0" y="208" text-anchor="middle">reply lost: timeout</text></g><text class="sd-pc" x="360" y="224" text-anchor="middle">The card was charged, but the</text><text class="sd-pc" x="360" y="239" text-anchor="middle">reply was lost. The shop only</text><text class="sd-pc" x="360" y="254" text-anchor="middle">sees a timeout, so it tries</text><text class="sd-pc" x="360" y="269" text-anchor="middle">again.</text><rect class="sd-panel ok" x="489.333" y="0" width="230.667" height="276" rx="10"/><text class="sd-pt ok" x="503.333" y="26" text-anchor="start">With a key</text><circle class="sd-pp ok" cx="604.6666666666666" cy="58" r="8.4"/><path class="sd-pp ok" d="M590.267,94 v-9.6 a14.4,14.4 0 0 1 28.8,0 v9.6 z"/><g transform="translate(604.667 144) scale(0.85) translate(-604.667 -144)"><rect class="sd-sh ok" x="524.6666666666666" y="120" width="56" height="48" rx="7"/><rect class="sd-ln" x="534.6666666666666" y="132" width="28" height="4" rx="2"/><rect class="sd-ln" x="534.6666666666666" y="142" width="28" height="4" rx="2"/><circle class="sd-led ok" cx="569.6666666666666" cy="134" r="3"/><circle class="sd-led ok" cx="569.6666666666666" cy="144" r="3"/><rect class="sd-ln" x="534.6666666666666" y="152" width="36" height="4" rx="2"/><text class="sd-l" x="552.6666666666666" y="184" text-anchor="middle">ShopKart</text><path class="sd-sh ok" d="M630.6666666666666,154 a14,14 0 0 1 2,-27 a20,20 0 0 1 38,-4 a15,15 0 0 1 8,31 z"/><text class="sd-l" x="660.6666666666666" y="172" text-anchor="middle">card network</text><line class="sd-a ok" x1="582.6666666666666" y1="140" x2="626.6666666666666" y2="140" marker-end="url(#dga)"/><rect class="sd-badge ok" x="553.467" y="193" width="102.4" height="22" rx="11"/><text class="sd-bt ok" x="604.6666666666666" y="208" text-anchor="middle">charged once</text></g><text class="sd-pc" x="604.667" y="224" text-anchor="middle">The retry carries the same key,</text><text class="sd-pc" x="604.667" y="239" text-anchor="middle">so the network says &quot;already</text><text class="sd-pc" x="604.667" y="254" text-anchor="middle">done&quot; and charges nothing more.</text></svg><figcaption>The same payment on a good day, on a bad network, and with an idempotency key.</figcaption></figure></section>
+<section class="sdsec" id="idea"><h2><span class="n">2</span>The idea: a timeout means I do not know<small>The idea</small></h2><div class="sdone">In a distributed system, <strong>partial failure</strong> is normal: one part can fail while the rest keeps going, and you often cannot tell a dead machine from a slow one. So you design every step to be safe to <strong>repeat</strong>, and every decision to survive a missing answer.</div><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 720 226" role="img" aria-label="A timeout means I do not know"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="sd-sh" x="32" y="46" width="56" height="48" rx="7"/><rect class="sd-ln" x="42" y="58" width="28" height="4" rx="2"/><rect class="sd-ln" x="42" y="68" width="28" height="4" rx="2"/><circle class="sd-led " cx="77" cy="60" r="3"/><circle class="sd-led " cx="77" cy="70" r="3"/><rect class="sd-ln" x="42" y="78" width="36" height="4" rx="2"/><text class="sd-l" x="60" y="110" text-anchor="middle">Shop app</text><line class="sd-a acc" x1="90" y1="58" x2="232" y2="58" marker-end="url(#dga)"/><text class="sd-c" x="161.0" y="51.0" text-anchor="middle">charge 50</text><line class="sd-a bad dash" x1="232" y1="82" x2="90" y2="82" marker-end="url(#dga)"/><text class="sd-c" x="161.0" y="75.0" text-anchor="middle">reply lost</text><rect class="sd-sh" x="238" y="46" width="56" height="48" rx="7"/><rect class="sd-ln" x="248" y="58" width="28" height="4" rx="2"/><rect class="sd-ln" x="248" y="68" width="28" height="4" rx="2"/><circle class="sd-led " cx="283" cy="60" r="3"/><circle class="sd-led " cx="283" cy="70" r="3"/><rect class="sd-ln" x="248" y="78" width="36" height="4" rx="2"/><text class="sd-l" x="266" y="110" text-anchor="middle">Payment API</text><path class="sd-sh bad" d="M410,46 L431,82 L389,82 z"/><rect class="sd-ex" x="408.4" y="58" width="3.2" height="12" rx="1.4"/><circle class="sd-ex" cx="410" cy="75" r="2"/><text class="sd-l" x="410" y="99" text-anchor="middle">timeout</text><text class="sd-n acc" x="590" y="12" text-anchor="middle">Same silence, three causes</text><rect class="sd-badge warn" x="506.4" y="27" width="167.2" height="22" rx="11"/><text class="sd-bt warn" x="590" y="42" text-anchor="middle">request never arrived</text><rect class="sd-badge bad" x="513.6" y="59" width="152.8" height="22" rx="11"/><text class="sd-bt bad" x="590" y="74" text-anchor="middle">charged, reply lost</text><rect class="sd-badge warn" x="495.6" y="91" width="188.8" height="22" rx="11"/><text class="sd-bt warn" x="590" y="106" text-anchor="middle">still working, just slow</text><rect class="sd-badge ok" x="157.6" y="145" width="404.8" height="22" rx="11"/><text class="sd-bt ok" x="360" y="160" text-anchor="middle">Fix: send an idempotency key, so a retry is recognised</text><text class="sd-n " x="360" y="196" text-anchor="middle">The server remembers the key and returns the first result instead of charging again.</text></svg></figure><p>Four ideas cover most of what goes wrong. <strong>Repeat safely</strong> (idempotency). <strong>Never trust clocks</strong> to order events. <strong>Agree by majority</strong>, so a split network cannot make two answers. And <strong>do not hold locks across machines</strong>: use steps that can be undone. The experiments below show each one in a few lines of code.</p></section>
+<section class="sdsec" id="how"><h2><span class="n">3</span>How it works, step by step<small>How it works</small></h2><ol class="sdsteps"><li><h3>Make every retry safe, and polite</h3><p>A timeout does not mean the request failed. So give each request an <strong>idempotency key</strong>, a unique id the server remembers, so a repeat returns the first result. Then retry with a growing wait and a little random jitter, and stop retrying a service that is clearly down (a <strong>circuit breaker</strong>).</p><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 640 122" role="img" aria-label="An idempotency key on a retry"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="sd-sh" x="12" y="16" width="56" height="48" rx="7"/><rect class="sd-ln" x="22" y="28" width="28" height="4" rx="2"/><rect class="sd-ln" x="22" y="38" width="28" height="4" rx="2"/><circle class="sd-led " cx="57" cy="30" r="3"/><circle class="sd-led " cx="57" cy="40" r="3"/><rect class="sd-ln" x="22" y="48" width="36" height="4" rx="2"/><text class="sd-l" x="40" y="80" text-anchor="middle">app</text><line class="sd-a acc" x1="70" y1="34" x2="190" y2="34" marker-end="url(#dga)"/><text class="sd-c" x="130.0" y="27.0" text-anchor="middle">pay, key K1</text><line class="sd-a bad dash" x1="190" y1="58" x2="70" y2="58" marker-end="url(#dga)"/><text class="sd-c" x="130.0" y="51.0" text-anchor="middle">reply lost</text><rect class="sd-sh" x="192" y="20" width="56" height="48" rx="7"/><rect class="sd-ln" x="202" y="32" width="28" height="4" rx="2"/><rect class="sd-ln" x="202" y="42" width="28" height="4" rx="2"/><circle class="sd-led " cx="237" cy="34" r="3"/><circle class="sd-led " cx="237" cy="44" r="3"/><rect class="sd-ln" x="202" y="52" width="36" height="4" rx="2"/><text class="sd-l" x="220" y="84" text-anchor="middle">payments</text><rect class="sd-badge warn" x="390" y="19" width="160" height="22" rx="11"/><text class="sd-bt warn" x="470" y="34" text-anchor="middle">first try: charge 50</text><rect class="sd-badge ok" x="391.2" y="51" width="217.6" height="22" rx="11"/><text class="sd-bt ok" x="500" y="66" text-anchor="middle">retry with K1: no new charge</text><text class="sd-n " x="320" y="108" text-anchor="middle">The key and the result are stored for a day or so.</text></svg></figure></li><li><h3>Order by cause, not by clock</h3><p>Clocks on different machines disagree by milliseconds or more. If you keep "the write with the later timestamp", a machine with a fast clock can make an older write win. Use <strong>logical clocks</strong> (counters that follow cause and effect) or version vectors, which also show when two writes truly conflicted.</p><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 640 124" role="img" aria-label="A fast clock wins wrongly"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="sd-sh warn" x="32" y="16" width="56" height="48" rx="7"/><rect class="sd-ln" x="42" y="28" width="28" height="4" rx="2"/><rect class="sd-ln" x="42" y="38" width="28" height="4" rx="2"/><circle class="sd-led warn" cx="77" cy="30" r="3"/><circle class="sd-led warn" cx="77" cy="40" r="3"/><rect class="sd-ln" x="42" y="48" width="36" height="4" rx="2"/><text class="sd-l" x="60" y="80" text-anchor="middle">node A</text><text class="sd-c" x="60" y="94" text-anchor="middle">clock 5 s fast</text><rect class="sd-badge bad" x="126.4" y="29" width="167.2" height="22" rx="11"/><text class="sd-bt bad" x="210" y="44" text-anchor="middle">X at 100, stamped 105</text><rect class="sd-sh" x="332" y="16" width="56" height="48" rx="7"/><rect class="sd-ln" x="342" y="28" width="28" height="4" rx="2"/><rect class="sd-ln" x="342" y="38" width="28" height="4" rx="2"/><circle class="sd-led " cx="377" cy="30" r="3"/><circle class="sd-led " cx="377" cy="40" r="3"/><rect class="sd-ln" x="342" y="48" width="36" height="4" rx="2"/><text class="sd-l" x="360" y="80" text-anchor="middle">node B</text><text class="sd-c" x="360" y="94" text-anchor="middle">clock right</text><rect class="sd-badge ok" x="426.4" y="29" width="167.2" height="22" rx="11"/><text class="sd-bt ok" x="510" y="44" text-anchor="middle">Y at 102, stamped 102</text><text class="sd-n bad" x="320" y="112" text-anchor="middle">Last write wins by timestamp keeps X. The older write won.</text></svg></figure></li><li><h3>Agree by majority</h3><p>If data lives on N copies, a write that reaches W copies and a read that asks R copies always overlap when W plus R is bigger than N, so the read sees the newest write. When the network splits, you must choose: <strong>refuse</strong> some requests to stay correct (CP), or <strong>answer</strong> from both sides and merge later (AP). To pick one leader, systems like <strong>Raft</strong> need votes from a majority, so two leaders can never both win.</p><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 640 120" role="img" aria-label="A majority of five nodes"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><path class="sd-sh ok" d="M38.0,28.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh ok sd-top" cx="60" cy="28.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M38.0,46 a22.0,9 0 0 0 44,0"/><text class="sd-l" x="60" y="86" text-anchor="middle">n1</text><path class="sd-sh ok" d="M118.0,28.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh ok sd-top" cx="140" cy="28.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M118.0,46 a22.0,9 0 0 0 44,0"/><text class="sd-l" x="140" y="86" text-anchor="middle">n2</text><path class="sd-sh ok" d="M198.0,28.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh ok sd-top" cx="220" cy="28.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M198.0,46 a22.0,9 0 0 0 44,0"/><text class="sd-l" x="220" y="86" text-anchor="middle">n3</text><path class="sd-sh bad" d="M278.0,28.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh bad sd-top" cx="300" cy="28.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M278.0,46 a22.0,9 0 0 0 44,0"/><text class="sd-l" x="300" y="86" text-anchor="middle">n4</text><path class="sd-sh bad" d="M358.0,28.0 v32 a22.0,9 0 0 0 44,0 v-32 a22.0,9 0 0 0 -44,0 z"/><ellipse class="sd-sh bad sd-top" cx="380" cy="28.0" rx="22.0" ry="9"/><path class="sd-ln2" d="M358.0,46 a22.0,9 0 0 0 44,0"/><text class="sd-l" x="380" y="86" text-anchor="middle">n5</text><rect class="sd-badge ok" x="445.6" y="33" width="188.8" height="22" rx="11"/><text class="sd-bt ok" x="540" y="48" text-anchor="middle">3 of 5: still a majority</text><text class="sd-n " x="320" y="108" text-anchor="middle">Two leaders would need the same node to vote twice.</text></svg></figure></li><li><h3>Undo with a saga, instead of locking everyone</h3><p>A job that touches two services cannot use one database transaction. <strong>Two-phase commit</strong> asks everyone to prepare, then commit, but if the coordinator dies in between, the rows stay locked (blocked). A <strong>saga</strong> runs the steps one by one and, if one fails, runs an <strong>undo step</strong> (a compensation) for each earlier step.</p><figure class="viz sdfig"><svg class="dg sd" viewBox="0 0 640 132" role="img" aria-label="A saga undoing steps"><defs><marker id="dga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="dg-m" d="M0,0 L10,5 L0,10 z"/></marker></defs><rect class="sd-badge ok" x="42.4" y="19" width="95.2" height="22" rx="11"/><text class="sd-bt ok" x="90" y="34" text-anchor="middle">book flight</text><line class="sd-a ok" x1="140" y1="30" x2="200" y2="30" marker-end="url(#dga)"/><rect class="sd-badge ok" x="206" y="19" width="88" height="22" rx="11"/><text class="sd-bt ok" x="250" y="34" text-anchor="middle">book hotel</text><line class="sd-a bad" x1="298" y1="30" x2="360" y2="30" marker-end="url(#dga)"/><rect class="sd-badge bad" x="362.4" y="19" width="95.2" height="22" rx="11"/><text class="sd-bt bad" x="410" y="34" text-anchor="middle">charge card</text><rect class="sd-badge ok" x="515.2" y="19" width="109.6" height="22" rx="11"/><text class="sd-bt ok" x="570" y="34" text-anchor="middle">no locks held</text><line class="sd-a warn" x1="380" y1="42" x2="296" y2="72" marker-end="url(#dga)"/><rect class="sd-badge warn" x="198.8" y="69" width="102.4" height="22" rx="11"/><text class="sd-bt warn" x="250" y="84" text-anchor="middle">release room</text><line class="sd-a warn" x1="204" y1="80" x2="140" y2="80" marker-end="url(#dga)"/><rect class="sd-badge warn" x="38.8" y="69" width="102.4" height="22" rx="11"/><text class="sd-bt warn" x="90" y="84" text-anchor="middle">release seat</text><rect class="sd-badge bad" x="515.2" y="69" width="109.6" height="22" rx="11"/><text class="sd-bt bad" x="570" y="84" text-anchor="middle">2PC can block</text><text class="sd-n " x="320" y="118" text-anchor="middle">Saga: every step has an undo. 2PC: locks held until the coordinator decides.</text></svg></figure></li></ol></section>
+<section class="sdsec" id="try"><h2><span class="n">4</span>See it for real<small>Real experiments</small></h2><p class="sub">Every output below was recorded from a real run on Debian Linux as an ordinary user. Read it line by line.</p><div class="sdexp"><p>Six experiments. First: the double charge, and the one-line fix. Then: why a fast clock loses a write, how many copies you must ask, and how a Raft cluster elects leaders until it loses its majority. Then: a retry storm against a down service, and a saga that undoes its steps.</p><article class="sdx"><h3><span class="xn">1</span>The double charge, and the fix</h3><p class="what">The double charge, with real sockets. The server charges the card and then loses the reply. The client sees no answer and, quite reasonably, retries. If each attempt is a new request, the card is charged <strong>twice</strong>. If the retry carries the <strong>same idempotency key</strong>, the server recognises it, does <strong>not</strong> charge again, and returns the stored result: one charge, and the client finally gets its answer. Nothing about the network changed; only the protocol became safe to repeat.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>naive retry (new key each time) attempt 1: no answer (connection closed)
+naive retry (new key each time) attempt 2: OK charged 50
+   cards actually charged: 2 time(s) -&gt; [&#x27;req-1&#x27;, &#x27;req-2&#x27;]
+retry with the SAME idempotency key attempt 1: no answer (connection closed)
+retry with the SAME idempotency key attempt 2: OK charged 50
+   cards actually charged: 1 time(s) -&gt; [&#x27;pay-777&#x27;]</code></pre><div class="annot"><span class="lbl">Read it line by line</span><div class="tw"><table><thead><tr><th>In the output</th><th>What it means</th></tr></thead><tbody><tr><td><code>naive retry attempt 1: no answer (connection closed)</code></td><td>the client cannot tell whether the charge happened</td></tr><tr><td><code>naive retry attempt 2: OK charged 50</code></td><td>the retry succeeded, as it should</td></tr><tr><td><code>cards actually charged: 2 time(s)</code></td><td>both attempts were executed: the customer paid twice</td></tr><tr><td><code>same key: attempt 2: OK charged 50 / charged: 1 time(s)</code></td><td>the repeat was recognised by its key and answered from the stored result</td></tr></tbody></table></div></div><details class="sdmore"><summary>Show the command and the full explanation</summary><pre class="sh"><code>mkdir -p ~/dist &amp;&amp; cd ~/dist &amp;&amp; cat &gt; lostreply.py &lt;&lt;&#x27;EOF&#x27;
+# A real TCP server that charges a card and then loses the FIRST reply (the connection is closed without answering).
+import socket, threading, time
+charges = []                                  # the effects that really happened
+results = {}                                  # idempotency key -&gt; stored result
+state = {&#x27;drop_next&#x27;: True}
+def handle(conn):
+    data = conn.recv(1024).decode().strip(); key, amount = data.split()
+    if key in results:                        # a repeat of a request we already did: return the stored answer
+        conn.sendall((&#x27;OK %s\n&#x27; % results[key]).encode()); conn.close(); return
+    charges.append((key, int(amount)))        # do the work: charge the card
+    results[key] = &#x27;charged %s&#x27; % amount
+    if state[&#x27;drop_next&#x27;]:                    # the reply is lost: close without answering
+        state[&#x27;drop_next&#x27;] = False; conn.close(); return
+    conn.sendall((&#x27;OK %s\n&#x27; % results[key]).encode()); conn.close()
+srv = socket.socket(); srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1); srv.bind((&#x27;127.0.0.1&#x27;, 7301)); srv.listen(8)
+def serve():
+    while True:
+        c, _ = srv.accept(); threading.Thread(target=handle, args=(c,)).start()
+threading.Thread(target=serve, daemon=True).start()
+def call(key, amount):
+    s = socket.create_connection((&#x27;127.0.0.1&#x27;, 7301)); s.settimeout(0.5)
+    s.sendall((&#x27;%s %d\n&#x27; % (key, amount)).encode())
+    try:
+        r = s.recv(1024).decode().strip()
+        return r or &#x27;no answer (connection closed)&#x27;
+    except socket.timeout:
+        return &#x27;timeout&#x27;
+def attempt(label, keys):
+    charges.clear(); results.clear(); state[&#x27;drop_next&#x27;] = True
+    for i, k in enumerate(keys, 1):
+        print(&#x27;%s attempt %d: %s&#x27; % (label, i, call(k, 50)))
+        if i == 1: continue
+    print(&#x27;   cards actually charged: %d time(s) -&gt; %s&#x27; % (len(charges), [c[0] for c in charges]))
+attempt(&#x27;naive retry (new key each time)&#x27;, [&#x27;req-1&#x27;, &#x27;req-2&#x27;])
+attempt(&#x27;retry with the SAME idempotency key&#x27;, [&#x27;pay-777&#x27;, &#x27;pay-777&#x27;])
+EOF
+python3 lostreply.py</code></pre><p class="muted">The same code runs on any Debian or Ubuntu machine as an ordinary user; nothing needs root.</p></details></article><article class="sdx"><h3><span class="xn">2</span>A fast clock wins the wrong write</h3><p class="what">Two experiments in one. First, the timestamp problem: node A's clock is 5 seconds fast, so write <strong>X, which happened first, is stamped 105</strong>, while write <strong>Y, which happened two seconds later, is stamped 102</strong>. "Last write wins" keeps X and silently discards Y: a real lost update caused only by clock skew. Second, Lamport clocks: each node counts events and, on receiving a message, jumps its counter past the sender's, so every effect has a higher number than its cause even though the nodes never share a clock.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>write X happened first, at true time 100.0 on node A, stamped 105.0
+write Y happened later,  at true time 102.0 on node B, stamped 102.0
+last-write-wins by timestamp keeps: X: first write    &lt;- the OLDER write won; Y was silently discarded
+Lamport timestamps: A event=1, A send=2, B receive=3, B next event=4  (cause &lt; effect always)</code></pre><div class="annot"><span class="lbl">Read it line by line</span><div class="tw"><table><thead><tr><th>In the output</th><th>What it means</th></tr></thead><tbody><tr><td><code>write X ... stamped 105.0</code></td><td>the earlier write carries the larger timestamp because its node's clock is fast</td></tr><tr><td><code>last-write-wins by timestamp keeps: X: first write</code></td><td>the older write wins: the newer write was lost without any error</td></tr><tr><td><code>Lamport timestamps: A event=1, A send=2, B receive=3, B next event=4</code></td><td>B's counter jumped past A's: causes always have lower numbers than effects</td></tr></tbody></table></div></div><details class="sdmore"><summary>Show the command and the full explanation</summary><pre class="sh"><code>python3 - &lt;&lt;&#x27;EOF&#x27;
+# Three replicas with skewed clocks. Real (true) times: write X at t=100.0 on node A, write Y at t=102.0 on node B.
+skew = {&#x27;A&#x27;: +5.0, &#x27;B&#x27;: 0.0, &#x27;C&#x27;: -2.0}                     # seconds each node&#x27;s clock is wrong by
+def stamp(node, true_time): return true_time + skew[node]
+x = (&#x27;X: first write&#x27;,  stamp(&#x27;A&#x27;, 100.0))                  # stamped 105.0
+y = (&#x27;Y: second write&#x27;, stamp(&#x27;B&#x27;, 102.0))                  # stamped 102.0
+print(&#x27;write X happened first, at true time 100.0 on node A, stamped %.1f&#x27; % x[1])
+print(&#x27;write Y happened later,  at true time 102.0 on node B, stamped %.1f&#x27; % y[1])
+winner = max((x, y), key=lambda w: w[1])
+print(&#x27;last-write-wins by timestamp keeps:&#x27;, winner[0], &#x27;   &lt;- the OLDER write won; Y was silently discarded&#x27;)
+
+# Lamport clocks: a counter that jumps past anything it has seen
+class Node:
+    def __init__(self, name): self.name, self.t = name, 0
+    def event(self): self.t += 1; return self.t
+    def send(self): return self.event()
+    def receive(self, t): self.t = max(self.t, t) + 1; return self.t
+a, b = Node(&#x27;A&#x27;), Node(&#x27;B&#x27;)
+e1 = a.event()                     # A does something
+m = a.send()                       # A sends a message to B
+e2 = b.receive(m)                  # B receives it: B&#x27;s counter jumps past A&#x27;s
+e3 = b.event()
+print(&#x27;Lamport timestamps: A event=%d, A send=%d, B receive=%d, B next event=%d  (cause &lt; effect always)&#x27; % (e1, m, e2, e3))
+EOF</code></pre><p class="muted">The same code runs on any Debian or Ubuntu machine as an ordinary user; nothing needs root.</p></details></article><article class="sdx"><h3><span class="xn">3</span>How many copies must you ask?</h3><p class="what">The quorum rule, measured by simulation. With W + R ≤ N a read can miss every replica that has the new value: the stale-read column is large (a third of reads for W=1, R=1). The moment W + R &gt; N the stale column is <strong>exactly zero</strong>, because the sets must overlap. The fault-tolerance lines show the other side of the dial: W=5, R=1 is consistent but a single failed replica stops all writes; W=3, R=3 is consistent and tolerates two failures for both.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>N=3 replicas. A write is acknowledged after W replicas have it; a read asks R replicas and takes the newest.
+ W  R  W+R&gt;N   stale reads out of 20000
+ 1  1   no      13324  (66.6%)
+ 2  1   no       6654  (33.3%)
+ 1  2   no       6629  (33.1%)
+ 2  2   yes         0  ( 0.0%)
+ 3  1   yes         0  ( 0.0%)
+
+fault tolerance with N=5:
+  W=3 R=3  consistent: yes  writes survive 2 failed replica(s), reads survive 2
+  W=5 R=1  consistent: yes  writes survive 0 failed replica(s), reads survive 4
+  W=1 R=5  consistent: yes  writes survive 4 failed replica(s), reads survive 0</code></pre><div class="annot"><span class="lbl">Read it line by line</span><div class="tw"><table><thead><tr><th>In the output</th><th>What it means</th></tr></thead><tbody><tr><td><code>W=1 R=1 ... 13324 stale (66.6%)</code></td><td>two thirds of reads miss the one replica that has the new value</td></tr><tr><td><code>W=2 R=2 ... 0 stale</code></td><td>2 + 2 &gt; 3: every read overlaps the write set</td></tr><tr><td><code>W=3 R=1 ... 0 stale</code></td><td>writing to all replicas makes any single read safe, at the cost of writes failing if any replica is down</td></tr><tr><td><code>W=3 R=3 consistent yes, writes survive 2 ...</code></td><td>a majority quorum tolerates two of five replicas failing</td></tr></tbody></table></div></div><details class="sdmore"><summary>Show the command and the full explanation</summary><pre class="sh"><code>python3 - &lt;&lt;&#x27;EOF&#x27;
+import random
+rng = random.Random(3)
+N, trials = 3, 20000
+print(&#x27;N=3 replicas. A write is acknowledged after W replicas have it; a read asks R replicas and takes the newest.&#x27;)
+print(&#x27; W  R  W+R&gt;N   stale reads out of %d&#x27; % trials)
+for W, R in ((1, 1), (2, 1), (1, 2), (2, 2), (3, 1)):
+    stale = 0
+    for _ in range(trials):
+        has_new = set(rng.sample(range(N), W))          # the W replicas that acknowledged the write (the others lag)
+        asked = set(rng.sample(range(N), R))            # the R replicas the reader happens to ask
+        if not (asked &amp; has_new): stale += 1            # the read saw no copy of the new value
+    print(&#x27;%2d %2d   %-5s   %5d  (%4.1f%%)&#x27; % (W, R, &#x27;yes&#x27; if W + R &gt; N else &#x27;no&#x27;, stale, 100 * stale / trials))
+print()
+print(&#x27;fault tolerance with N=5:&#x27;)
+for W, R in ((3, 3), (5, 1), (1, 5)):
+    print(&#x27;  W=%d R=%d  consistent: %-3s  writes survive %d failed replica(s), reads survive %d&#x27; % (W, R, &#x27;yes&#x27; if W + R &gt; 5 else &#x27;no&#x27;, 5 - W, 5 - R))
+EOF</code></pre><p class="muted">The same code runs on any Debian or Ubuntu machine as an ordinary user; nothing needs root.</p></details></article><article class="sdx"><h3><span class="xn">4</span>Electing leaders until the majority is gone</h3><p class="what">A toy Raft cluster shows the rules without the networking. The first election finds a leader with all five votes and a write commits on five nodes. After the leader crashes, the others elect a new one in a <strong>higher term</strong> and carry on. With two of five nodes down (three left) there is still a majority and writes commit. With <strong>three</strong> down (two left) no candidate can reach three votes: there is <strong>no leader</strong>, writes are refused rather than risking two sides disagreeing. The table at the end is the arithmetic to memorise: 4 nodes tolerate no more failures than 3, and 6 no more than 5, which is why clusters have odd sizes.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>term 1: node 2 times out first (176 ms), gets 5 of 5 votes -&gt; LEADER
+write &#x27;x=1&#x27; COMMITTED (stored on 5 of 5 nodes)
+--- the leader (node 2) crashes
+term 2: node 4 times out first (155 ms), gets 4 of 5 votes -&gt; LEADER
+write &#x27;x=2&#x27; COMMITTED (stored on 4 of 5 nodes)
+--- a second node crashes (3 of 5 left)
+term 3: node 3 times out first (224 ms), gets 3 of 5 votes -&gt; LEADER
+write &#x27;x=3&#x27; COMMITTED (stored on 3 of 5 nodes)
+--- a third node crashes (2 of 5 left)
+term 4: node 0 asks for votes, gets only 2 of 5 (majority is 3) -&gt; NO LEADER, cluster stops accepting writes
+write &#x27;x=4&#x27; REFUSED: no leader
+
+nodes  majority  failures tolerated
+    3         2         1
+    4         3         1
+    5         3         2
+    6         4         2
+    7         4         3</code></pre><div class="annot"><span class="lbl">Read it line by line</span><div class="tw"><table><thead><tr><th>In the output</th><th>What it means</th></tr></thead><tbody><tr><td><code>term 1: node N times out first ... 5 of 5 votes -&gt; LEADER</code></td><td>the node whose random timeout fired first wins the election</td></tr><tr><td><code>--- the leader crashes ... term 2 ... 4 of 5 votes -&gt; LEADER</code></td><td>a new election in a higher term; the cluster keeps working with four nodes</td></tr><tr><td><code>3 of 5 left ... COMMITTED (stored on 3 of 5 nodes)</code></td><td>three is still a majority of five</td></tr><tr><td><code>2 of 5 left ... NO LEADER ... REFUSED: no leader</code></td><td>no majority: the cluster stops accepting writes: consistency over availability</td></tr><tr><td><code>4 nodes: majority 3, failures tolerated 1</code></td><td>an even size adds cost but not fault tolerance</td></tr></tbody></table></div></div><details class="sdmore"><summary>Show the command and the full explanation</summary><pre class="sh"><code>python3 - &lt;&lt;&#x27;EOF&#x27;
+import random
+rng = random.Random(4)
+class Cluster:
+    def __init__(self, n):
+        self.n = n; self.alive = set(range(n)); self.term = 0; self.leader = None
+        self.log, self.committed = [], 0
+    def majority(self): return self.n // 2 + 1
+    def election(self):
+        # each living node picks a random election timeout; the earliest one becomes a candidate
+        timeouts = {i: rng.randint(150, 300) for i in self.alive}
+        cand = min(timeouts, key=timeouts.get)
+        self.term += 1
+        votes = len(self.alive)                       # every living node votes once for this term (they all grant the first request)
+        if votes &gt;= self.majority():
+            self.leader = cand
+            return &#x27;term %d: node %d times out first (%d ms), gets %d of %d votes -&gt; LEADER&#x27; % (self.term, cand, timeouts[cand], votes, self.n)
+        self.leader = None
+        return &#x27;term %d: node %d asks for votes, gets only %d of %d (majority is %d) -&gt; NO LEADER, cluster stops accepting writes&#x27; % (self.term, cand, votes, self.n, self.majority())
+    def write(self, entry):
+        if self.leader is None or self.leader not in self.alive: return &#x27;write %r REFUSED: no leader&#x27; % entry
+        self.log.append(entry); acks = len(self.alive)
+        if acks &gt;= self.majority():
+            self.committed = len(self.log); return &#x27;write %r COMMITTED (stored on %d of %d nodes)&#x27; % (entry, acks, self.n)
+        return &#x27;write %r NOT committed: only %d of %d nodes reachable&#x27; % (entry, acks, self.n)
+c = Cluster(5)
+print(c.election()); print(c.write(&#x27;x=1&#x27;))
+print(&#x27;--- the leader (node %d) crashes&#x27; % c.leader); c.alive.discard(c.leader); print(c.election()); print(c.write(&#x27;x=2&#x27;))
+print(&#x27;--- a second node crashes (3 of 5 left)&#x27;); c.alive.discard(max(c.alive)); print(c.election()); print(c.write(&#x27;x=3&#x27;))
+print(&#x27;--- a third node crashes (2 of 5 left)&#x27;); c.alive.discard(max(c.alive)); print(c.election()); print(c.write(&#x27;x=4&#x27;))
+print()
+print(&#x27;nodes  majority  failures tolerated&#x27;)
+for n in (3, 4, 5, 6, 7): print(&#x27;%5d  %8d  %8d&#x27; % (n, n // 2 + 1, n - (n // 2 + 1)))
+EOF</code></pre><p class="muted">The same code runs on any Debian or Ubuntu machine as an ordinary user; nothing needs root.</p></details></article><article class="sdx"><h3><span class="xn">5</span>A retry storm, backoff and a breaker</h3><p class="what">The same outage, three client strategies (a simulation in virtual time, so it repeats exactly). With <strong>immediate retries</strong>, 200 clients hammer the dead service every 10 ms for two seconds: 40,000 requests, all wasted, all load on a service trying to start (a real server would not survive it, even though in this simulation everyone is served the instant it returns). <strong>Exponential backoff with jitter</strong> sends about 800 requests in the same window, a fiftieth of the load, but its clients are sleeping through long delays, so the last one is served at 6.5 seconds: backoff trades some extra waiting for protection (cap the delay to tune it). Adding a <strong>circuit breaker</strong> (open for half a second, then probing) sends only 80 requests during the outage and finishes at 2.5 seconds: the best of both here, because clients wait locally for a short time and come back quickly.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>strategy                 requests        sent while down    all served at
+immediate retry             40200                  40000        2.00 s
+backoff + jitter             1006                    806        6.48 s
+backoff + breaker             280                     80        2.48 s</code></pre><div class="annot"><span class="lbl">Read it line by line</span><div class="tw"><table><thead><tr><th>In the output</th><th>What it means</th></tr></thead><tbody><tr><td><code>immediate retry: 40200 requests, 40000 while down</code></td><td>every client retries every tick: the retry storm</td></tr><tr><td><code>backoff + jitter: 806 while down, all served at 6.48 s</code></td><td>about a fiftieth of the load, but the longest delays make the last client wait until 6.5 s</td></tr><tr><td><code>backoff + breaker: 80 while down, all served at 2.48 s</code></td><td>the breaker refuses calls locally for half-second stretches, then probes: little load and quick recovery</td></tr><tr><td><code>immediate retry: all served at 2.00 s</code></td><td>the fastest recovery here, bought with 40,000 requests a real service could not have absorbed</td></tr></tbody></table></div></div><details class="sdmore"><summary>Show the command and the full explanation</summary><pre class="sh"><code>python3 - &lt;&lt;&#x27;EOF&#x27;
+import random
+# 200 clients each need ONE answer from a service that is down for the first 2 seconds. Time advances in 10 ms ticks.
+def simulate(strategy, seed=7):
+    rng = random.Random(seed)
+    done, attempts, in_outage = {}, 0, 0
+    state = [{&#x27;t&#x27;: 0, &#x27;n&#x27;: 0} for _ in range(200)]          # per-client: next attempt time and attempts so far
+    breaker = {&#x27;open_until&#x27;: -1, &#x27;fails&#x27;: 0}
+    for tick in range(0, 1000):                              # 10 seconds
+        now = tick * 10
+        for i, s in enumerate(state):
+            if i in done or s[&#x27;t&#x27;] &gt; now: continue
+            if strategy == &#x27;breaker&#x27; and now &lt; breaker[&#x27;open_until&#x27;]:      # open: fail fast without calling the service
+                s[&#x27;t&#x27;] = now + 200 + rng.randint(0, 200); continue
+            attempts += 1; s[&#x27;n&#x27;] += 1
+            ok = now &gt;= 2000                                  # the service recovers at 2 s
+            if not ok: in_outage += 1
+            if ok: done[i] = now; continue
+            if strategy == &#x27;breaker&#x27;:
+                breaker[&#x27;fails&#x27;] += 1
+                if breaker[&#x27;fails&#x27;] &gt;= 20: breaker[&#x27;open_until&#x27;], breaker[&#x27;fails&#x27;] = now + 500, 0
+            if strategy == &#x27;naive&#x27;:   s[&#x27;t&#x27;] = now + 10                                              # retry immediately, forever
+            elif strategy == &#x27;backoff&#x27;: s[&#x27;t&#x27;] = now + int(100 * 2 ** min(s[&#x27;n&#x27;], 5) * (0.5 + rng.random()))   # exponential + jitter
+            else:                     s[&#x27;t&#x27;] = now + int(100 * 2 ** min(s[&#x27;n&#x27;], 5) * (0.5 + rng.random()))
+    finish = max(done.values()) if len(done) == 200 else None
+    return attempts, in_outage, finish
+print(&#x27;%-22s %10s %22s %16s&#x27; % (&#x27;strategy&#x27;, &#x27;requests&#x27;, &#x27;sent while down&#x27;, &#x27;all served at&#x27;))
+for name in (&#x27;naive&#x27;, &#x27;backoff&#x27;, &#x27;breaker&#x27;):
+    a, o, f = simulate(name)
+    print(&#x27;%-22s %10d %22d %13s&#x27; % ({&#x27;naive&#x27;: &#x27;immediate retry&#x27;, &#x27;backoff&#x27;: &#x27;backoff + jitter&#x27;, &#x27;breaker&#x27;: &#x27;backoff + breaker&#x27;}[name], a, o, (&#x27;%.2f s&#x27; % (f / 1000)) if f else &#x27;never&#x27;))
+EOF</code></pre><p class="muted">The same code runs on any Debian or Ubuntu machine as an ordinary user; nothing needs root.</p></details></article><article class="sdx"><h3><span class="xn">6</span>A saga that undoes its steps</h3><p class="what">A saga with no global lock. The happy path runs three local steps in order. In the failing run the card step fails, so the saga walks <strong>backwards</strong> through the completed steps and runs each compensation: the hotel room and then the seat are released. Each compensation is a new business action, not a database rollback, so the world passes through intermediate states (a seat was briefly held for someone who then did not pay), which is why sagas lack isolation and why real systems show "pending" and use reservations that expire.</p><div class="out-l"><span class="stamp">Real output · Debian GNU/Linux 13 (trixie), ordinary user</span></div><pre class="out"><code>saga completed
+  book flight    done:       seat 14C held
+  book hotel     done:       room 302 held
+  charge card    done:       authorised 480
+
+saga aborted: all earlier steps compensated
+  book flight    done:       seat 14C held
+  book hotel     done:       room 302 held
+  charge card    FAILED
+  book hotel     compensate: room released
+  book flight    compensate: seat released</code></pre><div class="annot"><span class="lbl">Read it line by line</span><div class="tw"><table><thead><tr><th>In the output</th><th>What it means</th></tr></thead><tbody><tr><td><code>happy path: book flight done / book hotel done / charge card done</code></td><td>each step is a local transaction in its own service</td></tr><tr><td><code>charge card FAILED</code></td><td>a later step fails: the saga must undo the earlier ones</td></tr><tr><td><code>book hotel compensate: room released / book flight compensate: seat released</code></td><td>compensations run in reverse order, each as a new business action</td></tr></tbody></table></div></div><details class="sdmore"><summary>Show the command and the full explanation</summary><pre class="sh"><code>python3 - &lt;&lt;&#x27;EOF&#x27;
+# A saga: book flight, book hotel, charge card. Each step has a compensation; failures undo completed steps in reverse.
+log = []
+def step(name, action, undo, fail=False):
+    return dict(name=name, action=action, undo=undo, fail=fail)
+def run_saga(steps):
+    done = []
+    for s in steps:
+        if s[&#x27;fail&#x27;]:
+            log.append(&#x27;%-14s FAILED&#x27; % s[&#x27;name&#x27;])
+            for d in reversed(done): log.append(&#x27;%-14s compensate: %s&#x27; % (d[&#x27;name&#x27;], d[&#x27;undo&#x27;]))
+            return &#x27;saga aborted: all earlier steps compensated&#x27;
+        log.append(&#x27;%-14s done:       %s&#x27; % (s[&#x27;name&#x27;], s[&#x27;action&#x27;])); done.append(s)
+    return &#x27;saga completed&#x27;
+print(run_saga([step(&#x27;book flight&#x27;, &#x27;seat 14C held&#x27;, &#x27;seat released&#x27;), step(&#x27;book hotel&#x27;, &#x27;room 302 held&#x27;, &#x27;room released&#x27;), step(&#x27;charge card&#x27;, &#x27;authorised 480&#x27;, &#x27;authorisation voided&#x27;)]))
+print(&#x27;\n&#x27;.join(&#x27;  &#x27; + l for l in log)); log.clear()
+print()
+print(run_saga([step(&#x27;book flight&#x27;, &#x27;seat 14C held&#x27;, &#x27;seat released&#x27;), step(&#x27;book hotel&#x27;, &#x27;room 302 held&#x27;, &#x27;room released&#x27;), step(&#x27;charge card&#x27;, &#x27;authorised 480&#x27;, &#x27;authorisation voided&#x27;, fail=True)]))
+print(&#x27;\n&#x27;.join(&#x27;  &#x27; + l for l in log))
+EOF</code></pre><p class="muted">The same code runs on any Debian or Ubuntu machine as an ordinary user; nothing needs root.</p></details></article></div></section>
+<section class="sdsec" id="breaks"><h2><span class="n">5</span>How it breaks in production<small>Failure modes</small></h2><div class="sdgrid"><div class="sdcard bad"><h3><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg> Retry storms</h3><p>A service slows down, every client retries at once, and the extra load keeps it down. Fix: wait longer after each failure, add random jitter, cap the attempts, and let a circuit breaker stop calls to a service that is clearly failing.</p></div><div class="sdcard "><h3><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg> Clock skew</h3><p>Two machines disagree on the time, so "latest" is wrong, and an older write overwrites a newer one. Fix: order by version numbers or logical clocks, and treat wall clock time as a hint.</p></div><div class="sdcard bad"><h3><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg> Two leaders</h3><p>A network split lets two nodes both believe they lead, and each accepts writes. Fix: leadership requires a majority vote and a term number, and old leaders are fenced off.</p></div><div class="sdcard "><h3><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg> AP overdraft</h3><p>On a split network, an always-available bank account lets both sides pay out, and the cash is gone before the sides merge. Fix: for money use a CP choice (refuse without a quorum), and use AP only where a merge can repair things.</p></div><div class="sdcard bad"><h3><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg> Blocked 2PC</h3><p>The coordinator crashes after the prepare phase, and every bank is stuck holding locks, in doubt. Fix: avoid two-phase commit across services; use a saga with undo steps, and keep step handlers idempotent.</p></div><div class="sdcard "><h3><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.5v3M8 11.5h.01"/></svg> Key reuse mistakes</h3><p>An idempotency key that is generated fresh on every retry protects nothing, and one that is shared by different orders blocks real payments. Fix: create the key once per intended action and reuse it on every retry of that action.</p></div></div></section>
+<section class="sdsec" id="real"><h2><span class="n">6</span>How real companies do it<small>Real companies</small></h2><div class="sdreal"><div><b class="co">Stripe</b><div><p>The Stripe API documentation describes <strong>idempotency keys</strong>: send the same key with a retry, and the API returns the saved result of the first request instead of performing the action again.</p><a href="https://docs.stripe.com/api/idempotent_requests" target="_blank" rel="noopener">Stripe API reference: idempotent requests</a></div></div><div><b class="co">Raft</b><div><p>The Raft paper by Diego Ongaro and John Ousterhout describes a consensus algorithm designed to be easier to understand than Paxos, in which a leader is elected by a majority of the cluster.</p><a href="https://raft.github.io/raft.pdf" target="_blank" rel="noopener">In Search of an Understandable Consensus Algorithm (USENIX ATC 2014)</a></div></div><div><b class="co">Amazon</b><div><p>The Amazon Builders' Library has written about timeouts, retries, and backoff with jitter, including why retries can make an overload worse and why they should be limited.</p><a href="https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/" target="_blank" rel="noopener">Amazon Builders&#x27; Library: Timeouts, retries and backoff with jitter</a></div></div></div><p class="sdnote">Summaries of public engineering write-ups; check the linked source for details.</p></section>
+<section class="sdsec" id="interview"><h2><span class="n">7</span>In the interview<small>Top-company questions</small></h2><p class="sub">Say your answer aloud first, then compare with the model answer. These are the shapes of question candidates report, not official company lists.</p><article class="sdq"><header><span class="who">A very common payments prompt: reported by candidates at large tech companies, not official.</span><h3>&quot;A payment API call times out. What should the client do? How do you design the API?&quot;</h3><p>The most common distributed-systems interview opener. The trap is saying "retry" or "fail" without addressing the unknown outcome.</p></header><div class="body"><h4>1. Ask first</h4><ul><li><b>Is the operation safe to repeat? Who generates the identifier?</b> <span class='muted'>Charges are not naturally idempotent; the client should generate the key before the first attempt so every retry reuses it.</span></li></ul><h4>2. How to think about it</h4><ol class='think'><li><b>Name the ambiguity.</b><span>A timeout is not a failure. Three possibilities: request never arrived, server processed it and the reply was lost, or the server is still working. The client cannot distinguish them.</span></li><li><b>Make the operation idempotent.</b><span>Client sends a unique idempotency key (a UUID per intended payment) in a header. Server stores key, request fingerprint and result atomically with the effect (same transaction or unique constraint). A repeat returns the stored result.</span></li><li><b>Define the client behaviour.</b><span>Retry with the same key, bounded attempts, exponential backoff with jitter, and a total deadline. After exhausting retries, show "processing" and reconcile by querying the payment status by key rather than guessing.</span></li><li><b>Handle edge cases on the server.</b><span>Same key with a different request body is an error; the key's record expires after days; concurrent requests with the same key: the second waits or gets a conflict; do not record the key if the effect failed in a retryable way.</span></li><li><b>Offer a status endpoint.</b><span><code>GET /payments/{key}</code> lets the client (or a reconciliation job) learn the real outcome after an unknown result.</span></li><li><b>Say what it costs.</b><span>Storage and lookup of keys, and discipline: every mutating endpoint that might be retried needs the same treatment.</span></li></ol><h4>3. How to say it</h4><div class="say"><span class="lbl2">A model answer, about two minutes aloud</span><p>"A timeout means I do not know: the request may never have arrived, or it may have succeeded with the reply lost. So the client must not assume failure. I would make the payment endpoint idempotent: the client generates a unique idempotency key before the first attempt and sends it with every retry. The server stores the key and the result in the same transaction as the charge, so a repeat returns the stored result instead of charging again.</p><p>On the client I retry with the same key, a bounded number of times, with exponential backoff and jitter and an overall deadline; if it is still unknown I show a processing state and look up the payment by key rather than guessing. The server rejects the same key with a different body, expires keys after a few days, and handles two concurrent requests with the same key safely. A status endpoint lets reconciliation find the real outcome. The cost is storing keys and applying the same discipline to every mutating endpoint that can be retried."</p></div><h4>4. Likely follow-ups</h4><details><summary>Who should generate the idempotency key?</summary><p>The client, before the first attempt, so that retries reuse it; a server-generated id would be lost with the lost reply.</p></details><details><summary>How long do you keep keys?</summary><p>Longer than any client could plausibly retry (commonly 24 hours to a few days); then expire to bound storage.</p></details><details><summary>What if the server crashes between charging and recording the key?</summary><p>That is why the effect and the key must be committed atomically (one transaction); for external effects, use the provider's idempotency key as well.</p></details><h4>Common slips</h4><ul class='slips'><li>Answering "just retry" or "treat it as failed".</li><li>Generating the key on the server.</li><li>Storing the key outside the transaction that performs the effect.</li></ul></div></article><article class="sdq"><header><span class="who">A classic distributed systems question: reported by candidates, not official.</span><h3>&quot;Explain CAP and PACELC with an example. Would you choose CP or AP for a shopping cart? For a bank balance?&quot;</h3><p>They want you to move past the "pick two" slogan and tie the choice to the data.</p></header><div class="body"><h4>1. Ask first</h4><ul><li><b>What does a user see when the system is wrong or unavailable, and what does it cost?</b> <span class='muted'>Overdrawing an account costs money; a briefly stale cart costs little.</span></li></ul><h4>2. How to think about it</h4><ol class='think'><li><b>State CAP precisely.</b><span>In the presence of a network partition, a replicated system must choose between consistency (linearizable reads and writes) and availability (every request to a non-failed node gets a response). Partitions are not optional, so "CA" is not a design choice for a distributed system.</span></li><li><b>Add PACELC.</b><span>When there is no partition you still trade latency against consistency, for example by waiting for synchronous replicas or a quorum.</span></li><li><b>Give examples.</b><span>CP: a single-leader database with synchronous replicas, ZooKeeper, etcd (the minority side stops). AP: Dynamo-style stores, Cassandra with low consistency levels, DNS (answer always, reconcile later).</span></li><li><b>Decide by the data.</b><span>Bank balance and inventory at checkout: CP, because incorrect answers are expensive. Shopping cart, likes, session data, product catalogue reads: AP with merging, because availability matters more and conflicts are mergeable.</span></li><li><b>Mention tunability.</b><span>Per operation: quorum reads and writes (W + R &gt; N) for the critical paths; weaker settings elsewhere. Most systems are not simply CP or AP.</span></li><li><b>Say how AP systems reconcile.</b><span>Read repair, anti-entropy, version vectors, CRDTs, or application-level merge; last-write-wins only where losing a write is acceptable.</span></li></ol><h4>3. How to say it</h4><div class="say"><span class="lbl2">A model answer, about two minutes aloud</span><p>"CAP says that when the network partitions, a replicated system must choose between consistency, meaning reads and writes behave as if there is one up-to-date copy, and availability, meaning every request to a working node gets an answer. Partitions will happen, so it is really a choice between C and A during a partition. PACELC adds that even without a partition there is a trade-off between latency and consistency, for example how many replicas I wait for.</p><p>For a bank balance I would choose consistency: a single leader or a quorum, refusing on the minority side, because a wrong answer costs money. For a shopping cart I would choose availability with a merge rule, such as a union of items using version vectors or a CRDT, because being able to add to the cart matters more and conflicts are easy to merge. Most real systems let me tune this per operation with quorum settings, so I would use strong settings on the critical paths and weaker ones elsewhere."</p></div><h4>4. Likely follow-ups</h4><details><summary>What is the difference between CAP consistency and ACID consistency?</summary><p>CAP consistency is linearizability (all nodes agree on the latest value); ACID consistency means the database moves between states that satisfy its constraints.</p></details><details><summary>What is eventual consistency?</summary><p>If updates stop, all replicas converge to the same value; in the meantime reads can return older values.</p></details><details><summary>What is read repair?</summary><p>When a read finds replicas disagreeing it writes the newest version back to the stale ones, healing divergence lazily.</p></details><h4>Common slips</h4><ul class='slips'><li>"Pick two of three" as the whole answer.</li><li>Saying we choose CA.</li><li>Labelling a whole system CP or AP when it is tunable per request.</li></ul></div></article><article class="sdq"><header><span class="who">A frequent follow-up on cross-service consistency: reported by candidates, not official.</span><h3>&quot;A transfer touches two services with separate databases. How do you keep it atomic?&quot;</h3><p>The distributed transaction question. They want to hear why 2PC is avoided, how a saga works, and what you give up.</p></header><div class="body"><h4>1. Ask first</h4><ul><li><b>Do both services support a prepare phase? Is temporary inconsistency acceptable?</b> <span class='muted'>Independent services usually do not share a transaction manager; a few seconds of "pending" is normally fine.</span></li></ul><h4>2. How to think about it</h4><ol class='think'><li><b>Say why not a distributed ACID transaction.</b><span>2PC needs every participant to support it, holds locks across network round trips, blocks if the coordinator fails, and hurts availability and throughput.</span></li><li><b>Describe the saga.</b><span>A sequence of local transactions with compensations. Debit account A (local), then credit account B (local); if crediting fails, compensate by refunding A.</span></li><li><b>Choose orchestration or choreography.</b><span>Orchestration: a coordinator service holds the saga state and calls each step (clear, easier to monitor, a central component). Choreography: each service listens for events and emits the next (decoupled, harder to follow as it grows).</span></li><li><b>Make every step safe to repeat.</b><span>Idempotency keys on every step and compensation; the saga state and messages stored durably with the outbox pattern; retries with backoff; a dead-letter queue for stuck sagas with alerts.</span></li><li><b>Handle isolation.</b><span>Intermediate states are visible: use a pending/held status, reserve before commit, order the steps so the hardest to undo comes last, and expire reservations.</span></li><li><b>Offer the simpler alternative.</b><span>If both pieces of data can live in one database, use one local transaction and avoid the problem; split services only where the benefit outweighs this cost.</span></li></ol><h4>3. How to say it</h4><div class="say"><span class="lbl2">A model answer, about two minutes aloud</span><p>"I would avoid a distributed ACID transaction: two-phase commit needs every participant to support it, holds locks across network calls and blocks if the coordinator dies, which hurts availability and throughput. Instead I would use a saga: debit account A in its own local transaction, then credit account B in its own; if the credit fails, run a compensation that refunds A.</p><p>I would orchestrate it from a service that stores the saga state durably, using the outbox pattern so the state and messages stay consistent. Every step and compensation carries an idempotency key and is retried with backoff, and stuck sagas go to a dead-letter queue with an alert. Because intermediate states are visible I would show a pending status and use reservations that expire. And if the two pieces of data can live in one database, a local transaction is simpler than any of this."</p></div><h4>4. Likely follow-ups</h4><details><summary>Orchestration or choreography?</summary><p>Orchestration for processes with many steps and clear ownership (easier to see state and debug); choreography for small, loosely coupled flows, at the risk of an implicit, hard-to-follow workflow.</p></details><details><summary>What if a compensation fails?</summary><p>Retry it (idempotently) until it succeeds, alert if it cannot; some steps need manual resolution, which is why steps are ordered by reversibility.</p></details><details><summary>How is a saga different from a transaction?</summary><p>No isolation and no automatic rollback: intermediate states are visible and undoing is a new business action.</p></details><h4>Common slips</h4><ul class='slips'><li>Proposing 2PC between independent microservices.</li><li>Compensations that are not idempotent.</li><li>Ignoring the intermediate states users and other services can see.</li></ul></div></article></section>
+<section class="sdsec" id="recap"><h2><span class="n">8</span>Remember this<small>Recap</small></h2><div class="sdrecap"><h3 style="margin:12px 0 0">The page in 6 lines</h3><ul><li>A timeout means "I do not know": the work may or may not have happened.</li><li>Idempotency keys make retries safe: the server returns the first result for a repeated key.</li><li>Retry with growing waits, jitter and a cap, and use a circuit breaker so you stop hammering a failing service.</li><li>Wall clocks lie: order events with counters or version vectors, not timestamps.</li><li>With N copies, W plus R greater than N makes reads see the latest write; a split network forces a CP or AP choice.</li><li>Raft elects one leader by majority; across services prefer a saga with undo steps to two-phase commit.</li></ul></div><h3 style="margin:18px 0 6px">Check yourself</h3><details><summary>The payment call times out. What do you do?</summary><p>Retry with the same idempotency key, so a repeated request cannot charge twice.</p></details><details><summary>Why not order events by timestamp across servers?</summary><p>Clocks disagree, so an older write can look newer. Use logical clocks or version vectors.</p></details><details><summary>Why prefer a saga to two-phase commit?</summary><p>2PC holds locks and can block if the coordinator dies; a saga runs steps one by one and undoes them if a later step fails.</p></details><p class="sub" style="margin-top:14px">Want every experiment, lab and edge case? The reference lessons for this topic:</p><div class="sddeeper"><a href="../systems/S22_distributed_systems.html#l1"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Partial failure and idempotency</a><a href="../systems/S22_distributed_systems.html#l2"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Time and ordering</a><a href="../systems/S22_distributed_systems.html#l3"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Quorums and CAP</a><a href="../systems/S22_distributed_systems.html#l4"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Consensus and Raft</a><a href="../systems/S22_distributed_systems.html#l5"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Retries and circuit breakers</a><a href="../systems/S22_distributed_systems.html#l6"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M9 3.5 13.5 8 9 12.5"/></svg> Two-phase commit and sagas</a></div></section>
+<nav class="sdfoot"><a class="" href="06-queues.html"><small>Previous</small><strong>Do not make people wait</strong></a><a class="r" href="08-reliability.html"><small>Next</small><strong>Keep it up</strong></a></nav></main></div>
+<footer class="site-foot"><span>Mastery: free, open study sheets. Progress is saved in your browser only.</span><span><a href="index.html">Course map</a> · <a href="https://github.com/nithin988/dsa-mastery" target="_blank" rel="noopener">GitHub</a></span></footer>
+<script>(function(){var IC={};
+var slug=document.body.getAttribute('data-sd'),K='sd2-done';
+function get(){try{return JSON.parse(localStorage.getItem(K)||'{}')}catch(e){return{}}}
+var cb=document.getElementById('sd-done');if(cb){var s=get();cb.checked=!!s[slug];cb.onchange=function(){var s=get();if(cb.checked)s[slug]=1;else delete s[slug];try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}}}
+var links=[].slice.call(document.querySelectorAll('.sdnav a'));var secs=links.map(function(a){return document.querySelector(a.getAttribute('href'))}).filter(Boolean);
+if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(a){a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id)})}})},{rootMargin:'-20% 0px -70% 0px'});secs.forEach(function(s){io.observe(s)})}
+var tb=document.getElementById('b-theme');if(tb){var R=document.documentElement;var t=null;try{t=localStorage.getItem('theme')}catch(e){}if(t)R.setAttribute('data-theme',t);tb.onclick=function(){var n=R.getAttribute('data-theme')==='dark'?'light':'dark';R.setAttribute('data-theme',n);try{localStorage.setItem('theme',n)}catch(e){}}}
+})();</script>
+</body></html>
